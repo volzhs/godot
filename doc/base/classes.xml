@@ -41501,6 +41501,17 @@ This method controls whether the position between two cached points is interpola
 			<description>
 			</description>
 		</method>
+		<method name="get_linear_velocity" qualifiers="const">
+			<return type="Vector3">
+			</return>
+			<description>
+			Returns the VehicleBody's velocity vector. To get the absolute speed in scalar value, get the length of the return vector in pixels/second. Example:
+			[codeblock]
+			# vehicle is an instance of VehicleBody
+			var speed = vehicle.get_linear_velocity().length()
+			[/codeblock]
+			</description>
+		</method>
 	</methods>
 	<constants>
 	</constants>
