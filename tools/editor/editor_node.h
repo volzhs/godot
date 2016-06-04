@@ -169,7 +169,7 @@ private:
 		RUN_SETTINGS,
 		RUN_PROJECT_MANAGER,
 		RUN_FILE_SERVER,
-		RUN_DEPLOY_DUMB_CLIENTS,
+		//RUN_DEPLOY_DUMB_CLIENTS,
 		RUN_LIVE_DEBUG,
 		RUN_DEBUG_COLLISONS,
 		RUN_DEBUG_NAVIGATION,
@@ -272,6 +272,7 @@ private:
 	SceneTreeDock *scene_tree_dock;
 	//ResourcesDock *resources_dock;
 	PropertyEditor *property_editor;
+	ConnectionsDock *connections_dock;
 	VBoxContainer *prop_editor_vb;
 	ScenesDock *scenes_dock;
 	EditorRunNative *run_native;
