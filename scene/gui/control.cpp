@@ -223,7 +223,7 @@ bool Control::_get(const StringName& p_name,Variant &r_ret) const {
 
 	String sname=p_name;
 
-	if (!sname.begins_with("custom"))
+	if (!sname.begins_with("custom")) {
 		if (sname.begins_with("margin/")) {
 			String dname = sname.get_slicec('/', 1);
 			if (dname == "left") {
@@ -248,6 +248,7 @@ bool Control::_get(const StringName& p_name,Variant &r_ret) const {
 		} else {
 			return false;
 		}
+	}
 
 	if (sname.begins_with("custom_icons/")) {
 		String name = sname.get_slicec('/',1);
@@ -436,11 +437,17 @@ void Control::_notification(int p_notification) {
 
 			if (is_set_as_toplevel()) {
 				data.SI=get_viewport()->_gui_add_subwindow_control(this);
+
+				if (data.theme.is_null() && data.parent && data.parent->data.theme_owner) {
+					data.theme_owner=data.parent->data.theme_owner;
+					notification(NOTIFICATION_THEME_CHANGED);
+				}
+
 			} else {
 
 
 				Node *parent=this; //meh
-				Node *parent_control=NULL;
+				Control *parent_control=NULL;
 				bool subwindow=false;
 
 				while(parent) {
@@ -456,8 +463,9 @@ void Control::_notification(int p_notification) {
 						break;
 					}
 
-					if (parent->cast_to<Control>()) {
-						parent_control=parent->cast_to<Control>();
+					parent_control=parent->cast_to<Control>();
+
+					if (parent_control) {
 						break;
 					} else if (ci) {
 
@@ -469,6 +477,10 @@ void Control::_notification(int p_notification) {
 
 				if (parent_control) {
 					//do nothing, has a parent control
+					if (data.theme.is_null() && parent_control->data.theme_owner) {
+						data.theme_owner=parent_control->data.theme_owner;
+						notification(NOTIFICATION_THEME_CHANGED);
+					}
 				} else if (subwindow) {
 					//is a subwindow (process input before other controls for that canvas)
 					data.SI=get_viewport()->_gui_add_subwindow_control(this);
@@ -489,6 +501,10 @@ void Control::_notification(int p_notification) {
 			}
 
 
+			if (data.theme.is_null() && data.parent && data.parent->data.theme_owner) {
+				data.theme_owner=data.parent->data.theme_owner;
+				notification(NOTIFICATION_THEME_CHANGED);
+			}
 
 		} break;
 		case NOTIFICATION_EXIT_CANVAS: {
@@ -520,26 +536,9 @@ void Control::_notification(int p_notification) {
 
 			data.parent=NULL;
 			data.parent_canvas_item=NULL;
-
-		} break;
-
-
-		case NOTIFICATION_PARENTED: {
-
-			Control * parent = get_parent()->cast_to<Control>();
-
-			//make children reference them theme
-
-			if (parent && data.theme.is_null() && parent->data.theme_owner) {
-				_propagate_theme_changed(parent->data.theme_owner);
-			}
-
-		} break;
-		case NOTIFICATION_UNPARENTED: {
-
-			//make children unreference the theme
-			if (data.theme.is_null() && data.theme_owner) {
-				_propagate_theme_changed(NULL);
+			if (data.theme_owner && data.theme.is_null()) {
+				data.theme_owner=NULL;
+				//notification(NOTIFICATION_THEME_CHANGED);
 			}
 
 		} break;
@@ -785,7 +784,7 @@ Ref<Texture> Control::get_icon(const StringName& p_name,const StringName& p_type
 	while(theme_owner) {
 
 		if (theme_owner->data.theme->has_icon(p_name, type ) )
-			return data.theme_owner->data.theme->get_icon(p_name, type );
+			return theme_owner->data.theme->get_icon(p_name, type );
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -815,7 +814,7 @@ Ref<Shader> Control::get_shader(const StringName& p_name,const StringName& p_typ
 	while(theme_owner) {
 
 		if (theme_owner->data.theme->has_shader(p_name, type))
-			return data.theme_owner->data.theme->get_shader(p_name, type );
+			return theme_owner->data.theme->get_shader(p_name, type );
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -843,8 +842,9 @@ Ref<StyleBox> Control::get_stylebox(const StringName& p_name,const StringName& p
 
 	while(theme_owner) {
 
-		if (theme_owner->data.theme->has_stylebox(p_name, type ) )
-			return data.theme_owner->data.theme->get_stylebox(p_name, type );
+		if (theme_owner->data.theme->has_stylebox(p_name, type ) ) {
+			return theme_owner->data.theme->get_stylebox(p_name, type );
+		}
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -872,7 +872,7 @@ Ref<Font> Control::get_font(const StringName& p_name,const StringName& p_type) c
 	while(theme_owner) {
 
 		if (theme_owner->data.theme->has_font(p_name, type ) )
-			return data.theme_owner->data.theme->get_font(p_name, type );
+			return theme_owner->data.theme->get_font(p_name, type );
 		if (theme_owner->data.theme->get_default_theme_font().is_valid())
 			return theme_owner->data.theme->get_default_theme_font();
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
@@ -902,7 +902,7 @@ Color Control::get_color(const StringName& p_name,const StringName& p_type) cons
 	while(theme_owner) {
 
 		if (theme_owner->data.theme->has_color(p_name, type ) )
-			return data.theme_owner->data.theme->get_color(p_name, type );
+			return theme_owner->data.theme->get_color(p_name, type );
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -931,7 +931,7 @@ int Control::get_constant(const StringName& p_name,const StringName& p_type) con
 	while(theme_owner) {
 
 		if (theme_owner->data.theme->has_constant(p_name, type ) )
-			return data.theme_owner->data.theme->get_constant(p_name, type );
+			return theme_owner->data.theme->get_constant(p_name, type );
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -1840,18 +1840,29 @@ void Control::_modal_stack_remove() {
 
 }
 
-void Control::_propagate_theme_changed(Control *p_owner) {
+void Control::_propagate_theme_changed(CanvasItem *p_at,Control *p_owner) {
 
-	for(int i=0;i<get_child_count();i++) {
+	Control *c = p_at->cast_to<Control>();
 
-		Control *child = get_child(i)->cast_to<Control>();
-		if (child && child->data.theme.is_null()) //has no theme, propagate
-			child->_propagate_theme_changed(p_owner);
+	if (c && c!=p_owner && c->data.theme.is_valid())	// has a theme, this can't be propagated
+		return;
+
+	for(int i=0;i<p_at->get_child_count();i++) {
+
+		CanvasItem *child = p_at->get_child(i)->cast_to<CanvasItem>();
+		if (child) {
+			_propagate_theme_changed(child,p_owner);
+		}
+
 	}
 
-	data.theme_owner=p_owner;
-	_notification(NOTIFICATION_THEME_CHANGED);
-	update();
+
+	if (c) {
+
+		c->data.theme_owner=p_owner;
+		c->_notification(NOTIFICATION_THEME_CHANGED);
+		c->update();
+	}
 }
 
 void Control::set_theme(const Ref<Theme>& p_theme) {
@@ -1860,15 +1871,15 @@ void Control::set_theme(const Ref<Theme>& p_theme) {
 	data.theme=p_theme;
 	if (!p_theme.is_null()) {
 
-		_propagate_theme_changed(this);
+		_propagate_theme_changed(this,this);
 	} else {
 
 		Control *parent = get_parent()?get_parent()->cast_to<Control>():NULL;
 		if (parent && parent->data.theme_owner) {
-			_propagate_theme_changed(parent->data.theme_owner);
+			_propagate_theme_changed(this,parent->data.theme_owner);
 		} else {
 
-			_propagate_theme_changed(NULL);
+			_propagate_theme_changed(this,NULL);
 		}
 
 	}
