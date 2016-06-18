@@ -65,7 +65,6 @@
 #include "tools/editor/editor_log.h"
 #include "tools/editor/scene_tree_dock.h"
 #include "tools/editor/resources_dock.h"
-#include "tools/editor/optimized_save_dialog.h"
 #include "tools/editor/editor_run_script.h"
 
 #include "tools/editor/editor_run_native.h"
@@ -693,6 +692,7 @@ public:
 	static void unregister_editor_types();
 
 	Control *get_gui_base() { return gui_base; }
+	Control *get_theme_base() { return gui_base->get_parent_control(); }
 
 	static void add_io_error(const String& p_error);
 
