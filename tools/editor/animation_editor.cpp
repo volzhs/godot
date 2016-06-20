@@ -754,7 +754,7 @@ void AnimationKeyEditor::_menu_track(int p_type) {
 
 				undo_redo->add_undo_method(animation.ptr(),"track_set_interpolation_type",idx,animation->track_get_interpolation_type(idx));
 				if (animation->track_get_type(idx)==Animation::TYPE_VALUE) {
-					undo_redo->add_undo_method(animation.ptr(),"value_track_set_continuous",idx,animation->value_track_is_continuous(idx));
+					undo_redo->add_undo_method(animation.ptr(),"value_track_set_update_mode",idx,animation->value_track_get_update_mode(idx));
 
 				}
 
@@ -918,7 +918,7 @@ void AnimationKeyEditor::_menu_track(int p_type) {
 				pos=animation->get_length();
 			timeline_pos=pos;
 			track_pos->update();
-			emit_signal("timeline_changed",pos);
+			emit_signal("timeline_changed",pos,true);
 
 		} break;
 		case TRACK_MENU_PREV_STEP: {
@@ -934,7 +934,7 @@ void AnimationKeyEditor::_menu_track(int p_type) {
 				pos=0;
 			timeline_pos=pos;
 			track_pos->update();
-			emit_signal("timeline_changed",pos);
+			emit_signal("timeline_changed",pos,true);
 
 
 		} break;
@@ -1169,8 +1169,9 @@ void AnimationKeyEditor::_track_editor_draw() {
 		get_icon("InterpCubic","EditorIcons")
 	};
 	Ref<Texture> cont_icon[3]={
+		get_icon("TrackContinuous","EditorIcons"),
 		get_icon("TrackDiscrete","EditorIcons"),
-		get_icon("TrackContinuous","EditorIcons")
+		get_icon("TrackTrigger","EditorIcons")
 	};
 	Ref<Texture> type_icon[3]={
 		get_icon("KeyValue","EditorIcons"),
@@ -1442,15 +1443,15 @@ void AnimationKeyEditor::_track_editor_draw() {
 		if (animation->track_get_type(idx)==Animation::TYPE_VALUE) {
 
 
-			int continuous = animation->value_track_is_continuous(idx)?1:0;
+			int umode = animation->value_track_get_update_mode(idx);
 
 			icon_ofs.x-=hsep;
 			icon_ofs.x-=down_icon->get_width();
 			te->draw_texture(down_icon,icon_ofs);
 
 			icon_ofs.x-=hsep;
-			icon_ofs.x-=cont_icon[continuous]->get_width();
-			te->draw_texture(cont_icon[continuous],icon_ofs);
+			icon_ofs.x-=cont_icon[umode]->get_width();
+			te->draw_texture(cont_icon[umode],icon_ofs);
 		} else {
 
 			icon_ofs.x -= hsep*2 + cont_icon[0]->get_width() + down_icon->get_width();
@@ -1626,8 +1627,8 @@ void AnimationKeyEditor::_track_menu_selected(int p_idx) {
 		ERR_FAIL_INDEX(cont_editing,animation->get_track_count());
 
 		undo_redo->create_action(TTR("Anim Track Change Value Mode"));
-		undo_redo->add_do_method(animation.ptr(),"value_track_set_continuous",cont_editing,p_idx);
-		undo_redo->add_undo_method(animation.ptr(),"value_track_set_continuous",cont_editing,animation->value_track_is_continuous(cont_editing));
+		undo_redo->add_do_method(animation.ptr(),"value_track_set_update_mode",cont_editing,p_idx);
+		undo_redo->add_undo_method(animation.ptr(),"value_track_set_update_mode",cont_editing,animation->value_track_get_update_mode(cont_editing));
 		undo_redo->commit_action();
 	}
 
@@ -1820,8 +1821,9 @@ void AnimationKeyEditor::_track_editor_input_event(const InputEvent& p_input) {
 		get_icon("InterpCubic","EditorIcons")
 	};
 	Ref<Texture> cont_icon[3]={
+		get_icon("TrackContinuous","EditorIcons"),
 		get_icon("TrackDiscrete","EditorIcons"),
-		get_icon("TrackContinuous","EditorIcons")
+		get_icon("TrackTrigger","EditorIcons")
 	};
 	Ref<Texture> type_icon[3]={
 		get_icon("KeyValue","EditorIcons"),
@@ -1972,7 +1974,7 @@ void AnimationKeyEditor::_track_editor_input_event(const InputEvent& p_input) {
 							click.click=ClickOver::CLICK_DRAG_TIMELINE;
 							click.at=Point2(mb.x,mb.y);
 							click.to=click.at;
-							emit_signal("timeline_changed",pos);
+							emit_signal("timeline_changed",pos,false);
 
 						}
 
@@ -2184,8 +2186,8 @@ void AnimationKeyEditor::_track_editor_input_event(const InputEvent& p_input) {
 
 							track_menu->clear();
 							track_menu->set_size(Point2(1,1));
-							static const char *cont_name[3]={"Discrete","Continuous"};
-							for(int i=0;i<2;i++) {
+							String cont_name[3]={TTR("Continuous"),TTR("Discrete"),TTR("Trigger")};
+							for(int i=0;i<3;i++) {
 								track_menu->add_icon_item(cont_icon[i],cont_name[i]);
 							}
 
@@ -2594,7 +2596,7 @@ void AnimationKeyEditor::_track_editor_input_event(const InputEvent& p_input) {
 						}
 
 						timeline_pos=pos;
-						emit_signal("timeline_changed",pos);
+						emit_signal("timeline_changed",pos,true);
 
 
 
@@ -2920,6 +2922,7 @@ void AnimationKeyEditor::_notification(int p_what) {
 				edit_button->connect("pressed",this,"_toggle_edit_curves");
 
 				loop->set_icon(get_icon("Loop","EditorIcons"));
+				loop_interpolation->set_icon(get_icon("LoopInterpolation","EditorIcons"));
 				curve_edit->connect("transition_changed",this,"_curve_transition_changed");
 
 				//edit_button->add_color_override("font_color",get_color("font_color","Tree"));
@@ -2940,8 +2943,9 @@ void AnimationKeyEditor::_notification(int p_what) {
 						get_icon("InterpCubic","EditorIcons")
 					};
 					Ref<Texture> cont_icon[3]={
+						get_icon("TrackContinuous","EditorIcons"),
 						get_icon("TrackDiscrete","EditorIcons"),
-						get_icon("TrackContinuous","EditorIcons")
+						get_icon("TrackTrigger","EditorIcons")
 					};
 
 					//right_data_size_cache = remove_icon->get_width() + move_up_icon->get_width() + move_down_icon->get_width() + down_icon->get_width() *2 + interp_icon[0]->get_width() + cont_icon[0]->get_width() + add_key_icon->get_width() + hsep*11;
@@ -3009,6 +3013,7 @@ void AnimationKeyEditor::_update_menu() {
 
 		length->set_val(animation->get_length());
 		loop->set_pressed(animation->has_loop());
+		loop_interpolation->set_pressed(animation->has_loop_interpolation());
 		step->set_val(animation->get_step());
 	}
 
@@ -3311,7 +3316,7 @@ int AnimationKeyEditor::_confirm_insert(InsertData p_id,int p_last_track) {
 
 		created=true;
 		undo_redo->create_action(TTR("Anim Insert Track & Key"));
-		bool continuous=false;
+		Animation::UpdateMode update_mode=Animation::UPDATE_DISCRETE;
 
 		if (p_id.type==Animation::TYPE_VALUE) {
 			//wants a new tack
@@ -3324,16 +3329,21 @@ int AnimationKeyEditor::_confirm_insert(InsertData p_id,int p_last_track) {
 				PropertyInfo h = _find_hint_for_track(animation->get_track_count()-1,np);
 				animation->remove_track(animation->get_track_count()-1); //hack
 
-
-				continuous =
-					h.type==Variant::REAL ||
+				if  (	h.type==Variant::REAL ||
 					h.type==Variant::VECTOR2 ||
 					h.type==Variant::RECT2 ||
 					h.type==Variant::VECTOR3 ||
 					h.type==Variant::_AABB ||
 					h.type==Variant::QUAT ||
 					h.type==Variant::COLOR ||
-					h.type==Variant::TRANSFORM ;
+					h.type==Variant::TRANSFORM ) {
+
+					update_mode=Animation::UPDATE_CONTINUOUS;
+				}
+
+				if (h.usage&PROPERTY_USAGE_ANIMATE_AS_TRIGGER) {
+					update_mode=Animation::UPDATE_TRIGGER;
+				}
 			}
 		}
 
@@ -3342,7 +3352,7 @@ int AnimationKeyEditor::_confirm_insert(InsertData p_id,int p_last_track) {
 		undo_redo->add_do_method(animation.ptr(),"add_track",p_id.type);
 		undo_redo->add_do_method(animation.ptr(),"track_set_path",p_id.track_idx,p_id.path);
 		if (p_id.type==Animation::TYPE_VALUE)
-			undo_redo->add_do_method(animation.ptr(),"value_track_set_continuous",p_id.track_idx,continuous);
+			undo_redo->add_do_method(animation.ptr(),"value_track_set_update_mode",p_id.track_idx,update_mode);
 
 	} else {
 		undo_redo->create_action(TTR("Anim Insert Key"));
@@ -3459,6 +3469,21 @@ void AnimationKeyEditor::_animation_loop_changed() {
 
 }
 
+void AnimationKeyEditor::_animation_loop_interpolation_changed() {
+
+	if (updating)
+		return;
+
+	if (!animation.is_null()) {
+
+		undo_redo->create_action(TTR("Change Anim Loop Interpolation"));
+		undo_redo->add_do_method(animation.ptr(),"set_loop_interpolation",loop_interpolation->is_pressed());
+		undo_redo->add_undo_method(animation.ptr(),"set_loop_interpolation",!loop_interpolation->is_pressed());
+		undo_redo->commit_action();
+	}
+
+}
+
 
 void AnimationKeyEditor::_create_value_item(int p_type) {
 
@@ -3536,7 +3561,7 @@ void AnimationKeyEditor::_insert_delay() {
 			pos=animation->get_length();
 		timeline_pos=pos;
 		track_pos->update();
-		emit_signal("timeline_changed",pos);
+		emit_signal("timeline_changed",pos,true);
 	}
 	insert_queue=false;
 }
@@ -3744,6 +3769,7 @@ void AnimationKeyEditor::_bind_methods() {
 
 
 	ObjectTypeDB::bind_method(_MD("_animation_loop_changed"),&AnimationKeyEditor::_animation_loop_changed);
+	ObjectTypeDB::bind_method(_MD("_animation_loop_interpolation_changed"),&AnimationKeyEditor::_animation_loop_interpolation_changed);
 	ObjectTypeDB::bind_method(_MD("_animation_len_changed"),&AnimationKeyEditor::_animation_len_changed);
 	ObjectTypeDB::bind_method(_MD("_create_value_item"),&AnimationKeyEditor::_create_value_item);
 	ObjectTypeDB::bind_method(_MD("_pane_drag"),&AnimationKeyEditor::_pane_drag);
@@ -3759,7 +3785,7 @@ void AnimationKeyEditor::_bind_methods() {
 
 	ADD_SIGNAL( MethodInfo("resource_selected", PropertyInfo( Variant::OBJECT, "res"),PropertyInfo( Variant::STRING, "prop") ) );
 	ADD_SIGNAL( MethodInfo("keying_changed" ) );
-	ADD_SIGNAL( MethodInfo("timeline_changed", PropertyInfo(Variant::REAL,"pos") ) );
+	ADD_SIGNAL( MethodInfo("timeline_changed", PropertyInfo(Variant::REAL,"pos"), PropertyInfo(Variant::BOOL,"drag") ) );
 	ADD_SIGNAL( MethodInfo("animation_len_changed", PropertyInfo(Variant::REAL,"len") ) );
 	ADD_SIGNAL( MethodInfo("animation_step_changed", PropertyInfo(Variant::REAL,"step") ) );
 	ADD_SIGNAL( MethodInfo("key_edited", PropertyInfo(Variant::INT,"track"), PropertyInfo(Variant::INT,"key") ) );
@@ -3853,6 +3879,12 @@ AnimationKeyEditor::AnimationKeyEditor() {
 	loop->connect("pressed",this,"_animation_loop_changed");
 	hb->add_child(loop);
 	loop->set_tooltip(TTR("Enable/Disable looping in animation."));
+
+	loop_interpolation = memnew( ToolButton );
+	loop_interpolation->set_toggle_mode(true);
+	loop_interpolation->connect("pressed",this,"_animation_loop_interpolation_changed");
+	hb->add_child(loop_interpolation);
+	loop_interpolation->set_tooltip(TTR("Enable/Disable interpolation when looping animation."));
 
 	hb->add_child( memnew( VSeparator ) );
 

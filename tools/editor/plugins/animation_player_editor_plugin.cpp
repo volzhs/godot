@@ -952,7 +952,7 @@ void AnimationPlayerEditor::_animation_duplicate() {
 
 }
 
-void AnimationPlayerEditor::_seek_value_changed(float p_value) {
+void AnimationPlayerEditor::_seek_value_changed(float p_value,bool p_set) {
 
 	if (updating || !player || player->is_playing()) {
 		return;
@@ -980,13 +980,14 @@ void AnimationPlayerEditor::_seek_value_changed(float p_value) {
 			pos=anim->get_length();
 	}
 
-	if (player->is_valid()) {
+	if (player->is_valid() && !p_set) {
 		float cpos = player->get_current_animation_pos();
 
 		player->seek_delta(pos,pos-cpos);
 	} else {
 		player->seek(pos,true);
 	}
+
 
 	key_editor->set_anim_pos(pos);
 
@@ -1078,6 +1079,7 @@ void AnimationPlayerEditor::_editor_load(){
 
 void AnimationPlayerEditor::_animation_key_editor_anim_len_changed(float p_len) {
 
+
 	frame->set_max(p_len);
 
 }
@@ -1092,7 +1094,7 @@ void AnimationPlayerEditor::_animation_key_editor_anim_step_changed(float p_len)
 }
 
 
-void AnimationPlayerEditor::_animation_key_editor_seek(float p_pos) {
+void AnimationPlayerEditor::_animation_key_editor_seek(float p_pos,bool p_drag) {
 
 	if (!is_visible())
 		return;
@@ -1102,7 +1104,11 @@ void AnimationPlayerEditor::_animation_key_editor_seek(float p_pos) {
 	if (player->is_playing()	)
 		return;
 
-	frame->set_val(p_pos);
+	updating=true;
+	frame->set_val(p_pos);	
+	updating=false;
+	_seek_value_changed(p_pos,!p_drag);
+
 	EditorNode::get_singleton()->get_property_editor()->refresh();
 
 
@@ -1254,7 +1260,7 @@ void AnimationPlayerEditor::_bind_methods() {
 	ObjectTypeDB::bind_method(_MD("_animation_edit"),&AnimationPlayerEditor::_animation_edit);
 	ObjectTypeDB::bind_method(_MD("_animation_resource_edit"),&AnimationPlayerEditor::_animation_resource_edit);
 	ObjectTypeDB::bind_method(_MD("_dialog_action"),&AnimationPlayerEditor::_dialog_action);
-	ObjectTypeDB::bind_method(_MD("_seek_value_changed"),&AnimationPlayerEditor::_seek_value_changed);
+	ObjectTypeDB::bind_method(_MD("_seek_value_changed"),&AnimationPlayerEditor::_seek_value_changed,DEFVAL(true));
 	ObjectTypeDB::bind_method(_MD("_animation_player_changed"),&AnimationPlayerEditor::_animation_player_changed);
 	ObjectTypeDB::bind_method(_MD("_blend_edited"),&AnimationPlayerEditor::_blend_edited);
 //	ObjectTypeDB::bind_method(_MD("_seek_frame_changed"),&AnimationPlayerEditor::_seek_frame_changed);
@@ -1350,19 +1356,23 @@ AnimationPlayerEditor::AnimationPlayerEditor(EditorNode *p_editor) {
 
 
 	add_anim = memnew( ToolButton );
+	ED_SHORTCUT("animation_player_editor/add_animation", TTR("Create new animation in player."));
+	add_anim->set_shortcut(ED_GET_SHORTCUT("animation_player_editor/add_animation"));
 	add_anim->set_tooltip(TTR("Create new animation in player."));
 
 	hb->add_child(add_anim);
 
 
 	load_anim = memnew( ToolButton );
+	ED_SHORTCUT("animation_player_editor/load_from_disk", TTR("Load animation from disk."));
+	add_anim->set_shortcut(ED_GET_SHORTCUT("animation_player_editor/load_from_disk"));
 	load_anim->set_tooltip(TTR("Load an animation from disk."));
 	hb->add_child(load_anim);
 
 	save_anim = memnew(MenuButton);
 	save_anim->set_tooltip(TTR("Save the current animation"));
-	save_anim->get_popup()->add_item(TTR("Save"), ANIM_SAVE);
-	save_anim->get_popup()->add_item(TTR("Save As.."), ANIM_SAVE_AS);
+	save_anim->get_popup()->add_shortcut(ED_SHORTCUT("animation_player_editor/save", TTR("Save")), ANIM_SAVE);
+	save_anim->get_popup()->add_shortcut(ED_SHORTCUT("animation_player_editor/save_as", TTR("Save As")), ANIM_SAVE_AS);
 	save_anim->set_focus_mode(Control::FOCUS_NONE);
 	hb->add_child(save_anim);
 
@@ -1372,15 +1382,21 @@ AnimationPlayerEditor::AnimationPlayerEditor(EditorNode *p_editor) {
 
 	duplicate_anim = memnew( ToolButton );
 	hb->add_child(duplicate_anim);
+	ED_SHORTCUT("animation_player_editor/duplicate_animation", TTR("Duplicate Animation"));
+	duplicate_anim->set_shortcut(ED_GET_SHORTCUT("animation_player_editor/duplicate_animation"));
 	duplicate_anim->set_tooltip(TTR("Duplicate Animation"));
 
 	rename_anim = memnew( ToolButton );
 	hb->add_child(rename_anim);
+	ED_SHORTCUT("animation_player_editor/rename_animation", TTR("Rename Animation"));
+	rename_anim->set_shortcut(ED_GET_SHORTCUT("animation_player_editor/rename_animation"));
 	rename_anim->set_tooltip(TTR("Rename Animation"));
 
 	remove_anim = memnew( ToolButton );
 
 	hb->add_child(remove_anim);
+	ED_SHORTCUT("animation_player_editor/remove_animation", TTR("Remove Animation"));
+	remove_anim->set_shortcut(ED_GET_SHORTCUT("animation_player_editor/remove_animation"));
 	remove_anim->set_tooltip(TTR("Remove Animation"));
 
 
@@ -1402,8 +1418,8 @@ AnimationPlayerEditor::AnimationPlayerEditor(EditorNode *p_editor) {
 	tool_anim = memnew( MenuButton);
 	//tool_anim->set_flat(false);
 	tool_anim->set_tooltip(TTR("Animation Tools"));
-	tool_anim->get_popup()->add_item(TTR("Copy Animation"),TOOL_COPY_ANIM);
-	tool_anim->get_popup()->add_item(TTR("Paste Animation"),TOOL_PASTE_ANIM);
+	tool_anim->get_popup()->add_shortcut(ED_SHORTCUT("animation_player_editor/copy_animation", TTR("Copy Animation")),TOOL_COPY_ANIM);
+	tool_anim->get_popup()->add_shortcut(ED_SHORTCUT("animation_player_editor/paste_animation", TTR("Paste Animation")),TOOL_PASTE_ANIM);
 	//tool_anim->get_popup()->add_separator();
 	//tool_anim->get_popup()->add_item("Edit Anim Resource",TOOL_PASTE_ANIM);
 	hb->add_child(tool_anim);
@@ -1487,8 +1503,8 @@ AnimationPlayerEditor::AnimationPlayerEditor(EditorNode *p_editor) {
 	animation->connect("item_selected", this,"_animation_selected",Vector<Variant>(),true);
 	resource_edit_anim->connect("pressed", this,"_animation_resource_edit");
 	file->connect("file_selected", this,"_dialog_action");
-	 frame->connect("value_changed", this, "_seek_value_changed",Vector<Variant>(),true);
-	 scale->connect("text_entered", this, "_scale_changed",Vector<Variant>(),true);
+	frame->connect("value_changed", this, "_seek_value_changed",Vector<Variant>(),true);
+	scale->connect("text_entered", this, "_scale_changed",Vector<Variant>(),true);
 
 
 

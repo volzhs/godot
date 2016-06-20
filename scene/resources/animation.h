@@ -58,6 +58,13 @@ public:
 		INTERPOLATION_CUBIC
 	};
 
+	enum UpdateMode {
+		UPDATE_CONTINUOUS,
+		UPDATE_DISCRETE,
+		UPDATE_TRIGGER,
+
+	};
+
 private:
 
 	struct Track {
@@ -65,7 +72,8 @@ private:
 		TrackType type;
 		InterpolationType interpolation;
 		NodePath path; // path to something
-		Track() { interpolation=INTERPOLATION_LINEAR; }
+		bool imported;
+		Track() { interpolation=INTERPOLATION_LINEAR; imported=false;}
 		virtual ~Track() {}
 	};
 
@@ -105,10 +113,11 @@ private:
 
 	struct ValueTrack : public Track {
 
-		bool continuous;
+		UpdateMode update_mode;
+		bool update_on_seek;
 		Vector< TKey<Variant> > values;
 
-		ValueTrack() { type=TYPE_VALUE; continuous=true; }
+		ValueTrack() { type=TYPE_VALUE; update_mode=UPDATE_CONTINUOUS; }
 	};
 
 
@@ -163,6 +172,7 @@ private:
 	float length;
 	float step;
 	bool loop;
+	bool loop_interpolation;
 
 // bind helpers
 private:
@@ -232,6 +242,9 @@ public:
 	void track_move_up(int p_track);
 	void track_move_down(int p_track);
 
+	void track_set_imported(int p_track,bool p_imported);
+	bool track_is_imported(int p_track) const;
+
 	int transform_track_insert_key(int p_track, float p_time, const Vector3 p_loc, const Quat& p_rot=Quat(), const Vector3& p_scale=Vector3());
 	void track_insert_key(int p_track, float p_time, const Variant& p_key, float p_transition=1);
 	void track_set_key_transition(int p_track, int p_key_idx,float p_transition);
@@ -253,8 +266,9 @@ public:
 
 	Variant value_track_interpolate(int p_track, float p_time) const;
 	void value_track_get_key_indices(int p_track, float p_time, float p_delta,List<int> *p_indices) const;
-	void value_track_set_continuous(int p_track, bool p_continuous);
-	bool value_track_is_continuous(int p_track) const;
+	void value_track_set_update_mode(int p_track, UpdateMode p_mode);
+	UpdateMode value_track_get_update_mode(int p_track) const;
+
 
 	void method_track_get_key_indices(int p_track, float p_time, float p_delta,List<int> *p_indices) const;
 	Vector<Variant> method_track_get_params(int p_track,int p_key_idx) const;
@@ -265,7 +279,9 @@ public:
 	float get_length() const;
 
 	void set_loop(bool p_enabled);
+	void set_loop_interpolation(bool p_enabled);
 	bool has_loop() const;
+	bool has_loop_interpolation() const;
 
 	void set_step(float p_step);
 	float get_step() const;
@@ -281,5 +297,8 @@ public:
 
 VARIANT_ENUM_CAST( Animation::TrackType );
 VARIANT_ENUM_CAST( Animation::InterpolationType );
+VARIANT_ENUM_CAST( Animation::UpdateMode );
+
+
 
 #endif
