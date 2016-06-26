@@ -190,10 +190,6 @@ public class GodotPaymentV3 extends Godot.SingletonBase {
 		}
 	}
 
-	int safeLongToInt(long l) {
-		return (int) Math.max(Math.min(Integer.MAX_VALUE, l), Integer.MIN_VALUE);
-	}
-
 	public void addSkuDetail(String itemJson) {
 		JSONObject o = null;
 		try {
@@ -205,7 +201,7 @@ public class GodotPaymentV3 extends Godot.SingletonBase {
 			item.put("description", o.optString("description"));
 			item.put("price", o.optString("price"));
 			item.put("price_currency_code", o.optString("price_currency_code"));
-			item.put("price_amount", safeLongToInt(o.optLong("price_amount_micros") / 1000000));
+			item.put("price_amount", 0.000001d * o.optLong("price_amount_micros"));
 			mSkuDetails.put(item.get("product_id").toString(), item);
 		} catch (JSONException e) {
 			e.printStackTrace();
