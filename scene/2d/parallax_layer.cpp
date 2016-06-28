@@ -32,6 +32,15 @@
 void ParallaxLayer::set_motion_scale(const Size2& p_scale) {
 
 	motion_scale=p_scale;
+
+
+	ParallaxBackground *pb = get_parent()->cast_to<ParallaxBackground>();
+	if (is_inside_tree() && pb) {
+		Vector2 ofs = pb->get_final_offset();
+		float scale = pb->get_scroll_scale();
+		set_base_offset_and_scale(ofs,scale);
+	}
+
 }
 
 Size2 ParallaxLayer::get_motion_scale() const {
@@ -40,6 +49,23 @@ Size2 ParallaxLayer::get_motion_scale() const {
 
 }
 
+void ParallaxLayer::set_motion_offset(const Size2& p_offset) {
+
+	motion_offset=p_offset;
+
+	ParallaxBackground *pb = get_parent()->cast_to<ParallaxBackground>();
+	if (is_inside_tree() && pb) {
+		Vector2 ofs = pb->get_final_offset();
+		float scale = pb->get_scroll_scale();
+		set_base_offset_and_scale(ofs,scale);
+	}
+}
+
+Size2 ParallaxLayer::get_motion_offset() const {
+
+	return motion_offset;
+
+}
 
 void ParallaxLayer::_update_mirroring() {
 
@@ -59,6 +85,11 @@ void ParallaxLayer::_update_mirroring() {
 void ParallaxLayer::set_mirroring(const Size2& p_mirroring) {
 
 	mirroring=p_mirroring;
+	if (mirroring.x<0)
+		mirroring.x=0;
+	if (mirroring.y<0)
+		mirroring.y=0;
+
 	_update_mirroring();
 
 }
@@ -89,16 +120,26 @@ void ParallaxLayer::set_base_offset_and_scale(const Point2& p_offset,float p_sca
 		return;
 	if (get_tree()->is_editor_hint())
 		return;
-	Point2 new_ofs = ((orig_offset+p_offset)*motion_scale)*p_scale;
+	Point2 new_ofs = ((orig_offset+p_offset)*motion_scale)*p_scale+motion_offset;
 
 	if (mirroring.x) {
-		double den = mirroring.x*p_scale;
-		new_ofs.x = fmod(new_ofs.x,den) - (mirroring.x > 0 ? den : 0);
+
+		while( new_ofs.x>=0) {
+			new_ofs.x -= mirroring.x*p_scale;
+		}
+		while(new_ofs.x < -mirroring.x*p_scale) {
+			new_ofs.x += mirroring.x*p_scale;
+		}
 	}
 
 	if (mirroring.y) {
-		double den = mirroring.y*p_scale;
-		new_ofs.y = fmod(new_ofs.y,den) - (mirroring.y > 0 ? den : 0);
+
+		while( new_ofs.y>=0) {
+			new_ofs.y -= mirroring.y*p_scale;
+		}
+		while(new_ofs.y < -mirroring.y*p_scale) {
+			new_ofs.y += mirroring.y*p_scale;
+		}
 	}
 
 
@@ -122,10 +163,13 @@ void ParallaxLayer::_bind_methods() {
 
 	ObjectTypeDB::bind_method(_MD("set_motion_scale","scale"),&ParallaxLayer::set_motion_scale);
 	ObjectTypeDB::bind_method(_MD("get_motion_scale"),&ParallaxLayer::get_motion_scale);
+	ObjectTypeDB::bind_method(_MD("set_motion_offset","offset"),&ParallaxLayer::set_motion_offset);
+	ObjectTypeDB::bind_method(_MD("get_motion_offset"),&ParallaxLayer::get_motion_offset);
 	ObjectTypeDB::bind_method(_MD("set_mirroring","mirror"),&ParallaxLayer::set_mirroring);
 	ObjectTypeDB::bind_method(_MD("get_mirroring"),&ParallaxLayer::get_mirroring);
 
 	ADD_PROPERTY( PropertyInfo(Variant::VECTOR2,"motion/scale"),_SCS("set_motion_scale"),_SCS("get_motion_scale"));
+	ADD_PROPERTY( PropertyInfo(Variant::VECTOR2,"motion/offset"),_SCS("set_motion_offset"),_SCS("get_motion_offset"));
 	ADD_PROPERTY( PropertyInfo(Variant::VECTOR2,"motion/mirroring"),_SCS("set_mirroring"),_SCS("get_mirroring"));
 
 }

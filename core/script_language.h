@@ -55,6 +55,7 @@ public:
 	static int get_language_count();
 	static ScriptLanguage *get_language(int p_idx);
 	static void register_language(ScriptLanguage *p_language);
+	static void unregister_language(ScriptLanguage *p_language);
 
 	static void set_reload_scripts_on_save(bool p_enable);
 	static bool is_reload_scripts_on_save_enabled();
@@ -77,6 +78,7 @@ class Script : public Resource {
 
 protected:
 
+	virtual bool editor_can_reload_from_file() { return false; } // this is handled by editor better
 	void _notification( int p_what);
 	static void _bind_methods();
 

@@ -756,6 +756,17 @@ void CanvasItem::draw_set_transform(const Point2& p_offset, float p_rot, const S
 	VisualServer::get_singleton()->canvas_item_add_set_transform(canvas_item,xform);
 }
 
+void CanvasItem::draw_set_transform_matrix(const Matrix32& p_matrix) {
+
+	if (!drawing) {
+		ERR_EXPLAIN("Drawing is only allowed inside NOTIFICATION_DRAW, _draw() function or 'draw' signal.");
+		ERR_FAIL();
+	}
+
+	VisualServer::get_singleton()->canvas_item_add_set_transform(canvas_item,p_matrix);
+
+}
+
 void CanvasItem::draw_polygon(const Vector<Point2>& p_points, const Vector<Color>& p_colors,const Vector<Point2>& p_uvs, Ref<Texture> p_texture) {
 
 	if (!drawing) {
@@ -942,62 +953,8 @@ InputEvent CanvasItem::make_input_local(const InputEvent& p_event) const {
 
 	ERR_FAIL_COND_V(!is_inside_tree(),p_event);
 
-	InputEvent ev = p_event;
+	return p_event.xform_by( (get_canvas_transform() * get_global_transform()).affine_inverse() );
 
-	Matrix32 local_matrix = (get_canvas_transform() * get_global_transform()).affine_inverse();
-
-	switch(ev.type) {
-
-		case InputEvent::MOUSE_BUTTON: {
-
-			Vector2 g = local_matrix.xform(Vector2(ev.mouse_button.global_x,ev.mouse_button.global_y));
-			Vector2 l = local_matrix.xform(Vector2(ev.mouse_button.x,ev.mouse_button.y));
-			ev.mouse_button.x=l.x;
-			ev.mouse_button.y=l.y;
-			ev.mouse_button.global_x=g.x;
-			ev.mouse_button.global_y=g.y;
-
-		} break;
-		case InputEvent::MOUSE_MOTION: {
-
-			Vector2 g = local_matrix.xform(Vector2(ev.mouse_motion.global_x,ev.mouse_motion.global_y));
-			Vector2 l = local_matrix.xform(Vector2(ev.mouse_motion.x,ev.mouse_motion.y));
-			Vector2 r = local_matrix.basis_xform(Vector2(ev.mouse_motion.relative_x,ev.mouse_motion.relative_y));
-			Vector2 s = local_matrix.basis_xform(Vector2(ev.mouse_motion.speed_x,ev.mouse_motion.speed_y));
-			ev.mouse_motion.x=l.x;
-			ev.mouse_motion.y=l.y;
-			ev.mouse_motion.global_x=g.x;
-			ev.mouse_motion.global_y=g.y;
-			ev.mouse_motion.relative_x=r.x;
-			ev.mouse_motion.relative_y=r.y;
-			ev.mouse_motion.speed_x=s.x;
-			ev.mouse_motion.speed_y=s.y;
-
-		} break;
-		case InputEvent::SCREEN_TOUCH: {
-
-
-			Vector2 t = local_matrix.xform(Vector2(ev.screen_touch.x,ev.screen_touch.y));
-			ev.screen_touch.x=t.x;
-			ev.screen_touch.y=t.y;
-
-		} break;
-		case InputEvent::SCREEN_DRAG: {
-
-
-			Vector2 t = local_matrix.xform(Vector2(ev.screen_drag.x,ev.screen_drag.y));
-			Vector2 r = local_matrix.basis_xform(Vector2(ev.screen_drag.relative_x,ev.screen_drag.relative_y));
-			Vector2 s = local_matrix.basis_xform(Vector2(ev.screen_drag.speed_x,ev.screen_drag.speed_y));
-			ev.screen_drag.x=t.x;
-			ev.screen_drag.y=t.y;
-			ev.screen_drag.relative_x=r.x;
-			ev.screen_drag.relative_y=r.y;
-			ev.screen_drag.speed_x=s.x;
-			ev.screen_drag.speed_y=s.y;
-		} break;
-	}
-
-	return ev;
 }
 
 
@@ -1076,6 +1033,7 @@ void CanvasItem::_bind_methods() {
 	ObjectTypeDB::bind_method(_MD("draw_char","font:Font","pos","char","next","modulate"),&CanvasItem::draw_char,DEFVAL(Color(1,1,1)));
 
 	ObjectTypeDB::bind_method(_MD("draw_set_transform","pos","rot","scale"),&CanvasItem::draw_set_transform);
+	ObjectTypeDB::bind_method(_MD("draw_set_transform_matrix","xform"),&CanvasItem::draw_set_transform_matrix);
 	ObjectTypeDB::bind_method(_MD("get_transform"),&CanvasItem::get_transform);
 	ObjectTypeDB::bind_method(_MD("get_global_transform"),&CanvasItem::get_global_transform);
 	ObjectTypeDB::bind_method(_MD("get_global_transform_with_canvas"),&CanvasItem::get_global_transform_with_canvas);
