@@ -99,8 +99,14 @@ void EditorDirDialog::_notification(int p_what) {
 
 	if (p_what==NOTIFICATION_ENTER_TREE) {
 		reload();
-		tree->connect("item_collapsed",this,"_item_collapsed",varray(),CONNECT_DEFERRED);
-		EditorFileSystem::get_singleton()->connect("filesystem_changed",this,"reload");
+
+		if (!tree->is_connected("item_collapsed",this,"_item_collapsed")) {
+			tree->connect("item_collapsed",this,"_item_collapsed",varray(),CONNECT_DEFERRED);
+		}
+
+		if (!EditorFileSystem::get_singleton()->is_connected("filesystem_changed",this,"reload")) {
+			EditorFileSystem::get_singleton()->connect("filesystem_changed",this,"reload");
+		}
 
 	}
 
@@ -185,10 +191,14 @@ void EditorDirDialog::ok_pressed() {
 void EditorDirDialog::_make_dir() {
 
 	TreeItem *ti=tree->get_selected();
-	if (!ti)
+	if (!ti) {
+		mkdirerr->set_text("Please select a base directory first");
+		mkdirerr->popup_centered_minsize();
 		return;
+	}
 
 	makedialog->popup_centered_minsize(Size2(250,80));
+	makedirname->grab_focus();
 }
 
 void EditorDirDialog::_make_dir_confirm() {
@@ -198,9 +208,11 @@ void EditorDirDialog::_make_dir_confirm() {
 		return;
 
 	String dir = ti->get_metadata(0);
+
 	DirAccess *d = DirAccess::open(dir);
 	ERR_FAIL_COND(!d);
 	Error err = d->make_dir(makedirname->get_text());
+
 	if (err!=OK) {
 		mkdirerr->popup_centered_minsize(Size2(250,80));
 	} else {
