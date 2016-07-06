@@ -336,7 +336,7 @@ void EditorResourcePreview::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("preview_invalidated",PropertyInfo(Variant::STRING,"path")));
 }
 
-void EditorResourcePreview::check_for_invalidation(const String& p_path) {
+bool EditorResourcePreview::check_for_invalidation(const String& p_path) {
 
 	preview_mutex->lock();
 
@@ -355,6 +355,8 @@ void EditorResourcePreview::check_for_invalidation(const String& p_path) {
 	if (call_invalidated) {//do outside mutex
 		call_deferred("emit_signal","preview_invalidated",p_path);
 	}
+
+	return call_invalidated;
 
 }
 
