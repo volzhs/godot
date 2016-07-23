@@ -158,6 +158,7 @@ public:
 	virtual bool is_window_minimized() const;
 	virtual void set_window_maximized(bool p_enabled);
 	virtual bool is_window_maximized() const;
+	virtual void request_attention();
 
 	virtual void set_borderless_window(bool p_borderless);
 	virtual bool get_borderless_window() const;
@@ -203,6 +204,10 @@ public:
 
 	void dump_memory_to_file(const String& p_file);
 	void dump_resources_to_file(const String& p_file);
+
+	bool has_virtual_keyboard() const;
+	void show_virtual_keyboard(const String& p_existing_text="");
+	void hide_virtual_keyboard();
 
 	void print_resources_in_use(bool p_short=false);
 	void print_all_resources(const String& p_to_file);
