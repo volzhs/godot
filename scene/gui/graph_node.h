@@ -34,8 +34,14 @@
 class GraphNode : public Container {
 
 	OBJ_TYPE(GraphNode,Container);
+public:
 
-
+	enum Overlay {
+		OVERLAY_DISABLED,
+		OVERLAY_BREAKPOINT,
+		OVERLAY_POSITION
+	};
+private:
 
 	struct Slot {
 		bool enable_left;
@@ -44,6 +50,8 @@ class GraphNode : public Container {
 		bool enable_right;
 		int type_right;
 		Color color_right;
+		Ref<Texture> custom_slot_left;
+		Ref<Texture> custom_slot_right;
 
 
 		Slot() { enable_left=false; type_left=0; color_left=Color(1,1,1,1); enable_right=false; type_right=0; color_right=Color(1,1,1,1); }
@@ -75,6 +83,10 @@ class GraphNode : public Container {
 
 	Vector2 drag_from;
 	bool selected;
+
+	Overlay overlay;
+
+	Color modulate;
 protected:
 
 
@@ -91,7 +103,7 @@ public:
 
 
 
-	void set_slot(int p_idx,bool p_enable_left,int p_type_left,const Color& p_color_left, bool p_enable_right,int p_type_right,const Color& p_color_right);
+	void set_slot(int p_idx,bool p_enable_left,int p_type_left,const Color& p_color_left, bool p_enable_right,int p_type_right,const Color& p_color_right,const Ref<Texture>& p_custom_left=Ref<Texture>(),const Ref<Texture>& p_custom_right=Ref<Texture>());
 	void clear_slot(int p_idx);
 	void clear_all_slots();
 	bool is_slot_enabled_left(int p_idx) const;
@@ -126,10 +138,17 @@ public:
 	Color get_connection_output_color(int p_idx);
 
 
+	void set_modulate(const Color& p_color);
+	Color get_modulate() const;
+
+	void set_overlay(Overlay p_overlay);
+	Overlay get_overlay() const;
+
 	virtual Size2 get_minimum_size() const;
 
 	GraphNode();
 };
 
+VARIANT_ENUM_CAST( GraphNode::Overlay )
 
 #endif // GRAPH_NODE_H

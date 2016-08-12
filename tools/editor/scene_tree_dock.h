@@ -71,12 +71,14 @@ class SceneTreeDock : public VBoxContainer {
 	};
 
 
+	bool restore_script_editor_on_drag;
 
 	int current_option;
 	CreateDialog *create_dialog;
 
 	ToolButton *button_add;
 	ToolButton *button_instance;
+	ToolButton *button_create_script;
 
 	SceneTreeEditor *scene_tree;
 
@@ -128,6 +130,8 @@ class SceneTreeDock : public VBoxContainer {
 
 	void _node_prerenamed(Node* p_node, const String& p_new_name);
 
+	void _nodes_drag_begin();
+	void _input(InputEvent p_event);
 	void _unhandled_key_input(InputEvent p_event);
 
 	void _import_subscene();

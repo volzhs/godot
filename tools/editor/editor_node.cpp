@@ -86,6 +86,7 @@
 #include "plugins/collision_polygon_editor_plugin.h"
 #include "plugins/collision_polygon_2d_editor_plugin.h"
 #include "plugins/script_editor_plugin.h"
+#include "plugins/script_text_editor.h"
 #include "plugins/path_2d_editor_plugin.h"
 #include "plugins/particles_editor_plugin.h"
 #include "plugins/particles_2d_editor_plugin.h"
@@ -2842,7 +2843,7 @@ void EditorNode::_menu_option_confirm(int p_option,bool p_confirmed) {
 		} break;
 		case SETTINGS_ABOUT: {
 
-			about->popup_centered(Size2(500,130)*EDSCALE);
+			about->popup_centered_minsize(Size2(500,130)*EDSCALE);
 		} break;
 		case SOURCES_REIMPORT: {
 
@@ -5219,6 +5220,17 @@ void EditorNode::reload_scene(const String& p_path) {
 	_scene_tab_changed(current_tab);
 }
 
+int EditorNode::plugin_init_callback_count=0;
+
+void EditorNode::add_plugin_init_callback(EditorPluginInitializeCallback p_callback) {
+
+	ERR_FAIL_COND(plugin_init_callback_count==MAX_INIT_CALLBACKS);
+
+	plugin_init_callbacks[plugin_init_callback_count++]=p_callback;
+}
+
+EditorPluginInitializeCallback EditorNode::plugin_init_callbacks[EditorNode::MAX_INIT_CALLBACKS];
+
 
 void EditorNode::_bind_methods() {
 
@@ -6447,6 +6459,8 @@ EditorNode::EditorNode() {
 	add_editor_plugin( memnew( SpatialEditorPlugin(this) ) );
 	add_editor_plugin( memnew( ScriptEditorPlugin(this) ) );
 
+	ScriptTextEditor::register_editor(); //register one for text scripts
+
 	if (StreamPeerSSL::is_available()) {
 		add_editor_plugin( memnew( AssetLibraryEditorPlugin(this) ) );
 	} else {
@@ -6496,6 +6510,9 @@ EditorNode::EditorNode() {
 	for(int i=0;i<EditorPlugins::get_plugin_count();i++)
 		add_editor_plugin( EditorPlugins::create(i,this) );
 
+	for(int i=0;i<plugin_init_callback_count;i++) {
+		plugin_init_callbacks[i]();
+	}
 
 	resource_preview->add_preview_generator( Ref<EditorTexturePreviewPlugin>( memnew(EditorTexturePreviewPlugin )));
 	resource_preview->add_preview_generator( Ref<EditorPackedScenePreviewPlugin>( memnew(EditorPackedScenePreviewPlugin )));
@@ -6504,6 +6521,8 @@ EditorNode::EditorNode() {
 	resource_preview->add_preview_generator( Ref<EditorSamplePreviewPlugin>( memnew(EditorSamplePreviewPlugin )));
 	resource_preview->add_preview_generator( Ref<EditorMeshPreviewPlugin>( memnew(EditorMeshPreviewPlugin )));
 	resource_preview->add_preview_generator( Ref<EditorBitmapPreviewPlugin>( memnew(EditorBitmapPreviewPlugin )));
+
+
 
 	circle_step_msec=OS::get_singleton()->get_ticks_msec();
 	circle_step_frame=OS::get_singleton()->get_frames_drawn();

@@ -626,22 +626,27 @@ void fill_default_theme(Ref<Theme>& t,const Ref<Font> & default_font,const Ref<F
 
 	// GraphNode
 
-	Ref<StyleBoxTexture> graphsb = make_stylebox(graph_node_png,6,24,6,5,3,24,16,5);
-	Ref<StyleBoxTexture> graphsbselected = make_stylebox(graph_node_selected_png,6,24,6,5,3,24,16,5);
+	Ref<StyleBoxTexture> graphsb = make_stylebox(graph_node_png,6,24,6,5,16,24,16,5);
+	Ref<StyleBoxTexture> graphsbselected = make_stylebox(graph_node_selected_png,6,24,6,5,16,24,16,5);
 	Ref<StyleBoxTexture> graphsbdefault = make_stylebox(graph_node_default_png,4,4,4,4,6,4,4,4);
 	Ref<StyleBoxTexture> graphsbdeffocus = make_stylebox(graph_node_default_focus_png,4,4,4,4,6,4,4,4);
+	Ref<StyleBoxTexture> graph_bpoint = make_stylebox(graph_node_breakpoint_png,6,24,6,5,16,24,16,5);
+	Ref<StyleBoxTexture> graph_position = make_stylebox(graph_node_position_png,6,24,6,5,16,24,16,5);
+
 	//graphsb->set_expand_margin_size(MARGIN_LEFT,10);
 	//graphsb->set_expand_margin_size(MARGIN_RIGHT,10);
 	t->set_stylebox("frame","GraphNode", graphsb );
 	t->set_stylebox("selectedframe","GraphNode", graphsbselected );
 	t->set_stylebox("defaultframe", "GraphNode", graphsbdefault );
 	t->set_stylebox("defaultfocus", "GraphNode", graphsbdeffocus );
+	t->set_stylebox("breakpoint", "GraphNode", graph_bpoint );
+	t->set_stylebox("position", "GraphNode", graph_position );
 	t->set_constant("separation","GraphNode", 1 *scale);
 	t->set_icon("port","GraphNode", make_icon( graph_port_png ) );
 	t->set_icon("close","GraphNode", make_icon( graph_node_close_png ) );
 	t->set_font("title_font","GraphNode", default_font );
 	t->set_color("title_color","GraphNode", Color(0,0,0,1));
-	t->set_constant("title_offset","GraphNode", 18 *scale);
+	t->set_constant("title_offset","GraphNode", 20 *scale);
 	t->set_constant("close_offset","GraphNode", 18 *scale);
 	t->set_constant("port_offset","GraphNode", 3 *scale);
 
@@ -921,7 +926,10 @@ void fill_default_theme(Ref<Theme>& t,const Ref<Font> & default_font,const Ref<F
 	t->set_icon("minus","GraphEdit", make_icon(icon_zoom_less_png) );
 	t->set_icon("reset","GraphEdit", make_icon(icon_zoom_reset_png) );
 	t->set_icon("more","GraphEdit", make_icon(icon_zoom_more_png) );
+	t->set_icon("snap","GraphEdit", make_icon(icon_snap_png) );
 	t->set_stylebox("bg","GraphEdit", make_stylebox( tree_bg_png,4,4,4,5) );
+	t->set_color("grid_minor","GraphEdit", Color(1,1,1,0.05) );
+	t->set_color("grid_major","GraphEdit", Color(1,1,1,0.2) );
 
 
 
