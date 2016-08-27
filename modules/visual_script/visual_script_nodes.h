@@ -17,6 +17,7 @@ class VisualScriptFunction : public VisualScriptNode {
 
 	bool stack_less;
 	int stack_size;
+	ScriptInstance::RPCMode rpc_mode;
 
 
 protected:
@@ -59,6 +60,9 @@ public:
 
 	void set_stack_size(int p_size);
 	int get_stack_size() const;
+
+	void set_rpc_mode(ScriptInstance::RPCMode p_mode);
+	ScriptInstance::RPCMode get_rpc_mode() const;
 
 	virtual VisualScriptNodeInstance* instance(VisualScriptInstance* p_instance);
 
@@ -618,7 +622,6 @@ class VisualScriptSubCall: public VisualScriptNode {
 
 protected:
 
-	virtual bool _use_builtin_script() const { return true; }
 
 	static void _bind_methods();
 public:
@@ -645,7 +648,94 @@ public:
 	VisualScriptSubCall();
 };
 
+class VisualScriptComment: public VisualScriptNode {
+
+	OBJ_TYPE(VisualScriptComment,VisualScriptNode)
+
+
+	String title;
+	String description;
+	Size2 size;
+protected:
+
+	static void _bind_methods();
+public:
+	virtual int get_output_sequence_port_count() const;
+	virtual bool has_input_sequence_port() const;
+
+
+	virtual String get_output_sequence_port_text(int p_port) const;
+
+
+	virtual int get_input_value_port_count() const;
+	virtual int get_output_value_port_count() const;
+
+
+	virtual PropertyInfo get_input_value_port_info(int p_idx) const;
+	virtual PropertyInfo get_output_value_port_info(int p_idx) const;
+
+	virtual String get_caption() const;
+	virtual String get_text() const;
+	virtual String get_category() const;
+
+	void set_title(const String& p_title);
+	String get_title() const;
+
+	void set_description(const String& p_description);
+	String get_description() const;
+
+	void set_size(const Size2& p_size);
+	Size2 get_size() const;
+
+	virtual VisualScriptNodeInstance* instance(VisualScriptInstance* p_instance);
+
+	VisualScriptComment();
+};
+
+class VisualScriptConstructor: public VisualScriptNode {
+
+	OBJ_TYPE(VisualScriptConstructor,VisualScriptNode)
+
+
+	Variant::Type type;
+	MethodInfo constructor;
+
+protected:
+
+	virtual bool _use_builtin_script() const { return true; }
+
+	static void _bind_methods();
+public:
+	virtual int get_output_sequence_port_count() const;
+	virtual bool has_input_sequence_port() const;
+
+
+	virtual String get_output_sequence_port_text(int p_port) const;
+
+
+	virtual int get_input_value_port_count() const;
+	virtual int get_output_value_port_count() const;
+
+
+	virtual PropertyInfo get_input_value_port_info(int p_idx) const;
+	virtual PropertyInfo get_output_value_port_info(int p_idx) const;
+
+	virtual String get_caption() const;
+	virtual String get_text() const;
+	virtual String get_category() const;
+
+	void set_constructor_type(Variant::Type p_type);
+	Variant::Type get_constructor_type() const;
+
+	void set_constructor(const Dictionary& p_info);
+	Dictionary get_constructor() const;
+
+	virtual VisualScriptNodeInstance* instance(VisualScriptInstance* p_instance);
+
+	VisualScriptConstructor();
+};
 
 void register_visual_script_nodes();
+void unregister_visual_script_nodes();
 
 #endif // VISUAL_SCRIPT_NODES_H

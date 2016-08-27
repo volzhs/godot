@@ -6,7 +6,7 @@
 #include "tools/editor/property_editor.h"
 #include "scene/gui/graph_edit.h"
 #include "tools/editor/create_dialog.h"
-
+#include "tools/editor/property_selector.h"
 class VisualScriptEditorSignalEdit;
 class VisualScriptEditorVariableEdit;
 
@@ -27,6 +27,9 @@ class VisualScriptEditor : public ScriptEditorBase {
 		EDIT_DELETE_NODES,
 		EDIT_TOGGLE_BREAKPOINT,
 		EDIT_FIND_NODE_TYPE,
+		EDIT_COPY_NODES,
+		EDIT_CUT_NODES,
+		EDIT_PASTE_NODES,
 	};
 
 	MenuButton *edit_menu;
@@ -48,6 +51,7 @@ class VisualScriptEditor : public ScriptEditorBase {
 	AcceptDialog *edit_signal_dialog;
 	PropertyEditor *edit_signal_edit;
 
+	PropertySelector *method_select;
 
 	VisualScriptEditorVariableEdit *variable_editor;
 
@@ -98,6 +102,15 @@ class VisualScriptEditor : public ScriptEditorBase {
 
 	String _validate_name(const String& p_name) const;
 
+	struct Clipboard {
+
+		Map<int,Ref<VisualScriptNode> > nodes;
+		Map<int,Vector2 > nodes_positions;
+
+		Set<VisualScript::SequenceConnection> sequence_connections;
+		Set<VisualScript::DataConnection> data_connections;
+	} clipboard;
+
 
 	int error_line;
 
@@ -119,6 +132,8 @@ class VisualScriptEditor : public ScriptEditorBase {
 	void _remove_node(int p_id);
 	void _graph_connected(const String& p_from,int p_from_slot,const String& p_to,int p_to_slot);
 	void _graph_disconnected(const String& p_from,int p_from_slot,const String& p_to,int p_to_slot);
+	void _graph_connect_to_empty(const String& p_from,int p_from_slot,const Vector2& p_release_pos);
+
 	void _node_ports_changed(const String& p_func,int p_id);
 	void _available_node_doubleclicked();
 
@@ -147,6 +162,15 @@ class VisualScriptEditor : public ScriptEditorBase {
 	void _menu_option(int p_what);
 
 	void _graph_ofs_changed(const Vector2& p_ofs);
+	void _comment_node_resized(const Vector2& p_new_size,int p_node);
+
+	int selecting_method_id;
+	void _selected_method(const String& p_method);
+
+	void _draw_color_over_button(Object* obj,Color p_color);
+	void _button_resource_previewed(const String& p_path,const Ref<Texture>& p_preview,Variant p_ud);
+
+
 protected:
 
 	void _notification(int p_what);
@@ -175,6 +199,7 @@ public:
 	virtual void set_debugger_active(bool p_active);
 	virtual void set_tooltip_request_func(String p_method,Object* p_obj);
 	virtual Control *get_edit_menu();
+	virtual bool can_lose_focus_on_node_selection() { return false; }
 
 	static void register_editor();
 
