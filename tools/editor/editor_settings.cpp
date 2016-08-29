@@ -572,7 +572,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("scenetree_editor/draw_relationship_lines",false);
 	set("scenetree_editor/relationship_line_color",Color::html("464646"));
 
-	set("gridmap_editor/pick_distance", 5000.0);
+	set("grid_map/pick_distance", 5000.0);
 
 	set("3d_editor/default_fov",45.0);
 	set("3d_editor/default_z_near",0.1);
@@ -621,6 +621,11 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	hints["file_dialog/display_mode"]=PropertyInfo(Variant::INT,"file_dialog/display_mode",PROPERTY_HINT_ENUM,"Thumbnails,List");
 	set("file_dialog/thumbnail_size", 64);
 	hints["file_dialog/thumbnail_size"]=PropertyInfo(Variant::INT,"file_dialog/thumbnail_size",PROPERTY_HINT_RANGE,"32,128,16");
+
+	set("filesystem_dock/display_mode", 0);
+	hints["filesystem_dock/display_mode"]=PropertyInfo(Variant::INT,"filesystem_dock/display_mode",PROPERTY_HINT_ENUM,"Thumbnails,List");
+	set("filesystem_dock/thumbnail_size", 64);
+	hints["filesystem_dock/thumbnail_size"]=PropertyInfo(Variant::INT,"filesystem_dock/thumbnail_size",PROPERTY_HINT_RANGE,"32,128,16");
 
 	set("animation/autorename_animation_tracks",true);
 	set("animation/confirm_insert_track",true);
