@@ -436,7 +436,7 @@ bool RigidBody2D::_test_motion(const Vector2& p_motion,float p_margin,const Ref<
 	Physics2DServer::MotionResult *r=NULL;
 	if (p_result.is_valid())
 		r=p_result->get_result_ptr();
-	return Physics2DServer::get_singleton()->body_test_motion(get_rid(),p_motion,p_margin,r);
+	return Physics2DServer::get_singleton()->body_test_motion(get_rid(),get_global_transform(),p_motion,p_margin,r);
 
 }
 
@@ -1057,8 +1057,10 @@ Vector2 KinematicBody2D::get_travel() const {
 Vector2 KinematicBody2D::move(const Vector2& p_motion) {
 
 #if 1
+
+	Matrix32 gt = get_global_transform();
 	Physics2DServer::MotionResult result;
-	colliding = Physics2DServer::get_singleton()->body_test_motion(get_rid(),p_motion,margin,&result);
+	colliding = Physics2DServer::get_singleton()->body_test_motion(get_rid(),gt,p_motion,margin,&result);
 
 	collider_metadata=result.collider_metadata;
 	collider_shape=result.collider_shape;
@@ -1067,10 +1069,12 @@ Vector2 KinematicBody2D::move(const Vector2& p_motion) {
 	normal=result.collision_normal;
 	collider=result.collider_id;
 
-	Matrix32 gt = get_global_transform();
+
 	gt.elements[2]+=result.motion;
 	set_global_transform(gt);
 	travel=result.motion;
+
+
 	return result.remainder;
 
 #else
@@ -1080,7 +1084,6 @@ Vector2 KinematicBody2D::move(const Vector2& p_motion) {
 	//what it does is simpler than using physics
 	//this took about a week to get right..
 	//but is it right? who knows at this point..
-
 
 	colliding=false;
 	ERR_FAIL_COND_V(!is_inside_tree(),Vector2());
@@ -1099,16 +1102,14 @@ Vector2 KinematicBody2D::move(const Vector2& p_motion) {
 
 	bool collided=false;
 	uint32_t mask=0;
-	if (collide_static)
+	if (true)
 		mask|=Physics2DDirectSpaceState::TYPE_MASK_STATIC_BODY;
-	if (collide_kinematic)
+	if (true)
 		mask|=Physics2DDirectSpaceState::TYPE_MASK_KINEMATIC_BODY;
-	if (collide_rigid)
+	if (true)
 		mask|=Physics2DDirectSpaceState::TYPE_MASK_RIGID_BODY;
-	if (collide_character)
+	if (true)
 		mask|=Physics2DDirectSpaceState::TYPE_MASK_CHARACTER_BODY;
-
-//	print_line("motion: "+p_motion+" margin: "+rtos(margin));
 
 	//print_line("margin: "+rtos(margin));
 	do {
@@ -1144,6 +1145,8 @@ Vector2 KinematicBody2D::move(const Vector2& p_motion) {
 			collided=false;
 			break;
 		}
+
+
 
 		Matrix32 gt = get_global_transform();
 		gt.elements[2]+=recover_motion;
@@ -1191,6 +1194,8 @@ Vector2 KinematicBody2D::move(const Vector2& p_motion) {
 	if (safe>=1) {
 		//not collided
 		colliding=false;
+
+
 	} else {
 
 		//it collided, let's get the rest info in unsafe advance
@@ -1228,29 +1233,38 @@ Vector2 KinematicBody2D::move(const Vector2& p_motion) {
 
 
 
-Vector2 KinematicBody2D::move_and_slide(const Vector2& p_linear_velocity,const Vector2& p_floor_direction,int p_max_bounces) {
+Vector2 KinematicBody2D::move_and_slide(const Vector2& p_linear_velocity,const Vector2& p_floor_direction,float p_slope_stop_min_velocity,int p_max_bounces) {
 
-	Vector2 motion = p_linear_velocity*get_fixed_process_delta_time();
+	Vector2 motion = (move_and_slide_floor_velocity+p_linear_velocity)*get_fixed_process_delta_time();
 	Vector2 lv = p_linear_velocity;
 
 	move_and_slide_on_floor=false;
 	move_and_slide_on_ceiling=false;
 	move_and_slide_on_wall=false;
 	move_and_slide_colliders.clear();
+	move_and_slide_floor_velocity=Vector2();
 
-	while(motion!=Vector2() && p_max_bounces) {
+	while(p_max_bounces) {
 
 		motion=move(motion);
 
 		if (is_colliding()) {
+
 
 			if (p_floor_direction==Vector2()) {
 				//all is a wall
 				move_and_slide_on_wall=true;
 			} else {
 				if ( get_collision_normal().dot(p_floor_direction) > Math::cos(Math::deg2rad(45))) { //floor
+
+
 					move_and_slide_on_floor=true;
 					move_and_slide_floor_velocity=get_collider_velocity();
+
+					if (get_travel().length()<1 && ABS((lv.x-move_and_slide_floor_velocity.x))<p_slope_stop_min_velocity) {
+						revert_motion();
+						return Vector2();
+					}
 				} else if ( get_collision_normal().dot(p_floor_direction) < Math::cos(Math::deg2rad(45))) { //ceiling
 					move_and_slide_on_ceiling=true;
 				} else {
@@ -1271,6 +1285,8 @@ Vector2 KinematicBody2D::move_and_slide(const Vector2& p_linear_velocity,const V
 		}
 
 		p_max_bounces--;
+		if (motion==Vector2())
+			break;
 	}
 
 	return lv;
@@ -1298,11 +1314,11 @@ Vector2 KinematicBody2D::move_to(const Vector2& p_position) {
 	return move(p_position-get_global_pos());
 }
 
-bool KinematicBody2D::test_move(const Vector2& p_motion) {
+bool KinematicBody2D::test_move(const Matrix32& p_from,const Vector2& p_motion) {
 
 	ERR_FAIL_COND_V(!is_inside_tree(),false);
 
-	return Physics2DServer::get_singleton()->body_test_motion(get_rid(),p_motion,margin);
+	return Physics2DServer::get_singleton()->body_test_motion(get_rid(),p_from,p_motion,margin);
 
 
 }
@@ -1367,9 +1383,9 @@ void KinematicBody2D::_bind_methods() {
 
 	ObjectTypeDB::bind_method(_MD("move","rel_vec"),&KinematicBody2D::move);
 	ObjectTypeDB::bind_method(_MD("move_to","position"),&KinematicBody2D::move_to);
-	ObjectTypeDB::bind_method(_MD("move_and_slide","linear_velocity","floor_normal","max_bounces"),&KinematicBody2D::move_and_slide,DEFVAL(Vector2(0,0)),DEFVAL(4));
+	ObjectTypeDB::bind_method(_MD("move_and_slide","linear_velocity","floor_normal","slope_stop_min_velocity","max_bounces"),&KinematicBody2D::move_and_slide,DEFVAL(Vector2(0,0)),DEFVAL(5),DEFVAL(4));
 
-	ObjectTypeDB::bind_method(_MD("test_move","rel_vec"),&KinematicBody2D::test_move);
+	ObjectTypeDB::bind_method(_MD("test_move","from","rel_vec"),&KinematicBody2D::test_move);
 	ObjectTypeDB::bind_method(_MD("get_travel"),&KinematicBody2D::get_travel);
 	ObjectTypeDB::bind_method(_MD("revert_motion"),&KinematicBody2D::revert_motion);
 

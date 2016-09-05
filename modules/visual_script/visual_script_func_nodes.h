@@ -35,6 +35,7 @@ private:
 	int use_default_args;
 	RPCCallMode rpc_call_mode;
 	StringName singleton;
+	bool validate;
 
 
 	Node *_get_base_node() const;
@@ -96,10 +97,16 @@ public:
 	void set_use_default_args(int p_amount);
 	int get_use_default_args() const;
 
+	void set_validate(bool p_amount);
+	bool get_validate() const;
+
 	void set_rpc_call_mode(RPCCallMode p_mode);
 	RPCCallMode get_rpc_call_mode() const;
 
 	virtual VisualScriptNodeInstance* instance(VisualScriptInstance* p_instance);
+
+	virtual TypeGuess guess_output_type(TypeGuess* p_inputs, int p_output) const;
+
 
 	VisualScriptFunctionCall();
 };
@@ -191,6 +198,7 @@ public:
 
 
 	virtual VisualScriptNodeInstance* instance(VisualScriptInstance* p_instance);
+	virtual TypeGuess guess_output_type(TypeGuess* p_inputs, int p_output) const;
 
 	VisualScriptPropertySet();
 };
@@ -327,6 +335,9 @@ public:
 	StringName get_signal() const;
 
 	virtual VisualScriptNodeInstance* instance(VisualScriptInstance* p_instance);
+
+
+
 
 	VisualScriptEmitSignal();
 };

@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  input_map.h                                                          */
+/*  javascript_eval.h                                                    */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -26,59 +26,30 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef INPUT_MAP_H
-#define INPUT_MAP_H
+#ifdef JAVASCRIPT_EVAL_ENABLED
 
+#ifndef JAVASCRIPT_EVAL_H
+#define JAVASCRIPT_EVAL_H
 
 #include "object.h"
 
-class InputMap : public Object {
-
-	OBJ_TYPE( InputMap, Object );
-public:
-	struct Action {
-		int id;
-		List<InputEvent> inputs;
-	};
+class JavaScript : public Object {
 private:
-	static InputMap *singleton;
+	OBJ_TYPE( JavaScript, Object );
 
-	mutable Map<StringName, Action> input_map;
-	mutable Map<int,StringName> input_id_map;
+	static JavaScript *singleton;
 
-	List<InputEvent>::Element *_find_event(List<InputEvent> &p_list,const InputEvent& p_event) const;
-
-	Array _get_action_list(const StringName& p_action);
-	Array _get_actions();
 
 protected:
-
 	static void _bind_methods();
+
 public:
+	Variant eval(const String& p_code, bool p_use_global_exec_context = false);
 
-	static _FORCE_INLINE_ InputMap *get_singleton() { return singleton; }
-
-
-	bool has_action(const StringName& p_action) const;
-	int get_action_id(const StringName& p_action) const;
-	StringName get_action_from_id(int p_id) const;
-	List<StringName> get_actions() const;
-	void add_action(const StringName& p_action);
-	void erase_action(const StringName& p_action);
-
-	void action_add_event(const StringName& p_action,const InputEvent& p_event);
-	bool action_has_event(const StringName& p_action,const InputEvent& p_event);
-	void action_erase_event(const StringName& p_action,const InputEvent& p_event);
-
-	const List<InputEvent> *get_action_list(const StringName& p_action);
-	bool event_is_action(const InputEvent& p_event, const StringName& p_action) const;
-	bool event_is_joy_motion_action_pressed(const InputEvent& p_event) const;
-
-	const Map<StringName, Action>& get_action_map() const;
-	void load_from_globals();
-	void load_default();
-
-	InputMap();
+	static JavaScript *get_singleton();
+	JavaScript();
+	~JavaScript();
 };
 
-#endif // INPUT_MAP_H
+#endif // JAVASCRIPT_EVAL_H
+#endif // JAVASCRIPT_EVAL_ENABLED

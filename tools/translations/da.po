@@ -1,174 +1,167 @@
-# Indonesian translation of the Godot Engine editor
+# Danish translation of the Godot Engine editor
 # Copyright (C) 2016 Juan Linietsky, Ariel Manzur and the Godot community
 # This file is distributed under the same license as the Godot source code.
 #
-# Abdul Aziz Muslim Alqudsy <abdul.aziz.muslim.alqudsy@gmail.com>, 2016.
-# Andinawan Asa <asaandinawan@gmail.com>, 2016.
-# Khairul Hidayat <khairulcyber4rt@gmail.com>, 2016.
-# yursan9 <rizal.sagi@gmail.com>, 2016.
+# David Lamhauge <davidlamhauge@gmail.com>, 2016.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
-"PO-Revision-Date: 2016-08-27 02:11+0000\n"
-"Last-Translator: yursan9 <rizal.sagi@gmail.com>\n"
-"Language-Team: Indonesian <https://hosted.weblate.org/projects/godot-engine/"
-"godot/id/>\n"
-"Language: id\n"
+"PO-Revision-Date: 2016-08-27 07:06+0000\n"
+"Last-Translator: David Lamhauge <davidlamhauge@gmail.com>\n"
+"Language-Team: Danish <https://hosted.weblate.org/projects/godot-engine/"
+"godot/da/>\n"
+"Language: da\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8-bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 2.8-dev\n"
 
 #: modules/gdscript/gd_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
 msgid "Invalid type argument to convert(), use TYPE_* constants."
-msgstr ""
-"Tipe argument salah dalam menggunakan convert(), gunakan konstanta TYPE_*."
+msgstr "Ugyldigt type argument til convert(), brug TYPE_* konstanter."
 
 #: modules/gdscript/gd_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
 msgid "Not enough bytes for decoding bytes, or invalid format."
-msgstr "Tidak cukup bytes untuk menerjemahkan, atau format tidak sah."
+msgstr "Ikke nok bytes til afkodning af bytes, eller ugyldigt format."
 
 #: modules/gdscript/gd_functions.cpp
 msgid "step argument is zero!"
-msgstr "Langkah argumen adalah nol!"
+msgstr "trin argument er nul!"
 
 #: modules/gdscript/gd_functions.cpp
-#, fuzzy
 msgid "Not a script with an instance"
-msgstr "Skrip tidak mempunyai turunannya"
+msgstr "Ikke et script med en instans"
 
 #: modules/gdscript/gd_functions.cpp
 msgid "Not based on a script"
-msgstr "Tidak berbasis skrip"
+msgstr "Ikke baseret på et script"
 
 #: modules/gdscript/gd_functions.cpp
 msgid "Not based on a resource file"
-msgstr "Tidak berbasis resource file"
+msgstr "Ikke baseret på en ressource fil"
 
 #: modules/gdscript/gd_functions.cpp
 msgid "Invalid instance dictionary format (missing @path)"
-msgstr "Format kamus acuan tidak sah (@path hilang)"
+msgstr "Ugyldig instans ordbogs format (mangler @path)"
 
 #: modules/gdscript/gd_functions.cpp
 msgid "Invalid instance dictionary format (can't load script at @path)"
-msgstr "Format kamus acuan tidak sah (tidak dapat memuat script pada @path)"
+msgstr "Ugyldig instans ordbogs format (kan ikke indlæse script ved @path)"
 
 #: modules/gdscript/gd_functions.cpp
 msgid "Invalid instance dictionary format (invalid script at @path)"
-msgstr "Format kamus acuan tidak sah (skrip tidak sah pada @path)"
+msgstr "Ugyldig forekomst ordbog format (ugyldigt script på @path)"
 
 #: modules/gdscript/gd_functions.cpp
 msgid "Invalid instance dictionary (invalid subclasses)"
-msgstr "Kamus acuan tidak sah (sub kelas tidak sah)"
+msgstr "Ugyldig forekomst ordbog (ugyldige underklasser)"
 
 #: modules/visual_script/visual_script.cpp
 msgid ""
 "A node yielded without working memory, please read the docs on how to yield "
 "properly!"
 msgstr ""
-"Sebuah node dihasilkan tanpa kerja memori, silahkan baca dokumentasi tentang "
-"bagaimana menggunakannya dengan benar!"
+"En node yielded uden arbejdshukommelse, læs venligst dokumenterne for at se "
+"hvordan man yielder rigtigt!"
 
 #: modules/visual_script/visual_script.cpp
 msgid ""
 "Node yielded, but did not return a function state in the first working "
 "memory."
 msgstr ""
-"Node dihasilkan, tetapi keadaan sebuah fungsi tidak kembali saat kerja "
-"memori pertama."
+"Node givet, men returnerede ikke en funktion tilstand i den første "
+"arbejdshukommelse."
 
 #: modules/visual_script/visual_script.cpp
 msgid ""
 "Return value must be assigned to first element of node working memory! Fix "
 "your node please."
 msgstr ""
-"Nilai pengembalian harus ditetapkan pada elemen pertama dari node kerja "
-"memori! Silahkan perbaiki node anda."
+"Returværdien skal tildeles første element af nodens arbejdshukommelse! Fix "
+"din node venligst."
 
 #: modules/visual_script/visual_script.cpp
 msgid "Node returned an invalid sequence output: "
-msgstr "Node mengembalikan sebuah keluaran urutan yang tidak sah: "
+msgstr "Node returnerede en ugyldig sekvens output: "
 
 #: modules/visual_script/visual_script.cpp
 msgid "Found sequence bit but not the node in the stack, report bug!"
-msgstr ""
-"Telah ditemukan urutan dalam jumlah sedikit tetapi bukan node dalam jumlah "
-"besar, laporkan bug!"
+msgstr "Fundet sekvens bit men ikke noden i stakken, reporter bug!"
 
 #: modules/visual_script/visual_script.cpp
 msgid "Stack overflow with stack depth: "
-msgstr "Tumpukan melimpah dengan kedalaman tumpukan: "
+msgstr "Stakoverløb med stak dybde: "
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Functions:"
-msgstr "Fungsi-fungsi:"
+msgstr "Funktioner:"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Variables:"
-msgstr "Variabel-variabel:"
+msgstr "Variable:"
 
 #: modules/visual_script/visual_script_editor.cpp tools/editor/editor_help.cpp
 msgid "Signals:"
-msgstr "Sinyal-sinyal:"
+msgstr "Signaler:"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Name is not a valid identifier:"
-msgstr "Nama bukan sebuah pengidentifikasi yang sah:"
+msgstr "Navnet er ikke et gyldigt id:"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Name already in use by another func/var/signal:"
-msgstr "Nama telah digunakan oleh fungsi/variabel/sinyal yang lain:"
+msgstr "Navnet allerede bruges af en anden func/var/signal:"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Rename Function"
-msgstr "Namai kembali Fungsi"
+msgstr "Omdøb Funktion"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Rename Variable"
-msgstr "Namai kembali Variabel"
+msgstr "Omdøbe variablen"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Rename Signal"
-msgstr "Namai kembali Sinyal"
+msgstr "Omdøb Signal"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Function"
-msgstr "Tambahkan Fungsi"
+msgstr "Tilføj Funktion"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Variable"
-msgstr "Tambahkan Variabel"
+msgstr "Tilføj variabel"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Signal"
-msgstr "Tambahkan Sinyal"
+msgstr "Tilføj Signal"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Remove Function"
-msgstr "Hapus Fungsi"
+msgstr "Fjern Funktion"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Remove Variable"
-msgstr "Hapus Variabel"
+msgstr "Fjern Variabel"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Editing Variable:"
-msgstr "Mengedit Variabel:"
+msgstr "Redigerer Variabel:"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Remove Signal"
-msgstr "Hapus Sinyal"
+msgstr "Fjern Signal"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Editing Signal:"
-msgstr "Mengedit Sinyal:"
+msgstr "Redigerer Signal:"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Node"
-msgstr "Tambahkan Node"
+msgstr "Tilføj Node"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Hold Meta to drop a Getter. Hold Shift to drop a generic signature."
@@ -197,19 +190,19 @@ msgstr ""
 #: modules/visual_script/visual_script_editor.cpp
 #, fuzzy
 msgid "Add Preload Node"
-msgstr "Tambahkan Node"
+msgstr "Tilføj Node"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Node(s) From Tree"
-msgstr "Tambahkan Node (Node-node) dari Tree"
+msgstr "Tilføj Node(r) fra Tree"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Getter Property"
-msgstr "Tambahkan Properti Getter"
+msgstr "Tilføj Getter Egenskab"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Setter Property"
-msgstr "Tambahkan Properti Setter"
+msgstr "Tilføj Setter Egenskab"
 
 #: modules/visual_script/visual_script_editor.cpp
 #: tools/editor/plugins/canvas_item_editor_plugin.cpp
@@ -218,23 +211,23 @@ msgstr "Tambahkan Properti Setter"
 #: tools/editor/plugins/shader_editor_plugin.cpp
 #: tools/editor/project_manager.cpp
 msgid "Edit"
-msgstr "Edit"
+msgstr "Rediger"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Base Type:"
-msgstr "Tipe Dasar:"
+msgstr "Basis Type:"
 
 #: modules/visual_script/visual_script_editor.cpp tools/editor/editor_help.cpp
 msgid "Members:"
-msgstr "Member-member:"
+msgstr "Medlemmer:"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Available Nodes:"
-msgstr "Node-node yang Tersedia:"
+msgstr "Tilgængelige Noder:"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Select or create a function to edit graph"
-msgstr "Pilih atau ciptakan sebuah fungsi untuk mengedit grafik"
+msgstr "Vælg eller Opret en funktion til at redigere graf"
 
 #: modules/visual_script/visual_script_editor.cpp tools/editor/call_dialog.cpp
 #: tools/editor/connections_dialog.cpp
@@ -247,38 +240,37 @@ msgstr "Pilih atau ciptakan sebuah fungsi untuk mengedit grafik"
 #: tools/editor/project_settings.cpp tools/editor/property_editor.cpp
 #: tools/editor/run_settings_dialog.cpp tools/editor/settings_config_dialog.cpp
 msgid "Close"
-msgstr "Tutup"
+msgstr "Luk"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Edit Signal Arguments:"
-msgstr "Edit Argumen-argumen Sinyal:"
+msgstr "Rediger Signal argumenter:"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Edit Variable:"
-msgstr "Edit Variabel:"
+msgstr "Rediger Variabel:"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Change"
-msgstr "Ubah"
+msgstr "Skift"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Delete Selected"
-msgstr "Hapus yang Dipilih"
+msgstr "Slet Valgte"
 
 #: modules/visual_script/visual_script_editor.cpp
 #: tools/editor/plugins/script_text_editor.cpp
 msgid "Toggle Breakpoint"
-msgstr "Beralih Breakpoint"
+msgstr "Skift/Toggle Breakpoint"
 
 #: modules/visual_script/visual_script_editor.cpp
 #, fuzzy
 msgid "Find Node Type"
-msgstr "Cari Tipe Node"
+msgstr "Find Node Type"
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Copy Nodes"
-msgstr "Salin Resource"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Cut Nodes"
@@ -287,81 +279,81 @@ msgstr ""
 #: modules/visual_script/visual_script_editor.cpp
 #, fuzzy
 msgid "Paste Nodes"
-msgstr "Path ke Node:"
+msgstr "Sti til Node:"
 
 #: modules/visual_script/visual_script_flow_control.cpp
 msgid "Input type not iterable: "
-msgstr "Tipe masukan tidak iterable: "
+msgstr "Input type ikke iterabel: "
 
 #: modules/visual_script/visual_script_flow_control.cpp
 msgid "Iterator became invalid"
-msgstr "Iterator menjadi tidak sah"
+msgstr "Iterator blev ugyldig"
 
 #: modules/visual_script/visual_script_flow_control.cpp
 msgid "Iterator became invalid: "
-msgstr "Iterator menjadi tidak sah: "
+msgstr "Iterator blev ugyldig: "
 
 #: modules/visual_script/visual_script_func_nodes.cpp
 msgid "Invalid index property name."
-msgstr "Nama properti index tidak sah."
+msgstr "Ugyldigt index egenskabsnavn."
 
 #: modules/visual_script/visual_script_func_nodes.cpp
 msgid "Base object is not a Node!"
-msgstr "Objek dasar bukan sebuah Node!"
+msgstr "Base-objekt er ikke en Node!"
 
 #: modules/visual_script/visual_script_func_nodes.cpp
 msgid "Path does not lead Node!"
-msgstr "Path tidak menunjukkan Node!"
+msgstr "Stien fører ikke til Node!"
 
 #: modules/visual_script/visual_script_func_nodes.cpp
 msgid "Invalid index property name '%s' in node %s."
-msgstr "Nama properti index '%s' tidak sah dalam node %s."
+msgstr "Ugyldigt indeks egenskabsnavn '%s' i noden %s."
 
 #: modules/visual_script/visual_script_nodes.cpp
 msgid ": Invalid argument of type: "
-msgstr ": Argumen tidak sah dari tipe: "
+msgstr ": Ugyldigt argument af typen: "
 
 #: modules/visual_script/visual_script_nodes.cpp
 msgid ": Invalid arguments: "
-msgstr ": Argumen-argumen tidak sah: "
+msgstr ": Ugyldige argumenter: "
 
 #: modules/visual_script/visual_script_nodes.cpp
 msgid "VariableGet not found in script: "
-msgstr "VariableGet tidak ditemukan dalam script: "
+msgstr "VariableGet blev ikke fundet i scriptet: "
 
 #: modules/visual_script/visual_script_nodes.cpp
 msgid "VariableSet not found in script: "
-msgstr "VariableSet tidak ditemukan dalam script: "
+msgstr "VariableSet blev ikke fundet i scriptet: "
 
 #: modules/visual_script/visual_script_nodes.cpp
 msgid "Custom node has no _step() method, can't process graph."
 msgstr ""
-"Node modifikasi tidak memiliki method _step(), tidak bisa memproses grafik."
+"Brugerdefinerede node har ingen _step() metode, kan ikke behandle graf."
 
 #: modules/visual_script/visual_script_nodes.cpp
 msgid ""
 "Invalid return value from _step(), must be integer (seq out), or string "
 "(error)."
 msgstr ""
-"Nilai kembali dari _step() tidak sah, seharusnya integer (seq out), atau "
-"string (error)."
+"Ugyldig retur værdi fra _step(), skal være heltal (seq ud), eller en streng "
+"(fejl)."
 
 #: scene/2d/animated_sprite.cpp
 msgid ""
 "A SpriteFrames resource must be created or set in the 'Frames' property in "
 "order for AnimatedSprite to display frames."
 msgstr ""
-"Sebuah resource SpriteFrames seharusnya diciptakan atau diatur dalam "
-"properti 'Frames' agar AnimatedSprite menampilkan frame-frame."
+"En SpriteFrames ressource skal oprettes eller angives i egenskaben 'Frames' "
+"for at AnimatedSprite kan vise frames."
 
 #: scene/2d/canvas_modulate.cpp
 msgid ""
 "Only one visible CanvasModulate is allowed per scene (or set of instanced "
 "scenes). The first created one will work, while the rest will be ignored."
 msgstr ""
-"Hanya satu visible CanvasModulate yang diizinkan per scene (atau atur pada "
-"scene-scene yang diacu). Yang diciptakan pertama akan bekerja, sedangkan "
-"sisanya akan diabaikan."
+"Kun et synligt CanvasModulate er tilladt pr. scene (eller et sæt af "
+"instanserede scener). Den første vil blive brugt, mens resten vil blive "
+"ignoreret."
 
 #: scene/2d/collision_polygon_2d.cpp
 msgid ""
@@ -369,15 +361,13 @@ msgid ""
 "CollisionObject2D derived node. Please only use it as a child of Area2D, "
 "StaticBody2D, RigidBody2D, KinematicBody2D, etc. to give them a shape."
 msgstr ""
-"CollisionPolygon2D hanya berfungsi untuk menyediakan sebuah bentuk collision "
-"pada sebuah CollisionObject2D node asal. Mohon hanya gunakan itu sebagai "
-"sebuah child dari Area2D, StaticBody2D, RigidBody2D, KinematicBody2D, dll. "
-"untuk memberikan mereka sebuah bentuk."
+"CollisionPolygon2D tjener kun til at give en kollisionsfigur til et "
+"CollisionObject2D afledte node. Du skal kun bruge det som et barn af Area2D, "
+"StaticBody2D, RigidBody2D, KinematicBody2D, etc. til at give dem en form."
 
 #: scene/2d/collision_polygon_2d.cpp
 msgid "An empty CollisionPolygon2D has no effect on collision."
-msgstr ""
-"Sebuah CollisionPolygon2D yang kosong tidak memiliki efek pada collision."
+msgstr "En tom CollisionPolygon2D har ingen effekt på kollision."
 
 #: scene/2d/collision_shape_2d.cpp
 msgid ""
@@ -385,113 +375,106 @@ msgid ""
 "CollisionObject2D derived node. Please only use it as a child of Area2D, "
 "StaticBody2D, RigidBody2D, KinematicBody2D, etc. to give them a shape."
 msgstr ""
-"CollisionShape2D hanya berfungsi untuk menyediakan sebuah bentuk collision "
-"pada sebuah CollisionObject2D node asal. Mohon hanya gunakan itu sebagai "
-"sebuah child dari Area2D, StaticBody2D, RigidBody2D, KinematicBody2D, dll. "
-"untuk memberikan mereka sebuah bentuk."
+"CollisionShape2D tjener kun til at give en kollision figur til en "
+"CollisionObject2D afledte node. Du skal kun bruge det som et barn af Area2D, "
+"StaticBody2D, RigidBody2D, KinematicBody2D, etc. til at give dem en form."
 
 #: scene/2d/collision_shape_2d.cpp
 msgid ""
 "A shape must be provided for CollisionShape2D to function. Please create a "
 "shape resource for it!"
 msgstr ""
-"Sebuah bentuk harus disediakan untuk CollisionShape2D untuk fungsi. Mohon "
-"ciptakan resource bentuk untuk itu!"
+"En figur skal gives CollisionShape2D for at det fungerer. Opret venligst en "
+"figur ressource for den!"
 
 #: scene/2d/light_2d.cpp
 msgid ""
 "A texture with the shape of the light must be supplied to the 'texture' "
 "property."
-msgstr ""
-"Sebuah tekstur dengan bentuk cahaya harus disuplai ke properti 'texture'."
+msgstr "En tekstur med formen på lyset skal gives til egenskaben 'teksture'."
 
 #: scene/2d/light_occluder_2d.cpp
 msgid ""
 "An occluder polygon must be set (or drawn) for this occluder to take effect."
 msgstr ""
-"Sebuah polygon occluder harus diatur (atau digambar) untuk occluder ini "
-"berpengaruh."
+"En occluder polygon skal angives (eller tegnes) for at denne occluder træder "
+"i kraft."
 
 #: scene/2d/light_occluder_2d.cpp
 msgid "The occluder polygon for this occluder is empty. Please draw a polygon!"
-msgstr ""
-"Polygon occluder untuk occluder ini kosong. Mohon gambar dulu sebuah polygon!"
+msgstr "Occluder polygon for denne occluder er tom. Tegn venligst en polygon!"
 
 #: scene/2d/navigation_polygon.cpp
 msgid ""
 "A NavigationPolygon resource must be set or created for this node to work. "
 "Please set a property or draw a polygon."
 msgstr ""
-"Sebuah resource NavigationPolygon harus diatur atau diciptakan untuk node "
-"ini bekerja. Mohon atur sebuah properti atau gambar sebuah polygon."
+"En NavigationPolygon ressource skal sættes eller laves for at denne node kan "
+"virke. Sæt venligst en egenskab eller tegn en polygon."
 
 #: scene/2d/navigation_polygon.cpp
 msgid ""
 "NavigationPolygonInstance must be a child or grandchild to a Navigation2D "
 "node. It only provides navigation data."
 msgstr ""
-"NavigationPolygonInstance harus menjadi sebuah child atau grandchild ke "
-"sebuah node Navigation2D. Ini hanya menyediakan data navigasi."
+"NavigationPolygonInstance skal være et barn eller barnebarn til en "
+"Navigation2D node. Det giver kun navigationsdata."
 
 #: scene/2d/parallax_layer.cpp
 msgid ""
 "ParallaxLayer node only works when set as child of a ParallaxBackground node."
 msgstr ""
-"Node ParallaxLayer hanya bekerja ketika diatur sebagai child dari sebuah "
-"node ParallaxBackground."
+"ParallaxLayer node virker kun, når den angives som barn af en "
+"ParallaxBackground node."
 
 #: scene/2d/particles_2d.cpp
 msgid "Path property must point to a valid Particles2D node to work."
-msgstr ""
-"Properti path harus menunjuk ke sebuah node Particles2D yang sah agar "
-"bekerja."
+msgstr "Egenskaben Path skal pege på en gyldig Particles2D node for at virke."
 
 #: scene/2d/path_2d.cpp
 msgid "PathFollow2D only works when set as a child of a Path2D node."
 msgstr ""
-"PathFollow2D hanya bekerja ketika diatur sebagai sebuah child dari sebuah "
-"node Path2D."
+"PathFollow2D virker kun, når den angives som et barn af en Path2D node."
 
 #: scene/2d/remote_transform_2d.cpp
 msgid "Path property must point to a valid Node2D node to work."
-msgstr ""
-"Properti path harus menunjuk pada sebuah node Node2D yang sah untuk bekerja."
+msgstr "Egenskaben Path skal pege på en gyldig Node2D node for at virke."
 
 #: scene/2d/sample_player_2d.cpp scene/audio/sample_player.cpp
 msgid ""
 "A SampleLibrary resource must be created or set in the 'samples' property in "
 "order for SamplePlayer to play sound."
 msgstr ""
-"Sebuah resource SampleLibrary harus diciptakan atau diatur didalam properti "
-"'samples' agar SamplePlayer memainkan suara."
+"En SampleLibrary ressource skal oprettes eller angives i egenskaben "
+"'samples' for at SamplePlayer kan afspille lyd."
 
 #: scene/2d/sprite.cpp
 msgid ""
 "Path property must point to a valid Viewport node to work. Such Viewport "
 "must be set to 'render target' mode."
 msgstr ""
-"Properti path harus menunjuk pada node Viewport yang sah untuk bekerja. "
-"Viewport tersebut harus diatur ke mode 'render target'."
+"Egenskaben Path skal pege på en gyldig Viewport node for at virke. Sådan en "
+"Viewport skal indstilles til 'render target' tilstand."
 
 #: scene/2d/sprite.cpp
 msgid ""
 "The Viewport set in the path property must be set as 'render target' in "
 "order for this sprite to work."
 msgstr ""
-"Pengaturan Vieport dalam properti path harus diatur sebagai 'render target' "
-"agar sprite bekerja."
+"Viewport angivet i egenskaben path skal indstilles som 'render target' for "
+"at denne sprite kan virke."
 
 #: scene/2d/visibility_notifier_2d.cpp
 msgid ""
 "VisibilityEnable2D works best when used with the edited scene root directly "
 "as parent."
 msgstr ""
-"VisibilityEnable2D bekerja dengan sangat baik ketika digunakan dengan "
-"mengedit root scene secara langsung sebagai parent."
+"VisibilityEnable2D fungerer bedst, når det bruges med den redigerede "
+"scenerod direkte som parent."
 
 #: scene/3d/baked_light_instance.cpp
 msgid "BakedLightInstance does not contain a BakedLight resource."
-msgstr "BakedLightInstance tidak berisi resource BakedLight."
+msgstr "BakedLightInstance indeholder ikke en BakedLight ressource."
 
 #: scene/3d/body_shape.cpp
 msgid ""
@@ -499,18 +482,17 @@ msgid ""
 "derived node. Please only use it as a child of Area, StaticBody, RigidBody, "
 "KinematicBody, etc. to give them a shape."
 msgstr ""
-"CollisionShape hanya berfungsi untuk memberikan sebuah bentuk collision ke "
-"node CollisionObject asal. Mohon hanya gunakan ini sebagai child dari Area, "
-"StaticBody, RigidBody, KinematicBody, dll. untuk memberi mereka sebuah "
-"bentuk."
+"CollisionShape tjener kun til at give en kollision figur til en "
+"CollisionObject afledte node. Du skal kun bruge det som et barn af Area, "
+"StaticBody, RigidBody, KinematicBody, etc. til at give dem en form."
 
 #: scene/3d/body_shape.cpp
 msgid ""
 "A shape must be provided for CollisionShape to function. Please create a "
 "shape resource for it!"
 msgstr ""
-"Sebuah bentuk harus disediakan untuk CollisionShape untuk fungsi. Mohon "
-"ciptakan sebuah resource bentuk untuk itu!"
+"En figur skal gives for at CollisionShape fungerer. Opret en figur ressource "
+"til det!"
 
 #: scene/3d/collision_polygon.cpp
 msgid ""
@@ -518,79 +500,78 @@ msgid ""
 "CollisionObject derived node. Please only use it as a child of Area, "
 "StaticBody, RigidBody, KinematicBody, etc. to give them a shape."
 msgstr ""
-"CollisionPolygon hanya berfungsi untuk menyediakan sebuah bentuk collision "
-"ke node CollisionObject asal. Mohon hanya gunakan ini sebagai child dari "
-"Area, StaticBody, RigidBody, KinematicBody, dll. untuk memberi mereka bentuk."
+"CollisionPolygon tjener kun til at give en kollision figur til en "
+"CollisionObject afledte node. Du skal kun bruge det som et barn af Area, "
+"StaticBody, RigidBody, KinematicBody, etc. til at give dem en form."
 
 #: scene/3d/collision_polygon.cpp
 msgid "An empty CollisionPolygon has no effect on collision."
-msgstr ""
-"Sebuah CollisionPolygon yang kosong tidak memiliki efek pada collision."
+msgstr "En tom CollisionPolygon har ingen effekt på kollision."
 
 #: scene/3d/navigation_mesh.cpp
 msgid "A NavigationMesh resource must be set or created for this node to work."
 msgstr ""
-"Sebuah resource NavigationMesh harus diatur atau diciptakan untuk node ini "
-"bekerja."
+"En NavigationMesh ressource skal laves eller oprettes for at denne node kan "
+"fungere."
 
 #: scene/3d/navigation_mesh.cpp
 msgid ""
 "NavigationMeshInstance must be a child or grandchild to a Navigation node. "
 "It only provides navigation data."
 msgstr ""
-"NavigationMeshInstance harus menjadi child atau grandchild untuk sebuah node "
-"Navigation. Ini hanya menyediakan data navigasi."
+"NavigationMeshInstance skal være et barn eller barnebarn til en Navigation "
+"node. Det giver kun navigationsdata."
 
 #: scene/3d/scenario_fx.cpp
 msgid ""
 "Only one WorldEnvironment is allowed per scene (or set of instanced scenes)."
 msgstr ""
-"Hanya satu WorldEnvironment yang diizinkan per scene (atau atur scene-scene "
-"yang diacu)."
+"Kun én WorldEnvironment er tilladt pr. scene (eller et sæt af instanserede "
+"scener)."
 
 #: scene/3d/spatial_sample_player.cpp
 msgid ""
 "A SampleLibrary resource must be created or set in the 'samples' property in "
 "order for SpatialSamplePlayer to play sound."
 msgstr ""
-"Sebuah resource SampleLibrary harus dibuat atau diatur didalam properti "
-"'samples' agar SpatialSamplePlayer memainkan suara."
+"En SampleLibrary ressource skal oprettes eller angives i egenskaben "
+"'samples' for at SpatialSamplePlayer kan afspille lyd."
 
 #: scene/3d/sprite_3d.cpp
 msgid ""
 "A SpriteFrames resource must be created or set in the 'Frames' property in "
 "order for AnimatedSprite3D to display frames."
 msgstr ""
-"Sebuah resource SpriteFrames harus diciptakan atau diatur didalam properti "
-"'Frames' agar AnimatedSprite3D menampilkan frame-frame."
+"En SpriteFrames ressource skal oprettes eller angivets i egenskaben 'Frames' "
+"for at AnimatedSprite3D kan vise frames."
 
 #: scene/gui/dialogs.cpp tools/editor/io_plugins/editor_scene_import_plugin.cpp
 msgid "Cancel"
-msgstr "Batal"
+msgstr "Annuller"
 
 #: scene/gui/dialogs.cpp tools/editor/scene_tree_dock.cpp
 msgid "OK"
-msgstr "Oke"
+msgstr "Ok"
 
 #: scene/gui/dialogs.cpp
 msgid "Alert!"
-msgstr "Peringatan!"
+msgstr "Advarsel!"
 
 #: scene/gui/dialogs.cpp
 msgid "Please Confirm..."
-msgstr "Mohon konfirmasi..."
+msgstr "Bekræft venligst..."
 
 #: scene/gui/file_dialog.cpp tools/editor/editor_file_dialog.cpp
 msgid "File Exists, Overwrite?"
-msgstr "File telah ada, Overwrite?"
+msgstr "Filen findes, overskrives?"
 
 #: scene/gui/file_dialog.cpp tools/editor/editor_file_dialog.cpp
 msgid "All Recognized"
-msgstr "Semua diakui"
+msgstr "Alle Genkendte"
 
 #: scene/gui/file_dialog.cpp tools/editor/editor_file_dialog.cpp
 msgid "All Files (*)"
-msgstr "Semua File-file (*)"
+msgstr "Alle filer (*)"
 
 #: scene/gui/file_dialog.cpp tools/editor/editor_file_dialog.cpp
 #: tools/editor/editor_help.cpp tools/editor/editor_node.cpp
@@ -598,55 +579,55 @@ msgstr "Semua File-file (*)"
 #: tools/editor/plugins/script_editor_plugin.cpp
 #: tools/editor/property_selector.cpp tools/editor/quick_open.cpp
 msgid "Open"
-msgstr "Buka"
+msgstr "Åben"
 
 #: scene/gui/file_dialog.cpp
 msgid "Open a File"
-msgstr "Buka sebuah File"
+msgstr "Åben en Fil"
 
 #: scene/gui/file_dialog.cpp
 msgid "Open File(s)"
-msgstr "Buka File (File-file)"
+msgstr "Åben fil(er)"
 
 #: scene/gui/file_dialog.cpp
 msgid "Open a Directory"
-msgstr "Buka sebuah Direktori"
+msgstr "Åbn en mappe"
 
 #: scene/gui/file_dialog.cpp
 msgid "Open a File or Directory"
-msgstr "Buka sebuah File atau Direktori"
+msgstr "Åbne en fil eller mappe"
 
 #: scene/gui/file_dialog.cpp tools/editor/editor_file_dialog.cpp
 #: tools/editor/editor_node.cpp
 #: tools/editor/plugins/animation_player_editor_plugin.cpp
 #: tools/editor/plugins/script_editor_plugin.cpp
 msgid "Save"
-msgstr "Simpan"
+msgstr "Gem"
 
 #: scene/gui/file_dialog.cpp tools/editor/editor_file_dialog.cpp
 msgid "Save a File"
-msgstr "Simpan sebuah File"
+msgstr "Gem en fil"
 
 #: scene/gui/file_dialog.cpp tools/editor/editor_dir_dialog.cpp
 #: tools/editor/editor_file_dialog.cpp
 msgid "Create Folder"
-msgstr "Buat Folder"
+msgstr "Opret mappe"
 
 #: scene/gui/file_dialog.cpp tools/editor/editor_autoload_settings.cpp
 #: tools/editor/editor_file_dialog.cpp
 #: tools/editor/io_plugins/editor_font_import_plugin.cpp
 #: tools/editor/script_create_dialog.cpp
 msgid "Path:"
-msgstr "Path:"
+msgstr "Sti:"
 
 #: scene/gui/file_dialog.cpp tools/editor/editor_file_dialog.cpp
 msgid "Directories & Files:"
-msgstr "Direktori-direktori & File-file:"
+msgstr "Mapper & filer:"
 
 #: scene/gui/file_dialog.cpp tools/editor/editor_file_dialog.cpp
 #: tools/editor/script_editor_debugger.cpp
 msgid "File:"
-msgstr "File:"
+msgstr "Fil:"
 
 #: scene/gui/file_dialog.cpp tools/editor/editor_file_dialog.cpp
 msgid "Filter:"
@@ -656,16 +637,16 @@ msgstr "Filter:"
 #: tools/editor/editor_file_dialog.cpp tools/editor/editor_plugin_settings.cpp
 #: tools/editor/plugins/theme_editor_plugin.cpp
 msgid "Name:"
-msgstr "Nama:"
+msgstr "Navn:"
 
 #: scene/gui/file_dialog.cpp tools/editor/editor_dir_dialog.cpp
 #: tools/editor/editor_file_dialog.cpp
 msgid "Could not create folder."
-msgstr "Tidak dapat membuat folder."
+msgstr "Kunne ikke oprette mappe."
 
 #: scene/gui/file_dialog.cpp tools/editor/editor_file_dialog.cpp
 msgid "Must use a valid extension."
-msgstr "Harus menggunakan ekstensi yang sah."
+msgstr "Skal bruge en gyldig udvidelse."
 
 #: scene/gui/input_action.cpp tools/editor/project_settings.cpp
 #: tools/editor/settings_config_dialog.cpp
@@ -675,63 +656,61 @@ msgstr "Shift+"
 #: scene/gui/input_action.cpp tools/editor/project_settings.cpp
 #: tools/editor/settings_config_dialog.cpp
 msgid "Alt+"
-msgstr "Alt+"
+msgstr "Alt +"
 
 #: scene/gui/input_action.cpp
 msgid "Ctrl+"
-msgstr "Ctrl+"
+msgstr "CTRL +"
 
 #: scene/gui/input_action.cpp tools/editor/project_settings.cpp
 #: tools/editor/settings_config_dialog.cpp
 msgid "Meta+"
-msgstr "Meta+"
+msgstr "Meta +"
 
 #: scene/gui/input_action.cpp tools/editor/project_settings.cpp
 msgid "Device"
-msgstr "Perangkat"
+msgstr "Enhed"
 
 #: scene/gui/input_action.cpp tools/editor/project_settings.cpp
 msgid "Button"
-msgstr "Tombol"
+msgstr "Knap"
 
 #: scene/gui/input_action.cpp tools/editor/project_settings.cpp
 msgid "Left Button."
-msgstr "Tombol Kiri."
+msgstr "Venstre knap."
 
 #: scene/gui/input_action.cpp tools/editor/project_settings.cpp
 msgid "Right Button."
-msgstr "Tombol Kanan."
+msgstr "Højre knap."
 
 #: scene/gui/input_action.cpp tools/editor/project_settings.cpp
 msgid "Middle Button."
-msgstr "Tombol Tengah."
+msgstr "Midterste knap."
 
 #: scene/gui/input_action.cpp tools/editor/project_settings.cpp
-#, fuzzy
 msgid "Wheel Up."
-msgstr "Scroll keatas."
+msgstr "Hjulet op."
 
 #: scene/gui/input_action.cpp tools/editor/project_settings.cpp
-#, fuzzy
 msgid "Wheel Down."
-msgstr "Scroll kebawah."
+msgstr "Hjulet ned."
 
 #: scene/gui/input_action.cpp tools/editor/project_settings.cpp
 msgid "Axis"
-msgstr "Axis"
+msgstr "Akse"
 
 #: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 #: tools/editor/plugins/script_text_editor.cpp
 #: tools/editor/plugins/shader_editor_plugin.cpp
 msgid "Cut"
-msgstr "Potong"
+msgstr "Cut"
 
 #: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 #: tools/editor/plugins/script_text_editor.cpp
 #: tools/editor/plugins/shader_editor_plugin.cpp
 #: tools/editor/property_editor.cpp tools/editor/resources_dock.cpp
 msgid "Copy"
-msgstr "Kopy"
+msgstr "Kopier"
 
 #: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 #: tools/editor/plugins/resource_preloader_editor_plugin.cpp
@@ -740,27 +719,27 @@ msgstr "Kopy"
 #: tools/editor/plugins/sprite_frames_editor_plugin.cpp
 #: tools/editor/property_editor.cpp tools/editor/resources_dock.cpp
 msgid "Paste"
-msgstr "Tempel"
+msgstr "Indsæt"
 
 #: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 #: tools/editor/plugins/script_text_editor.cpp
 #: tools/editor/plugins/shader_editor_plugin.cpp
 #: tools/editor/project_export.cpp
 msgid "Select All"
-msgstr "Pilih Semua"
+msgstr "Vælg alle"
 
 #: scene/gui/line_edit.cpp scene/gui/text_edit.cpp tools/editor/editor_log.cpp
 #: tools/editor/plugins/animation_tree_editor_plugin.cpp
 #: tools/editor/plugins/rich_text_editor_plugin.cpp
 #: tools/editor/property_editor.cpp tools/editor/script_editor_debugger.cpp
 msgid "Clear"
-msgstr "Bersihkan"
+msgstr "Clear"
 
 #: scene/gui/line_edit.cpp scene/gui/text_edit.cpp tools/editor/editor_node.cpp
 #: tools/editor/plugins/script_text_editor.cpp
 #: tools/editor/plugins/shader_editor_plugin.cpp
 msgid "Undo"
-msgstr "Batal"
+msgstr "Fortryd"
 
 #: scene/gui/popup.cpp
 msgid ""
@@ -768,227 +747,211 @@ msgid ""
 "functions. Making them visible for editing is fine though, but they will "
 "hide upon running."
 msgstr ""
-"Popup-popup akan sembunyi secara default kecuali panggil popup() atau apapun "
-"dari fungsi-fungsi popup*(). Meskipun membuat mereka terlihat untuk mengedit "
-"itu baik, tetapi mereka akan sembunyi saat berjalan."
+"Popups er skjulte som standard, medmindre du kalder popup() eller nogen af "
+"popup*() funktionerne. At gøre dem synlige for redigering er fint, men de "
+"bliver skjult under afvikling."
 
 #: scene/main/viewport.cpp
-#, fuzzy
 msgid ""
 "This viewport is not set as render target. If you intend for it to display "
 "its contents directly to the screen, make it a child of a Control so it can "
 "obtain a size. Otherwise, make it a RenderTarget and assign its internal "
 "texture to some node for display."
 msgstr ""
-"Viewport ini tidak diatur sebagai target render. Jika anda berniat untuk "
-"menampilkan konten-kontennya secara langsung ke layar, buatlah sebuah child "
-"dari kontrol jadi hal tersebut bisa memperoleh ukuran. Jika tidak, buatlah "
-"sebuah RenderTarget dan tetapkannya tekstur internal untuk beberapa node "
-"untuk ditampilkan."
+"Denne viewport er ikke angivet som render target. Hvis du har tænkt dig for "
+"at vise dens indhold direkte til skærmen, gør det til et barn af Control, så "
+"den kan opnå en størrelse. Ellers gør den til en RenderTarget og tildel dens "
+"indre textur til en node så den kan vises."
 
 #: scene/resources/dynamic_font.cpp
 #: tools/editor/io_plugins/editor_font_import_plugin.cpp
 msgid "Error initializing FreeType."
-msgstr "Error menginisialisasi FreeType."
+msgstr "Fejl under initialisering af FreeType."
 
 #: scene/resources/dynamic_font.cpp
 #: tools/editor/io_plugins/editor_font_import_plugin.cpp
 msgid "Unknown font format."
-msgstr "Format font tidak diketahui."
+msgstr "Ukendt skrifttypeformat."
 
 #: scene/resources/dynamic_font.cpp
 #: tools/editor/io_plugins/editor_font_import_plugin.cpp
 msgid "Error loading font."
-msgstr "Error memuat font."
+msgstr "Error loading skrifttype."
 
 #: scene/resources/dynamic_font.cpp
 #: tools/editor/io_plugins/editor_font_import_plugin.cpp
 msgid "Invalid font size."
-msgstr "Ukuran font tidak sah."
+msgstr "Ugyldig skriftstørrelse."
 
 #: tools/editor/animation_editor.cpp
 msgid "Disabled"
-msgstr "Dinonaktifkan"
+msgstr "Deaktiveret"
 
 #: tools/editor/animation_editor.cpp
 msgid "All Selection"
-msgstr "Semua pilihan"
+msgstr "All selection"
 
 #: tools/editor/animation_editor.cpp
 msgid "Move Add Key"
-msgstr "Pindahkan Kunci Tambah"
+msgstr "Flyt Add Key"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim Change Transition"
-msgstr "Ubah Transisi Anim"
+msgstr "Anim Skift Overgang"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim Change Transform"
-msgstr "Ubah Transformasi Anim"
+msgstr "Anim Skift transformering"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim Change Value"
-msgstr "Ubah Nilai Anim"
+msgstr "Anim Skift værdi"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim Change Call"
-msgstr "Ubah Panggilan Anim"
+msgstr "Anim Skift Call"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim Add Track"
-msgstr "Tambah Track Anim"
+msgstr "Anim tilføj spor"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim Duplicate Keys"
-msgstr "Duplikat Tombol Anim"
+msgstr "Anim Dubliker Keys"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Move Anim Track Up"
-msgstr "Pindahkan Track Anim ke Atas"
+msgstr "Flyt Anim spor op"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Move Anim Track Down"
-msgstr "Pindahkan Track Anim ke Bawah"
+msgstr "Flyt Anim spor ned"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Remove Anim Track"
-msgstr "Hapus Track Anim"
+msgstr "Fjern Anim spor"
 
 #: tools/editor/animation_editor.cpp
 msgid "Set Transitions to:"
-msgstr "Atur transisi ke:"
+msgstr "Sæt overgange til:"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim Track Rename"
-msgstr "Namai Kembali Track Anim"
+msgstr "Anim spor Omdøb"
 
 #: tools/editor/animation_editor.cpp
 msgid "Anim Track Change Interpolation"
-msgstr ""
+msgstr "Anim spor Skift Interpolation"
 
 #: tools/editor/animation_editor.cpp
 msgid "Anim Track Change Value Mode"
-msgstr "Ganti Mode Nilai Track Anim"
+msgstr "Anim spor Skift værdi Mode"
 
 #: tools/editor/animation_editor.cpp
 msgid "Edit Node Curve"
-msgstr "Edit Kurva Node"
+msgstr "Redigere Node kurve"
 
 #: tools/editor/animation_editor.cpp
 msgid "Edit Selection Curve"
-msgstr "Edit Kurva Pilihan"
+msgstr "Rediger udvalg kurve"
 
 #: tools/editor/animation_editor.cpp
 msgid "Anim Delete Keys"
-msgstr "Hapus Kunci Anim"
+msgstr "Anim slet Keys"
 
 #: tools/editor/animation_editor.cpp
 #: tools/editor/plugins/tile_map_editor_plugin.cpp
 msgid "Duplicate Selection"
-msgstr "Duplikat Pilihan"
+msgstr "Dubler valg"
 
 #: tools/editor/animation_editor.cpp
 msgid "Duplicate Transposed"
-msgstr "Duplikat Dialihkan"
+msgstr "Duplicate transposed"
 
 #: tools/editor/animation_editor.cpp
 msgid "Remove Selection"
-msgstr "Hapus Pilihan"
+msgstr "Fjern markering"
 
 #: tools/editor/animation_editor.cpp
 msgid "Continuous"
-msgstr "Lanjut"
+msgstr "Kontinuerlig"
 
 #: tools/editor/animation_editor.cpp
 msgid "Discrete"
-msgstr "Berlainan"
+msgstr "Diskret"
 
 #: tools/editor/animation_editor.cpp
 msgid "Trigger"
-msgstr "Pemicu"
+msgstr "Udløser"
 
 #: tools/editor/animation_editor.cpp
 msgid "Anim Add Key"
-msgstr "Tambah Kunci Anim"
+msgstr "Anim Tilføj Key"
 
 #: tools/editor/animation_editor.cpp
 msgid "Anim Move Keys"
-msgstr "Pindahkan Kunci Anim"
+msgstr "Anim Flyt Keys"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Scale Selection"
-msgstr "Beri Skala Seleksi"
+msgstr "Skalering Valg"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Scale From Cursor"
-msgstr "Beri Skala dari Kursor"
+msgstr "Skaler fra Cursor"
 
 #: tools/editor/animation_editor.cpp
 msgid "Goto Next Step"
-msgstr "Lanjut ke Langkah Berikutnya"
+msgstr "Goto næste skridt"
 
 #: tools/editor/animation_editor.cpp
 msgid "Goto Prev Step"
-msgstr "Lanjut ke Langkah Sebelumnya"
+msgstr "Goto forrige trin"
 
 #: tools/editor/animation_editor.cpp tools/editor/property_editor.cpp
 msgid "Linear"
-msgstr "Linier"
+msgstr "Lineær"
 
 #: tools/editor/animation_editor.cpp
 #: tools/editor/plugins/theme_editor_plugin.cpp
 msgid "Constant"
-msgstr "Konstan"
+msgstr "Konstant"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "In"
-msgstr "Kedalam"
+msgstr "I"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Out"
-msgstr "Keluar"
+msgstr "Ud"
 
 #: tools/editor/animation_editor.cpp
 msgid "In-Out"
-msgstr "Masuk-Keluar"
+msgstr "Ind-Ud"
 
 #: tools/editor/animation_editor.cpp
 msgid "Out-In"
-msgstr "Keluar-Masuk"
+msgstr "Out-in"
 
 #: tools/editor/animation_editor.cpp
 msgid "Transitions"
-msgstr "Transisi"
+msgstr "Overgange"
 
 #: tools/editor/animation_editor.cpp
 msgid "Optimize Animation"
-msgstr "Optimalkan Animasi"
+msgstr "Optimer Animation"
 
 #: tools/editor/animation_editor.cpp
 msgid "Clean-Up Animation"
-msgstr "Bersihkan Animasi"
+msgstr "Clean-up Animation"
 
 #: tools/editor/animation_editor.cpp
 msgid "Create NEW track for %s and insert key?"
-msgstr "Buat track BARU untuk %s dan masukkan tombol?"
+msgstr "Oprette nye spor til %s og indsætte key?"
 
 #: tools/editor/animation_editor.cpp
 msgid "Create %d NEW tracks and insert keys?"
-msgstr "Buat track BARU %d dan masukkan tombol-tombol?"
+msgstr "Oprette %d nye numre og indsætte nøgler?"
 
 #: tools/editor/animation_editor.cpp tools/editor/create_dialog.cpp
 #: tools/editor/plugins/light_occluder_2d_editor_plugin.cpp
@@ -997,168 +960,163 @@ msgstr "Buat track BARU %d dan masukkan tombol-tombol?"
 #: tools/editor/plugins/particles_editor_plugin.cpp
 #: tools/editor/project_manager.cpp tools/editor/script_create_dialog.cpp
 msgid "Create"
-msgstr "Buat"
+msgstr "Opret"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim Create & Insert"
-msgstr "Anim Buat & Masukan"
+msgstr "Anim opret & indsæt"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim Insert Track & Key"
-msgstr "Masukkan Track & Tombol Anim"
+msgstr "Anim Indsæt spor & key"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim Insert Key"
-msgstr "Anim Masukkan Tombol"
+msgstr "Anim Indsæt key"
 
 #: tools/editor/animation_editor.cpp
 msgid "Change Anim Len"
-msgstr "Ubah Panjang Animasi"
+msgstr "Ændre Anim Len"
 
 #: tools/editor/animation_editor.cpp
 msgid "Change Anim Loop"
-msgstr "Ubah Perulangan Animasi"
+msgstr "Ændre Anim løkke"
 
 #: tools/editor/animation_editor.cpp
 msgid "Anim Create Typed Value Key"
-msgstr "Buat Nilai Kunci Animasi Tertulis"
+msgstr "Anim opret indtastet Value key"
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim Insert"
-msgstr "Anim Masukkan"
+msgstr "Anim Indsæt"
 
 #: tools/editor/animation_editor.cpp
 msgid "Anim Scale Keys"
-msgstr "Skala Kunci Anim"
+msgstr "Anim Skaler keys"
 
 #: tools/editor/animation_editor.cpp
 msgid "Anim Add Call Track"
-msgstr "Tambah Pemanggilan Track Anim"
+msgstr "Anim tilføj Call Track"
 
 #: tools/editor/animation_editor.cpp
 msgid "Animation zoom."
-msgstr "Zoom animasi."
+msgstr "Animation Zoom."
 
 #: tools/editor/animation_editor.cpp
 msgid "Length (s):"
-msgstr "Panjang:"
+msgstr "Længde (s):"
 
 #: tools/editor/animation_editor.cpp
 msgid "Animation length (in seconds)."
-msgstr "Panjang animasi (dalam detik)."
+msgstr "Animation Længde (i sekunder)."
 
 #: tools/editor/animation_editor.cpp
 msgid "Step (s):"
-msgstr "Langkah:"
+msgstr "Trin (s):"
 
 #: tools/editor/animation_editor.cpp
 msgid "Cursor step snap (in seconds)."
-msgstr "Langkah kursor sekejap (dalam detik)."
+msgstr "Cursor trin snap (i sekunder)."
 
 #: tools/editor/animation_editor.cpp
 msgid "Enable/Disable looping in animation."
-msgstr "Aktifkan/Nonaktifkan pengulangan dalam animasi."
+msgstr "Aktiver/Deaktiver løkker i animation."
 
 #: tools/editor/animation_editor.cpp
 msgid "Add new tracks."
-msgstr "Tambah tracks baru."
+msgstr "Tilføje nye tracks."
 
 #: tools/editor/animation_editor.cpp
 msgid "Move current track up."
-msgstr "Pindahkan track sekarang ke atas."
+msgstr "Flyt aktuelle spor op."
 
 #: tools/editor/animation_editor.cpp
 msgid "Move current track down."
-msgstr "Pindahkan track sekarang ke bawah."
+msgstr "Flyt aktuelle spor ned."
 
 #: tools/editor/animation_editor.cpp
 msgid "Remove selected track."
-msgstr "Hapus track yang dipilih."
+msgstr "Fjern markerede spor."
 
 #: tools/editor/animation_editor.cpp
 msgid "Track tools"
-msgstr "Alat track"
+msgstr "Spor værktøjer"
 
 #: tools/editor/animation_editor.cpp
 msgid "Enable editing of individual keys by clicking them."
-msgstr "Aktifkan penyuntingan tombol-tombol individual dengan mengkliknya."
+msgstr "Aktivere redigering af individuelle keys ved at klikke på dem."
 
 #: tools/editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim. Optimizer"
-msgstr "Anim. Optimisasi"
+msgstr "Anim. optimizer"
 
 #: tools/editor/animation_editor.cpp
 msgid "Max. Linear Error:"
-msgstr "Maks. Linier Error:"
+msgstr "Max. Lineær fejl:"
 
 #: tools/editor/animation_editor.cpp
 msgid "Max. Angular Error:"
-msgstr "Maks. Angular Error:"
+msgstr "Max. Azimutal fejl:"
 
 #: tools/editor/animation_editor.cpp
 msgid "Max Optimizable Angle:"
-msgstr "Maksimal Angle yang dapat Dioptimalkan:"
+msgstr "Max optimerbar vinkel:"
 
 #: tools/editor/animation_editor.cpp
 msgid "Optimize"
-msgstr "Optimasi"
+msgstr "Optimer"
 
 #: tools/editor/animation_editor.cpp
 msgid "Select an AnimationPlayer from the Scene Tree to edit animations."
-msgstr "Pilih sebuah AnimationPlayer dari Scene Tree untuk menyunting animasi."
+msgstr "Vælg en AnimationPlayer fra Scene Tree for at redigere animationer."
 
 #: tools/editor/animation_editor.cpp
 msgid "Key"
-msgstr "Tombol"
+msgstr "Key/Nøgle"
 
 #: tools/editor/animation_editor.cpp
 msgid "Transition"
-msgstr "Transisi"
+msgstr "Overgang"
 
 #: tools/editor/animation_editor.cpp
 msgid "Scale Ratio:"
-msgstr "Skala Rasio:"
+msgstr "Skala forholdet:"
 
 #: tools/editor/animation_editor.cpp
 msgid "Call Functions in Which Node?"
-msgstr "Memanggil Fungsi-Fungsi dalam Node yang Mana?"
+msgstr "Kald funktioner i hvilken Node?"
 
 #: tools/editor/animation_editor.cpp
 msgid "Remove invalid keys"
-msgstr "Hapus Tombol-tombol yang tidak sah"
+msgstr "Fjerne ugyldige keys"
 
 #: tools/editor/animation_editor.cpp
 msgid "Remove unresolved and empty tracks"
-msgstr "Hapus tracks yang kosong dan belum diselesaikan"
+msgstr "Fjerne uløste og tomme spor"
 
 #: tools/editor/animation_editor.cpp
 msgid "Clean-up all animations"
-msgstr "Bersihkan semua animasi"
+msgstr "Clean-up alle animationer"
 
 #: tools/editor/animation_editor.cpp
 msgid "Clean-Up Animation(s) (NO UNDO!)"
-msgstr "Bersihkan Animasi (Tidak Dapat Dikembalikan!)"
+msgstr "Clean-Up Animation(-er) (ingen FORTRYD!)"
 
 #: tools/editor/animation_editor.cpp
 msgid "Clean-Up"
-msgstr "Bersihkan"
+msgstr "Clean-up"
 
 #: tools/editor/array_property_edit.cpp
 msgid "Resize Array"
-msgstr "Ubah ukuran Array"
+msgstr "Ændre størrelsen på Array"
 
 #: tools/editor/array_property_edit.cpp
 msgid "Change Array Value Type"
-msgstr "Ubah Tipe Nilai Array"
+msgstr "Skift Array værditype"
 
 #: tools/editor/array_property_edit.cpp
 msgid "Change Array Value"
-msgstr "Ubah Nilai Array"
+msgstr "Ændre Array-værdi"
 
 #: tools/editor/asset_library_editor_plugin.cpp tools/editor/create_dialog.cpp
 #: tools/editor/editor_help.cpp tools/editor/editor_node.cpp
@@ -1166,15 +1124,15 @@ msgstr "Ubah Nilai Array"
 #: tools/editor/property_selector.cpp tools/editor/quick_open.cpp
 #: tools/editor/settings_config_dialog.cpp
 msgid "Search:"
-msgstr "Cari:"
+msgstr "Søgning:"
 
 #: tools/editor/asset_library_editor_plugin.cpp
 msgid "Sort:"
-msgstr "Sortir:"
+msgstr "Sorter:"
 
 #: tools/editor/asset_library_editor_plugin.cpp
 msgid "Reverse"
-msgstr "Terbalik"
+msgstr "Omvendt"
 
 #: tools/editor/asset_library_editor_plugin.cpp
 #: tools/editor/project_settings.cpp
@@ -1183,89 +1141,87 @@ msgstr "Kategori:"
 
 #: tools/editor/asset_library_editor_plugin.cpp
 msgid "All"
-msgstr "Semua"
+msgstr "Alle"
 
 #: tools/editor/asset_library_editor_plugin.cpp
 msgid "Site:"
-msgstr "Situs:"
+msgstr "Websted:"
 
 #: tools/editor/asset_library_editor_plugin.cpp
 msgid "Support.."
-msgstr "Dukungan.."
+msgstr "Støtte..."
 
 #: tools/editor/asset_library_editor_plugin.cpp
 msgid "Official"
-msgstr "Resmi"
+msgstr "Officiel"
 
 #: tools/editor/asset_library_editor_plugin.cpp
 msgid "Community"
-msgstr "Komunitas"
+msgstr "Fællesskabet"
 
 #: tools/editor/asset_library_editor_plugin.cpp
 msgid "Testing"
-msgstr "Menguji"
+msgstr "Tester"
 
 #: tools/editor/asset_library_editor_plugin.cpp
 msgid "Assets ZIP File"
-msgstr "Aset-aset File ZIP"
+msgstr "Assets zipfil"
 
 #: tools/editor/call_dialog.cpp
 msgid "Method List For '%s':"
-msgstr "Daftar Fungsi Untuk '%s':"
+msgstr "Metode liste For '%s':"
 
 #: tools/editor/call_dialog.cpp
 msgid "Call"
-msgstr "Panggil"
+msgstr "Kald"
 
 #: tools/editor/call_dialog.cpp
 msgid "Method List:"
-msgstr "Daftar Fungsi:"
+msgstr "Metode liste:"
 
 #: tools/editor/call_dialog.cpp
 msgid "Arguments:"
-msgstr "Argumen:"
+msgstr "Argumenter:"
 
 #: tools/editor/call_dialog.cpp
-#, fuzzy
 msgid "Return:"
-msgstr "Kembali:"
+msgstr "Tilbage:"
 
 #: tools/editor/code_editor.cpp
 msgid "Go to Line"
-msgstr "Pergi ke Barisan"
+msgstr "Gå til linje"
 
 #: tools/editor/code_editor.cpp
 msgid "Line Number:"
-msgstr "Nomor Barisan:"
+msgstr "Linjenummer:"
 
 #: tools/editor/code_editor.cpp
 msgid "No Matches"
-msgstr "Tidak ada yang cocok"
+msgstr "Ingen Match"
 
 #: tools/editor/code_editor.cpp
-#, fuzzy
 msgid "Replaced %d Ocurrence(s)."
-msgstr "Diganti Kejadian (Kejadian-kejadian) %d."
+msgstr "Erstattede %d tilfælde."
 
 #: tools/editor/code_editor.cpp
 msgid "Replace"
-msgstr "Tukar"
+msgstr "Erstat"
 
 #: tools/editor/code_editor.cpp
 msgid "Replace All"
-msgstr "Tukar Semua"
+msgstr "Erstat alle"
 
 #: tools/editor/code_editor.cpp
 msgid "Match Case"
-msgstr "Kasus Kecocokan"
+msgstr "Match stor/lille"
 
 #: tools/editor/code_editor.cpp
 msgid "Whole Words"
-msgstr "Semua Kata"
+msgstr "Hele ord"
 
 #: tools/editor/code_editor.cpp
 msgid "Selection Only"
-msgstr "Hanya yang Dipilih"
+msgstr "Kun Valgte"
 
 #: tools/editor/code_editor.cpp tools/editor/editor_help.cpp
 #: tools/editor/plugins/script_editor_plugin.cpp
@@ -1273,76 +1229,73 @@ msgstr "Hanya yang Dipilih"
 #: tools/editor/plugins/shader_editor_plugin.cpp
 #: tools/editor/project_settings.cpp
 msgid "Search"
-msgstr "Cari"
+msgstr "Søg"
 
 #: tools/editor/code_editor.cpp tools/editor/editor_help.cpp
 msgid "Find"
-msgstr "Cari"
+msgstr "Find"
 
 #: tools/editor/code_editor.cpp
 msgid "Next"
-msgstr "Berikutnya"
+msgstr "Næste"
 
 #: tools/editor/code_editor.cpp
-#, fuzzy
 msgid "Replaced %d ocurrence(s)."
-msgstr "Diganti kejadian (kejadian-kejadian) %d."
+msgstr "Erstattede %d tilfælde."
 
 #: tools/editor/code_editor.cpp
 msgid "Not found!"
-msgstr "Tidak ditemukan!"
+msgstr "Ikke fundet!"
 
 #: tools/editor/code_editor.cpp
 msgid "Replace By"
-msgstr "Ganti dengan"
+msgstr "Erstattes af"
 
 #: tools/editor/code_editor.cpp
-#, fuzzy
 msgid "Case Sensitive"
-msgstr "Case Sensitive"
+msgstr ""
 
 #: tools/editor/code_editor.cpp
 msgid "Backwards"
-msgstr "Ke belakang"
+msgstr "Baglæns"
 
 #: tools/editor/code_editor.cpp
-#, fuzzy
 msgid "Prompt On Replace"
-msgstr "Cepat Pada Penggantian"
+msgstr "Spørg ved Erstat"
 
 #: tools/editor/code_editor.cpp
 msgid "Skip"
-msgstr "Lalui"
+msgstr "Spring over"
 
 #: tools/editor/code_editor.cpp
 #: tools/editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Zoom In"
-msgstr "Perbesar Pandangan"
+msgstr "Zoom ind"
 
 #: tools/editor/code_editor.cpp
 #: tools/editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Zoom Out"
-msgstr "Perkecil Pandangan"
+msgstr "Zoom ud"
 
 #: tools/editor/code_editor.cpp
 msgid "Reset Zoom"
-msgstr "Kebalikan Semula Pandangan"
+msgstr "Nulstil Zoom"
 
 #: tools/editor/code_editor.cpp tools/editor/script_editor_debugger.cpp
 msgid "Line:"
-msgstr "Baris:"
+msgstr "Linje:"
 
 #: tools/editor/code_editor.cpp
 msgid "Col:"
-msgstr "Kolom:"
+msgstr "Kol:"
 
 #: tools/editor/connections_dialog.cpp
 msgid "Method in target Node must be specified!"
-msgstr "Method dalam Node target harus spesifik!"
+msgstr "Metode i target Node skal angives!"
 
 #: tools/editor/connections_dialog.cpp
 msgid "Connect To Node:"
-msgstr "Sambungkan Ke Node:"
+msgstr "Opret forbindelse til Node:"
 
 #: tools/editor/connections_dialog.cpp
 #: tools/editor/editor_autoload_settings.cpp tools/editor/groups_editor.cpp
@@ -1350,598 +1303,579 @@ msgstr "Sambungkan Ke Node:"
 #: tools/editor/plugins/theme_editor_plugin.cpp
 #: tools/editor/project_settings.cpp
 msgid "Add"
-msgstr "Tambah"
+msgstr "Tilføj"
 
 #: tools/editor/connections_dialog.cpp tools/editor/dependency_editor.cpp
 #: tools/editor/plugins/animation_tree_editor_plugin.cpp
 #: tools/editor/plugins/theme_editor_plugin.cpp
 #: tools/editor/project_manager.cpp
 msgid "Remove"
-msgstr "Hapus"
+msgstr "Fjern"
 
 #: tools/editor/connections_dialog.cpp
 msgid "Add Extra Call Argument:"
-msgstr "Tambah Argumen Panggilan Ekstra:"
+msgstr "Tilføje ekstra Call Argument:"
 
 #: tools/editor/connections_dialog.cpp
 msgid "Extra Call Arguments:"
-msgstr "Argumen-argumen Panggilan Ekstra:"
+msgstr "Ekstra call argumenter:"
 
 #: tools/editor/connections_dialog.cpp
 msgid "Path to Node:"
-msgstr "Path ke Node:"
+msgstr "Sti til Node:"
 
 #: tools/editor/connections_dialog.cpp
 msgid "Make Function"
-msgstr "Buat Fungsi"
+msgstr "Lav funktion"
 
 #: tools/editor/connections_dialog.cpp
 msgid "Deferred"
-msgstr "Ditunda"
+msgstr "Udskudt"
 
 #: tools/editor/connections_dialog.cpp
 msgid "Oneshot"
-msgstr "Satu Waktu"
+msgstr "OneShot"
 
 #: tools/editor/connections_dialog.cpp
 msgid "Connect"
-msgstr "Menghubungkan"
+msgstr "Tilslut"
 
 #: tools/editor/connections_dialog.cpp
 msgid "Connect '%s' to '%s'"
-msgstr "Sambungkan '%s' ke '%s'"
+msgstr "Tilslut '%s' til '%s'"
 
 #: tools/editor/connections_dialog.cpp
 msgid "Connecting Signal:"
-msgstr "Menyambungkan Sinyal:"
+msgstr "Forbindelses signal:"
 
 #: tools/editor/connections_dialog.cpp
 msgid "Create Subscription"
-msgstr "Buat Subskribsi"
+msgstr "Opret abonnement"
 
 #: tools/editor/connections_dialog.cpp
 msgid "Connect.."
-msgstr "Menyambungkan.."
+msgstr "Forbind..."
 
 #: tools/editor/connections_dialog.cpp
 #: tools/editor/plugins/animation_tree_editor_plugin.cpp
 msgid "Disconnect"
-msgstr "Tidak tersambung"
+msgstr "Afbryd"
 
 #: tools/editor/connections_dialog.cpp tools/editor/node_dock.cpp
 msgid "Signals"
-msgstr "Sinyal-sinyal"
+msgstr "Signaler"
 
 #: tools/editor/create_dialog.cpp
 msgid "Create New"
-msgstr "Buat Baru"
+msgstr "Opret en ny"
 
 #: tools/editor/create_dialog.cpp tools/editor/editor_help.cpp
 #: tools/editor/plugins/script_editor_plugin.cpp
 #: tools/editor/property_selector.cpp tools/editor/quick_open.cpp
-#, fuzzy
 msgid "Matches:"
-msgstr "Kecocokan:"
+msgstr "Matches:"
 
 #: tools/editor/create_dialog.cpp tools/editor/editor_help.cpp
 #: tools/editor/property_selector.cpp tools/editor/script_editor_debugger.cpp
 msgid "Description:"
-msgstr "Deskripsi:"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp
 msgid "Search Replacement For:"
-msgstr "Cari Ganti Untuk:"
+msgstr "Søg erstatning For:"
 
 #: tools/editor/dependency_editor.cpp
 msgid "Dependencies For:"
-msgstr "Ketergantungan Untuk:"
+msgstr "Afhængigheder For:"
 
 #: tools/editor/dependency_editor.cpp
 msgid ""
 "Scene '%s' is currently being edited.\n"
 "Changes will not take effect unless reloaded."
 msgstr ""
-"Scene '%s' sedang disunting saat ini.\n"
-"Perubahan-perubahan tidak akan berefek kecuali dimuat ulang."
+"Scene '%s' er i øjeblikket ved at blive redigeret.\n"
+"Ændringer træder ikke i kraft, medmindre reloaded."
 
 #: tools/editor/dependency_editor.cpp
 msgid ""
 "Resource '%s' is in use.\n"
 "Changes will take effect when reloaded."
 msgstr ""
-"Resource '%s' sedang digunakan.\n"
-"Perubahan-perubahan akan terjadi ketika dimuat ulang."
+"Ressource '%s' er i brug.\n"
+"Ændringer træder i kraft når genindlæses."
 
 #: tools/editor/dependency_editor.cpp
 msgid "Dependencies"
-msgstr "Ketergantungan"
+msgstr "Afhængigheder"
 
 #: tools/editor/dependency_editor.cpp
 msgid "Resource"
-msgstr "Resource"
+msgstr "Ressource"
 
 #: tools/editor/dependency_editor.cpp tools/editor/editor_autoload_settings.cpp
 #: tools/editor/project_manager.cpp tools/editor/project_settings.cpp
 msgid "Path"
-msgstr "Path"
+msgstr "Sti"
 
 #: tools/editor/dependency_editor.cpp
 msgid "Dependencies:"
-msgstr "Ketergantungan:"
+msgstr "Afhængigheder:"
 
 #: tools/editor/dependency_editor.cpp
 msgid "Fix Broken"
-msgstr "Perbaiki yang Rusak"
+msgstr "Fix brudt"
 
 #: tools/editor/dependency_editor.cpp
-#, fuzzy
 msgid "Dependency Editor"
-msgstr "Editor Ketergantungan"
+msgstr "Afhængigheds Editor"
 
 #: tools/editor/dependency_editor.cpp
 msgid "Search Replacement Resource:"
-msgstr "Cari Resource Pengganti:"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp
 msgid "Owners Of:"
-msgstr "Pemilik Dari:"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp
-#, fuzzy
 msgid ""
 "The files being removed are required by other resources in order for them to "
 "work.\n"
 "Remove them anyway? (no undo)"
 msgstr ""
-"File-file yang telah dihapus diperlukan oleh resource-resource lainnya agar "
-"mereka bekerja.\n"
-"Hapus saja mereka? (tanpa membatalkan/undo)"
 
 #: tools/editor/dependency_editor.cpp
-#, fuzzy
 msgid "Remove selected files from the project? (no undo)"
-msgstr "Hapus file-file yang dipilih dari proyek? (tanpa membatalkan/undo)"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp
 msgid "Error loading:"
-msgstr "Error memuat:"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp
-#, fuzzy
 msgid "Scene failed to load due to missing dependencies:"
-msgstr "Scene gagal memuat disebabkan oleh ketergantungan yang hilang:"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp
 msgid "Open Anyway"
-msgstr "Buka Saja"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp
 msgid "Which action should be taken?"
-msgstr "Tindakan mana yang seharusnya diambil?"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp
-#, fuzzy
 msgid "Fix Dependencies"
-msgstr "Perbaiki Ketergantungan"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp
 msgid "Errors loading!"
-msgstr "Gagal memuat!"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp
 msgid "Permanently delete %d item(s)? (No undo!)"
-msgstr "Hapus secara permanen %d item? (Tidak dapat dikembalikan!)"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp
 msgid "Owns"
-msgstr "Memiliki"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp
 msgid "Resources Without Explicit Ownership:"
-msgstr "Resource-resource tanpa kepemilikan yang jelas:"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp tools/editor/editor_node.cpp
-#, fuzzy
 msgid "Orphan Resource Explorer"
-msgstr "Penjelajah Resource Orphan"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp
 msgid "Delete selected files?"
-msgstr "Hapus file yang dipilih?"
+msgstr ""
 
 #: tools/editor/dependency_editor.cpp tools/editor/editor_node.cpp
 #: tools/editor/filesystem_dock.cpp
 #: tools/editor/plugins/item_list_editor_plugin.cpp
 #: tools/editor/scene_tree_dock.cpp
 msgid "Delete"
-msgstr "Hapus"
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Invalid name."
-msgstr "Nama tidak sah."
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Valid characters:"
-msgstr "Karakter sah:"
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
-#, fuzzy
 msgid "Invalid name. Must not collide with an existing engine class name."
-msgstr "Nama tidak sah. Harus tidak serupa dengan class name engine yang ada."
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Invalid name. Must not collide with an existing buit-in type name."
-msgstr "Nama tidak sah. Tidak boleh serupa dengan nama bawaan."
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Invalid name. Must not collide with an existing global constant name."
 msgstr ""
-"Nama tidak sah. Tidak boleh serupa dengan nama konstanta global yang ada."
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Invalid Path."
-msgstr "Path Tidak Sah."
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "File does not exist."
-msgstr "File tidak ada."
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Not in resource path."
-msgstr "Tidak didalam path resource."
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Add AutoLoad"
-msgstr "Tambahkan AutoLoad"
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Autoload '%s' already exists!"
-msgstr "Autoload '%s' telah ada!"
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Rename Autoload"
-msgstr "Namai kembali Autoload"
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Toggle AutoLoad Globals"
-msgstr "Beralih AutoLoad Globals"
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Move Autoload"
-msgstr "Pindahkan Autoload"
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Remove Autoload"
-msgstr "Hapus Autoload"
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
-#, fuzzy
 msgid "Enable"
-msgstr "Aktifkan"
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Rearrange Autoloads"
-msgstr "Mengatur kembali Autoload-autoload"
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Node Name:"
-msgstr "Nama Node:"
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 #: tools/editor/io_plugins/editor_scene_import_plugin.cpp
 #: tools/editor/plugins/sample_library_editor_plugin.cpp
 #: tools/editor/project_manager.cpp
 msgid "Name"
-msgstr "Nama"
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "Singleton"
-msgstr "Singleton"
+msgstr ""
 
 #: tools/editor/editor_autoload_settings.cpp
 msgid "List:"
-msgstr "Daftar:"
+msgstr ""
 
 #: tools/editor/editor_data.cpp
 msgid "Updating Scene"
-msgstr "Memperbaharui Scene"
+msgstr ""
 
 #: tools/editor/editor_data.cpp
 msgid "Storing local changes.."
-msgstr "Menyimpan perubahan-perubahan lokal.."
+msgstr ""
 
 #: tools/editor/editor_data.cpp
 msgid "Updating scene.."
-msgstr "Memperbaharui scene.."
+msgstr ""
 
 #: tools/editor/editor_dir_dialog.cpp
 msgid "Choose a Directory"
-msgstr "Pilih sebuah Direktori"
+msgstr ""
 
 #: tools/editor/editor_dir_dialog.cpp
 msgid "Choose"
-msgstr "Pilih"
+msgstr ""
 
 #: tools/editor/editor_file_dialog.cpp
-#, fuzzy
 msgid "Go Back"
-msgstr "Mundur"
+msgstr ""
 
 #: tools/editor/editor_file_dialog.cpp
-#, fuzzy
 msgid "Go Forward"
-msgstr "Maju"
+msgstr ""
 
 #: tools/editor/editor_file_dialog.cpp
-#, fuzzy
 msgid "Go Up"
-msgstr "Naik"
+msgstr ""
 
 #: tools/editor/editor_file_dialog.cpp
 msgid "Refresh"
-msgstr "Segarkan"
+msgstr ""
 
 #: tools/editor/editor_file_dialog.cpp
 msgid "Toggle Hidden Files"
-msgstr "Beralih File Tersembunyi"
+msgstr ""
 
 #: tools/editor/editor_file_dialog.cpp
 msgid "Toggle Favorite"
-msgstr "Beralih Favorit"
+msgstr ""
 
 #: tools/editor/editor_file_dialog.cpp
 msgid "Toggle Mode"
-msgstr "Beralih Mode"
+msgstr ""
 
 #: tools/editor/editor_file_dialog.cpp
 msgid "Focus Path"
-msgstr "Garis Fokus"
+msgstr ""
 
 #: tools/editor/editor_file_dialog.cpp
 msgid "Move Favorite Up"
-msgstr "Pindahkan Favorit Keatas"
+msgstr ""
 
 #: tools/editor/editor_file_dialog.cpp
 msgid "Move Favorite Down"
-msgstr "Pindahkan Favorit Kebawah"
+msgstr ""
 
 #: tools/editor/editor_file_dialog.cpp tools/editor/filesystem_dock.cpp
 msgid "Favorites:"
-msgstr "Favorit:"
+msgstr ""
 
 #: tools/editor/editor_file_dialog.cpp
 msgid "Recent:"
-msgstr "Saat ini:"
+msgstr ""
 
 #: tools/editor/editor_file_dialog.cpp
 msgid "Preview:"
-msgstr "Pratinjau:"
+msgstr ""
 
 #: tools/editor/editor_file_system.cpp
 msgid "ScanSources"
-msgstr "Sumber Pemindaian"
+msgstr ""
 
 #: tools/editor/editor_help.cpp tools/editor/plugins/script_editor_plugin.cpp
 msgid "Search Help"
-msgstr "Mencari Bantuan"
+msgstr ""
 
 #: tools/editor/editor_help.cpp
 msgid "Class List:"
-msgstr "Daftar Class:"
+msgstr ""
 
 #: tools/editor/editor_help.cpp
 msgid "Search Classes"
-msgstr "Cari Kelas"
+msgstr ""
 
 #: tools/editor/editor_help.cpp tools/editor/property_editor.cpp
 msgid "Class:"
-msgstr "Kelas:"
+msgstr ""
 
 #: tools/editor/editor_help.cpp tools/editor/scene_tree_editor.cpp
 #: tools/editor/script_create_dialog.cpp
 msgid "Inherits:"
-msgstr "Turunan:"
+msgstr ""
 
 #: tools/editor/editor_help.cpp
 msgid "Inherited by:"
-msgstr "Diturunkan oleh:"
+msgstr ""
 
 #: tools/editor/editor_help.cpp
 msgid "Brief Description:"
-msgstr "Deskripsi Singkat:"
+msgstr ""
 
 #: tools/editor/editor_help.cpp
 msgid "Public Methods:"
-msgstr "Metode Publik:"
+msgstr ""
 
 #: tools/editor/editor_help.cpp
 msgid "GUI Theme Items:"
-msgstr "Item-item Tema GUI:"
+msgstr ""
 
 #: tools/editor/editor_help.cpp
 msgid "Constants:"
-msgstr "Konstanta:"
+msgstr ""
 
 #: tools/editor/editor_help.cpp
 msgid "Method Description:"
-msgstr "Deskripsi Metode:"
+msgstr ""
 
 #: tools/editor/editor_help.cpp
 msgid "Search Text"
-msgstr "Mencari Teks"
+msgstr ""
 
 #: tools/editor/editor_import_export.cpp
 msgid "Added:"
-msgstr "Ditambahkan:"
+msgstr ""
 
 #: tools/editor/editor_import_export.cpp
 msgid "Removed:"
-msgstr "Dihapus:"
+msgstr ""
 
 #: tools/editor/editor_import_export.cpp tools/editor/project_export.cpp
 msgid "Error saving atlas:"
-msgstr "Gagal menyimpan atlas:"
+msgstr ""
 
 #: tools/editor/editor_import_export.cpp
 msgid "Could not save atlas subtexture:"
-msgstr "Tidak dapat menyimpan sub tekstur atlas:"
+msgstr ""
 
 #: tools/editor/editor_import_export.cpp
 msgid "Storing File:"
-msgstr "Menyimpan File:"
+msgstr ""
 
 #: tools/editor/editor_import_export.cpp
 msgid "Packing"
-msgstr "Mengemas"
+msgstr ""
 
 #: tools/editor/editor_import_export.cpp
 msgid "Exporting for %s"
-msgstr "Mengekspor untuk %s"
+msgstr ""
 
 #: tools/editor/editor_import_export.cpp
 msgid "Setting Up.."
-msgstr "Mengatur.."
+msgstr ""
 
 #: tools/editor/editor_log.cpp
 msgid " Output:"
-msgstr " Keluaran:"
+msgstr ""
 
 #: tools/editor/editor_node.cpp tools/editor/editor_reimport_dialog.cpp
 msgid "Re-Importing"
-msgstr "Mengimpor ulang"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Importing:"
-msgstr "Mengimpor:"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Node From Scene"
-msgstr "Node Dari Scene"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 #: tools/editor/plugins/animation_player_editor_plugin.cpp
 #: tools/editor/resources_dock.cpp
 msgid "Error saving resource!"
-msgstr "Error menyimpan resource!"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 #: tools/editor/plugins/animation_player_editor_plugin.cpp
 #: tools/editor/resources_dock.cpp
 msgid "Save Resource As.."
-msgstr "Simpan Resource Sebagai.."
+msgstr ""
 
 #: tools/editor/editor_node.cpp tools/editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "I see.."
-msgstr "Aku tahu.."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Can't open file for writing:"
-msgstr "Tidak dapat membuka file untuk menulis:"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Requested file format unknown:"
-msgstr "Format file yang diminta tidak diketahui:"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Error while saving."
-msgstr "Error saat menyimpan."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Saving Scene"
-msgstr "Menyimpan Scene"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Analyzing"
-msgstr "Menganalisis"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Creating Thumbnail"
-msgstr "Membuat Thumbnail"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid ""
 "Couldn't save scene. Likely dependencies (instances) couldn't be satisfied."
 msgstr ""
-"Tidak dapat menyimpan scene. Dependensi (instance) mungkin tidak terpenuhi."
 
 #: tools/editor/editor_node.cpp
 msgid "Failed to load resource."
-msgstr "Gagal memuat resource."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Can't load MeshLibrary for merging!"
-msgstr "Tidak dapat memuat MeshLibrary untuk menggabungkan!"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
-#, fuzzy
 msgid "Error saving MeshLibrary!"
-msgstr "Error menyimpan MeshLibrary!"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Can't load TileSet for merging!"
-msgstr "Tidak dapat memuat TileSet untuk menggabungkan!"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Error saving TileSet!"
-msgstr "Error menyimpan TileSet!"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Can't open export templates zip."
-msgstr "Tidak dapat membuka ekspor template-template zip."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Loading Export Templates"
-msgstr "Memuat Ekspor Template-template."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Error trying to save layout!"
-msgstr "Error mencoba untuk menyimpan layout!"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Default editor layout overridden."
-msgstr "Layout editor default ditimpa."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Layout name not found!"
-msgstr "Nama layout tidak ditemukan!"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Restored default layout to base settings."
-msgstr "Mengembalikan semula layout default ke pengaturan-pengaturan awal."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Copy Params"
-msgstr "Salin Parameter"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Paste Params"
-msgstr "Tempel Parameter"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 #: tools/editor/plugins/resource_preloader_editor_plugin.cpp
 msgid "Paste Resource"
-msgstr "Tempel Resource"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Copy Resource"
-msgstr "Salin Resource"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Make Built-In"
-msgstr "Buat Menjadi Bawaan"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Make Sub-Resources Unique"
-msgstr "Membuat sub-Resource Unik"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Open in Help"
-msgstr "Buka di Bantuan"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "There is no defined scene to run."
-msgstr "Tidak ada definisi scene untuk dijalankan."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid ""
@@ -1949,9 +1883,6 @@ msgid ""
 "You can change it later in later in \"Project Settings\" under the "
 "'application' category."
 msgstr ""
-"Tidak ada scene utama yang pernah didefinisikan, pilih satu?\n"
-"Anda dapat mengubahnya nanti di akhir dalam \"Project Settings\" dibawah "
-"kategori 'application'."
 
 #: tools/editor/editor_node.cpp
 msgid ""
@@ -1959,9 +1890,6 @@ msgid ""
 "You can change it later in \"Project Settings\" under the 'application' "
 "category."
 msgstr ""
-"Scene '%s' tidak tersedia, pilih yang sah?\n"
-"Anda dapat menggantinya kemudian di \"Pengaturan Proyek\" di bawah kategori "
-"'aplikasi'."
 
 #: tools/editor/editor_node.cpp
 msgid ""
@@ -1969,197 +1897,187 @@ msgid ""
 "You can change it later in \"Project Settings\" under the 'application' "
 "category."
 msgstr ""
-"Scene '%s' bukanlah sebuah file scene, pilih yang sah?\n"
-"Anda dapat menggantinya kemudian di \"Pengaturan Proyek\" di bawah kategori "
-"'aplikasi'."
 
 #: tools/editor/editor_node.cpp
 msgid "Current scene was never saved, please save it prior to running."
 msgstr ""
-"Scene saat ini belum pernah disimpan, mohon simpat dahulu untuk "
-"menjalankannya."
 
 #: tools/editor/editor_node.cpp
 msgid "Could not start subprocess!"
-msgstr "Tidak dapat memulai subprocess!"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Open Scene"
-msgstr "Buka Scene"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Open Base Scene"
-msgstr "Buka Scene Dasar"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Quick Open Scene.."
-msgstr "Buka Cepat Scene.."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Quick Open Script.."
-msgstr "Buka Cepat Script.."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Yes"
-msgstr "Ya"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Close scene? (Unsaved changes will be lost)"
-msgstr "Tutup scene? (Perubahan-perubahan yang belum disimpan akan hilang)"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Save Scene As.."
-msgstr "Simpan Scene Sebagai.."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "This scene has never been saved. Save before running?"
-msgstr "Scene ini belum pernah disimpan. Simpan sebelum menjalankan?"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Please save the scene first."
-msgstr "Mohon simpan scene terlebih dahulu."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Save Translatable Strings"
-msgstr "Simpan Kalimat yang Dapat Diterjemahkan"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Export Mesh Library"
-msgstr "Ekspor Mesh Library"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Export Tile Set"
-msgstr "Ekspor Tile Set"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Quit"
-msgstr "Keluar"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Exit the editor?"
-msgstr "Keluar editor?"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Current scene not saved. Open anyway?"
-msgstr "Scene saat ini tidak disimpan. Buka saja?"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Can't reload a scene that was never saved."
-msgstr "Tidak bisa memuat ulang scene yang tidak pernah disimpan."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Revert"
-msgstr "Pulihkan"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "This action cannot be undone. Revert anyway?"
-msgstr "Tindakan ini tidak dapat dibatalkan. Pulihkan saja?"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Quick Run Scene.."
-msgstr "Jalankan Cepat Scene.."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid ""
 "Open Project Manager? \n"
 "(Unsaved changes will be lost)"
 msgstr ""
-"Buka Manajer Proyek?\n"
-"(Perubahan yang tidak disimpan akan hilang)"
 
 #: tools/editor/editor_node.cpp
 msgid "Pick a Main Scene"
-msgstr "Pilih sebuah Scene Utama"
+msgstr ""
 
 #: tools/editor/editor_node.cpp tools/editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "Ugh"
-msgstr "Wadoo"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid ""
 "Error loading scene, it must be inside the project path. Use 'Import' to "
 "open the scene, then save it inside the project path."
 msgstr ""
-"Gagal memuat scene, harus dalam alamat proyek. Gunakan 'Impor\" untuk "
-"membuka scene tersebut, kemudian simpan di dalam alamat proyek."
 
 #: tools/editor/editor_node.cpp
 msgid "Error loading scene."
-msgstr "Gagal memuat scene."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Scene '%s' has broken dependencies:"
-msgstr "Scene '%s' memiliki dependensi yang rusak:"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Save Layout"
-msgstr "Simpan Penampilan"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Delete Layout"
-msgstr "Hapus Penampilan"
+msgstr ""
 
 #: tools/editor/editor_node.cpp tools/editor/project_export.cpp
 msgid "Default"
-msgstr "Bawaan"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Switch Scene Tab"
-msgstr "Pilih Tab Scene"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "%d more file(s)"
-msgstr "%d file lagi"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "%d more file(s) or folder(s)"
-msgstr "%d file atau folder lagi"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 #: tools/editor/io_plugins/editor_scene_import_plugin.cpp
 msgid "Scene"
-msgstr "Suasana"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Go to previously opened scene."
-msgstr "Pergi ke scene yang dibuka sebelumnya."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Fullscreen Mode"
-msgstr "Mode Layar Penuh"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Distraction Free Mode"
-msgstr "Mode Tanpa Gangguan"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Next tab"
-msgstr "Tab selanjutnya"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Previous tab"
-msgstr "Tab sebelumnya"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Operations with scene files."
-msgstr "Operasi dengan file scene."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "New Scene"
-msgstr "Scene Baru"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "New Inherited Scene.."
-msgstr "Scene Turunan Baru.."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Open Scene.."
-msgstr "Buka Scene.."
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Save Scene"
-msgstr "Simpan Scene"
+msgstr ""
 
 #: tools/editor/editor_node.cpp
 msgid "Save all Scenes"
@@ -6143,12 +6061,12 @@ msgstr ""
 #: tools/editor/property_selector.cpp
 #, fuzzy
 msgid "Select Property"
-msgstr "Tambahkan Properti Setter"
+msgstr "Tilføj Setter Egenskab"
 
 #: tools/editor/property_selector.cpp
 #, fuzzy
 msgid "Select Method"
-msgstr "Metode Publik:"
+msgstr "Vælg alle"
 
 #: tools/editor/pvrtc_compress.cpp
 msgid "Could not execute PVRTC tool:"
@@ -6674,5 +6592,5 @@ msgstr ""
 #~ "Custom node has no _get_output_port_unsequenced(idx,wmem), but "
 #~ "unsequenced ports were specified."
 #~ msgstr ""
-#~ "Node modifikasi tidak memiliki _get_output_port_unsequenced(idx,wmem), "
-#~ "tetapi port-port unsequenced dispesifikasikan."
+#~ "Brugerdefineret node har ingen _get_output_port_unsequenced(idx,wmem), "
+#~ "men unsequenced porte blev angivet."

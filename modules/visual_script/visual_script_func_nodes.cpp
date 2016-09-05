@@ -12,12 +12,18 @@
 
 int VisualScriptFunctionCall::get_output_sequence_port_count() const {
 
-	return 1;
+	if (method_cache.flags&METHOD_FLAG_CONST || call_mode==CALL_MODE_BASIC_TYPE)
+		return 0;
+	else
+		return 1;
 }
 
 bool VisualScriptFunctionCall::has_input_sequence_port() const{
 
-	return true;
+	if (method_cache.flags&METHOD_FLAG_CONST || call_mode==CALL_MODE_BASIC_TYPE)
+		return false;
+	else
+		return true;
 }
 #ifdef TOOLS_ENABLED
 
@@ -403,6 +409,10 @@ void VisualScriptFunctionCall::_update_method_cache() {
 #endif
 		}
 
+		if (mb->is_const()) {
+			method_cache.flags|=METHOD_FLAG_CONST;
+		}
+
 #ifdef DEBUG_METHODS_ENABLED
 
 		method_cache.return_val = mb->get_argument_info(-1);
@@ -503,6 +513,15 @@ int VisualScriptFunctionCall::get_use_default_args() const{
 }
 
 
+void VisualScriptFunctionCall::set_validate(bool p_amount) {
+
+	validate=p_amount;
+}
+
+bool VisualScriptFunctionCall::get_validate() const {
+
+	return validate;
+}
 
 
 void VisualScriptFunctionCall::_set_argument_cache(const Dictionary& p_cache) {
@@ -690,6 +709,9 @@ void VisualScriptFunctionCall::_bind_methods() {
 	ObjectTypeDB::bind_method(_MD("set_rpc_call_mode","mode"),&VisualScriptFunctionCall::set_rpc_call_mode);
 	ObjectTypeDB::bind_method(_MD("get_rpc_call_mode"),&VisualScriptFunctionCall::get_rpc_call_mode);
 
+	ObjectTypeDB::bind_method(_MD("set_validate","enable"),&VisualScriptFunctionCall::set_validate);
+	ObjectTypeDB::bind_method(_MD("get_validate"),&VisualScriptFunctionCall::get_validate);
+
 	String bt;
 	for(int i=0;i<Variant::VARIANT_MAX;i++) {
 		if (i>0)
@@ -722,6 +744,7 @@ void VisualScriptFunctionCall::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY,"function/argument_cache",PROPERTY_HINT_NONE,"",PROPERTY_USAGE_NOEDITOR),_SCS("_set_argument_cache"),_SCS("_get_argument_cache"));
 	ADD_PROPERTY(PropertyInfo(Variant::STRING,"function/function"),_SCS("set_function"),_SCS("get_function")); //when set, if loaded properly, will override argument count.
 	ADD_PROPERTY(PropertyInfo(Variant::INT,"function/use_default_args"),_SCS("set_use_default_args"),_SCS("get_use_default_args"));
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL,"function/validate"),_SCS("set_validate"),_SCS("get_validate"));
 	ADD_PROPERTY(PropertyInfo(Variant::INT,"rpc/call_mode",PROPERTY_HINT_ENUM,"Disabled,Reliable,Unreliable,ReliableToID,UnreliableToID"),_SCS("set_rpc_call_mode"),_SCS("get_rpc_call_mode")); //when set, if loaded properly, will override argument count.
 
 	BIND_CONSTANT( CALL_MODE_SELF );
@@ -737,6 +760,7 @@ public:
 	VisualScriptFunctionCall::CallMode call_mode;
 	NodePath node_path;
 	int input_args;
+	bool validate;
 	bool returns;
 	VisualScriptFunctionCall::RPCCallMode rpc_mode;
 	StringName function;
@@ -864,7 +888,16 @@ public:
 					object->call(function,p_inputs,input_args,r_error);
 				}
 			} break;
+
 		}
+
+		if (!validate) {
+
+			//ignore call errors if validation is disabled
+			r_error.error=Variant::CallError::CALL_OK;
+			r_error_str=String();
+		}
+
 		return 0;
 
 	}
@@ -884,10 +917,24 @@ VisualScriptNodeInstance* VisualScriptFunctionCall::instance(VisualScriptInstanc
 	instance->node_path=base_path;
 	instance->input_args = get_input_value_port_count() - ( (call_mode==CALL_MODE_BASIC_TYPE || call_mode==CALL_MODE_INSTANCE) ? 1: 0 );
 	instance->rpc_mode=rpc_call_mode;
+	instance->validate=validate;
 	return instance;
 }
+
+
+VisualScriptFunctionCall::TypeGuess VisualScriptFunctionCall::guess_output_type(TypeGuess* p_inputs, int p_output) const {
+
+	if (p_output==0 && call_mode==CALL_MODE_INSTANCE) {
+		return p_inputs[0];
+	}
+
+	return VisualScriptNode::guess_output_type(p_inputs,p_output);
+
+}
+
 VisualScriptFunctionCall::VisualScriptFunctionCall() {
 
+	validate=true;
 	call_mode=CALL_MODE_SELF;
 	basic_type=Variant::NIL;
 	use_default_args=0;
@@ -926,12 +973,12 @@ static const char* event_type_names[InputEvent::TYPE_MAX]={
 
 int VisualScriptPropertySet::get_output_sequence_port_count() const {
 
-	return 1;
+	return call_mode!=CALL_MODE_BASIC_TYPE ? 1 : 0;
 }
 
 bool VisualScriptPropertySet::has_input_sequence_port() const{
 
-	return true;
+	return call_mode!=CALL_MODE_BASIC_TYPE ? true : false;
 }
 
 Node *VisualScriptPropertySet::_get_base_node() const {
@@ -1565,6 +1612,17 @@ VisualScriptNodeInstance* VisualScriptPropertySet::instance(VisualScriptInstance
 	return instance;
 }
 
+
+
+VisualScriptPropertySet::TypeGuess VisualScriptPropertySet::guess_output_type(TypeGuess* p_inputs, int p_output) const {
+
+	if (p_output==0 && call_mode==CALL_MODE_INSTANCE) {
+		return p_inputs[0];
+	}
+
+	return VisualScriptNode::guess_output_type(p_inputs,p_output);
+
+}
 VisualScriptPropertySet::VisualScriptPropertySet() {
 
 	call_mode=CALL_MODE_SELF;
@@ -1590,12 +1648,12 @@ static Ref<VisualScriptNode> create_property_set_node(const String& p_name) {
 
 int VisualScriptPropertyGet::get_output_sequence_port_count() const {
 
-	return (call_mode==CALL_MODE_SELF || call_mode==CALL_MODE_NODE_PATH)?0:1;
+	return 0;// (call_mode==CALL_MODE_SELF || call_mode==CALL_MODE_NODE_PATH)?0:1;
 }
 
 bool VisualScriptPropertyGet::has_input_sequence_port() const{
 
-	return (call_mode==CALL_MODE_SELF || call_mode==CALL_MODE_NODE_PATH)?false:true;
+	return false;//(call_mode==CALL_MODE_SELF || call_mode==CALL_MODE_NODE_PATH)?false:true;
 }
 void VisualScriptPropertyGet::_update_base_type() {
 	//cache it because this information may not be available on load
@@ -2130,12 +2188,10 @@ public:
 	VisualScriptInstance *instance;
 
 
+	virtual int step(const Variant** p_inputs,Variant** p_outputs,StartMode p_start_mode,Variant* p_working_mem,Variant::CallError& r_error,String& r_error_str) {
 
-	//virtual int get_working_memory_size() const { return 0; }
-	virtual bool is_output_port_unsequenced(int p_idx) const { return (call_mode==VisualScriptPropertyGet::CALL_MODE_SELF || call_mode==VisualScriptPropertyGet::CALL_MODE_NODE_PATH); }
-	virtual bool get_output_port_unsequenced(int p_idx,Variant* r_value,Variant* p_working_mem,String &r_error) const {
 
-		//these two modes can be get directly, so they use unsequenced mode
+
 		switch(call_mode) {
 
 			case VisualScriptPropertyGet::CALL_MODE_SELF: {
@@ -2144,62 +2200,56 @@ public:
 
 				bool valid;
 
-				*r_value = object->get(property,&valid);
+				*p_outputs[0] = object->get(property,&valid);
 
 				if (!valid) {
-					//r_error.error=Variant::CallError::CALL_ERROR_INVALID_METHOD;
-					r_error=RTR("Invalid index property name.");
-					return false;
+					r_error.error=Variant::CallError::CALL_ERROR_INVALID_METHOD;
+					r_error_str=RTR("Invalid index property name.");
+					return 0;
 				}
 			} break;
 			case VisualScriptPropertyGet::CALL_MODE_NODE_PATH: {
 
 				Node* node = instance->get_owner_ptr()->cast_to<Node>();
 				if (!node) {
-					//r_error.error=Variant::CallError::CALL_ERROR_INVALID_METHOD;
-					r_error=RTR("Base object is not a Node!");
-					return false;
+					r_error.error=Variant::CallError::CALL_ERROR_INVALID_METHOD;
+					r_error_str=RTR("Base object is not a Node!");
+					return 0;
 				}
 
 				Node* another = node->get_node(node_path);
 				if (!node) {
-					//r_error.error=Variant::CallError::CALL_ERROR_INVALID_METHOD;
-					r_error=RTR("Path does not lead Node!");
-					return false;
+					r_error.error=Variant::CallError::CALL_ERROR_INVALID_METHOD;
+					r_error_str=RTR("Path does not lead Node!");
+					return 0;
 				}
 
 				bool valid;
 
 
-				*r_value = another->get(property,&valid);
+				*p_outputs[0] = another->get(property,&valid);
 
 				if (!valid) {
-					//r_error.error=Variant::CallError::CALL_ERROR_INVALID_METHOD;
-					r_error=vformat(RTR("Invalid index property name '%s' in node %s."),String(property),another->get_name());
-					return false;
+					r_error.error=Variant::CallError::CALL_ERROR_INVALID_METHOD;
+					r_error_str=vformat(RTR("Invalid index property name '%s' in node %s."),String(property),another->get_name());
+					return 0;
 				}
 
 			} break;
-			default: {};
+			default: {
+
+				bool valid;
+				Variant v = *p_inputs[0];
+
+				*p_outputs[0] = v.get(property,&valid);
+
+				if (!valid) {
+					r_error.error=Variant::CallError::CALL_ERROR_INVALID_METHOD;
+					r_error_str=RTR("Invalid index property name.");
+
+				}
+			};
 		}
-		return true;
-
-	}
-
-	virtual int step(const Variant** p_inputs,Variant** p_outputs,StartMode p_start_mode,Variant* p_working_mem,Variant::CallError& r_error,String& r_error_str) {
-
-
-		bool valid;
-		Variant v = *p_inputs[0];
-
-		*p_outputs[0] = v.get(property,&valid);
-
-		if (!valid) {
-			r_error.error=Variant::CallError::CALL_ERROR_INVALID_METHOD;
-			r_error_str=RTR("Invalid index property name.");
-
-		}
-
 
 		return 0;
 	}
