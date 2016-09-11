@@ -785,7 +785,7 @@ bool EditorNode::_find_and_save_resource(RES res,Map<RES,bool>& processed,int32_
 		if (changed || subchanged) {
 			//save
 			print_line("Also saving modified external resource: "+res->get_path());
-			Error err = ResourceSaver::save(res->get_path(),res,flags);
+			ResourceSaver::save(res->get_path(),res,flags);
 
 		}
 		processed[res]=false; //because it's a file
@@ -1228,7 +1228,7 @@ void EditorNode::_dialog_action(String p_file) {
 
 				//_save_scene(p_file);
 				_save_scene_with_preview(p_file);
-				_run(false);
+				_run(true);
 			}
 		} break;
 
@@ -4139,6 +4139,11 @@ void EditorNode::register_editor_types() {
 	//ObjectTypeDB::register_type<EditorImportExport>();
 	ObjectTypeDB::register_type<EditorSettings>();
 	ObjectTypeDB::register_type<EditorSpatialGizmo>();
+	ObjectTypeDB::register_type<EditorResourcePreview>();
+	ObjectTypeDB::register_type<EditorResourcePreviewGenerator>();
+	ObjectTypeDB::register_type<EditorFileSystem>();
+	ObjectTypeDB::register_type<EditorFileSystemDirectory>();
+
 
 
 	//ObjectTypeDB::register_type<EditorImporter>();
@@ -6543,11 +6548,6 @@ EditorNode::EditorNode() {
 
 	Globals::get_singleton()->set("debug/indicators_enabled",true);
 	Globals::get_singleton()->set("render/room_cull_enabled",false);
-	theme->set_color("prop_category","Editor",Color::hex(0x3f3a44ff));
-	theme->set_color("prop_section","Editor",Color::hex(0x35313aff));
-	theme->set_color("prop_subsection","Editor",Color::hex(0x312e37ff));
-	theme->set_color("fg_selected","Editor",Color::html("ffbd8e8e"));
-	theme->set_color("fg_error","Editor",Color::html("ffbd8e8e"));
 
 	reference_resource_mem=true;
 	save_external_resources_mem=true;
@@ -6684,43 +6684,52 @@ EditorNode::~EditorNode() {
 
 
 void EditorPluginList::make_visible(bool p_visible) {
-	if (!plugins_list.empty()) {
-		for (int i = 0; i < plugins_list.size(); i++) {
-			plugins_list[i]->make_visible(p_visible);
-		}
+
+	for (int i = 0; i < plugins_list.size(); i++) {
+		plugins_list[i]->make_visible(p_visible);
 	}
+
 }
 
 void EditorPluginList::edit(Object* p_object) {
-	if (!plugins_list.empty()) {
-		for (int i = 0; i < plugins_list.size(); i++) {
-			plugins_list[i]->edit(p_object);
-		}
+
+	for (int i = 0; i < plugins_list.size(); i++) {
+		plugins_list[i]->edit(p_object);
 	}
+
 }
 
-bool EditorPluginList::forward_input_event(const InputEvent& p_event) {
+bool EditorPluginList::forward_input_event(const Matrix32& p_canvas_xform,const InputEvent& p_event) {
+
 	bool discard = false;
-	if (!plugins_list.empty()) {
-		for (int i = 0; i < plugins_list.size(); i++) {
-			if (plugins_list[i]->forward_input_event(p_event)) {
-				discard = true;
-			}
+
+	for (int i = 0; i < plugins_list.size(); i++) {
+		if (plugins_list[i]->forward_canvas_input_event(p_canvas_xform,p_event)) {
+			discard = true;
 		}
 	}
+
 	return discard;
 }
 
 bool EditorPluginList::forward_spatial_input_event(Camera* p_camera, const InputEvent& p_event) {
 	bool discard = false;
-	if (!plugins_list.empty()) {
-		for (int i = 0; i < plugins_list.size(); i++) {
-			if (plugins_list[i]->forward_spatial_input_event(p_camera, p_event)) {
-				discard = true;
-			}
+
+	for (int i = 0; i < plugins_list.size(); i++) {
+		if (plugins_list[i]->forward_spatial_input_event(p_camera, p_event)) {
+			discard = true;
 		}
 	}
+
 	return discard;
+}
+
+void EditorPluginList::forward_draw_over_canvas(const Matrix32& p_canvas_xform,Control* p_canvas) {
+
+	for (int i = 0; i < plugins_list.size(); i++) {
+		plugins_list[i]->forward_draw_over_canvas(p_canvas_xform,p_canvas);
+	}
+
 }
 
 bool EditorPluginList::empty() {

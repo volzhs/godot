@@ -2221,6 +2221,12 @@
 				Register a [LineEdit] in the dialog. When the enter key is pressed, the dialog will be accepted.
 			</description>
 		</method>
+		<method name="set_child_rect">
+			<argument index="0" name="child" type="Control">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="set_hide_on_ok">
 			<argument index="0" name="enabled" type="bool">
 			</argument>
@@ -10871,7 +10877,7 @@
 			</return>
 			<description>
 				Initialise the stream used to list all files and directories using the [method get_next] function, closing the current opened stream if needed. Once the stream has been processed, it should typically be closed with [method list_dir_end].
-				Return false if the stream could not be initialised.
+				Return true if the stream could not be initialised.
 			</description>
 		</method>
 		<method name="list_dir_end">
@@ -11261,6 +11267,184 @@
 		</constant>
 	</constants>
 </class>
+<class name="EditorFileSystem" inherits="Node" category="Core">
+	<brief_description>
+		Resource filesystem, as the editor sees it.
+	</brief_description>
+	<description>
+		This object holds information of all resources in the filesystem, their types, etc.
+	</description>
+	<methods>
+		<method name="get_file_type" qualifiers="const">
+			<return type="String">
+			</return>
+			<argument index="0" name="path" type="String">
+			</argument>
+			<description>
+				Get the type of the file, given the full path.
+			</description>
+		</method>
+		<method name="get_filesystem">
+			<return type="EditorFileSystemDirectory">
+			</return>
+			<description>
+				Get the root directory object.
+			</description>
+		</method>
+		<method name="get_path">
+			<return type="EditorFileSystemDirectory">
+			</return>
+			<argument index="0" name="path" type="String">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="get_scanning_progress" qualifiers="const">
+			<return type="float">
+			</return>
+			<description>
+				Return the scan progress for 0 to 1 if the FS is being scanned.
+			</description>
+		</method>
+		<method name="is_scanning" qualifiers="const">
+			<return type="bool">
+			</return>
+			<description>
+				Return true of the filesystem is being scanned.
+			</description>
+		</method>
+		<method name="scan">
+			<description>
+				Scan the filesystem for changes.
+			</description>
+		</method>
+		<method name="scan_sources">
+			<description>
+				Check if the source of any imported resource changed.
+			</description>
+		</method>
+		<method name="update_file">
+			<argument index="0" name="path" type="String">
+			</argument>
+			<description>
+				Update a file information. Call this if an external program (not Godot) modified the file.
+			</description>
+		</method>
+	</methods>
+	<signals>
+		<signal name="filesystem_changed">
+			<description>
+				Emitted if the filesystem changed.
+			</description>
+		</signal>
+		<signal name="sources_changed">
+			<argument index="0" name="exist" type="bool">
+			</argument>
+			<description>
+				Emitted if the source of any imported file changed.
+			</description>
+		</signal>
+	</signals>
+	<constants>
+	</constants>
+</class>
+<class name="EditorFileSystemDirectory" inherits="Object" category="Core">
+	<brief_description>
+		A diretory for the resource filesystem.
+	</brief_description>
+	<description>
+	</description>
+	<methods>
+		<method name="find_dir_index" qualifiers="const">
+			<return type="int">
+			</return>
+			<argument index="0" name="name" type="String">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="find_file_index" qualifiers="const">
+			<return type="int">
+			</return>
+			<argument index="0" name="name" type="String">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="get_file" qualifiers="const">
+			<return type="String">
+			</return>
+			<argument index="0" name="idx" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="get_file_count" qualifiers="const">
+			<return type="int">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="get_file_path" qualifiers="const">
+			<return type="String">
+			</return>
+			<argument index="0" name="idx" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="get_file_type" qualifiers="const">
+			<return type="String">
+			</return>
+			<argument index="0" name="idx" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="get_name">
+			<return type="String">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="get_parent">
+			<return type="EditorFileSystemDirectory">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="get_path" qualifiers="const">
+			<return type="String">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="get_subdir">
+			<return type="Object">
+			</return>
+			<argument index="0" name="idx" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="get_subdir_count" qualifiers="const">
+			<return type="int">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="is_missing_sources" qualifiers="const">
+			<return type="bool">
+			</return>
+			<argument index="0" name="idx" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+	</methods>
+	<constants>
+	</constants>
+</class>
 <class name="EditorImportPlugin" inherits="Reference" category="Core">
 	<brief_description>
 		Import plugin for editor
@@ -11459,14 +11643,24 @@
 				This function is used for plugins that edit specific object types (nodes or resources). It requests the editor to edit the given object.
 			</description>
 		</method>
-		<method name="forward_input_event" qualifiers="virtual">
+		<method name="forward_canvas_input_event" qualifiers="virtual">
 			<return type="bool">
 			</return>
-			<argument index="0" name="event" type="InputEvent">
+			<argument index="0" name="canvas_xform" type="Matrix32">
+			</argument>
+			<argument index="1" name="event" type="InputEvent">
 			</argument>
 			<description>
-				This is a low level function for plugins that edit a given object type derived from CanvasItem to capture the input in the 2D editor viewport. The function is only being called if your object is being edited.
-				Return true if you want to capture the input, otherwise false.
+				If your plugin is active (because handles() returned true to the object), any input interaction with the 2D canvas editor will be first forwarded here. The canvas transform (containing zoom and offset to transform to edited world coordinates) is provided, but the input supplied is in untransformed coordinates to the canvas editor. Return true if you want to eat this event and not pass it to the canvas editor.
+			</description>
+		</method>
+		<method name="forward_draw_over_canvas" qualifiers="virtual">
+			<argument index="0" name="canvas_xform" type="Matrix32">
+			</argument>
+			<argument index="1" name="canvas" type="Control">
+			</argument>
+			<description>
+				This function is called every time the 2D canvas editor draws (which overlays over the edited scene). Drawing over the supplied control will draw over the edited scene. To convert from control coordinates to edited scene coordinates (including zoom and offset), a transform is also provided. If you require this control to be redraw, call [method update_canvas]().
 			</description>
 		</method>
 		<method name="forward_spatial_input_event" qualifiers="virtual">
@@ -11508,6 +11702,20 @@
 			</return>
 			<description>
 				Get the name of the editor plugin. For main scren plugins this is what will appear in the selector (which by default is 2D, 3D, Script).
+			</description>
+		</method>
+		<method name="get_resource_filesystem">
+			<return type="EditorFileSystem">
+			</return>
+			<description>
+				Get the filesystem cache for all resources in the project.
+			</description>
+		</method>
+		<method name="get_resource_previewer">
+			<return type="EditorResourcePreview">
+			</return>
+			<description>
+				Get tool for generating resource previews.
 			</description>
 		</method>
 		<method name="get_selection">
@@ -11552,6 +11760,15 @@
 			</return>
 			<description>
 				Return true if this is a main screen editor plugin (it goes in the main screen selector together with 2D, 3D, Script).
+			</description>
+		</method>
+		<method name="inspect_object">
+			<argument index="0" name="object" type="Object">
+			</argument>
+			<argument index="1" name="for_property" type="String" default="&quot;&quot;">
+			</argument>
+			<description>
+				Inspect an object in the inspector.
 			</description>
 		</method>
 		<method name="make_visible" qualifiers="virtual">
@@ -11621,6 +11838,11 @@
 				Restore the plugin GUI layout saved by [method EditorPlugin.get_window_layout].
 			</description>
 		</method>
+		<method name="update_canvas">
+			<description>
+				Updates the control used to draw the edited scene over the 2D canvas. This is used together with [method forward_canvas_input_event]().
+			</description>
+		</method>
 	</methods>
 	<constants>
 		<constant name="CONTAINER_TOOLBAR" value="0">
@@ -11655,6 +11877,117 @@
 		</constant>
 		<constant name="DOCK_SLOT_MAX" value="8">
 		</constant>
+	</constants>
+</class>
+<class name="EditorResourcePreview" inherits="Node" category="Core">
+	<brief_description>
+		Helper to generate previews of reources or files.
+	</brief_description>
+	<description>
+		This object is used to generate previews for resources of files.
+	</description>
+	<methods>
+		<method name="add_preview_generator">
+			<argument index="0" name="generator" type="EditorResourcePreviewGenerator">
+			</argument>
+			<description>
+				Create an own, custom preview generator.
+			</description>
+		</method>
+		<method name="check_for_invalidation">
+			<argument index="0" name="path" type="String">
+			</argument>
+			<description>
+				Check if the resource changed, if so it will be invalidated and the corresponding signal emitted.
+			</description>
+		</method>
+		<method name="queue_edited_resource_preview">
+			<argument index="0" name="resource" type="Resource">
+			</argument>
+			<argument index="1" name="receiver" type="Object">
+			</argument>
+			<argument index="2" name="receiver_func" type="String">
+			</argument>
+			<argument index="3" name="userdata" type="Variant">
+			</argument>
+			<description>
+				Queue a resource being edited for preview (using an instance). Once the preview is ready, your receiver.receiver_func will be called either containing the preview texture or an empty texure (if no preview was possible). Callback must have the format: (path,texture,userdata). Userdata can be anything.
+			</description>
+		</method>
+		<method name="queue_resource_preview">
+			<argument index="0" name="path" type="String">
+			</argument>
+			<argument index="1" name="receiver" type="Object">
+			</argument>
+			<argument index="2" name="receiver_func" type="String">
+			</argument>
+			<argument index="3" name="userdata" type="Variant">
+			</argument>
+			<description>
+				Queue a resource file for preview (using a path). Once the preview is ready, your receiver.receiver_func will be called either containing the preview texture or an empty texure (if no preview was possible). Callback must have the format: (path,texture,userdata). Userdata can be anything.
+			</description>
+		</method>
+		<method name="remove_preview_generator">
+			<argument index="0" name="generator" type="EditorResourcePreviewGenerator">
+			</argument>
+			<description>
+				Remove a custom preview generator.
+			</description>
+		</method>
+	</methods>
+	<signals>
+		<signal name="preview_invalidated">
+			<argument index="0" name="path" type="String">
+			</argument>
+			<description>
+				If a preview was invalidated (changed) this signal will emit (using the path of the preview)
+			</description>
+		</signal>
+	</signals>
+	<constants>
+	</constants>
+</class>
+<class name="EditorResourcePreviewGenerator" inherits="Reference" category="Core">
+	<brief_description>
+		Custom generator of previews.
+	</brief_description>
+	<description>
+		Custom code to generate previews. Please check "file_dialog/thumbnail_size" in EditorSettings to find out the right size to do previews at.
+	</description>
+	<methods>
+		<method name="generate" qualifiers="virtual">
+			<return type="Texture">
+			</return>
+			<argument index="0" name="from" type="Resource">
+			</argument>
+			<description>
+				Generate a preview from a given resource. This must be always implemented.
+			Returning an empty texture is an OK way to fail and let another generator take care.
+			Care must be taken because this function is always called from a thread (not the main thread).
+			</description>
+		</method>
+		<method name="generate_from_path" qualifiers="virtual">
+			<return type="Texture">
+			</return>
+			<argument index="0" name="path" type="String">
+			</argument>
+			<description>
+				Generate a preview directly from a path, implementing this is optional, as default code will load and call generate()
+			Returning an empty texture is an OK way to fail and let another generator take care.
+			Care must be taken because this function is always called from a thread (not the main thread).
+			</description>
+		</method>
+		<method name="handles" qualifiers="virtual">
+			<return type="bool">
+			</return>
+			<argument index="0" name="type" type="String">
+			</argument>
+			<description>
+				Return if your generator supports this resource type.
+			</description>
+		</method>
+	</methods>
+	<constants>
 	</constants>
 </class>
 <class name="EditorScenePostImport" inherits="Reference" category="Core">
@@ -11730,6 +12063,13 @@
 			</return>
 			<description>
 				Get the list of selectes nodes.
+			</description>
+		</method>
+		<method name="get_transformable_selected_nodes">
+			<return type="Array">
+			</return>
+			<description>
+			Get the list of selected nodes, optimized for transform operations (ie, moving them, rotating, etc). This list avoids situations where a node is selected and also chid/grandchild.
 			</description>
 		</method>
 		<method name="remove_node">
@@ -13189,31 +13529,10 @@
 		However, by creating a [FuncRef] using the [method @GDScript.funcref] function, a reference to a function in a given object can be created, passed around and called.
 	</description>
 	<methods>
-		<method name="call_func">
+		<method name="call_func" qualifiers="vararg">
 			<return type="Variant">
 			</return>
-			<argument index="0" name="arg0" type="Variant" default="NULL">
-			</argument>
-			<argument index="1" name="arg1" type="Variant" default="NULL">
-			</argument>
-			<argument index="2" name="arg2" type="Variant" default="NULL">
-			</argument>
-			<argument index="3" name="arg3" type="Variant" default="NULL">
-			</argument>
-			<argument index="4" name="arg4" type="Variant" default="NULL">
-			</argument>
-			<argument index="5" name="arg5" type="Variant" default="NULL">
-			</argument>
-			<argument index="6" name="arg6" type="Variant" default="NULL">
-			</argument>
-			<argument index="7" name="arg7" type="Variant" default="NULL">
-			</argument>
-			<argument index="8" name="arg8" type="Variant" default="NULL">
-			</argument>
-			<argument index="9" name="arg9" type="Variant" default="NULL">
-			</argument>
 			<description>
-				Call the referenced function with the given arguments. The argument count must correspond to the required number of arguments in the function. Returns the return value of the function call.
 			</description>
 		</method>
 		<method name="set_function">
@@ -13290,7 +13609,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="new">
+		<method name="new" qualifiers="vararg">
 			<return type="Object">
 			</return>
 			<description>
@@ -15392,10 +15711,11 @@
 			</argument>
 			<argument index="2" name="ssl_validate_domain" type="bool" default="true">
 			</argument>
+			<argument index="3" name="method" type="int" default="0">
+			</argument>
+			<argument index="4" name="request_data" type="String" default="&quot;&quot;">
+			</argument>
 			<description>
-				Make a HTTP GET request. The url is the complete url including "http://" or "https://" which will be parsed for a host and a port.
-				The custom_headers are HTTP request headers which will be used. If User-Agent is not specified a Godot specific will be used.
-				The ssl_validate_domain specifies if in case of HTTPS the server certificate should be verified.
 			</description>
 		</method>
 		<method name="set_body_size_limit">
@@ -17940,15 +18260,6 @@
 				Return tooltip hint for specified item index.
 			</description>
 		</method>
-		<method name="is_item_tooltip_enabled" qualifiers="const">
-			<return type="bool">
-			</return>
-			<argument index="0" name="idx" type="int">
-			</argument>
-			<description>
-				Returns whether the tooptip is enabled for specified item index.
-			</description>
-		</method>
 		<method name="get_max_columns" qualifiers="const">
 			<return type="int">
 			</return>
@@ -17976,6 +18287,13 @@
 				Returns the list of selected indexes.
 			</description>
 		</method>
+		<method name="get_v_scroll">
+			<return type="Object">
+			</return>
+			<description>
+				Returns the current vertical scroll bar for the List.
+			</description>
+		</method>
 		<method name="is_item_disabled" qualifiers="const">
 			<return type="bool">
 			</return>
@@ -17992,6 +18310,15 @@
 			</argument>
 			<description>
 				Returns whether or not the item at the specified index is selectable.
+			</description>
+		</method>
+		<method name="is_item_tooltip_enabled" qualifiers="const">
+			<return type="bool">
+			</return>
+			<argument index="0" name="idx" type="int">
+			</argument>
+			<description>
+				Returns whether the tooptip is enabled for specified item index.
 			</description>
 		</method>
 		<method name="is_same_column_width" qualifiers="const">
@@ -22533,7 +22860,7 @@
 				Replace a node in a scene by a given one. Subscriptions that pass through this node will be lost.
 			</description>
 		</method>
-		<method name="rpc">
+		<method name="rpc" qualifiers="vararg">
 			<argument index="0" name="method" type="String">
 			</argument>
 			<description>
@@ -22547,22 +22874,22 @@
 			<description>
 			</description>
 		</method>
-		<method name="rpc_id">
-			<argument index="0" name="peer_" type="int">
+		<method name="rpc_id" qualifiers="vararg">
+			<argument index="0" name="peer_id" type="int">
 			</argument>
 			<argument index="1" name="method" type="String">
 			</argument>
 			<description>
 			</description>
 		</method>
-		<method name="rpc_unreliable">
+		<method name="rpc_unreliable" qualifiers="vararg">
 			<argument index="0" name="method" type="String">
 			</argument>
 			<description>
 			</description>
 		</method>
-		<method name="rpc_unreliable_id">
-			<argument index="0" name="peer_" type="int">
+		<method name="rpc_unreliable_id" qualifiers="vararg">
+			<argument index="0" name="peer_id" type="int">
 			</argument>
 			<argument index="1" name="method" type="String">
 			</argument>
@@ -24014,50 +24341,18 @@
 				Add a user signal (can be added anytime). Arguments are optional, but can be added as an array of dictionaries, each containing "name" and "type" (from [@Global Scope] TYPE_*).
 			</description>
 		</method>
-		<method name="call">
+		<method name="call" qualifiers="vararg">
 			<return type="Variant">
 			</return>
 			<argument index="0" name="method" type="String">
 			</argument>
-			<argument index="1" name="arg0" type="Variant" default="NULL">
-			</argument>
-			<argument index="2" name="arg1" type="Variant" default="NULL">
-			</argument>
-			<argument index="3" name="arg2" type="Variant" default="NULL">
-			</argument>
-			<argument index="4" name="arg3" type="Variant" default="NULL">
-			</argument>
-			<argument index="5" name="arg4" type="Variant" default="NULL">
-			</argument>
-			<argument index="6" name="arg5" type="Variant" default="NULL">
-			</argument>
-			<argument index="7" name="arg6" type="Variant" default="NULL">
-			</argument>
-			<argument index="8" name="arg7" type="Variant" default="NULL">
-			</argument>
-			<argument index="9" name="arg8" type="Variant" default="NULL">
-			</argument>
-			<argument index="10" name="arg9" type="Variant" default="NULL">
-			</argument>
 			<description>
-				Call a function in the object, result is returned.
 			</description>
 		</method>
-		<method name="call_deferred">
+		<method name="call_deferred" qualifiers="vararg">
 			<argument index="0" name="method" type="String">
 			</argument>
-			<argument index="1" name="arg0" type="Variant" default="NULL">
-			</argument>
-			<argument index="2" name="arg1" type="Variant" default="NULL">
-			</argument>
-			<argument index="3" name="arg2" type="Variant" default="NULL">
-			</argument>
-			<argument index="4" name="arg3" type="Variant" default="NULL">
-			</argument>
-			<argument index="5" name="arg4" type="Variant" default="NULL">
-			</argument>
 			<description>
-				Create and store a function in the object. The call will take place on idle time.
 			</description>
 		</method>
 		<method name="callv">
@@ -24105,21 +24400,10 @@
 				Disconnect a signal from a method.
 			</description>
 		</method>
-		<method name="emit_signal">
+		<method name="emit_signal" qualifiers="vararg">
 			<argument index="0" name="signal" type="String">
 			</argument>
-			<argument index="1" name="arg0" type="Variant" default="NULL">
-			</argument>
-			<argument index="2" name="arg1" type="Variant" default="NULL">
-			</argument>
-			<argument index="3" name="arg2" type="Variant" default="NULL">
-			</argument>
-			<argument index="4" name="arg3" type="Variant" default="NULL">
-			</argument>
-			<argument index="5" name="arg4" type="Variant" default="NULL">
-			</argument>
 			<description>
-				Emit a signal. Arguments are passed in an array.
 			</description>
 		</method>
 		<method name="free">
@@ -31357,6 +31641,17 @@
 				Return the size of the array.
 			</description>
 		</method>
+		<method name="subarray">
+			<return type="RawArray">
+			</return>
+			<argument index="0" name="from" type="int">
+			</argument>
+			<argument index="1" name="to" type="int">
+			</argument>
+			<description>
+				Returns the slice of the [RawArray] between indices (inclusive) as a new [RawArray].  Any negative index is considered to be from the end of the array.
+			</description>
+		</method>
 	</methods>
 	<constants>
 	</constants>
@@ -32051,6 +32346,28 @@
 			</return>
 			<description>
 				Returns whether this object has a valid regular expression assigned.
+			</description>
+		</method>
+	</methods>
+	<constants>
+	</constants>
+</class>
+<class name="RemoteTransform" inherits="Spatial" category="Core">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<methods>
+		<method name="get_remote_node" qualifiers="const">
+			<return type="NodePath">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="set_remote_node">
+			<argument index="0" name="path" type="NodePath">
+			</argument>
+			<description>
 			</description>
 		</method>
 	</methods>
@@ -34616,22 +34933,12 @@
 	<description>
 	</description>
 	<methods>
-		<method name="call_group">
+		<method name="call_group" qualifiers="vararg">
 			<argument index="0" name="flags" type="int">
 			</argument>
 			<argument index="1" name="group" type="String">
 			</argument>
 			<argument index="2" name="method" type="String">
-			</argument>
-			<argument index="3" name="arg0" type="Variant" default="NULL">
-			</argument>
-			<argument index="4" name="arg1" type="Variant" default="NULL">
-			</argument>
-			<argument index="5" name="arg2" type="Variant" default="NULL">
-			</argument>
-			<argument index="6" name="arg3" type="Variant" default="NULL">
-			</argument>
-			<argument index="7" name="arg4" type="Variant" default="NULL">
 			</argument>
 			<description>
 			</description>
@@ -35056,7 +35363,7 @@
 		A helper node for displaying scrollable elements (e.g. lists).
 	</brief_description>
 	<description>
-		A ScrollContainer node with a [Control] child and scrollbar child ([HScrollbar], [VScrollBar], or both) will only draw the Control within the ScrollContainer area.  Scrollbars will automatically be drawn at the right (for vertical) or bottom (for horizontal) and will enable dragging to move the viewable Control (and its children) within the ScrollContainer.  Scrollbars will also automatically resize the grabber based on the minimum_size of the Control relative to the ScrollContainer.  Works great with a [Panel] control.
+		A ScrollContainer node with a [Control] child and scrollbar child ([HScrollbar], [VScrollBar], or both) will only draw the Control within the ScrollContainer area.  Scrollbars will automatically be drawn at the right (for vertical) or bottom (for horizontal) and will enable dragging to move the viewable Control (and its children) within the ScrollContainer.  Scrollbars will also automatically resize the grabber based on the minimum_size of the Control relative to the ScrollContainer.  Works great with a [Panel] control.  You can set EXPAND on children size flags, so they will upscale to ScrollContainer size if ScrollContainer size is bigger (scroll is invisible for chosen dimension).
 	</description>
 	<methods>
 		<method name="get_h_scroll" qualifiers="const">
@@ -43868,24 +44175,12 @@
 		Common behavior is to create an action, then add do/undo calls to functions or property changes, then commiting the action.
 	</description>
 	<methods>
-		<method name="add_do_method">
+		<method name="add_do_method" qualifiers="vararg">
 			<argument index="0" name="object" type="Object">
 			</argument>
 			<argument index="1" name="method" type="String">
 			</argument>
-			<argument index="2" name="arg0" type="Variant" default="NULL">
-			</argument>
-			<argument index="3" name="arg1" type="Variant" default="NULL">
-			</argument>
-			<argument index="4" name="arg2" type="Variant" default="NULL">
-			</argument>
-			<argument index="5" name="arg3" type="Variant" default="NULL">
-			</argument>
-			<argument index="6" name="arg4" type="Variant" default="NULL">
-			</argument>
 			<description>
-				Add a call to a method in a given object with custom
-			arguments.
 			</description>
 		</method>
 		<method name="add_do_property">
@@ -43906,23 +44201,12 @@
 				Add a 'do' reference that will be erased if the 'do' history is lost. This is useful mostly for new nodes created for the 'do' call. Do not use for resources.
 			</description>
 		</method>
-		<method name="add_undo_method">
+		<method name="add_undo_method" qualifiers="vararg">
 			<argument index="0" name="object" type="Object">
 			</argument>
 			<argument index="1" name="method" type="String">
 			</argument>
-			<argument index="2" name="arg0" type="Variant" default="NULL">
-			</argument>
-			<argument index="3" name="arg1" type="Variant" default="NULL">
-			</argument>
-			<argument index="4" name="arg2" type="Variant" default="NULL">
-			</argument>
-			<argument index="5" name="arg3" type="Variant" default="NULL">
-			</argument>
-			<argument index="6" name="arg4" type="Variant" default="NULL">
-			</argument>
 			<description>
-				Add a call to an undo method in a given object with custom arguments. Undo calls are used to revert 'do' calls.
 			</description>
 		</method>
 		<method name="add_undo_property">
