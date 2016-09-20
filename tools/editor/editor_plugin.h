@@ -100,6 +100,7 @@ public:
 	void add_control_to_dock(DockSlot p_slot,Control *p_control);
 	void remove_control_from_docks(Control *p_control);
 	void remove_control_from_bottom_panel(Control *p_control);
+	Control* get_editor_viewport();
 
 	virtual Ref<SpatialEditorGizmo> create_spatial_gizmo(Spatial* p_spatial);
 	virtual bool forward_canvas_input_event(const Matrix32& p_canvas_xform, const InputEvent& p_event);
@@ -129,6 +130,9 @@ public:
 	void queue_save_layout() const;
 
 	Control *get_base_control();
+
+	void make_bottom_panel_item_visible(Control *p_item);
+	void hide_bottom_panel();
 
 	void add_import_plugin(const Ref<EditorImportPlugin>& p_editor_import);
 	void remove_import_plugin(const Ref<EditorImportPlugin>& p_editor_import);
