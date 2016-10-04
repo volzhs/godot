@@ -16,7 +16,6 @@ platform_list = [] # list of platforms
 platform_opts = {} # options for each platform
 platform_flags = {} # flags for each platform
 
-
 active_platforms=[]
 active_platform_ids=[]
 platform_exporters=[]
@@ -60,7 +59,7 @@ platform_arg = ARGUMENTS.get("platform", False)
 if (os.name=="posix"):
 	pass
 elif (os.name=="nt"):
-	if (os.getenv("VSINSTALLDIR")==None or platform_arg=="android"):
+	if (not methods.msvc_is_detected() or platform_arg=="android"):
 		custom_tools=['mingw']
 
 env_base=Environment(tools=custom_tools);
@@ -138,7 +137,8 @@ opts.Add('etc1','etc1 Texture compression support (yes/no)','yes')
 opts.Add('builtin_zlib','Use built-in zlib (yes/no)','yes')
 opts.Add('openssl','Use OpenSSL (yes/no/builtin)','no')
 opts.Add('musepack','Musepack Audio (yes/no)','yes')
-opts.Add("CXX", "Compiler");
+opts.Add("CXX", "C++ Compiler")
+opts.Add("CC", "C Compiler")
 opts.Add("CCFLAGS", "Custom flags for the C++ compiler");
 opts.Add("CFLAGS", "Custom flags for the C compiler");
 opts.Add("LINKFLAGS", "Custom flags for the linker");
