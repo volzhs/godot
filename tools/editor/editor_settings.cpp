@@ -549,6 +549,10 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("text_editor/show_line_numbers", true);
 	set("text_editor/show_breakpoint_gutter", true);
 
+	set("text_editor/show_line_length_guideline", false);
+	set("text_editor/line_length_guideline_column", 80);
+	hints["text_editor/line_length_guideline_column"]=PropertyInfo(Variant::INT,"text_editor/line_length_guideline_column",PROPERTY_HINT_RANGE,"20, 160, 10");
+
 	set("text_editor/trim_trailing_whitespace_on_save", false);
 	set("text_editor/idle_parse_delay",2);
 	set("text_editor/create_signal_callbacks",true);
@@ -565,8 +569,6 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("text_editor/restore_scripts_on_load",true);
 
 
-	set("scenetree_editor/duplicate_node_name_num_separator",0);
-	hints["scenetree_editor/duplicate_node_name_num_separator"]=PropertyInfo(Variant::INT,"scenetree_editor/duplicate_node_name_num_separator",PROPERTY_HINT_ENUM, "None,Space,Underscore,Dash");
 	//set("scenetree_editor/display_old_action_buttons",false);
 	set("scenetree_editor/start_create_dialog_fully_expanded",false);
 	set("scenetree_editor/draw_relationship_lines",false);
