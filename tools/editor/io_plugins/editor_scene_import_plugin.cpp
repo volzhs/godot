@@ -659,7 +659,7 @@ void EditorSceneImportDialog::_choose_file(const String& p_path) {
 
 	import_path->set_text(p_path);
 	if (root_node_name->get_text().size()==0){
-		root_node_name->set_text(p_path.get_file().basename());
+		root_node_name->set_text(import_path->get_text().get_file().basename());
 	}
 
 }
