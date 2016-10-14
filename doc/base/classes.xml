@@ -5459,18 +5459,6 @@
 	<constants>
 	</constants>
 </class>
-<class name="AudioStreamSpeex" inherits="AudioStream" category="Core">
-	<brief_description>
-		Speex audio stream driver.
-	</brief_description>
-	<description>
-		Speex audio stream driver. Speex is very useful for compressed speech. It allows loading a very large amount of speech in memory at little IO/latency cost.
-	</description>
-	<methods>
-	</methods>
-	<constants>
-	</constants>
-</class>
 <class name="BackBufferCopy" inherits="Node2D" category="Core">
 	<brief_description>
 		Copies a region of the screen (or the whole screen) to a buffer so it can be accessed with the texscreen() shader instruction.
@@ -26265,7 +26253,7 @@
 	</methods>
 	<constants>
 		<constant name="PARAM_DIRECTION" value="0">
-			Direction in radians at which the particles will be launched, Notice that when the direction is set to 0 the particles will be launched to the negative
+			Direction in degrees at which the particles will be launched, Notice that when the direction is set to 0 the particles will be launched to the negative
 		</constant>
 		<constant name="PARAM_SPREAD" value="1">
 		</constant>
@@ -26279,7 +26267,7 @@
 			Velocity at which the particles will orbit around the emitter center
 		</constant>
 		<constant name="PARAM_GRAVITY_DIRECTION" value="5">
-			Direction in radians at which the particles will be attracted
+			Direction in degrees at which the particles will be attracted
 		</constant>
 		<constant name="PARAM_GRAVITY_STRENGTH" value="6">
 			Strength of the gravitation attraction for each particle
