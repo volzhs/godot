@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 Import('env')
 
 env.drivers_sources=[]
@@ -14,6 +16,8 @@ SConscript('alsa/SCsub');
 SConscript('pulseaudio/SCsub');
 if (env["platform"] == "windows"):
 	SConscript("rtaudio/SCsub");
+if (env["xaudio2"] == "yes"):
+	SConscript("xaudio2/SCsub");
 
 # Graphics drivers
 SConscript('gles2/SCsub');

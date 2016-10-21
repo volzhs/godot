@@ -3,7 +3,7 @@
 Import('env')
 
 env.add_source_files(env.drivers_sources, "*.cpp")
-
-SConscript("shaders/SCsub")
+env.Append(CXXFLAGS=['-DXAUDIO2_ENABLED'])
+env.Append(LINKFLAGS=['xaudio2_8.lib'])
 
 Export('env')
