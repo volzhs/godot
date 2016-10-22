@@ -65,6 +65,8 @@ elif (os.name=="nt"):
 		custom_tools=['mingw']
 
 env_base=Environment(tools=custom_tools);
+if 'TERM' in os.environ:
+	env_base['ENV']['TERM'] = os.environ['TERM']
 env_base.AppendENVPath('PATH', os.getenv('PATH'))
 env_base.AppendENVPath('PKG_CONFIG_PATH', os.getenv('PKG_CONFIG_PATH'))
 env_base.global_defaults=global_defaults
@@ -143,7 +145,7 @@ opts.Add("LINKFLAGS", "Custom flags for the linker");
 opts.Add('unix_global_settings_path', 'unix-specific path to system-wide settings. Currently only used by templates.','')
 opts.Add('disable_3d', 'Disable 3D nodes for smaller executable (yes/no)', "no")
 opts.Add('disable_advanced_gui', 'Disable advance 3D gui nodes and behaviors (yes/no)', "no")
-opts.Add('colored', 'Enable colored output for the compilation (yes/no)', 'no')
+opts.Add('verbose', 'Enable verbose output for the compilation (yes/no)', 'yes')
 opts.Add('deprecated','Enable deprecated features (yes/no)','yes')
 opts.Add('extra_suffix', 'Custom extra suffix added to the base filename of all generated binary files.', '')
 opts.Add('vsproj', 'Generate Visual Studio Project. (yes/no)', 'no')
@@ -262,6 +264,8 @@ if selected_platform in platform_list:
 			sys.exit(255)
 		suffix+=".opt"
 
+		env.Append(CCFLAGS=['-DNDEBUG']);
+
 	elif (env["target"]=="release_debug"):
 		if (env["tools"]=="yes"):
 			suffix+=".opt.tools"
@@ -330,8 +334,8 @@ if selected_platform in platform_list:
 	if (env['xml']=='yes'):
 		env.Append(CPPFLAGS=['-DXML_ENABLED'])
 
-	if (env['colored']=='yes'):
-		methods.colored(sys,env)
+	if (env['verbose']=='no'):
+		methods.no_verbose(sys,env)
 
 	Export('env')
 
@@ -379,9 +383,9 @@ if selected_platform in platform_list:
 		release_variants = ['release|Win32']+['release|x64']
 		release_debug_variants = ['release_debug|Win32']+['release_debug|x64']
 		variants = debug_variants + release_variants + release_debug_variants
-		debug_targets = ['Debug']+['Debug']
-		release_targets = ['Release']+['Release']
-		release_debug_targets = ['ReleaseDebug']+['ReleaseDebug']
+		debug_targets = ['bin\\godot.windows.tools.32.exe']+['bin\\godot.windows.tools.64.exe']
+		release_targets = ['bin\\godot.windows.opt.32.exe']+['bin\\godot.windows.opt.64.exe']
+		release_debug_targets = ['bin\\godot.windows.opt.tools.32.exe']+['bin\\godot.windows.opt.tools.64.exe']
 		targets = debug_targets + release_targets + release_debug_targets
 		msvproj = env.MSVSProject(target = ['#godot' + env['MSVSPROJECTSUFFIX'] ],
 								incs = env.vs_incs,
