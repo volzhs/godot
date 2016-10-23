@@ -3,6 +3,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
+		classpath 'com.google.gms:google-services:3.0.0'
 		classpath 'com.android.tools.build:gradle:2.2.0'
 	}
 }
@@ -84,3 +85,4 @@ android {
 		variant.outputs.get(0).setOutputFile(new File("${projectDir}/../../../bin", "android_${variant.name}.apk"))
 	}
 }
+apply plugin: 'com.google.gms.google-services'
