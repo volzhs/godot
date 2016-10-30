@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  packet_peer_udp.cpp                                                  */
+/*  regex.h                                                              */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -26,61 +26,89 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "packet_peer_udp.h"
-#include "io/ip.h"
 
-PacketPeerUDP* (*PacketPeerUDP::_create)()=NULL;
+#ifndef REGEX_H
+#define REGEX_H
 
-VARIANT_ENUM_CAST(IP_Address::AddrType);
+#include "core/vector.h"
+#include "core/ustring.h"
+#include "core/dictionary.h"
+#include "core/reference.h"
+#include "core/resource.h"
 
-String PacketPeerUDP::_get_packet_ip() const {
+class RegExNode;
 
-	return get_packet_address();
-}
+class RegExMatch : public Reference {
 
-Error PacketPeerUDP::_set_send_address(const String& p_address,int p_port) {
+	OBJ_TYPE(RegExMatch, Reference);
 
-	IP_Address ip;
-	if (p_address.is_valid_ip_address()) {
-		ip=p_address;
-	} else {
-		ip=IP::get_singleton()->resolve_hostname(p_address);
-		if (ip==IP_Address())
-			return ERR_CANT_RESOLVE;
-	}
+	struct Group {
+		Variant name;
+		int start;
+		int length;
+	};
 
-	set_send_address(ip,p_port);
-	return OK;
-}
+	Vector<Group> captures;
+	String string;
 
-void PacketPeerUDP::_bind_methods() {
+	friend class RegEx;
+	friend class RegExSearch;
+	friend class RegExNodeCapturing;
+	friend class RegExNodeBackReference;
 
-	ObjectTypeDB::bind_method(_MD("listen:Error","port","recv_buf_size"),&PacketPeerUDP::listen,DEFVAL(65536));
-	ObjectTypeDB::bind_method(_MD("close"),&PacketPeerUDP::close);
-	ObjectTypeDB::bind_method(_MD("wait:Error"),&PacketPeerUDP::wait);
-	ObjectTypeDB::bind_method(_MD("is_listening"),&PacketPeerUDP::is_listening);
-	ObjectTypeDB::bind_method(_MD("get_packet_ip"),&PacketPeerUDP::_get_packet_ip);
-	//ObjectTypeDB::bind_method(_MD("get_packet_address"),&PacketPeerUDP::_get_packet_address);
-	ObjectTypeDB::bind_method(_MD("get_packet_port"),&PacketPeerUDP::get_packet_port);
-	ObjectTypeDB::bind_method(_MD("set_send_address","host","port"),&PacketPeerUDP::_set_send_address);
+protected:
 
+	static void _bind_methods();
 
-}
+public:
 
-Ref<PacketPeerUDP> PacketPeerUDP::create_ref() {
+	String expand(const String& p_template) const;
 
-	if (!_create)
-		return Ref<PacketPeerUDP>();
-	return Ref<PacketPeerUDP>(_create());
-}
+	int get_group_count() const;
+	Array get_group_array() const;
 
-PacketPeerUDP* PacketPeerUDP::create() {
+	Array get_names() const;
+	Dictionary get_name_dict() const;
 
-	if (!_create)
-		return NULL;
-	return _create();
-}
+	String get_string(const Variant& p_name) const;
+	int get_start(const Variant& p_name) const;
+	int get_end(const Variant& p_name) const;
 
-PacketPeerUDP::PacketPeerUDP()
-{
-}
+	RegExMatch();
+
+};
+
+class RegEx : public Resource {
+
+	OBJ_TYPE(RegEx, Resource);
+
+	RegExNode* root;
+	Vector<Variant> group_names;
+	String pattern;
+	int lookahead_depth;
+
+protected:
+
+	static void _bind_methods();
+
+public:
+
+	void clear();
+	Error compile(const String& p_pattern);
+
+	Ref<RegExMatch> search(const String& p_text, int p_start = 0, int p_end = -1) const;
+	String sub(const String& p_text, const String& p_replacement, bool p_all = false, int p_start = 0, int p_end = -1) const;
+
+	bool is_valid() const;
+	String get_pattern() const;
+	int get_group_count() const;
+	Array get_names() const;
+
+	RegEx();
+	RegEx(const String& p_pattern);
+	~RegEx();
+
+};
+
+#endif // REGEX_H
+
