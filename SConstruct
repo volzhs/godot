@@ -100,6 +100,7 @@ env_base.__class__.disable_module = methods.disable_module
 
 env_base.__class__.add_source_files = methods.add_source_files
 env_base.__class__.use_windows_spawn_fix = methods.use_windows_spawn_fix
+env_base.__class__.split_lib = methods.split_lib
 
 env_base["x86_libtheora_opt_gcc"]=False
 env_base["x86_libtheora_opt_vc"]=False
@@ -125,6 +126,7 @@ opts.Add('gdscript','Build GDSCript support: (yes/no)','yes')
 opts.Add('libogg','Ogg library for ogg container support (system/builtin)','builtin')
 opts.Add('libvorbis','Ogg Vorbis library for vorbis support (system/builtin)','builtin')
 opts.Add('libtheora','Theora library for theora module (system/builtin)','builtin')
+opts.Add('libvpx','VPX library for webm module (system/builtin)','builtin')
 opts.Add('opus','Opus and opusfile library for Opus format support: (system/builtin)','builtin')
 opts.Add('minizip','Build Minizip Archive Support: (yes/no)','yes')
 opts.Add('squish','Squish library for BC Texture Compression in editor (system/builtin)','builtin')
