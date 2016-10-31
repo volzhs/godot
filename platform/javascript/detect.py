@@ -18,8 +18,8 @@ def can_build():
 def get_opts():
 
 	return [
-		['compress','Compress JS Executable','no'],
-		['javascript_eval','Enable JavaScript eval interface','yes']
+		['wasm','Compile to WebAssembly','no'],
+		['javascript_eval','Enable JavaScript eval interface','yes'],
 	]
 
 def get_flags():
@@ -43,7 +43,6 @@ def configure(env):
 	em_path=os.environ["EMSCRIPTEN_ROOT"]
 
 	env['ENV']['PATH'] = em_path+":"+env['ENV']['PATH']
-
 	env['CC'] = em_path+'/emcc'
 	env['CXX'] = em_path+'/emcc'
 	#env['AR'] = em_path+"/emar"
@@ -78,20 +77,20 @@ def configure(env):
 	env.Append(CPPFLAGS=['-DJAVASCRIPT_ENABLED', '-DUNIX_ENABLED', '-DPTHREAD_NO_RENAME', '-DNO_FCNTL','-DMPC_FIXED_POINT','-DTYPED_METHOD_BIND','-DNO_THREADS'])
 	env.Append(CPPFLAGS=['-DGLES2_ENABLED'])
 	env.Append(CPPFLAGS=['-DGLES_NO_CLIENT_ARRAYS'])
-	env.Append(CPPFLAGS=['-s','ASM_JS=1'])
 	env.Append(CPPFLAGS=['-s','FULL_ES2=1'])
 #	env.Append(CPPFLAGS=['-DANDROID_ENABLED', '-DUNIX_ENABLED','-DMPC_FIXED_POINT'])
+
+	if env['wasm'] == 'yes':
+		env.Append(LINKFLAGS=['-s','BINARYEN=1'])
+		env.Append(LINKFLAGS=['-s','\'BINARYEN_METHOD="native-wasm"\''])
+		env["PROGSUFFIX"]+=".webassembly"
+	else:
+		env.Append(CPPFLAGS=['-s','ASM_JS=1'])
+		env.Append(LINKFLAGS=['-s','ASM_JS=1'])
 
 	if env['javascript_eval'] == 'yes':
 		env.Append(CPPFLAGS=['-DJAVASCRIPT_EVAL_ENABLED'])
 
-	if (env["compress"]=="yes"):
-		lzma_binpath = em_path+"/third_party/lzma.js/lzma-native"
-		lzma_decoder = em_path+"/third_party/lzma.js/lzma-decoder.js"
-		lzma_dec = "LZMA.decompress"
-		env.Append(LINKFLAGS=['--compression',lzma_binpath+","+lzma_decoder+","+lzma_dec])
-
-	env.Append(LINKFLAGS=['-s','ASM_JS=1'])
 	env.Append(LINKFLAGS=['-O2'])
 	#env.Append(LINKFLAGS=['-g4'])
 
