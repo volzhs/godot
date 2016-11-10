@@ -1934,7 +1934,7 @@ SceneTreeDock::SceneTreeDock(EditorNode *p_editor,Node *p_scene_root,EditorSelec
 
 	tb = memnew( ToolButton );
 	tb->connect("pressed",this,"_tool_selected",make_binds(TOOL_ATTACH_SCRIPT, false));
-	tb->set_tooltip(TTR("Create a new or load script for the selected node."));
+	tb->set_tooltip(TTR("Attach a new or existing script for the selected node."));
 	tb->set_shortcut(ED_GET_SHORTCUT("scene_tree/attach_script"));
 	filter_hbc->add_child(tb);
 	button_create_script=tb;
