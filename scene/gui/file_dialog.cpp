@@ -403,11 +403,12 @@ void FileDialog::update_file_list() {
 	while(!files.empty()) {
 
 		bool match=patterns.empty();
+		String match_str;
 
 		for(List<String>::Element *E=patterns.front();E;E=E->next()) {
 
 			if (files.front()->get().matchn(E->get())) {
-
+				match_str=E->get();
 				match=true;
 				break;
 			}
@@ -434,13 +435,16 @@ void FileDialog::update_file_list() {
 
 			if (file->get_text()==files.front()->get())
 				ti->select(0);
+			else if (match_str==files.front()->get())
+				ti->select(0);
 		}
 
 		files.pop_front();
 	}
 
-	if (tree->get_root() && tree->get_root()->get_children())
+	if (tree->get_root() && tree->get_root()->get_children() && tree->get_selected()==NULL)
 		tree->get_root()->get_children()->select(0);
+
 
 	files.clear();
 
