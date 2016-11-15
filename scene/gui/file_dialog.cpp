@@ -433,9 +433,7 @@ void FileDialog::update_file_list() {
 			d["dir"]=false;
 			ti->set_metadata(0,d);
 
-			if (file->get_text()==files.front()->get())
-				ti->select(0);
-			else if (match_str==files.front()->get())
+			if (file->get_text()==files.front()->get() || match_str==files.front()->get())
 				ti->select(0);
 		}
 
@@ -444,7 +442,6 @@ void FileDialog::update_file_list() {
 
 	if (tree->get_root() && tree->get_root()->get_children() && tree->get_selected()==NULL)
 		tree->get_root()->get_children()->select(0);
-
 
 	files.clear();
 
