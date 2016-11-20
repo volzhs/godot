@@ -140,11 +140,10 @@ def configure(env):
         env.ParseConfig('pkg-config libwebp --cflags --libs')
 
     if (env['builtin_freetype'] == 'no'):
-        env['builtin_libpng'] = 'no'  # Freetype links against libpng
         env.ParseConfig('pkg-config freetype2 --cflags --libs')
 
     if (env['builtin_libpng'] == 'no'):
-        env.ParseConfig('pkg-config libpng16 --cflags --libs')
+        env.ParseConfig('pkg-config libpng --cflags --libs')
 
     if (env['builtin_enet'] == 'no'):
         env.ParseConfig('pkg-config libenet --cflags --libs')
