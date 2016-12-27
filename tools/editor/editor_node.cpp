@@ -1848,7 +1848,6 @@ void EditorNode::_run(bool p_current,const String& p_custom) {
 
 			run_filename=scene->get_filename();
 		} else {
-			args=run_settings_dialog->get_custom_arguments();
 			current_filename=scene->get_filename();
 		}
 
@@ -1926,6 +1925,8 @@ void EditorNode::_run(bool p_current,const String& p_custom) {
 
 	List<String> breakpoints;
 	editor_data.get_editor_breakpoints(&breakpoints);
+    
+	args = Globals::get_singleton()->get("editor/main_run_args");
 
 	Error error = editor_run.run(run_filename,args,breakpoints,current_filename);
 
@@ -5458,7 +5459,7 @@ EditorNode::EditorNode() {
 
 	editor_import_export->load_config();
 
-	GLOBAL_DEF("editor/main_run_args","$exec -path $path -scene $scene $main_scene");
+	GLOBAL_DEF("editor/main_run_args","$scene");
 
 	ObjectTypeDB::set_type_enabled("CollisionShape",true);
 	ObjectTypeDB::set_type_enabled("CollisionShape2D",true);
@@ -5957,6 +5958,7 @@ EditorNode::EditorNode() {
 	debug_button->set_tooltip(TTR("Debug options"));
 
 	p=debug_button->get_popup();
+	p->set_hide_on_item_selection(false);
 	p->add_check_item(TTR("Deploy with Remote Debug"),RUN_DEPLOY_REMOTE_DEBUG);
 	p->set_item_tooltip(p->get_item_count()-1,TTR("When exporting or deploying, the resulting executable will attempt to connect to the IP of this computer in order to be debugged."));
 	p->add_check_item(TTR("Small Deploy with Network FS"),RUN_FILE_SERVER);
