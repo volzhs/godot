@@ -5,7 +5,7 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -569,6 +569,15 @@ void TreeItem::set_button(int p_column,int p_idx,const Ref<Texture>& p_button){
 
 }
 
+void TreeItem::set_button_color(int p_column,int p_idx,const Color& p_color) {
+
+	ERR_FAIL_INDEX( p_column, cells.size() );
+	ERR_FAIL_INDEX( p_idx, cells[p_column].buttons.size() );
+	cells[p_column].buttons[p_idx].color=p_color;
+	_changed_notify(p_column);
+
+}
+
 void TreeItem::set_editable(int p_column,bool p_editable) {
 
 	ERR_FAIL_INDEX( p_column, cells.size() );
@@ -1061,7 +1070,7 @@ int Tree::draw_item(const Point2i& p_pos,const Point2& p_draw_ofs, const Size2& 
 				o.y+=(label_h-s.height)/2;
 				o+=cache.button_pressed->get_offset();
 
-				b->draw(ci,o,p_item->cells[i].buttons[j].disabled?Color(1,1,1,0.5):Color(1,1,1,1));
+				b->draw(ci,o,p_item->cells[i].buttons[j].disabled?Color(1,1,1,0.5):p_item->cells[i].buttons[j].color);
 				w-=s.width+cache.button_margin;
 				bw+=s.width+cache.button_margin;
 			}
@@ -1396,11 +1405,7 @@ void Tree::select_single_item(TreeItem *p_selected, TreeItem *p_current, int p_c
 
 		if (select_mode==SELECT_ROW) {
 
-
-			if (p_selected==p_current) {
-
-				if (!c.selected) {
-
+			if (p_selected==p_current && !c.selected) {
 					c.selected=true;
 					selected_item=p_selected;
 					selected_col=0;
@@ -1410,23 +1415,16 @@ void Tree::select_single_item(TreeItem *p_selected, TreeItem *p_current, int p_c
 						emitted_row=true;
 					}
 					//if (p_col==i)
-					//	p_current->selected_signal.call(p_col);
-				}
+					 //	p_current->selected_signal.call(p_col);
 
-			} else {
-
-				if (c.selected) {
+			} else if (c.selected) {
 
 					c.selected=false;
 					//p_current->deselected_signal.call(p_col);
-				}
-
 			}
-
 		} else if (select_mode==SELECT_SINGLE || select_mode==SELECT_MULTI) {
 
 			if (!r_in_range && &selected_cell==&c) {
-
 
 				if (!selected_cell.selected) {
 
@@ -1438,6 +1436,8 @@ void Tree::select_single_item(TreeItem *p_selected, TreeItem *p_current, int p_c
 					emit_signal("cell_selected");
 					if (select_mode==SELECT_MULTI)
 						emit_signal("multi_selected",p_current,i,true);
+					else if(select_mode == SELECT_SINGLE)
+						emit_signal("item_selected");
 
 				} else if (select_mode==SELECT_MULTI && (selected_item!=p_selected || selected_col!=i)) {
 
@@ -2405,6 +2405,9 @@ void Tree::_input_event(InputEvent p_event) {
 
 			}
 
+			if (range_drag_enabled)
+				break;
+
 			switch(b.button_index) {
 				case BUTTON_RIGHT:
 				case BUTTON_LEFT: {
@@ -2923,8 +2926,7 @@ void Tree::item_selected(int p_column,TreeItem *p_item) {
 
 void Tree::item_deselected(int p_column,TreeItem *p_item) {
 
-	if (select_mode==SELECT_MULTI) {
-
+	if (select_mode==SELECT_MULTI || select_mode == SELECT_SINGLE) {
 		p_item->cells[p_column].selected=false;
 	}
 	update();

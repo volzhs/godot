@@ -5,7 +5,7 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -268,10 +268,10 @@ void TileMap::_update_dirty_quadrants() {
 
 	if (!pending_update)
 		return;
-	if (!is_inside_tree())
+	if (!is_inside_tree() || !tile_set.is_valid()) {
+		pending_update = false;
 		return;
-	if (!tile_set.is_valid())
-		return;
+	}
 
 	VisualServer *vs = VisualServer::get_singleton();
 	Physics2DServer *ps = Physics2DServer::get_singleton();

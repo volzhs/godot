@@ -5,7 +5,7 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -1825,10 +1825,6 @@ _VariantCall::addfunc(Variant::m_vtype,Variant::m_ret,_SCS(#m_method),VCALL(m_cl
 	_VariantCall::add_constant(Variant::IMAGE,"INTERPOLATE_BILINEAR",Image::INTERPOLATE_BILINEAR);
 	_VariantCall::add_constant(Variant::IMAGE,"INTERPOLATE_CUBIC",Image::INTERPOLATE_CUBIC);
 
-	_VariantCall::add_constant(Variant::INT, "IP_TYPE_NONE", IP_Address::TYPE_NONE);
-	_VariantCall::add_constant(Variant::INT, "IP_TYPE_IPV4", IP_Address::TYPE_IPV4);
-	_VariantCall::add_constant(Variant::INT, "IP_TYPE_IPV6", IP_Address::TYPE_IPV6);
-	_VariantCall::add_constant(Variant::INT, "IP_TYPE_ANY", IP_Address::TYPE_ANY);
 }
 
 void unregister_variant_methods() {

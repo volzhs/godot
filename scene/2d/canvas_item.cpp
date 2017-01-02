@@ -5,7 +5,7 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -261,16 +261,13 @@ void CanvasItem::show() {
 	if (!hidden)
 		return;
 
-
 	hidden=false;
 	VisualServer::get_singleton()->canvas_item_set_visible(canvas_item,true);
 
 	if (!is_inside_tree())
 		return;
 
-	if (is_visible()) {
-		_propagate_visibility_changed(true);
-	}
+	_propagate_visibility_changed(true);
 	_change_notify("visibility/visible");
 }
 
@@ -280,15 +277,13 @@ void CanvasItem::hide() {
 	if (hidden)
 		return;
 
-	bool propagate=is_inside_tree() && is_visible();
 	hidden=true;
 	VisualServer::get_singleton()->canvas_item_set_visible(canvas_item,false);
 
 	if (!is_inside_tree())
 		return;
-	if (propagate)
-		_propagate_visibility_changed(false);
 
+	_propagate_visibility_changed(false);
 	_change_notify("visibility/visible");
 }
 
