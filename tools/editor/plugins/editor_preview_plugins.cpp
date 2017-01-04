@@ -40,7 +40,7 @@
 #if 0
 bool EditorTexturePreviewPlugin::handles(const String& p_type) const {
 
-	return (ObjectTypeDB::is_type(p_type,"ImageTexture") || ObjectTypeDB::is_type(p_type, "AtlasTexture"));
+	return (ClassDB::is_type(p_type,"ImageTexture") || ClassDB::is_type(p_type, "AtlasTexture"));
 }
 
 Ref<Texture> EditorTexturePreviewPlugin::generate(const RES& p_from) {
@@ -107,7 +107,7 @@ EditorTexturePreviewPlugin::EditorTexturePreviewPlugin() {
 
 bool EditorBitmapPreviewPlugin::handles(const String& p_type) const {
 
-	return ObjectTypeDB::is_type(p_type,"BitMap");
+	return ClassDB::is_type(p_type,"BitMap");
 }
 
 Ref<Texture> EditorBitmapPreviewPlugin::generate(const RES& p_from) {
@@ -214,7 +214,7 @@ Ref<Texture> EditorPackedScenePreviewPlugin::_gen_from_imd(Ref<ResourceImportMet
 
 bool EditorPackedScenePreviewPlugin::handles(const String& p_type) const {
 
-	return ObjectTypeDB::is_type(p_type,"PackedScene");
+	return ClassDB::is_type(p_type,"PackedScene");
 }
 Ref<Texture> EditorPackedScenePreviewPlugin::generate(const RES& p_from) {
 
@@ -236,7 +236,7 @@ EditorPackedScenePreviewPlugin::EditorPackedScenePreviewPlugin() {
 
 bool EditorMaterialPreviewPlugin::handles(const String& p_type) const {
 
-	return ObjectTypeDB::is_type(p_type,"Material"); //any material
+	return ClassDB::is_type(p_type,"Material"); //any material
 }
 
 Ref<Texture> EditorMaterialPreviewPlugin::generate(const RES& p_from) {
@@ -405,7 +405,7 @@ static bool _is_text_char(CharType c) {
 
 bool EditorScriptPreviewPlugin::handles(const String& p_type) const {
 
-	return ObjectTypeDB::is_type(p_type,"Script");
+	return ClassDB::is_type(p_type,"Script");
 }
 
 Ref<Texture> EditorScriptPreviewPlugin::generate(const RES& p_from) {
@@ -524,7 +524,7 @@ EditorScriptPreviewPlugin::EditorScriptPreviewPlugin() {
 
 bool EditorSamplePreviewPlugin::handles(const String& p_type) const {
 
-	return ObjectTypeDB::is_type(p_type,"Sample");
+	return ClassDB::is_type(p_type,"Sample");
 }
 
 Ref<Texture> EditorSamplePreviewPlugin::generate(const RES& p_from) {
@@ -793,7 +793,7 @@ EditorSamplePreviewPlugin::EditorSamplePreviewPlugin() {
 
 bool EditorMeshPreviewPlugin::handles(const String& p_type) const {
 
-	return ObjectTypeDB::is_type(p_type,"Mesh"); //any Mesh
+	return ClassDB::is_type(p_type,"Mesh"); //any Mesh
 }
 
 Ref<Texture> EditorMeshPreviewPlugin::generate(const RES& p_from) {
@@ -807,8 +807,8 @@ Ref<Texture> EditorMeshPreviewPlugin::generate(const RES& p_from) {
 	Vector3 ofs = aabb.pos + aabb.size*0.5;
 	aabb.pos-=ofs;
 	Transform xform;
-	xform.basis=Matrix3().rotated(Vector3(0,1,0),Math_PI*0.125);
-	xform.basis = Matrix3().rotated(Vector3(1,0,0),-Math_PI*0.125)*xform.basis;
+	xform.basis=Matrix3().rotated(Vector3(0,1,0),-Math_PI*0.125);
+	xform.basis = Matrix3().rotated(Vector3(1,0,0),Math_PI*0.125)*xform.basis;
 	AABB rot_aabb = xform.xform(aabb);
 	float m = MAX(rot_aabb.size.x,rot_aabb.size.y)*0.5;
 	if (m==0)

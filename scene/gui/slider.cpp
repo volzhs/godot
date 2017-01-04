@@ -63,9 +63,9 @@ void Slider::_input_event(InputEvent p_event) {
 			}
 		} else if (mb.pressed && mb.button_index==BUTTON_WHEEL_UP) {
 
-			set_val( get_val() + get_step());
+			set_value( get_value() + get_step());
 		} else if (mb.pressed && mb.button_index==BUTTON_WHEEL_DOWN) {
-			set_val( get_val() - get_step());
+			set_value( get_value() - get_step());
 		}
 
 	} else if (p_event.type==InputEvent::MOUSE_MOTION) {
@@ -89,26 +89,26 @@ void Slider::_input_event(InputEvent p_event) {
 
 			if (orientation!=HORIZONTAL)
 				return;
-			set_val( get_val() - (custom_step>=0?custom_step:get_step()) );
+			set_value( get_value() - (custom_step>=0?custom_step:get_step()) );
 			accept_event();
 		} else if (p_event.is_action("ui_right") && p_event.is_pressed()) {
 
 			if (orientation!=HORIZONTAL)
 				return;
-			set_val( get_val() + (custom_step>=0?custom_step:get_step()) );
+			set_value( get_value() + (custom_step>=0?custom_step:get_step()) );
 			accept_event();
 		} else if (p_event.is_action("ui_up") && p_event.is_pressed()) {
 
 			if (orientation!=VERTICAL)
 				return;
 
-			set_val( get_val() + (custom_step>=0?custom_step:get_step()) );
+			set_value( get_value() + (custom_step>=0?custom_step:get_step()) );
 			accept_event();
 		} else if (p_event.is_action("ui_down") && p_event.is_pressed()) {
 
 			if (orientation!=VERTICAL)
 				return;
-			set_val( get_val() - (custom_step>=0?custom_step:get_step()) );
+			set_value( get_value() - (custom_step>=0?custom_step:get_step()) );
 			accept_event();
 
 		} else if (p_event.type==InputEvent::KEY) {
@@ -122,12 +122,12 @@ void Slider::_input_event(InputEvent p_event) {
 
 				case KEY_HOME: {
 
-					set_val( get_min() );
+					set_value( get_min() );
 					accept_event();
 				} break;
 				case KEY_END: {
 
-					set_val( get_max() );
+					set_value( get_max() );
 					accept_event();
 
 				} break;
@@ -231,12 +231,12 @@ void Slider::set_ticks_on_borders(bool _tob){
 
 void Slider::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("_input_event"),&Slider::_input_event);
-	ObjectTypeDB::bind_method(_MD("set_ticks","count"),&Slider::set_ticks);
-	ObjectTypeDB::bind_method(_MD("get_ticks"),&Slider::get_ticks);
+	ClassDB::bind_method(_MD("_input_event"),&Slider::_input_event);
+	ClassDB::bind_method(_MD("set_ticks","count"),&Slider::set_ticks);
+	ClassDB::bind_method(_MD("get_ticks"),&Slider::get_ticks);
 
-	ObjectTypeDB::bind_method(_MD("get_ticks_on_borders"),&Slider::get_ticks_on_borders);
-	ObjectTypeDB::bind_method(_MD("set_ticks_on_borders","ticks_on_border"),&Slider::set_ticks_on_borders);
+	ClassDB::bind_method(_MD("get_ticks_on_borders"),&Slider::get_ticks_on_borders);
+	ClassDB::bind_method(_MD("set_ticks_on_borders","ticks_on_border"),&Slider::set_ticks_on_borders);
 
 	ADD_PROPERTY( PropertyInfo( Variant::INT, "tick_count", PROPERTY_HINT_RANGE,"0,4096,1"), _SCS("set_ticks"), _SCS("get_ticks") );
         ADD_PROPERTY( PropertyInfo( Variant::BOOL, "ticks_on_borders" ), _SCS("set_ticks_on_borders"), _SCS("get_ticks_on_borders") );

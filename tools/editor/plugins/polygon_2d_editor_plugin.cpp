@@ -567,10 +567,10 @@ void Polygon2DEditor::_uv_input(const InputEvent& p_input) {
 
 		} else if (mb.button_index==BUTTON_WHEEL_UP && mb.pressed) {
 
-			uv_zoom->set_val( uv_zoom->get_val()/0.9 );
+			uv_zoom->set_value( uv_zoom->get_value()/0.9 );
 		} else if (mb.button_index==BUTTON_WHEEL_DOWN && mb.pressed) {
 
-			uv_zoom->set_val( uv_zoom->get_val()*0.9);
+			uv_zoom->set_value( uv_zoom->get_value()*0.9);
 		}
 
 	} else if (p_input.type==InputEvent::MOUSE_MOTION) {
@@ -580,8 +580,8 @@ void Polygon2DEditor::_uv_input(const InputEvent& p_input) {
 		if (mm.button_mask&BUTTON_MASK_MIDDLE || Input::get_singleton()->is_key_pressed(KEY_SPACE)) {
 
 			Vector2 drag(mm.relative_x,mm.relative_y);
-			uv_hscroll->set_val( uv_hscroll->get_val()-drag.x );
-			uv_vscroll->set_val( uv_vscroll->get_val()-drag.y );
+			uv_hscroll->set_value( uv_hscroll->get_value()-drag.x );
+			uv_vscroll->set_value( uv_vscroll->get_value()-drag.y );
 
 		} else if (uv_drag) {
 
@@ -668,9 +668,9 @@ void Polygon2DEditor::_uv_scroll_changed(float) {
 	if (updating_uv_scroll)
 		return;
 
-	uv_draw_ofs.x=uv_hscroll->get_val();
-	uv_draw_ofs.y=uv_vscroll->get_val();
-	uv_draw_zoom=uv_zoom->get_val();
+	uv_draw_ofs.x=uv_hscroll->get_value();
+	uv_draw_ofs.y=uv_vscroll->get_value();
+	uv_draw_zoom=uv_zoom->get_value();
 	uv_edit_draw->update();
 }
 
@@ -735,13 +735,13 @@ void Polygon2DEditor::_uv_draw() {
 	uv_hscroll->set_min(rect.pos.x);
 	uv_hscroll->set_max(rect.pos.x+rect.size.x);
 	uv_hscroll->set_page(uv_edit_draw->get_size().x);
-	uv_hscroll->set_val(uv_draw_ofs.x);
+	uv_hscroll->set_value(uv_draw_ofs.x);
 	uv_hscroll->set_step(0.001);
 
 	uv_vscroll->set_min(rect.pos.y);
 	uv_vscroll->set_max(rect.pos.y+rect.size.y);
 	uv_vscroll->set_page(uv_edit_draw->get_size().y);
-	uv_vscroll->set_val(uv_draw_ofs.y);
+	uv_vscroll->set_value(uv_draw_ofs.y);
 	uv_vscroll->set_step(0.001);
 	updating_uv_scroll=false;
 
@@ -776,19 +776,19 @@ void Polygon2DEditor::edit(Node *p_collision_polygon) {
 
 void Polygon2DEditor::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("_menu_option"),&Polygon2DEditor::_menu_option);
-	ObjectTypeDB::bind_method(_MD("_canvas_draw"),&Polygon2DEditor::_canvas_draw);
-	ObjectTypeDB::bind_method(_MD("_uv_mode"),&Polygon2DEditor::_uv_mode);
-	ObjectTypeDB::bind_method(_MD("_uv_draw"),&Polygon2DEditor::_uv_draw);
-	ObjectTypeDB::bind_method(_MD("_uv_input"),&Polygon2DEditor::_uv_input);
-	ObjectTypeDB::bind_method(_MD("_uv_scroll_changed"),&Polygon2DEditor::_uv_scroll_changed);
-	ObjectTypeDB::bind_method(_MD("_node_removed"),&Polygon2DEditor::_node_removed);
-	ObjectTypeDB::bind_method(_MD("_set_use_snap"),&Polygon2DEditor::_set_use_snap);
-	ObjectTypeDB::bind_method(_MD("_set_show_grid"),&Polygon2DEditor::_set_show_grid);
-	ObjectTypeDB::bind_method(_MD("_set_snap_off_x"),&Polygon2DEditor::_set_snap_off_x);
-	ObjectTypeDB::bind_method(_MD("_set_snap_off_y"),&Polygon2DEditor::_set_snap_off_y);
-	ObjectTypeDB::bind_method(_MD("_set_snap_step_x"),&Polygon2DEditor::_set_snap_step_x);
-	ObjectTypeDB::bind_method(_MD("_set_snap_step_y"),&Polygon2DEditor::_set_snap_step_y);
+	ClassDB::bind_method(_MD("_menu_option"),&Polygon2DEditor::_menu_option);
+	ClassDB::bind_method(_MD("_canvas_draw"),&Polygon2DEditor::_canvas_draw);
+	ClassDB::bind_method(_MD("_uv_mode"),&Polygon2DEditor::_uv_mode);
+	ClassDB::bind_method(_MD("_uv_draw"),&Polygon2DEditor::_uv_draw);
+	ClassDB::bind_method(_MD("_uv_input"),&Polygon2DEditor::_uv_input);
+	ClassDB::bind_method(_MD("_uv_scroll_changed"),&Polygon2DEditor::_uv_scroll_changed);
+	ClassDB::bind_method(_MD("_node_removed"),&Polygon2DEditor::_node_removed);
+	ClassDB::bind_method(_MD("_set_use_snap"),&Polygon2DEditor::_set_use_snap);
+	ClassDB::bind_method(_MD("_set_show_grid"),&Polygon2DEditor::_set_show_grid);
+	ClassDB::bind_method(_MD("_set_snap_off_x"),&Polygon2DEditor::_set_snap_off_x);
+	ClassDB::bind_method(_MD("_set_snap_off_y"),&Polygon2DEditor::_set_snap_off_y);
+	ClassDB::bind_method(_MD("_set_snap_step_x"),&Polygon2DEditor::_set_snap_step_x);
+	ClassDB::bind_method(_MD("_set_snap_step_y"),&Polygon2DEditor::_set_snap_step_y);
 
 
 }
@@ -914,7 +914,7 @@ Polygon2DEditor::Polygon2DEditor(EditorNode *p_editor) {
 	sb_off_x->set_min(-256);
 	sb_off_x->set_max(256);
 	sb_off_x->set_step(1);
-	sb_off_x->set_val(snap_offset.x);
+	sb_off_x->set_value(snap_offset.x);
 	sb_off_x->set_suffix("px");
 	sb_off_x->connect("value_changed", this, "_set_snap_off_x");
 	uv_mode_hb->add_child(sb_off_x);
@@ -923,7 +923,7 @@ Polygon2DEditor::Polygon2DEditor(EditorNode *p_editor) {
 	sb_off_y->set_min(-256);
 	sb_off_y->set_max(256);
 	sb_off_y->set_step(1);
-	sb_off_y->set_val(snap_offset.y);
+	sb_off_y->set_value(snap_offset.y);
 	sb_off_y->set_suffix("px");
 	sb_off_y->connect("value_changed", this, "_set_snap_off_y");
 	uv_mode_hb->add_child(sb_off_y);
@@ -935,7 +935,7 @@ Polygon2DEditor::Polygon2DEditor(EditorNode *p_editor) {
 	sb_step_x->set_min(-256);
 	sb_step_x->set_max(256);
 	sb_step_x->set_step(1);
-	sb_step_x->set_val(snap_step.x);
+	sb_step_x->set_value(snap_step.x);
 	sb_step_x->set_suffix("px");
 	sb_step_x->connect("value_changed", this, "_set_snap_step_x");
 	uv_mode_hb->add_child(sb_step_x);
@@ -944,7 +944,7 @@ Polygon2DEditor::Polygon2DEditor(EditorNode *p_editor) {
 	sb_step_y->set_min(-256);
 	sb_step_y->set_max(256);
 	sb_step_y->set_step(1);
-	sb_step_y->set_val(snap_step.y);
+	sb_step_y->set_value(snap_step.y);
 	sb_step_y->set_suffix("px");
 	sb_step_y->connect("value_changed", this, "_set_snap_step_y");
 	uv_mode_hb->add_child(sb_step_y);
@@ -955,7 +955,7 @@ Polygon2DEditor::Polygon2DEditor(EditorNode *p_editor) {
 	uv_zoom = memnew( HSlider );
 	uv_zoom->set_min(0.01);
 	uv_zoom->set_max(4);
-	uv_zoom->set_val(1);
+	uv_zoom->set_value(1);
 	uv_zoom->set_step(0.01);
 	uv_mode_hb->add_child(uv_zoom);
 	uv_zoom->set_custom_minimum_size(Size2(200,0));
@@ -995,7 +995,7 @@ void Polygon2DEditorPlugin::edit(Object *p_object) {
 
 bool Polygon2DEditorPlugin::handles(Object *p_object) const {
 
-	return p_object->is_type("Polygon2D");
+	return p_object->is_class("Polygon2D");
 }
 
 void Polygon2DEditorPlugin::make_visible(bool p_visible) {

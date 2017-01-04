@@ -1258,42 +1258,42 @@ void LineEdit::_text_changed() {
 
 void LineEdit::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("_toggle_draw_caret"),&LineEdit::_toggle_draw_caret);
+	ClassDB::bind_method(_MD("_toggle_draw_caret"),&LineEdit::_toggle_draw_caret);
 
 #ifdef TOOLS_ENABLED
-	ObjectTypeDB::bind_method("_editor_settings_changed",&LineEdit::_editor_settings_changed);
+	ClassDB::bind_method("_editor_settings_changed",&LineEdit::_editor_settings_changed);
 #endif
 
-	ObjectTypeDB::bind_method(_MD("set_align", "align"), &LineEdit::set_align);
-	ObjectTypeDB::bind_method(_MD("get_align"), &LineEdit::get_align);
+	ClassDB::bind_method(_MD("set_align", "align"), &LineEdit::set_align);
+	ClassDB::bind_method(_MD("get_align"), &LineEdit::get_align);
 
-	ObjectTypeDB::bind_method(_MD("_input_event"),&LineEdit::_input_event);
-	ObjectTypeDB::bind_method(_MD("clear"),&LineEdit::clear);
-	ObjectTypeDB::bind_method(_MD("select_all"),&LineEdit::select_all);
-	ObjectTypeDB::bind_method(_MD("set_text","text"),&LineEdit::set_text);
-	ObjectTypeDB::bind_method(_MD("get_text"),&LineEdit::get_text);
-	ObjectTypeDB::bind_method(_MD("set_placeholder","text"),&LineEdit::set_placeholder);
-	ObjectTypeDB::bind_method(_MD("get_placeholder"),&LineEdit::get_placeholder);
-	ObjectTypeDB::bind_method(_MD("set_placeholder_alpha","alpha"),&LineEdit::set_placeholder_alpha);
-	ObjectTypeDB::bind_method(_MD("get_placeholder_alpha"),&LineEdit::get_placeholder_alpha);
-	ObjectTypeDB::bind_method(_MD("set_cursor_pos","pos"),&LineEdit::set_cursor_pos);
-	ObjectTypeDB::bind_method(_MD("get_cursor_pos"),&LineEdit::get_cursor_pos);
-	ObjectTypeDB::bind_method(_MD("set_expand_to_text_length","enabled"),&LineEdit::set_expand_to_text_length);
-	ObjectTypeDB::bind_method(_MD("get_expand_to_text_length"),&LineEdit::get_expand_to_text_length);
-	ObjectTypeDB::bind_method(_MD("cursor_set_blink_enabled", "enabled"),&LineEdit::cursor_set_blink_enabled);
-	ObjectTypeDB::bind_method(_MD("cursor_get_blink_enabled"),&LineEdit::cursor_get_blink_enabled);
-	ObjectTypeDB::bind_method(_MD("cursor_set_blink_speed", "blink_speed"),&LineEdit::cursor_set_blink_speed);
-	ObjectTypeDB::bind_method(_MD("cursor_get_blink_speed"),&LineEdit::cursor_get_blink_speed);
-	ObjectTypeDB::bind_method(_MD("set_max_length","chars"),&LineEdit::set_max_length);
-	ObjectTypeDB::bind_method(_MD("get_max_length"),&LineEdit::get_max_length);
-	ObjectTypeDB::bind_method(_MD("append_at_cursor","text"),&LineEdit::append_at_cursor);
-	ObjectTypeDB::bind_method(_MD("set_editable","enabled"),&LineEdit::set_editable);
-	ObjectTypeDB::bind_method(_MD("is_editable"),&LineEdit::is_editable);
-	ObjectTypeDB::bind_method(_MD("set_secret","enabled"),&LineEdit::set_secret);
-	ObjectTypeDB::bind_method(_MD("is_secret"),&LineEdit::is_secret);
-	ObjectTypeDB::bind_method(_MD("select","from","to"),&LineEdit::select,DEFVAL(0),DEFVAL(-1));
-	ObjectTypeDB::bind_method(_MD("menu_option","option"),&LineEdit::menu_option);
-	ObjectTypeDB::bind_method(_MD("get_menu:PopupMenu"),&LineEdit::get_menu);
+	ClassDB::bind_method(_MD("_input_event"),&LineEdit::_input_event);
+	ClassDB::bind_method(_MD("clear"),&LineEdit::clear);
+	ClassDB::bind_method(_MD("select_all"),&LineEdit::select_all);
+	ClassDB::bind_method(_MD("set_text","text"),&LineEdit::set_text);
+	ClassDB::bind_method(_MD("get_text"),&LineEdit::get_text);
+	ClassDB::bind_method(_MD("set_placeholder","text"),&LineEdit::set_placeholder);
+	ClassDB::bind_method(_MD("get_placeholder"),&LineEdit::get_placeholder);
+	ClassDB::bind_method(_MD("set_placeholder_alpha","alpha"),&LineEdit::set_placeholder_alpha);
+	ClassDB::bind_method(_MD("get_placeholder_alpha"),&LineEdit::get_placeholder_alpha);
+	ClassDB::bind_method(_MD("set_cursor_pos","pos"),&LineEdit::set_cursor_pos);
+	ClassDB::bind_method(_MD("get_cursor_pos"),&LineEdit::get_cursor_pos);
+	ClassDB::bind_method(_MD("set_expand_to_text_length","enabled"),&LineEdit::set_expand_to_text_length);
+	ClassDB::bind_method(_MD("get_expand_to_text_length"),&LineEdit::get_expand_to_text_length);
+	ClassDB::bind_method(_MD("cursor_set_blink_enabled", "enabled"),&LineEdit::cursor_set_blink_enabled);
+	ClassDB::bind_method(_MD("cursor_get_blink_enabled"),&LineEdit::cursor_get_blink_enabled);
+	ClassDB::bind_method(_MD("cursor_set_blink_speed", "blink_speed"),&LineEdit::cursor_set_blink_speed);
+	ClassDB::bind_method(_MD("cursor_get_blink_speed"),&LineEdit::cursor_get_blink_speed);
+	ClassDB::bind_method(_MD("set_max_length","chars"),&LineEdit::set_max_length);
+	ClassDB::bind_method(_MD("get_max_length"),&LineEdit::get_max_length);
+	ClassDB::bind_method(_MD("append_at_cursor","text"),&LineEdit::append_at_cursor);
+	ClassDB::bind_method(_MD("set_editable","enabled"),&LineEdit::set_editable);
+	ClassDB::bind_method(_MD("is_editable"),&LineEdit::is_editable);
+	ClassDB::bind_method(_MD("set_secret","enabled"),&LineEdit::set_secret);
+	ClassDB::bind_method(_MD("is_secret"),&LineEdit::is_secret);
+	ClassDB::bind_method(_MD("select","from","to"),&LineEdit::select,DEFVAL(0),DEFVAL(-1));
+	ClassDB::bind_method(_MD("menu_option","option"),&LineEdit::menu_option);
+	ClassDB::bind_method(_MD("get_menu:PopupMenu"),&LineEdit::get_menu);
 
 	ADD_SIGNAL( MethodInfo("text_changed", PropertyInfo( Variant::STRING, "text" )) );
 	ADD_SIGNAL( MethodInfo("text_entered", PropertyInfo( Variant::STRING, "text" )) );
@@ -1312,16 +1312,18 @@ void LineEdit::_bind_methods() {
 	BIND_CONSTANT( MENU_MAX );
 
 	ADD_PROPERTYNZ( PropertyInfo( Variant::STRING, "text" ), _SCS("set_text"),_SCS("get_text") );
-	ADD_PROPERTYNZ( PropertyInfo( Variant::STRING, "placeholder/text" ), _SCS("set_placeholder"),_SCS("get_placeholder") );
-	ADD_PROPERTYNZ( PropertyInfo( Variant::REAL, "placeholder/alpha",PROPERTY_HINT_RANGE,"0,1,0.001" ), _SCS("set_placeholder_alpha"),_SCS("get_placeholder_alpha") );
 	ADD_PROPERTYNZ(PropertyInfo(Variant::INT, "align", PROPERTY_HINT_ENUM, "Left,Center,Right,Fill"), _SCS("set_align"), _SCS("get_align"));
 	ADD_PROPERTYNZ( PropertyInfo( Variant::INT, "max_length" ), _SCS("set_max_length"),_SCS("get_max_length") );
 	ADD_PROPERTYNO( PropertyInfo( Variant::BOOL, "editable" ), _SCS("set_editable"),_SCS("is_editable") );
 	ADD_PROPERTYNZ( PropertyInfo( Variant::BOOL, "secret" ), _SCS("set_secret"),_SCS("is_secret") );
 	ADD_PROPERTYNO( PropertyInfo( Variant::BOOL, "expand_to_len" ), _SCS("set_expand_to_text_length"),_SCS("get_expand_to_text_length") );
 	ADD_PROPERTY( PropertyInfo( Variant::INT,"focus_mode", PROPERTY_HINT_ENUM, "None,Click,All" ), _SCS("set_focus_mode"), _SCS("get_focus_mode") );
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "caret/caret_blink"), _SCS("cursor_set_blink_enabled"), _SCS("cursor_get_blink_enabled"));;
-	ADD_PROPERTYNZ(PropertyInfo(Variant::REAL, "caret/caret_blink_speed",PROPERTY_HINT_RANGE,"0.1,10,0.1"), _SCS("cursor_set_blink_speed"),_SCS("cursor_get_blink_speed") );
+	ADD_GROUP("Placeholder","placeholder_");
+	ADD_PROPERTYNZ( PropertyInfo( Variant::STRING, "placeholder_text" ), _SCS("set_placeholder"),_SCS("get_placeholder") );
+	ADD_PROPERTYNZ( PropertyInfo( Variant::REAL, "placeholder_alpha",PROPERTY_HINT_RANGE,"0,1,0.001" ), _SCS("set_placeholder_alpha"),_SCS("get_placeholder_alpha") );
+	ADD_GROUP("Caret","caret_");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "caret_blink"), _SCS("cursor_set_blink_enabled"), _SCS("cursor_get_blink_enabled"));;
+	ADD_PROPERTYNZ(PropertyInfo(Variant::REAL, "caret_blink_speed",PROPERTY_HINT_RANGE,"0.1,10,0.1"), _SCS("cursor_set_blink_speed"),_SCS("cursor_get_blink_speed") );
 }
 
 LineEdit::LineEdit() {

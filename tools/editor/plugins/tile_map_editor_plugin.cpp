@@ -221,7 +221,7 @@ void TileMapEditor::_update_palette() {
 	palette->add_constant_override("vseparation", 8*EDSCALE);
 
 	palette->set_fixed_icon_size(Size2(min_size, min_size));
-	palette->set_fixed_column_width(min_size * MAX(size_slider->get_val(), 1));
+	palette->set_fixed_column_width(min_size * MAX(size_slider->get_value(), 1));
 
 	String filter = search_box->get_text().strip_edges();
 
@@ -1346,20 +1346,20 @@ void TileMapEditor::_icon_size_changed(float p_value) {
 
 void TileMapEditor::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("_text_entered"),&TileMapEditor::_text_entered);
-	ObjectTypeDB::bind_method(_MD("_text_changed"),&TileMapEditor::_text_changed);
-	ObjectTypeDB::bind_method(_MD("_sbox_input"),&TileMapEditor::_sbox_input);
-	ObjectTypeDB::bind_method(_MD("_menu_option"),&TileMapEditor::_menu_option);
-	ObjectTypeDB::bind_method(_MD("_canvas_draw"),&TileMapEditor::_canvas_draw);
-	ObjectTypeDB::bind_method(_MD("_canvas_mouse_enter"),&TileMapEditor::_canvas_mouse_enter);
-	ObjectTypeDB::bind_method(_MD("_canvas_mouse_exit"),&TileMapEditor::_canvas_mouse_exit);
-	ObjectTypeDB::bind_method(_MD("_tileset_settings_changed"),&TileMapEditor::_tileset_settings_changed);
-	ObjectTypeDB::bind_method(_MD("_update_transform_buttons"),&TileMapEditor::_update_transform_buttons);
+	ClassDB::bind_method(_MD("_text_entered"),&TileMapEditor::_text_entered);
+	ClassDB::bind_method(_MD("_text_changed"),&TileMapEditor::_text_changed);
+	ClassDB::bind_method(_MD("_sbox_input"),&TileMapEditor::_sbox_input);
+	ClassDB::bind_method(_MD("_menu_option"),&TileMapEditor::_menu_option);
+	ClassDB::bind_method(_MD("_canvas_draw"),&TileMapEditor::_canvas_draw);
+	ClassDB::bind_method(_MD("_canvas_mouse_enter"),&TileMapEditor::_canvas_mouse_enter);
+	ClassDB::bind_method(_MD("_canvas_mouse_exit"),&TileMapEditor::_canvas_mouse_exit);
+	ClassDB::bind_method(_MD("_tileset_settings_changed"),&TileMapEditor::_tileset_settings_changed);
+	ClassDB::bind_method(_MD("_update_transform_buttons"),&TileMapEditor::_update_transform_buttons);
 
-	ObjectTypeDB::bind_method(_MD("_fill_points"),&TileMapEditor::_fill_points);
-	ObjectTypeDB::bind_method(_MD("_erase_points"),&TileMapEditor::_erase_points);
+	ClassDB::bind_method(_MD("_fill_points"),&TileMapEditor::_fill_points);
+	ClassDB::bind_method(_MD("_erase_points"),&TileMapEditor::_erase_points);
 
-	ObjectTypeDB::bind_method(_MD("_icon_size_changed"), &TileMapEditor::_icon_size_changed);
+	ClassDB::bind_method(_MD("_icon_size_changed"), &TileMapEditor::_icon_size_changed);
 }
 
 TileMapEditor::CellOp TileMapEditor::_get_op_from_cell(const Point2i& p_pos)
@@ -1449,7 +1449,7 @@ TileMapEditor::TileMapEditor(EditorNode *p_editor) {
 	size_slider->set_min(0.1f);
 	size_slider->set_max(4.0f);
 	size_slider->set_step(0.1f);
-	size_slider->set_val(1.0f);
+	size_slider->set_value(1.0f);
 	size_slider->connect("value_changed", this, "_icon_size_changed");
 	add_child(size_slider);
 
@@ -1560,7 +1560,7 @@ void TileMapEditorPlugin::edit(Object *p_object) {
 
 bool TileMapEditorPlugin::handles(Object *p_object) const {
 
-	return p_object->is_type("TileMap");
+	return p_object->is_class("TileMap");
 }
 
 void TileMapEditorPlugin::make_visible(bool p_visible) {

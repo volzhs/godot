@@ -16,8 +16,8 @@ SkyBox::RadianceSize SkyBox::get_radiance_size() const {
 
 void SkyBox::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("set_radiance_size","size"),&SkyBox::set_radiance_size);
-	ObjectTypeDB::bind_method(_MD("get_radiance_size"),&SkyBox::get_radiance_size);
+	ClassDB::bind_method(_MD("set_radiance_size","size"),&SkyBox::set_radiance_size);
+	ClassDB::bind_method(_MD("get_radiance_size"),&SkyBox::get_radiance_size);
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT,"radiance_size",PROPERTY_HINT_ENUM,"256,512,1024,2048"),_SCS("set_radiance_size"),_SCS("get_radiance_size"));
 
@@ -113,8 +113,8 @@ RID ImageSkyBox::get_rid() const {
 
 void ImageSkyBox::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("set_image_path","image","path"),&ImageSkyBox::set_image_path);
-	ObjectTypeDB::bind_method(_MD("get_image_path","image"),&ImageSkyBox::get_image_path);
+	ClassDB::bind_method(_MD("set_image_path","image","path"),&ImageSkyBox::set_image_path);
+	ClassDB::bind_method(_MD("get_image_path","image"),&ImageSkyBox::get_image_path);
 
 	List<String> extensions;
 	ImageLoader::get_recognized_extensions(&extensions);
@@ -126,12 +126,13 @@ void ImageSkyBox::_bind_methods() {
 		hints+="*."+E->get();
 	}
 
-	ADD_PROPERTYI(PropertyInfo(Variant::STRING,"image_path/negative_x",PROPERTY_HINT_FILE,hints),_SCS("set_image_path"),_SCS("get_image_path"),IMAGE_PATH_NEGATIVE_X);
-	ADD_PROPERTYI(PropertyInfo(Variant::STRING,"image_path/positive_x",PROPERTY_HINT_FILE,hints),_SCS("set_image_path"),_SCS("get_image_path"),IMAGE_PATH_POSITIVE_X);
-	ADD_PROPERTYI(PropertyInfo(Variant::STRING,"image_path/negative_y",PROPERTY_HINT_FILE,hints),_SCS("set_image_path"),_SCS("get_image_path"),IMAGE_PATH_NEGATIVE_Y);
-	ADD_PROPERTYI(PropertyInfo(Variant::STRING,"image_path/positive_y",PROPERTY_HINT_FILE,hints),_SCS("set_image_path"),_SCS("get_image_path"),IMAGE_PATH_POSITIVE_Y);
-	ADD_PROPERTYI(PropertyInfo(Variant::STRING,"image_path/negative_z",PROPERTY_HINT_FILE,hints),_SCS("set_image_path"),_SCS("get_image_path"),IMAGE_PATH_NEGATIVE_Z);
-	ADD_PROPERTYI(PropertyInfo(Variant::STRING,"image_path/positive_z",PROPERTY_HINT_FILE,hints),_SCS("set_image_path"),_SCS("get_image_path"),IMAGE_PATH_POSITIVE_Z);
+	ADD_GROUP("Image Path","image_path_");
+	ADD_PROPERTYI(PropertyInfo(Variant::STRING,"image_path_negative_x",PROPERTY_HINT_FILE,hints),_SCS("set_image_path"),_SCS("get_image_path"),IMAGE_PATH_NEGATIVE_X);
+	ADD_PROPERTYI(PropertyInfo(Variant::STRING,"image_path_positive_x",PROPERTY_HINT_FILE,hints),_SCS("set_image_path"),_SCS("get_image_path"),IMAGE_PATH_POSITIVE_X);
+	ADD_PROPERTYI(PropertyInfo(Variant::STRING,"image_path_negative_y",PROPERTY_HINT_FILE,hints),_SCS("set_image_path"),_SCS("get_image_path"),IMAGE_PATH_NEGATIVE_Y);
+	ADD_PROPERTYI(PropertyInfo(Variant::STRING,"image_path_positive_y",PROPERTY_HINT_FILE,hints),_SCS("set_image_path"),_SCS("get_image_path"),IMAGE_PATH_POSITIVE_Y);
+	ADD_PROPERTYI(PropertyInfo(Variant::STRING,"image_path_negative_z",PROPERTY_HINT_FILE,hints),_SCS("set_image_path"),_SCS("get_image_path"),IMAGE_PATH_NEGATIVE_Z);
+	ADD_PROPERTYI(PropertyInfo(Variant::STRING,"image_path_positive_z",PROPERTY_HINT_FILE,hints),_SCS("set_image_path"),_SCS("get_image_path"),IMAGE_PATH_POSITIVE_Z);
 
 	BIND_CONSTANT( IMAGE_PATH_NEGATIVE_X );
 	BIND_CONSTANT( IMAGE_PATH_POSITIVE_X );

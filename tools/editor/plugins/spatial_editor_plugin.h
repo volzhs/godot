@@ -45,7 +45,7 @@ class SpatialEditorGizmos;
 
 class SpatialEditorGizmo : public SpatialGizmo {
 
-	OBJ_TYPE(SpatialEditorGizmo,SpatialGizmo);
+	GDCLASS(SpatialEditorGizmo,SpatialGizmo);
 
 	bool selected;
 public:
@@ -66,7 +66,7 @@ public:
 
 class SpatialEditorViewport : public Control {
 
-	OBJ_TYPE( SpatialEditorViewport, Control );
+	GDCLASS( SpatialEditorViewport, Control );
 friend class SpatialEditor;
 	enum {
 
@@ -267,7 +267,7 @@ public:
 
 class SpatialEditorSelectedItem : public Object {
 
-	OBJ_TYPE(SpatialEditorSelectedItem,Object);
+	GDCLASS(SpatialEditorSelectedItem,Object);
 
 public:
 
@@ -283,7 +283,7 @@ public:
 
 class SpatialEditor : public VBoxContainer {
 
-	OBJ_TYPE(SpatialEditor, VBoxContainer );
+	GDCLASS(SpatialEditor, VBoxContainer );
 public:
 
 	enum ToolMode {
@@ -491,9 +491,9 @@ public:
 	static SpatialEditor *get_singleton() { return singleton; }
 	void snap_cursor_to_plane(const Plane& p_plane);
 
-	float get_znear() const { return settings_znear->get_val(); }
-	float get_zfar() const { return settings_zfar->get_val(); }
-	float get_fov() const { return settings_fov->get_val(); }
+	float get_znear() const { return settings_znear->get_value(); }
+	float get_zfar() const { return settings_zfar->get_value(); }
+	float get_fov() const { return settings_fov->get_value(); }
 
 	Transform get_gizmo_transform() const { return gizmo.transform; }
 	bool is_gizmo_visible() const { return gizmo.visible; }
@@ -546,7 +546,7 @@ public:
 
 class SpatialEditorPlugin : public EditorPlugin {
 
-	OBJ_TYPE( SpatialEditorPlugin, EditorPlugin );
+	GDCLASS( SpatialEditorPlugin, EditorPlugin );
 
 	SpatialEditor *spatial_editor;
 	EditorNode *editor;

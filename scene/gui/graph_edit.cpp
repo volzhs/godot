@@ -107,15 +107,15 @@ void GraphEdit::get_connection_list(List<Connection> *r_connections) const {
 void GraphEdit::set_scroll_ofs(const Vector2& p_ofs) {
 
 	setting_scroll_ofs=true;
-	h_scroll->set_val(p_ofs.x);
-	v_scroll->set_val(p_ofs.y);
+	h_scroll->set_value(p_ofs.x);
+	v_scroll->set_value(p_ofs.y);
 	_update_scroll();
 	setting_scroll_ofs=false;
 }
 
 Vector2 GraphEdit::get_scroll_ofs() const{
 
-	return Vector2(h_scroll->get_val(),v_scroll->get_val());
+	return Vector2(h_scroll->get_value(),v_scroll->get_value());
 }
 
 void GraphEdit::_scroll_moved(double) {
@@ -144,14 +144,14 @@ void GraphEdit::_update_scroll_offset() {
 			continue;
 
 		Point2 pos=gn->get_offset()*zoom;
-		pos-=Point2(h_scroll->get_val(),v_scroll->get_val());
+		pos-=Point2(h_scroll->get_value(),v_scroll->get_value());
 		gn->set_pos(pos);
 		if (gn->get_scale()!=Vector2(zoom,zoom)) {
 			gn->set_scale(Vector2(zoom,zoom));
 		}
 	}
 
-	connections_layer->set_pos(-Point2(h_scroll->get_val(),v_scroll->get_val()));
+	connections_layer->set_pos(-Point2(h_scroll->get_value(),v_scroll->get_value()));
 	set_block_minimum_size_adjust(false);
 	awaiting_scroll_offset_update=false;
 
@@ -796,8 +796,8 @@ void GraphEdit::set_selected(Node* p_child) {
 void GraphEdit::_input_event(const InputEvent& p_ev) {
 
 	if (p_ev.type==InputEvent::MOUSE_MOTION && (p_ev.mouse_motion.button_mask&BUTTON_MASK_MIDDLE || (p_ev.mouse_motion.button_mask&BUTTON_MASK_LEFT && Input::get_singleton()->is_key_pressed(KEY_SPACE)))) {
-		h_scroll->set_val( h_scroll->get_val() - p_ev.mouse_motion.relative_x );
-		v_scroll->set_val( v_scroll->get_val() - p_ev.mouse_motion.relative_y );
+		h_scroll->set_value( h_scroll->get_value() - p_ev.mouse_motion.relative_x );
+		v_scroll->set_value( v_scroll->get_value() - p_ev.mouse_motion.relative_y );
 	}
 
 	if (p_ev.type==InputEvent::MOUSE_MOTION && dragging) {
@@ -1047,7 +1047,7 @@ void GraphEdit::set_zoom(float p_zoom) {
 	zoom_minus->set_disabled(zoom==MIN_ZOOM);
 	zoom_plus->set_disabled(zoom==MAX_ZOOM);
 
-	Vector2 sbofs = (Vector2( h_scroll->get_val(), v_scroll->get_val() ) + get_size()/2)/zoom;
+	Vector2 sbofs = (Vector2( h_scroll->get_value(), v_scroll->get_value() ) + get_size()/2)/zoom;
 
 	zoom = p_zoom;
 	top_layer->update();
@@ -1058,8 +1058,8 @@ void GraphEdit::set_zoom(float p_zoom) {
 	if (is_visible()) {
 
 		Vector2 ofs  = sbofs*zoom - get_size()/2;
-		h_scroll->set_val( ofs.x );
-		v_scroll->set_val( ofs.y );
+		h_scroll->set_value( ofs.x );
+		v_scroll->set_value( ofs.y );
 	}
 
 
@@ -1181,13 +1181,13 @@ bool GraphEdit::is_using_snap() const{
 
 int GraphEdit::get_snap() const{
 
-	return snap_amount->get_val();
+	return snap_amount->get_value();
 }
 
 void GraphEdit::set_snap(int p_snap) {
 
 	ERR_FAIL_COND(p_snap<5);
-	snap_amount->set_val(p_snap);
+	snap_amount->set_value(p_snap);
 	update();
 }
 void GraphEdit::_snap_toggled() {
@@ -1202,44 +1202,44 @@ void GraphEdit::_snap_value_changed(double) {
 
 void GraphEdit::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("connect_node:Error","from","from_port","to","to_port"),&GraphEdit::connect_node);
-	ObjectTypeDB::bind_method(_MD("is_node_connected","from","from_port","to","to_port"),&GraphEdit::is_node_connected);
-	ObjectTypeDB::bind_method(_MD("disconnect_node","from","from_port","to","to_port"),&GraphEdit::disconnect_node);
-	ObjectTypeDB::bind_method(_MD("get_connection_list"),&GraphEdit::_get_connection_list);
-	ObjectTypeDB::bind_method(_MD("get_scroll_ofs"),&GraphEdit::get_scroll_ofs);
-	ObjectTypeDB::bind_method(_MD("set_scroll_ofs","ofs"),&GraphEdit::set_scroll_ofs);
+	ClassDB::bind_method(_MD("connect_node:Error","from","from_port","to","to_port"),&GraphEdit::connect_node);
+	ClassDB::bind_method(_MD("is_node_connected","from","from_port","to","to_port"),&GraphEdit::is_node_connected);
+	ClassDB::bind_method(_MD("disconnect_node","from","from_port","to","to_port"),&GraphEdit::disconnect_node);
+	ClassDB::bind_method(_MD("get_connection_list"),&GraphEdit::_get_connection_list);
+	ClassDB::bind_method(_MD("get_scroll_ofs"),&GraphEdit::get_scroll_ofs);
+	ClassDB::bind_method(_MD("set_scroll_ofs","ofs"),&GraphEdit::set_scroll_ofs);
 
-	ObjectTypeDB::bind_method(_MD("set_zoom","p_zoom"),&GraphEdit::set_zoom);
-	ObjectTypeDB::bind_method(_MD("get_zoom"),&GraphEdit::get_zoom);
+	ClassDB::bind_method(_MD("set_zoom","p_zoom"),&GraphEdit::set_zoom);
+	ClassDB::bind_method(_MD("get_zoom"),&GraphEdit::get_zoom);
 
-	ObjectTypeDB::bind_method(_MD("set_snap","pixels"),&GraphEdit::set_snap);
-	ObjectTypeDB::bind_method(_MD("get_snap"),&GraphEdit::get_snap);
+	ClassDB::bind_method(_MD("set_snap","pixels"),&GraphEdit::set_snap);
+	ClassDB::bind_method(_MD("get_snap"),&GraphEdit::get_snap);
 
-	ObjectTypeDB::bind_method(_MD("set_use_snap","enable"),&GraphEdit::set_use_snap);
-	ObjectTypeDB::bind_method(_MD("is_using_snap"),&GraphEdit::is_using_snap);
+	ClassDB::bind_method(_MD("set_use_snap","enable"),&GraphEdit::set_use_snap);
+	ClassDB::bind_method(_MD("is_using_snap"),&GraphEdit::is_using_snap);
 
-	ObjectTypeDB::bind_method(_MD("set_right_disconnects","enable"),&GraphEdit::set_right_disconnects);
-	ObjectTypeDB::bind_method(_MD("is_right_disconnects_enabled"),&GraphEdit::is_right_disconnects_enabled);
+	ClassDB::bind_method(_MD("set_right_disconnects","enable"),&GraphEdit::set_right_disconnects);
+	ClassDB::bind_method(_MD("is_right_disconnects_enabled"),&GraphEdit::is_right_disconnects_enabled);
 
-	ObjectTypeDB::bind_method(_MD("_graph_node_moved"),&GraphEdit::_graph_node_moved);
-	ObjectTypeDB::bind_method(_MD("_graph_node_raised"),&GraphEdit::_graph_node_raised);
+	ClassDB::bind_method(_MD("_graph_node_moved"),&GraphEdit::_graph_node_moved);
+	ClassDB::bind_method(_MD("_graph_node_raised"),&GraphEdit::_graph_node_raised);
 
-	ObjectTypeDB::bind_method(_MD("_top_layer_input"),&GraphEdit::_top_layer_input);
-	ObjectTypeDB::bind_method(_MD("_top_layer_draw"),&GraphEdit::_top_layer_draw);
-	ObjectTypeDB::bind_method(_MD("_scroll_moved"),&GraphEdit::_scroll_moved);
-	ObjectTypeDB::bind_method(_MD("_zoom_minus"),&GraphEdit::_zoom_minus);
-	ObjectTypeDB::bind_method(_MD("_zoom_reset"),&GraphEdit::_zoom_reset);
-	ObjectTypeDB::bind_method(_MD("_zoom_plus"),&GraphEdit::_zoom_plus);
-	ObjectTypeDB::bind_method(_MD("_snap_toggled"),&GraphEdit::_snap_toggled);
-	ObjectTypeDB::bind_method(_MD("_snap_value_changed"),&GraphEdit::_snap_value_changed);
+	ClassDB::bind_method(_MD("_top_layer_input"),&GraphEdit::_top_layer_input);
+	ClassDB::bind_method(_MD("_top_layer_draw"),&GraphEdit::_top_layer_draw);
+	ClassDB::bind_method(_MD("_scroll_moved"),&GraphEdit::_scroll_moved);
+	ClassDB::bind_method(_MD("_zoom_minus"),&GraphEdit::_zoom_minus);
+	ClassDB::bind_method(_MD("_zoom_reset"),&GraphEdit::_zoom_reset);
+	ClassDB::bind_method(_MD("_zoom_plus"),&GraphEdit::_zoom_plus);
+	ClassDB::bind_method(_MD("_snap_toggled"),&GraphEdit::_snap_toggled);
+	ClassDB::bind_method(_MD("_snap_value_changed"),&GraphEdit::_snap_value_changed);
 
-	ObjectTypeDB::bind_method(_MD("_input_event"),&GraphEdit::_input_event);
-	ObjectTypeDB::bind_method(_MD("_update_scroll_offset"),&GraphEdit::_update_scroll_offset);
-	ObjectTypeDB::bind_method(_MD("_connections_layer_draw"),&GraphEdit::_connections_layer_draw);
+	ClassDB::bind_method(_MD("_input_event"),&GraphEdit::_input_event);
+	ClassDB::bind_method(_MD("_update_scroll_offset"),&GraphEdit::_update_scroll_offset);
+	ClassDB::bind_method(_MD("_connections_layer_draw"),&GraphEdit::_connections_layer_draw);
 
 
 
-	ObjectTypeDB::bind_method(_MD("set_selected","node"),&GraphEdit::set_selected);
+	ClassDB::bind_method(_MD("set_selected","node"),&GraphEdit::set_selected);
 
 	ADD_SIGNAL(MethodInfo("connection_request",PropertyInfo(Variant::STRING,"from"),PropertyInfo(Variant::INT,"from_slot"),PropertyInfo(Variant::STRING,"to"),PropertyInfo(Variant::INT,"to_slot")));
 	ADD_SIGNAL(MethodInfo("disconnection_request",PropertyInfo(Variant::STRING,"from"),PropertyInfo(Variant::INT,"from_slot"),PropertyInfo(Variant::STRING,"to"),PropertyInfo(Variant::INT,"to_slot")));
@@ -1331,7 +1331,7 @@ GraphEdit::GraphEdit() {
 	snap_amount->set_min(5);
 	snap_amount->set_max(100);
 	snap_amount->set_step(1);
-	snap_amount->set_val(20);
+	snap_amount->set_value(20);
 	snap_amount->connect("value_changed",this,"_snap_value_changed");
 	zoom_hb->add_child(snap_amount);
 

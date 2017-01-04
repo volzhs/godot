@@ -274,7 +274,7 @@ void ProjectExportDialog::_script_edited(Variant v) {
 
 void ProjectExportDialog::_sample_convert_edited(int what) {
 	EditorImportExport::get_singleton()->sample_set_action( EditorImportExport::SampleAction(sample_mode->get_selected()));
-	EditorImportExport::get_singleton()->sample_set_max_hz(  sample_max_hz->get_val() );
+	EditorImportExport::get_singleton()->sample_set_max_hz(  sample_max_hz->get_value() );
 	EditorImportExport::get_singleton()->sample_set_trim(  sample_trim->is_pressed() );
 	_save_export_cfg();
 
@@ -325,8 +325,8 @@ void ProjectExportDialog::_notification(int p_what) {
 				tree_vb->show();
 
 			image_action->select(EditorImportExport::get_singleton()->get_export_image_action());
-			image_quality->set_val(EditorImportExport::get_singleton()->get_export_image_quality());
-			image_shrink->set_val(EditorImportExport::get_singleton()->get_export_image_shrink());
+			image_quality->set_value(EditorImportExport::get_singleton()->get_export_image_quality());
+			image_shrink->set_value(EditorImportExport::get_singleton()->get_export_image_shrink());
 			_update_script();
 
 
@@ -350,7 +350,7 @@ void ProjectExportDialog::_notification(int p_what) {
 			_update_group_tree();
 
 			sample_mode->select( EditorImportExport::get_singleton()->sample_get_action() );
-			sample_max_hz->set_val( EditorImportExport::get_singleton()->sample_get_max_hz() );
+			sample_max_hz->set_value( EditorImportExport::get_singleton()->sample_get_max_hz() );
 			sample_trim->set_pressed( EditorImportExport::get_singleton()->sample_get_trim() );
 
 			sample_mode->connect("item_selected",this,"_sample_convert_edited");
@@ -886,8 +886,8 @@ void ProjectExportDialog::_update_group() {
 		StringName name = _get_selected_group();
 		group_image_action->select(EditorImportExport::get_singleton()->image_export_group_get_image_action(name));
 		group_atlas->set_pressed(EditorImportExport::get_singleton()->image_export_group_get_make_atlas(name));
-		group_shrink->set_val(EditorImportExport::get_singleton()->image_export_group_get_shrink(name));
-		group_lossy_quality->set_val(EditorImportExport::get_singleton()->image_export_group_get_lossy_quality(name));
+		group_shrink->set_value(EditorImportExport::get_singleton()->image_export_group_get_shrink(name));
+		group_lossy_quality->set_value(EditorImportExport::get_singleton()->image_export_group_get_lossy_quality(name));
 		if (group_atlas->is_pressed())
 			atlas_preview->show();
 		else
@@ -1009,8 +1009,8 @@ void ProjectExportDialog::_group_changed(Variant v) {
 	EditorNode::get_undo_redo()->create_action(TTR("Change Image Group"));
 	EditorNode::get_undo_redo()->add_do_method(EditorImportExport::get_singleton(),"image_export_group_set_image_action",name,group_image_action->get_selected());
 	EditorNode::get_undo_redo()->add_do_method(EditorImportExport::get_singleton(),"image_export_group_set_make_atlas",name,group_atlas->is_pressed());
-	EditorNode::get_undo_redo()->add_do_method(EditorImportExport::get_singleton(),"image_export_group_set_shrink",name,group_shrink->get_val());
-	EditorNode::get_undo_redo()->add_do_method(EditorImportExport::get_singleton(),"image_export_group_set_lossy_quality",name,group_lossy_quality->get_val());
+	EditorNode::get_undo_redo()->add_do_method(EditorImportExport::get_singleton(),"image_export_group_set_shrink",name,group_shrink->get_value());
+	EditorNode::get_undo_redo()->add_do_method(EditorImportExport::get_singleton(),"image_export_group_set_lossy_quality",name,group_lossy_quality->get_value());
 	EditorNode::get_undo_redo()->add_undo_method(EditorImportExport::get_singleton(),"image_export_group_set_image_action",name,EditorImportExport::get_singleton()->image_export_group_get_image_action(name));
 	EditorNode::get_undo_redo()->add_undo_method(EditorImportExport::get_singleton(),"image_export_group_set_make_atlas",name,EditorImportExport::get_singleton()->image_export_group_get_make_atlas(name));
 	EditorNode::get_undo_redo()->add_undo_method(EditorImportExport::get_singleton(),"image_export_group_set_shrink",name,EditorImportExport::get_singleton()->image_export_group_get_shrink(name));
@@ -1292,44 +1292,44 @@ void ProjectExportDialog::_image_filter_changed(String) {
 void ProjectExportDialog::_bind_methods() {
 
 
-	ObjectTypeDB::bind_method(_MD("_rescan"),&ProjectExportDialog::_rescan);
-	ObjectTypeDB::bind_method(_MD("_tree_changed"),&ProjectExportDialog::_tree_changed);
-	ObjectTypeDB::bind_method(_MD("_scan_finished"),&ProjectExportDialog::_scan_finished);
-	ObjectTypeDB::bind_method(_MD("_platform_selected"),&ProjectExportDialog::_platform_selected);
-	ObjectTypeDB::bind_method(_MD("_prop_edited"),&ProjectExportDialog::_prop_edited);
-	ObjectTypeDB::bind_method(_MD("_export_mode_changed"),&ProjectExportDialog::_export_mode_changed);
-	ObjectTypeDB::bind_method(_MD("_filters_edited"),&ProjectExportDialog::_filters_edited);
-	ObjectTypeDB::bind_method(_MD("_filters_exclude_edited"),&ProjectExportDialog::_filters_exclude_edited);
-	ObjectTypeDB::bind_method(_MD("_export_action"),&ProjectExportDialog::_export_action);
-	ObjectTypeDB::bind_method(_MD("_export_action_pck"),&ProjectExportDialog::_export_action_pck);
-	ObjectTypeDB::bind_method(_MD("_quality_edited"),&ProjectExportDialog::_quality_edited);
-	ObjectTypeDB::bind_method(_MD("_shrink_edited"),&ProjectExportDialog::_shrink_edited);
-	ObjectTypeDB::bind_method(_MD("_image_export_edited"),&ProjectExportDialog::_image_export_edited);
-	ObjectTypeDB::bind_method(_MD("_format_toggled"),&ProjectExportDialog::_format_toggled);
-	ObjectTypeDB::bind_method(_MD("_group_changed"),&ProjectExportDialog::_group_changed);
-	ObjectTypeDB::bind_method(_MD("_group_add"),&ProjectExportDialog::_group_add);
-	ObjectTypeDB::bind_method(_MD("_group_del"),&ProjectExportDialog::_group_del);
-	ObjectTypeDB::bind_method(_MD("_group_selected"),&ProjectExportDialog::_group_selected);
-	ObjectTypeDB::bind_method(_MD("_update_group"),&ProjectExportDialog::_update_group);
-	ObjectTypeDB::bind_method(_MD("_update_group_list"),&ProjectExportDialog::_update_group_list);
-	ObjectTypeDB::bind_method(_MD("_select_group"),&ProjectExportDialog::_select_group);
-	ObjectTypeDB::bind_method(_MD("_update_group_tree"),&ProjectExportDialog::_update_group_tree);
-	ObjectTypeDB::bind_method(_MD("_group_item_edited"),&ProjectExportDialog::_group_item_edited);
-	ObjectTypeDB::bind_method(_MD("_save_export_cfg"),&ProjectExportDialog::_save_export_cfg);
-	ObjectTypeDB::bind_method(_MD("_image_filter_changed"),&ProjectExportDialog::_image_filter_changed);
-	ObjectTypeDB::bind_method(_MD("_group_atlas_preview"),&ProjectExportDialog::_group_atlas_preview);
-	ObjectTypeDB::bind_method(_MD("_group_select_all"),&ProjectExportDialog::_group_select_all);
-	ObjectTypeDB::bind_method(_MD("_group_select_none"),&ProjectExportDialog::_group_select_none);
-	ObjectTypeDB::bind_method(_MD("_script_edited"),&ProjectExportDialog::_script_edited);
-	ObjectTypeDB::bind_method(_MD("_update_script"),&ProjectExportDialog::_update_script);
-	ObjectTypeDB::bind_method(_MD("_sample_convert_edited"),&ProjectExportDialog::_sample_convert_edited);
+	ClassDB::bind_method(_MD("_rescan"),&ProjectExportDialog::_rescan);
+	ClassDB::bind_method(_MD("_tree_changed"),&ProjectExportDialog::_tree_changed);
+	ClassDB::bind_method(_MD("_scan_finished"),&ProjectExportDialog::_scan_finished);
+	ClassDB::bind_method(_MD("_platform_selected"),&ProjectExportDialog::_platform_selected);
+	ClassDB::bind_method(_MD("_prop_edited"),&ProjectExportDialog::_prop_edited);
+	ClassDB::bind_method(_MD("_export_mode_changed"),&ProjectExportDialog::_export_mode_changed);
+	ClassDB::bind_method(_MD("_filters_edited"),&ProjectExportDialog::_filters_edited);
+	ClassDB::bind_method(_MD("_filters_exclude_edited"),&ProjectExportDialog::_filters_exclude_edited);
+	ClassDB::bind_method(_MD("_export_action"),&ProjectExportDialog::_export_action);
+	ClassDB::bind_method(_MD("_export_action_pck"),&ProjectExportDialog::_export_action_pck);
+	ClassDB::bind_method(_MD("_quality_edited"),&ProjectExportDialog::_quality_edited);
+	ClassDB::bind_method(_MD("_shrink_edited"),&ProjectExportDialog::_shrink_edited);
+	ClassDB::bind_method(_MD("_image_export_edited"),&ProjectExportDialog::_image_export_edited);
+	ClassDB::bind_method(_MD("_format_toggled"),&ProjectExportDialog::_format_toggled);
+	ClassDB::bind_method(_MD("_group_changed"),&ProjectExportDialog::_group_changed);
+	ClassDB::bind_method(_MD("_group_add"),&ProjectExportDialog::_group_add);
+	ClassDB::bind_method(_MD("_group_del"),&ProjectExportDialog::_group_del);
+	ClassDB::bind_method(_MD("_group_selected"),&ProjectExportDialog::_group_selected);
+	ClassDB::bind_method(_MD("_update_group"),&ProjectExportDialog::_update_group);
+	ClassDB::bind_method(_MD("_update_group_list"),&ProjectExportDialog::_update_group_list);
+	ClassDB::bind_method(_MD("_select_group"),&ProjectExportDialog::_select_group);
+	ClassDB::bind_method(_MD("_update_group_tree"),&ProjectExportDialog::_update_group_tree);
+	ClassDB::bind_method(_MD("_group_item_edited"),&ProjectExportDialog::_group_item_edited);
+	ClassDB::bind_method(_MD("_save_export_cfg"),&ProjectExportDialog::_save_export_cfg);
+	ClassDB::bind_method(_MD("_image_filter_changed"),&ProjectExportDialog::_image_filter_changed);
+	ClassDB::bind_method(_MD("_group_atlas_preview"),&ProjectExportDialog::_group_atlas_preview);
+	ClassDB::bind_method(_MD("_group_select_all"),&ProjectExportDialog::_group_select_all);
+	ClassDB::bind_method(_MD("_group_select_none"),&ProjectExportDialog::_group_select_none);
+	ClassDB::bind_method(_MD("_script_edited"),&ProjectExportDialog::_script_edited);
+	ClassDB::bind_method(_MD("_update_script"),&ProjectExportDialog::_update_script);
+	ClassDB::bind_method(_MD("_sample_convert_edited"),&ProjectExportDialog::_sample_convert_edited);
 
 
-	ObjectTypeDB::bind_method(_MD("export_platform"),&ProjectExportDialog::export_platform);
-	ObjectTypeDB::bind_method(_MD("_create_android_keystore"),&ProjectExportDialog::_create_android_keystore);
-	ObjectTypeDB::bind_method(_MD("_check_keystore_path"),&ProjectExportDialog::_check_keystore_path);
-	ObjectTypeDB::bind_method(_MD("_keystore_dir_selected"),&ProjectExportDialog::_keystore_dir_selected);
-	ObjectTypeDB::bind_method(_MD("_keystore_created"),&ProjectExportDialog::_keystore_created);
+	ClassDB::bind_method(_MD("export_platform"),&ProjectExportDialog::export_platform);
+	ClassDB::bind_method(_MD("_create_android_keystore"),&ProjectExportDialog::_create_android_keystore);
+	ClassDB::bind_method(_MD("_check_keystore_path"),&ProjectExportDialog::_check_keystore_path);
+	ClassDB::bind_method(_MD("_keystore_dir_selected"),&ProjectExportDialog::_keystore_dir_selected);
+	ClassDB::bind_method(_MD("_keystore_created"),&ProjectExportDialog::_keystore_created);
 
 
 //	ADD_SIGNAL(MethodInfo("instance"));
@@ -1516,7 +1516,7 @@ ProjectExportDialog::ProjectExportDialog(EditorNode *p_editor) {
 	group_lossy_quality->set_min(0.1);
 	group_lossy_quality->set_max(1.0);
 	group_lossy_quality->set_step(0.01);
-	group_lossy_quality->set_val(0.7);
+	group_lossy_quality->set_value(0.7);
 	group_lossy_quality->connect("value_changed",this,"_quality_edited");
 
 	HBoxContainer *gqhb = memnew( HBoxContainer );
@@ -1535,7 +1535,7 @@ ProjectExportDialog::ProjectExportDialog(EditorNode *p_editor) {
 	group_shrink = memnew(SpinBox);
 	group_shrink->set_min(1);
 	group_shrink->set_max(8);
-	group_shrink->set_val(1);
+	group_shrink->set_value(1);
 	group_shrink->set_step(0.001);
 	group_options->add_margin_child(TTR("Shrink By:"),group_shrink);
 	group_shrink->connect("value_changed",this,"_group_changed");

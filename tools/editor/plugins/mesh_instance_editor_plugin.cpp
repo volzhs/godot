@@ -189,7 +189,7 @@ void MeshInstanceEditor::_create_outline_mesh() {
 		return;
 	}
 
-	Ref<Mesh> mesho = mesh->create_outline(outline_size->get_val());
+	Ref<Mesh> mesho = mesh->create_outline(outline_size->get_value());
 
 	if (mesho.is_null()) {
 		err_dialog->set_text(TTR("Could not create outline!"));
@@ -218,8 +218,8 @@ void MeshInstanceEditor::_create_outline_mesh() {
 
 void MeshInstanceEditor::_bind_methods() {
 
-	ObjectTypeDB::bind_method("_menu_option",&MeshInstanceEditor::_menu_option);
-	ObjectTypeDB::bind_method("_create_outline_mesh",&MeshInstanceEditor::_create_outline_mesh);
+	ClassDB::bind_method("_menu_option",&MeshInstanceEditor::_menu_option);
+	ClassDB::bind_method("_create_outline_mesh",&MeshInstanceEditor::_create_outline_mesh);
 }
 
 MeshInstanceEditor::MeshInstanceEditor() {
@@ -255,7 +255,7 @@ MeshInstanceEditor::MeshInstanceEditor() {
 	outline_size->set_min(0.001);
 	outline_size->set_max(1024);
 	outline_size->set_step(0.001);
-	outline_size->set_val(0.05);
+	outline_size->set_value(0.05);
 	outline_dialog_vbc->add_margin_child(TTR("Outline Size:"),outline_size);
 
 	add_child(outline_dialog);
@@ -274,7 +274,7 @@ void MeshInstanceEditorPlugin::edit(Object *p_object) {
 
 bool MeshInstanceEditorPlugin::handles(Object *p_object) const {
 
-	return p_object->is_type("MeshInstance");
+	return p_object->is_class("MeshInstance");
 }
 
 void MeshInstanceEditorPlugin::make_visible(bool p_visible) {

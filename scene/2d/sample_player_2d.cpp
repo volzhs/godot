@@ -220,30 +220,31 @@ String SamplePlayer2D::get_configuration_warning() const {
 void SamplePlayer2D::_bind_methods() {
 
 
-	ObjectTypeDB::bind_method(_MD("set_sample_library","library:SampleLibrary"),&SamplePlayer2D::set_sample_library);
-	ObjectTypeDB::bind_method(_MD("get_sample_library:SampleLibrary"),&SamplePlayer2D::get_sample_library);
+	ClassDB::bind_method(_MD("set_sample_library","library:SampleLibrary"),&SamplePlayer2D::set_sample_library);
+	ClassDB::bind_method(_MD("get_sample_library:SampleLibrary"),&SamplePlayer2D::get_sample_library);
 
-	ObjectTypeDB::bind_method(_MD("set_polyphony","max_voices"),&SamplePlayer2D::set_polyphony);
-	ObjectTypeDB::bind_method(_MD("get_polyphony"),&SamplePlayer2D::get_polyphony);
+	ClassDB::bind_method(_MD("set_polyphony","max_voices"),&SamplePlayer2D::set_polyphony);
+	ClassDB::bind_method(_MD("get_polyphony"),&SamplePlayer2D::get_polyphony);
 
-	ObjectTypeDB::bind_method(_MD("play","sample","voice"),&SamplePlayer2D::play,DEFVAL(NEXT_VOICE));
+	ClassDB::bind_method(_MD("play","sample","voice"),&SamplePlayer2D::play,DEFVAL(NEXT_VOICE));
 	//voices,DEV
-	ObjectTypeDB::bind_method(_MD("voice_set_pitch_scale","voice","ratio"),&SamplePlayer2D::voice_set_pitch_scale);
-	ObjectTypeDB::bind_method(_MD("voice_set_volume_scale_db","voice","db"),&SamplePlayer2D::voice_set_volume_scale_db);
+	ClassDB::bind_method(_MD("voice_set_pitch_scale","voice","ratio"),&SamplePlayer2D::voice_set_pitch_scale);
+	ClassDB::bind_method(_MD("voice_set_volume_scale_db","voice","db"),&SamplePlayer2D::voice_set_volume_scale_db);
 
-	ObjectTypeDB::bind_method(_MD("is_voice_active","voice"),&SamplePlayer2D::is_voice_active);
-	ObjectTypeDB::bind_method(_MD("stop_voice","voice"),&SamplePlayer2D::stop_voice);
-	ObjectTypeDB::bind_method(_MD("stop_all"),&SamplePlayer2D::stop_all);
+	ClassDB::bind_method(_MD("is_voice_active","voice"),&SamplePlayer2D::is_voice_active);
+	ClassDB::bind_method(_MD("stop_voice","voice"),&SamplePlayer2D::stop_voice);
+	ClassDB::bind_method(_MD("stop_all"),&SamplePlayer2D::stop_all);
 
-	ObjectTypeDB::bind_method(_MD("set_random_pitch_scale","val"),&SamplePlayer2D::set_random_pitch_scale);
-	ObjectTypeDB::bind_method(_MD("get_random_pitch_scale"),&SamplePlayer2D::get_random_pitch_scale);
+	ClassDB::bind_method(_MD("set_random_pitch_scale","val"),&SamplePlayer2D::set_random_pitch_scale);
+	ClassDB::bind_method(_MD("get_random_pitch_scale"),&SamplePlayer2D::get_random_pitch_scale);
 
 	BIND_CONSTANT( INVALID_VOICE );
 	BIND_CONSTANT( NEXT_VOICE );
 
-	ADD_PROPERTY( PropertyInfo( Variant::INT, "config/polyphony", PROPERTY_HINT_RANGE, "1,64,1"),_SCS("set_polyphony"),_SCS("get_polyphony"));
-	ADD_PROPERTY( PropertyInfo( Variant::OBJECT, "config/samples", PROPERTY_HINT_RESOURCE_TYPE,"SampleLibrary"),_SCS("set_sample_library"),_SCS("get_sample_library"));
-	ADD_PROPERTY( PropertyInfo( Variant::REAL, "config/pitch_random", PROPERTY_HINT_RESOURCE_TYPE,"SampleLibrary"),_SCS("set_random_pitch_scale"),_SCS("get_random_pitch_scale"));
+	ADD_GROUP("Config","");
+	ADD_PROPERTY( PropertyInfo( Variant::INT, "polyphony", PROPERTY_HINT_RANGE, "1,64,1"),_SCS("set_polyphony"),_SCS("get_polyphony"));
+	ADD_PROPERTY( PropertyInfo( Variant::OBJECT, "samples", PROPERTY_HINT_RESOURCE_TYPE,"SampleLibrary"),_SCS("set_sample_library"),_SCS("get_sample_library"));
+	ADD_PROPERTY( PropertyInfo( Variant::REAL, "pitch_random", PROPERTY_HINT_RESOURCE_TYPE,"SampleLibrary"),_SCS("set_random_pitch_scale"),_SCS("get_random_pitch_scale"));
 
 
 }

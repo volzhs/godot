@@ -103,13 +103,13 @@ void  GridMapEditor::_menu_option(int p_option) {
 			if (input_action==INPUT_DUPLICATE) {
 
 				r.set_orthogonal_index(selection.duplicate_rot);
-				r.rotate(Vector3(0,1,0),Math_PI/2.0);
+				r.rotate(Vector3(0,1,0),-Math_PI/2.0);
 				selection.duplicate_rot=r.get_orthogonal_index();
 				_update_duplicate_indicator();
 				break;
 			}
 			r.set_orthogonal_index(cursor_rot);
-			r.rotate(Vector3(0,1,0),Math_PI/2.0);
+			r.rotate(Vector3(0,1,0),-Math_PI/2.0);
 			cursor_rot=r.get_orthogonal_index();
 			_update_cursor_transform();
 		} break;
@@ -118,14 +118,14 @@ void  GridMapEditor::_menu_option(int p_option) {
 			if (input_action==INPUT_DUPLICATE) {
 
 				r.set_orthogonal_index(selection.duplicate_rot);
-				r.rotate(Vector3(1,0,0),Math_PI/2.0);
+				r.rotate(Vector3(1,0,0),-Math_PI/2.0);
 				selection.duplicate_rot=r.get_orthogonal_index();
 				_update_duplicate_indicator();
 				break;
 			}
 
 			r.set_orthogonal_index(cursor_rot);
-			r.rotate(Vector3(1,0,0),Math_PI/2.0);
+			r.rotate(Vector3(1,0,0),-Math_PI/2.0);
 			cursor_rot=r.get_orthogonal_index();
 			_update_cursor_transform();
 		} break;
@@ -134,35 +134,35 @@ void  GridMapEditor::_menu_option(int p_option) {
 			if (input_action==INPUT_DUPLICATE) {
 
 				r.set_orthogonal_index(selection.duplicate_rot);
-				r.rotate(Vector3(0,0,1),Math_PI/2.0);
+				r.rotate(Vector3(0,0,1),-Math_PI/2.0);
 				selection.duplicate_rot=r.get_orthogonal_index();
 				_update_duplicate_indicator();
 				break;
 			}
 
 			r.set_orthogonal_index(cursor_rot);
-			r.rotate(Vector3(0,0,1),Math_PI/2.0);
+			r.rotate(Vector3(0,0,1),-Math_PI/2.0);
 			cursor_rot=r.get_orthogonal_index();
 			_update_cursor_transform();
 		} break;
 		case MENU_OPTION_CURSOR_BACK_ROTATE_Y: {
 			Matrix3 r;
 			r.set_orthogonal_index(cursor_rot);
-			r.rotate(Vector3(0,1,0),-Math_PI/2.0);
+			r.rotate(Vector3(0,1,0),Math_PI/2.0);
 			cursor_rot=r.get_orthogonal_index();
 			_update_cursor_transform();
 		} break;
 		case MENU_OPTION_CURSOR_BACK_ROTATE_X: {
 			Matrix3 r;
 			r.set_orthogonal_index(cursor_rot);
-			r.rotate(Vector3(1,0,0),-Math_PI/2.0);
+			r.rotate(Vector3(1,0,0),Math_PI/2.0);
 			cursor_rot=r.get_orthogonal_index();
 			_update_cursor_transform();
 		} break;
 		case MENU_OPTION_CURSOR_BACK_ROTATE_Z: {
 			Matrix3 r;
 			r.set_orthogonal_index(cursor_rot);
-			r.rotate(Vector3(0,0,1),-Math_PI/2.0);
+			r.rotate(Vector3(0,0,1),Math_PI/2.0);
 			cursor_rot=r.get_orthogonal_index();
 			_update_cursor_transform();
 		} break;
@@ -318,7 +318,7 @@ bool GridMapEditor::do_input_action(Camera* p_camera,const Point2& p_point,bool 
 	p.d=edit_floor[edit_axis]*node->get_cell_size();
 
 	Vector3 inters;
-	if (!p.intersects_segment(from, from + normal * settings_pick_distance->get_val(), &inters))
+	if (!p.intersects_segment(from, from + normal * settings_pick_distance->get_value(), &inters))
 		return false;
 
 
@@ -548,12 +548,12 @@ bool GridMapEditor::forward_spatial_input_event(Camera* p_camera,const InputEven
 
 				if (p_event.mouse_button.button_index==BUTTON_WHEEL_UP && (p_event.mouse_button.mod.command || p_event.mouse_button.mod.shift)) {
 					if (p_event.mouse_button.pressed)
-						floor->set_val( floor->get_val() +1);
+						floor->set_value( floor->get_value() +1);
 
 					return true; //eaten
 				} else if (p_event.mouse_button.button_index==BUTTON_WHEEL_DOWN && (p_event.mouse_button.mod.command || p_event.mouse_button.mod.shift)) {
 					if (p_event.mouse_button.pressed)
-						floor->set_val( floor->get_val() -1);
+						floor->set_value( floor->get_value() -1);
 					return true;
 				}
 
@@ -981,7 +981,7 @@ void GridMapEditor::update_grid() {
 	}
 
 	updating=true;
-	floor->set_val(edit_floor[edit_axis]);
+	floor->set_value(edit_floor[edit_axis]);
 	updating=false;
 
 }
@@ -1181,15 +1181,15 @@ void GridMapEditor::_floor_changed(float p_value) {
 
 void GridMapEditor::_bind_methods() {
 
-	ObjectTypeDB::bind_method("_menu_option",&GridMapEditor::_menu_option);
-	ObjectTypeDB::bind_method("_configure",&GridMapEditor::_configure);
-	ObjectTypeDB::bind_method("_item_selected_cbk",&GridMapEditor::_item_selected_cbk);
-	ObjectTypeDB::bind_method("_edit_mode_changed",&GridMapEditor::_edit_mode_changed);
-	ObjectTypeDB::bind_method("_area_renamed",&GridMapEditor::_area_renamed);
-	ObjectTypeDB::bind_method("_area_selected",&GridMapEditor::_area_selected);
-	ObjectTypeDB::bind_method("_floor_changed",&GridMapEditor::_floor_changed);
+	ClassDB::bind_method("_menu_option",&GridMapEditor::_menu_option);
+	ClassDB::bind_method("_configure",&GridMapEditor::_configure);
+	ClassDB::bind_method("_item_selected_cbk",&GridMapEditor::_item_selected_cbk);
+	ClassDB::bind_method("_edit_mode_changed",&GridMapEditor::_edit_mode_changed);
+	ClassDB::bind_method("_area_renamed",&GridMapEditor::_area_renamed);
+	ClassDB::bind_method("_area_selected",&GridMapEditor::_area_selected);
+	ClassDB::bind_method("_floor_changed",&GridMapEditor::_floor_changed);
 
-	ObjectTypeDB::bind_method(_MD("_set_display_mode","mode"), &GridMapEditor::_set_display_mode);
+	ClassDB::bind_method(_MD("_set_display_mode","mode"), &GridMapEditor::_set_display_mode);
 }
 
 
@@ -1263,7 +1263,7 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 	settings_pick_distance->set_max(10000.0f);
 	settings_pick_distance->set_min(500.0f);
 	settings_pick_distance->set_step(1.0f);
-	settings_pick_distance->set_val(EDITOR_DEF("grid_map/pick_distance", 5000.0));
+	settings_pick_distance->set_value(EDITOR_DEF("grid_map/pick_distance", 5000.0));
 	settings_vbc->add_margin_child("Pick Distance:", settings_pick_distance);
 
 	clip_mode=CLIP_DISABLED;
@@ -1480,7 +1480,7 @@ void GridMapEditorPlugin::edit(Object *p_object) {
 
 bool GridMapEditorPlugin::handles(Object *p_object) const {
 
-	return p_object->is_type("GridMap");
+	return p_object->is_class("GridMap");
 }
 
 void GridMapEditorPlugin::make_visible(bool p_visible) {

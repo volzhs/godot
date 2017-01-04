@@ -422,21 +422,21 @@ bool SplitContainer::is_collapsed() const {
 
 void SplitContainer::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("_input_event"),&SplitContainer::_input_event);
-	ObjectTypeDB::bind_method(_MD("set_split_offset","offset"),&SplitContainer::set_split_offset);
-	ObjectTypeDB::bind_method(_MD("get_split_offset"),&SplitContainer::get_split_offset);
+	ClassDB::bind_method(_MD("_input_event"),&SplitContainer::_input_event);
+	ClassDB::bind_method(_MD("set_split_offset","offset"),&SplitContainer::set_split_offset);
+	ClassDB::bind_method(_MD("get_split_offset"),&SplitContainer::get_split_offset);
 
-	ObjectTypeDB::bind_method(_MD("set_collapsed","collapsed"),&SplitContainer::set_collapsed);
-	ObjectTypeDB::bind_method(_MD("is_collapsed"),&SplitContainer::is_collapsed);
+	ClassDB::bind_method(_MD("set_collapsed","collapsed"),&SplitContainer::set_collapsed);
+	ClassDB::bind_method(_MD("is_collapsed"),&SplitContainer::is_collapsed);
 
-	ObjectTypeDB::bind_method(_MD("set_dragger_visibility","mode"),&SplitContainer::set_dragger_visibility);
-	ObjectTypeDB::bind_method(_MD("get_dragger_visibility"),&SplitContainer::get_dragger_visibility);
+	ClassDB::bind_method(_MD("set_dragger_visibility","mode"),&SplitContainer::set_dragger_visibility);
+	ClassDB::bind_method(_MD("get_dragger_visibility"),&SplitContainer::get_dragger_visibility);
 
 	ADD_SIGNAL( MethodInfo("dragged",PropertyInfo(Variant::INT,"offset")));
 
-	ADD_PROPERTY( PropertyInfo(Variant::INT,"split/offset"),_SCS("set_split_offset"),_SCS("get_split_offset"));
-	ADD_PROPERTY( PropertyInfo(Variant::BOOL,"split/collapsed"),_SCS("set_collapsed"),_SCS("is_collapsed"));
-	ADD_PROPERTY( PropertyInfo(Variant::INT,"split/dragger_visibility",PROPERTY_HINT_ENUM,"Visible,Hidden,Hidden & Collapsed"),_SCS("set_dragger_visibility"),_SCS("get_dragger_visibility"));
+	ADD_PROPERTY( PropertyInfo(Variant::INT,"split_offset"),_SCS("set_split_offset"),_SCS("get_split_offset"));
+	ADD_PROPERTY( PropertyInfo(Variant::BOOL,"collapsed"),_SCS("set_collapsed"),_SCS("is_collapsed"));
+	ADD_PROPERTY( PropertyInfo(Variant::INT,"dragger_visibility",PROPERTY_HINT_ENUM,"Visible,Hidden,Hidden & Collapsed"),_SCS("set_dragger_visibility"),_SCS("get_dragger_visibility"));
 
 	BIND_CONSTANT( DRAGGER_VISIBLE );
 	BIND_CONSTANT( DRAGGER_HIDDEN );

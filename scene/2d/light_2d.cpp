@@ -365,67 +365,67 @@ String Light2D::get_configuration_warning() const {
 void Light2D::_bind_methods() {
 
 
-	ObjectTypeDB::bind_method(_MD("set_enabled","enabled"),&Light2D::set_enabled);
-	ObjectTypeDB::bind_method(_MD("is_enabled"),&Light2D::is_enabled);
+	ClassDB::bind_method(_MD("set_enabled","enabled"),&Light2D::set_enabled);
+	ClassDB::bind_method(_MD("is_enabled"),&Light2D::is_enabled);
 
-	ObjectTypeDB::bind_method(_MD("set_editor_only","editor_only"), &Light2D::set_editor_only );
-	ObjectTypeDB::bind_method(_MD("is_editor_only"), &Light2D::is_editor_only );
+	ClassDB::bind_method(_MD("set_editor_only","editor_only"), &Light2D::set_editor_only );
+	ClassDB::bind_method(_MD("is_editor_only"), &Light2D::is_editor_only );
 
-	ObjectTypeDB::bind_method(_MD("set_texture","texture"),&Light2D::set_texture);
-	ObjectTypeDB::bind_method(_MD("get_texture"),&Light2D::get_texture);
+	ClassDB::bind_method(_MD("set_texture","texture"),&Light2D::set_texture);
+	ClassDB::bind_method(_MD("get_texture"),&Light2D::get_texture);
 
-	ObjectTypeDB::bind_method(_MD("set_texture_offset","texture_offset"),&Light2D::set_texture_offset);
-	ObjectTypeDB::bind_method(_MD("get_texture_offset"),&Light2D::get_texture_offset);
+	ClassDB::bind_method(_MD("set_texture_offset","texture_offset"),&Light2D::set_texture_offset);
+	ClassDB::bind_method(_MD("get_texture_offset"),&Light2D::get_texture_offset);
 
-	ObjectTypeDB::bind_method(_MD("set_color","color"),&Light2D::set_color);
-	ObjectTypeDB::bind_method(_MD("get_color"),&Light2D::get_color);
+	ClassDB::bind_method(_MD("set_color","color"),&Light2D::set_color);
+	ClassDB::bind_method(_MD("get_color"),&Light2D::get_color);
 
-	ObjectTypeDB::bind_method(_MD("set_height","height"),&Light2D::set_height);
-	ObjectTypeDB::bind_method(_MD("get_height"),&Light2D::get_height);
+	ClassDB::bind_method(_MD("set_height","height"),&Light2D::set_height);
+	ClassDB::bind_method(_MD("get_height"),&Light2D::get_height);
 
-	ObjectTypeDB::bind_method(_MD("set_energy","energy"),&Light2D::set_energy);
-	ObjectTypeDB::bind_method(_MD("get_energy"),&Light2D::get_energy);
+	ClassDB::bind_method(_MD("set_energy","energy"),&Light2D::set_energy);
+	ClassDB::bind_method(_MD("get_energy"),&Light2D::get_energy);
 
-	ObjectTypeDB::bind_method(_MD("set_texture_scale","texture_scale"),&Light2D::set_texture_scale);
-	ObjectTypeDB::bind_method(_MD("get_texture_scale"),&Light2D::get_texture_scale);
-
-
-	ObjectTypeDB::bind_method(_MD("set_z_range_min","z"),&Light2D::set_z_range_min);
-	ObjectTypeDB::bind_method(_MD("get_z_range_min"),&Light2D::get_z_range_min);
-
-	ObjectTypeDB::bind_method(_MD("set_z_range_max","z"),&Light2D::set_z_range_max);
-	ObjectTypeDB::bind_method(_MD("get_z_range_max"),&Light2D::get_z_range_max);
-
-	ObjectTypeDB::bind_method(_MD("set_layer_range_min","layer"),&Light2D::set_layer_range_min);
-	ObjectTypeDB::bind_method(_MD("get_layer_range_min"),&Light2D::get_layer_range_min);
-
-	ObjectTypeDB::bind_method(_MD("set_layer_range_max","layer"),&Light2D::set_layer_range_max);
-	ObjectTypeDB::bind_method(_MD("get_layer_range_max"),&Light2D::get_layer_range_max);
+	ClassDB::bind_method(_MD("set_texture_scale","texture_scale"),&Light2D::set_texture_scale);
+	ClassDB::bind_method(_MD("get_texture_scale"),&Light2D::get_texture_scale);
 
 
-	ObjectTypeDB::bind_method(_MD("set_item_cull_mask","item_cull_mask"),&Light2D::set_item_cull_mask);
-	ObjectTypeDB::bind_method(_MD("get_item_cull_mask"),&Light2D::get_item_cull_mask);
+	ClassDB::bind_method(_MD("set_z_range_min","z"),&Light2D::set_z_range_min);
+	ClassDB::bind_method(_MD("get_z_range_min"),&Light2D::get_z_range_min);
 
-	ObjectTypeDB::bind_method(_MD("set_item_shadow_cull_mask","item_shadow_cull_mask"),&Light2D::set_item_shadow_cull_mask);
-	ObjectTypeDB::bind_method(_MD("get_item_shadow_cull_mask"),&Light2D::get_item_shadow_cull_mask);
+	ClassDB::bind_method(_MD("set_z_range_max","z"),&Light2D::set_z_range_max);
+	ClassDB::bind_method(_MD("get_z_range_max"),&Light2D::get_z_range_max);
 
-	ObjectTypeDB::bind_method(_MD("set_mode","mode"),&Light2D::set_mode);
-	ObjectTypeDB::bind_method(_MD("get_mode"),&Light2D::get_mode);
+	ClassDB::bind_method(_MD("set_layer_range_min","layer"),&Light2D::set_layer_range_min);
+	ClassDB::bind_method(_MD("get_layer_range_min"),&Light2D::get_layer_range_min);
 
-	ObjectTypeDB::bind_method(_MD("set_shadow_enabled","enabled"),&Light2D::set_shadow_enabled);
-	ObjectTypeDB::bind_method(_MD("is_shadow_enabled"),&Light2D::is_shadow_enabled);
+	ClassDB::bind_method(_MD("set_layer_range_max","layer"),&Light2D::set_layer_range_max);
+	ClassDB::bind_method(_MD("get_layer_range_max"),&Light2D::get_layer_range_max);
 
-	ObjectTypeDB::bind_method(_MD("set_shadow_buffer_size","size"),&Light2D::set_shadow_buffer_size);
-	ObjectTypeDB::bind_method(_MD("get_shadow_buffer_size"),&Light2D::get_shadow_buffer_size);
 
-	ObjectTypeDB::bind_method(_MD("set_shadow_gradient_length","multiplier"),&Light2D::set_shadow_gradient_length);
-	ObjectTypeDB::bind_method(_MD("get_shadow_gradient_length"),&Light2D::get_shadow_gradient_length);
+	ClassDB::bind_method(_MD("set_item_cull_mask","item_cull_mask"),&Light2D::set_item_cull_mask);
+	ClassDB::bind_method(_MD("get_item_cull_mask"),&Light2D::get_item_cull_mask);
 
-	ObjectTypeDB::bind_method(_MD("set_shadow_filter","filter"),&Light2D::set_shadow_filter);
-	ObjectTypeDB::bind_method(_MD("get_shadow_filter"),&Light2D::get_shadow_filter);
+	ClassDB::bind_method(_MD("set_item_shadow_cull_mask","item_shadow_cull_mask"),&Light2D::set_item_shadow_cull_mask);
+	ClassDB::bind_method(_MD("get_item_shadow_cull_mask"),&Light2D::get_item_shadow_cull_mask);
 
-	ObjectTypeDB::bind_method(_MD("set_shadow_color","shadow_color"),&Light2D::set_shadow_color);
-	ObjectTypeDB::bind_method(_MD("get_shadow_color"),&Light2D::get_shadow_color);
+	ClassDB::bind_method(_MD("set_mode","mode"),&Light2D::set_mode);
+	ClassDB::bind_method(_MD("get_mode"),&Light2D::get_mode);
+
+	ClassDB::bind_method(_MD("set_shadow_enabled","enabled"),&Light2D::set_shadow_enabled);
+	ClassDB::bind_method(_MD("is_shadow_enabled"),&Light2D::is_shadow_enabled);
+
+	ClassDB::bind_method(_MD("set_shadow_buffer_size","size"),&Light2D::set_shadow_buffer_size);
+	ClassDB::bind_method(_MD("get_shadow_buffer_size"),&Light2D::get_shadow_buffer_size);
+
+	ClassDB::bind_method(_MD("set_shadow_gradient_length","multiplier"),&Light2D::set_shadow_gradient_length);
+	ClassDB::bind_method(_MD("get_shadow_gradient_length"),&Light2D::get_shadow_gradient_length);
+
+	ClassDB::bind_method(_MD("set_shadow_filter","filter"),&Light2D::set_shadow_filter);
+	ClassDB::bind_method(_MD("get_shadow_filter"),&Light2D::get_shadow_filter);
+
+	ClassDB::bind_method(_MD("set_shadow_color","shadow_color"),&Light2D::set_shadow_color);
+	ClassDB::bind_method(_MD("get_shadow_color"),&Light2D::get_shadow_color);
 
 
 	ADD_PROPERTY( PropertyInfo(Variant::BOOL,"enabled"),_SCS("set_enabled"),_SCS("is_enabled"));
@@ -436,18 +436,21 @@ void Light2D::_bind_methods() {
 	ADD_PROPERTY( PropertyInfo(Variant::COLOR,"color"),_SCS("set_color"),_SCS("get_color"));
 	ADD_PROPERTY( PropertyInfo(Variant::REAL,"energy",PROPERTY_HINT_RANGE,"0.01,100,0.01"),_SCS("set_energy"),_SCS("get_energy"));
 	ADD_PROPERTY( PropertyInfo(Variant::INT,"mode",PROPERTY_HINT_ENUM,"Add,Sub,Mix,Mask"),_SCS("set_mode"),_SCS("get_mode"));
-	ADD_PROPERTY( PropertyInfo(Variant::REAL,"range/height",PROPERTY_HINT_RANGE,"-100,100,0.1"),_SCS("set_height"),_SCS("get_height"));
-	ADD_PROPERTY( PropertyInfo(Variant::INT,"range/z_min",PROPERTY_HINT_RANGE,itos(VS::CANVAS_ITEM_Z_MIN)+","+itos(VS::CANVAS_ITEM_Z_MAX)+",1"),_SCS("set_z_range_min"),_SCS("get_z_range_min"));
-	ADD_PROPERTY( PropertyInfo(Variant::INT,"range/z_max",PROPERTY_HINT_RANGE,itos(VS::CANVAS_ITEM_Z_MIN)+","+itos(VS::CANVAS_ITEM_Z_MAX)+",1"),_SCS("set_z_range_max"),_SCS("get_z_range_max"));
-	ADD_PROPERTY( PropertyInfo(Variant::INT,"range/layer_min",PROPERTY_HINT_RANGE,"-512,512,1"),_SCS("set_layer_range_min"),_SCS("get_layer_range_min"));
-	ADD_PROPERTY( PropertyInfo(Variant::INT,"range/layer_max",PROPERTY_HINT_RANGE,"-512,512,1"),_SCS("set_layer_range_max"),_SCS("get_layer_range_max"));
-	ADD_PROPERTY( PropertyInfo(Variant::INT,"range/item_cull_mask",PROPERTY_HINT_ALL_FLAGS),_SCS("set_item_cull_mask"),_SCS("get_item_cull_mask"));
-	ADD_PROPERTY( PropertyInfo(Variant::BOOL,"shadow/enabled"),_SCS("set_shadow_enabled"),_SCS("is_shadow_enabled"));
-	ADD_PROPERTY( PropertyInfo(Variant::COLOR,"shadow/color"),_SCS("set_shadow_color"),_SCS("get_shadow_color"));
-	ADD_PROPERTY( PropertyInfo(Variant::INT,"shadow/buffer_size",PROPERTY_HINT_RANGE,"32,16384,1"),_SCS("set_shadow_buffer_size"),_SCS("get_shadow_buffer_size"));
-	ADD_PROPERTY( PropertyInfo(Variant::REAL,"shadow/gradient_length",PROPERTY_HINT_RANGE,"1,4096,0.1"),_SCS("set_shadow_gradient_length"),_SCS("get_shadow_gradient_length"));
-	ADD_PROPERTY( PropertyInfo(Variant::REAL,"shadow/filter",PROPERTY_HINT_ENUM,"None,PCF3,PCF5,PCF9,PCF13"),_SCS("set_shadow_filter"),_SCS("get_shadow_filter"));
-	ADD_PROPERTY( PropertyInfo(Variant::INT,"shadow/item_cull_mask",PROPERTY_HINT_ALL_FLAGS),_SCS("set_item_shadow_cull_mask"),_SCS("get_item_shadow_cull_mask"));
+	ADD_GROUP("Range","range_");
+	ADD_PROPERTY( PropertyInfo(Variant::REAL,"range_height",PROPERTY_HINT_RANGE,"-100,100,0.1"),_SCS("set_height"),_SCS("get_height"));
+	ADD_PROPERTY( PropertyInfo(Variant::INT,"range_z_min",PROPERTY_HINT_RANGE,itos(VS::CANVAS_ITEM_Z_MIN)+","+itos(VS::CANVAS_ITEM_Z_MAX)+",1"),_SCS("set_z_range_min"),_SCS("get_z_range_min"));
+	ADD_PROPERTY( PropertyInfo(Variant::INT,"range_z_max",PROPERTY_HINT_RANGE,itos(VS::CANVAS_ITEM_Z_MIN)+","+itos(VS::CANVAS_ITEM_Z_MAX)+",1"),_SCS("set_z_range_max"),_SCS("get_z_range_max"));
+	ADD_PROPERTY( PropertyInfo(Variant::INT,"range_layer_min",PROPERTY_HINT_RANGE,"-512,512,1"),_SCS("set_layer_range_min"),_SCS("get_layer_range_min"));
+	ADD_PROPERTY( PropertyInfo(Variant::INT,"range_layer_max",PROPERTY_HINT_RANGE,"-512,512,1"),_SCS("set_layer_range_max"),_SCS("get_layer_range_max"));
+	ADD_PROPERTY( PropertyInfo(Variant::INT,"range_item_cull_mask",PROPERTY_HINT_ALL_FLAGS),_SCS("set_item_cull_mask"),_SCS("get_item_cull_mask"));
+
+	ADD_GROUP("Shadow","shadow_");
+	ADD_PROPERTY( PropertyInfo(Variant::BOOL,"shadow_enabled"),_SCS("set_shadow_enabled"),_SCS("is_shadow_enabled"));
+	ADD_PROPERTY( PropertyInfo(Variant::COLOR,"shadow_color"),_SCS("set_shadow_color"),_SCS("get_shadow_color"));
+	ADD_PROPERTY( PropertyInfo(Variant::INT,"shadow_buffer_size",PROPERTY_HINT_RANGE,"32,16384,1"),_SCS("set_shadow_buffer_size"),_SCS("get_shadow_buffer_size"));
+	ADD_PROPERTY( PropertyInfo(Variant::REAL,"shadow_gradient_length",PROPERTY_HINT_RANGE,"1,4096,0.1"),_SCS("set_shadow_gradient_length"),_SCS("get_shadow_gradient_length"));
+	ADD_PROPERTY( PropertyInfo(Variant::REAL,"shadow_filter",PROPERTY_HINT_ENUM,"None,PCF3,PCF5,PCF9,PCF13"),_SCS("set_shadow_filter"),_SCS("get_shadow_filter"));
+	ADD_PROPERTY( PropertyInfo(Variant::INT,"shadow_item_cull_mask",PROPERTY_HINT_ALL_FLAGS),_SCS("set_item_shadow_cull_mask"),_SCS("get_item_shadow_cull_mask"));
 
 	BIND_CONSTANT( MODE_ADD );
 	BIND_CONSTANT( MODE_SUB );

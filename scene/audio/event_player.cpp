@@ -282,58 +282,58 @@ float EventPlayer::get_channel_last_note_time(int p_channel) const {
 
 void EventPlayer::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("set_stream","stream:EventStream"),&EventPlayer::set_stream);
-	ObjectTypeDB::bind_method(_MD("get_stream:EventStream"),&EventPlayer::get_stream);
+	ClassDB::bind_method(_MD("set_stream","stream:EventStream"),&EventPlayer::set_stream);
+	ClassDB::bind_method(_MD("get_stream:EventStream"),&EventPlayer::get_stream);
 
-	ObjectTypeDB::bind_method(_MD("play"),&EventPlayer::play);
-	ObjectTypeDB::bind_method(_MD("stop"),&EventPlayer::stop);
+	ClassDB::bind_method(_MD("play"),&EventPlayer::play);
+	ClassDB::bind_method(_MD("stop"),&EventPlayer::stop);
 
-	ObjectTypeDB::bind_method(_MD("is_playing"),&EventPlayer::is_playing);
+	ClassDB::bind_method(_MD("is_playing"),&EventPlayer::is_playing);
 
-	ObjectTypeDB::bind_method(_MD("set_paused","paused"),&EventPlayer::set_paused);
-	ObjectTypeDB::bind_method(_MD("is_paused"),&EventPlayer::is_paused);
+	ClassDB::bind_method(_MD("set_paused","paused"),&EventPlayer::set_paused);
+	ClassDB::bind_method(_MD("is_paused"),&EventPlayer::is_paused);
 
-	ObjectTypeDB::bind_method(_MD("set_loop","enabled"),&EventPlayer::set_loop);
-	ObjectTypeDB::bind_method(_MD("has_loop"),&EventPlayer::has_loop);
+	ClassDB::bind_method(_MD("set_loop","enabled"),&EventPlayer::set_loop);
+	ClassDB::bind_method(_MD("has_loop"),&EventPlayer::has_loop);
 
-	ObjectTypeDB::bind_method(_MD("set_volume","volume"),&EventPlayer::set_volume);
-	ObjectTypeDB::bind_method(_MD("get_volume"),&EventPlayer::get_volume);
+	ClassDB::bind_method(_MD("set_volume","volume"),&EventPlayer::set_volume);
+	ClassDB::bind_method(_MD("get_volume"),&EventPlayer::get_volume);
 
-	ObjectTypeDB::bind_method(_MD("set_pitch_scale","pitch_scale"),&EventPlayer::set_pitch_scale);
-	ObjectTypeDB::bind_method(_MD("get_pitch_scale"),&EventPlayer::get_pitch_scale);
+	ClassDB::bind_method(_MD("set_pitch_scale","pitch_scale"),&EventPlayer::set_pitch_scale);
+	ClassDB::bind_method(_MD("get_pitch_scale"),&EventPlayer::get_pitch_scale);
 
-	ObjectTypeDB::bind_method(_MD("set_tempo_scale","tempo_scale"),&EventPlayer::set_tempo_scale);
-	ObjectTypeDB::bind_method(_MD("get_tempo_scale"),&EventPlayer::get_tempo_scale);
+	ClassDB::bind_method(_MD("set_tempo_scale","tempo_scale"),&EventPlayer::set_tempo_scale);
+	ClassDB::bind_method(_MD("get_tempo_scale"),&EventPlayer::get_tempo_scale);
 
-	ObjectTypeDB::bind_method(_MD("set_volume_db","db"),&EventPlayer::set_volume_db);
-	ObjectTypeDB::bind_method(_MD("get_volume_db"),&EventPlayer::get_volume_db);
+	ClassDB::bind_method(_MD("set_volume_db","db"),&EventPlayer::set_volume_db);
+	ClassDB::bind_method(_MD("get_volume_db"),&EventPlayer::get_volume_db);
 
-	ObjectTypeDB::bind_method(_MD("get_stream_name"),&EventPlayer::get_stream_name);
-	ObjectTypeDB::bind_method(_MD("get_loop_count"),&EventPlayer::get_loop_count);
+	ClassDB::bind_method(_MD("get_stream_name"),&EventPlayer::get_stream_name);
+	ClassDB::bind_method(_MD("get_loop_count"),&EventPlayer::get_loop_count);
 
-	ObjectTypeDB::bind_method(_MD("get_pos"),&EventPlayer::get_pos);
-	ObjectTypeDB::bind_method(_MD("seek_pos","time"),&EventPlayer::seek_pos);
+	ClassDB::bind_method(_MD("get_pos"),&EventPlayer::get_pos);
+	ClassDB::bind_method(_MD("seek_pos","time"),&EventPlayer::seek_pos);
 
-	ObjectTypeDB::bind_method(_MD("get_length"),&EventPlayer::get_length);
+	ClassDB::bind_method(_MD("get_length"),&EventPlayer::get_length);
 
-	ObjectTypeDB::bind_method(_MD("set_autoplay","enabled"),&EventPlayer::set_autoplay);
-	ObjectTypeDB::bind_method(_MD("has_autoplay"),&EventPlayer::has_autoplay);
+	ClassDB::bind_method(_MD("set_autoplay","enabled"),&EventPlayer::set_autoplay);
+	ClassDB::bind_method(_MD("has_autoplay"),&EventPlayer::has_autoplay);
 
-	ObjectTypeDB::bind_method(_MD("set_channel_volume","channel","channel_volume"),&EventPlayer::set_channel_volume);
-	ObjectTypeDB::bind_method(_MD("get_channel_volume","channel"),&EventPlayer::get_channel_volume);
-	ObjectTypeDB::bind_method(_MD("get_channel_last_note_time","channel"),&EventPlayer::get_channel_last_note_time);
+	ClassDB::bind_method(_MD("set_channel_volume","channel","channel_volume"),&EventPlayer::set_channel_volume);
+	ClassDB::bind_method(_MD("get_channel_volume","channel"),&EventPlayer::get_channel_volume);
+	ClassDB::bind_method(_MD("get_channel_last_note_time","channel"),&EventPlayer::get_channel_last_note_time);
 
-	ObjectTypeDB::bind_method(_MD("_set_play","play"),&EventPlayer::_set_play);
-	ObjectTypeDB::bind_method(_MD("_get_play"),&EventPlayer::_get_play);
+	ClassDB::bind_method(_MD("_set_play","play"),&EventPlayer::_set_play);
+	ClassDB::bind_method(_MD("_get_play"),&EventPlayer::_get_play);
 
-	ADD_PROPERTY( PropertyInfo(Variant::OBJECT, "stream/stream", PROPERTY_HINT_RESOURCE_TYPE,"EventStream"), _SCS("set_stream"), _SCS("get_stream") );
-	ADD_PROPERTY( PropertyInfo(Variant::BOOL, "stream/play"), _SCS("_set_play"), _SCS("_get_play") );
-	ADD_PROPERTY( PropertyInfo(Variant::BOOL, "stream/loop"), _SCS("set_loop"), _SCS("has_loop") );
-	ADD_PROPERTY( PropertyInfo(Variant::REAL, "stream/volume_db", PROPERTY_HINT_RANGE,"-80,24,0.01"), _SCS("set_volume_db"), _SCS("get_volume_db") );
-	ADD_PROPERTY( PropertyInfo(Variant::REAL, "stream/pitch_scale", PROPERTY_HINT_RANGE,"0.001,16,0.001"), _SCS("set_pitch_scale"), _SCS("get_pitch_scale") );
-	ADD_PROPERTY( PropertyInfo(Variant::REAL, "stream/tempo_scale", PROPERTY_HINT_RANGE,"0.001,16,0.001"), _SCS("set_tempo_scale"), _SCS("get_tempo_scale") );
-	ADD_PROPERTY( PropertyInfo(Variant::BOOL, "stream/autoplay"), _SCS("set_autoplay"), _SCS("has_autoplay") );
-	ADD_PROPERTY( PropertyInfo(Variant::BOOL, "stream/paused"), _SCS("set_paused"), _SCS("is_paused") );
+	ADD_PROPERTY( PropertyInfo(Variant::OBJECT, "stream", PROPERTY_HINT_RESOURCE_TYPE,"EventStream"), _SCS("set_stream"), _SCS("get_stream") );
+	ADD_PROPERTY( PropertyInfo(Variant::BOOL, "play"), _SCS("_set_play"), _SCS("_get_play") );
+	ADD_PROPERTY( PropertyInfo(Variant::BOOL, "loop"), _SCS("set_loop"), _SCS("has_loop") );
+	ADD_PROPERTY( PropertyInfo(Variant::REAL, "volume_db", PROPERTY_HINT_RANGE,"-80,24,0.01"), _SCS("set_volume_db"), _SCS("get_volume_db") );
+	ADD_PROPERTY( PropertyInfo(Variant::REAL, "pitch_scale", PROPERTY_HINT_RANGE,"0.001,16,0.001"), _SCS("set_pitch_scale"), _SCS("get_pitch_scale") );
+	ADD_PROPERTY( PropertyInfo(Variant::REAL, "tempo_scale", PROPERTY_HINT_RANGE,"0.001,16,0.001"), _SCS("set_tempo_scale"), _SCS("get_tempo_scale") );
+	ADD_PROPERTY( PropertyInfo(Variant::BOOL, "autoplay"), _SCS("set_autoplay"), _SCS("has_autoplay") );
+	ADD_PROPERTY( PropertyInfo(Variant::BOOL, "paused"), _SCS("set_paused"), _SCS("is_paused") );
 }
 
 

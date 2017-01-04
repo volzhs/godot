@@ -66,7 +66,7 @@ void Range::Shared::emit_changed(const char *p_what) {
 }
 
 
-void Range::set_val(double p_val) {
+void Range::set_value(double p_val) {
 
 	if(_rounded_values){
 		p_val = Math::round(p_val);
@@ -88,14 +88,14 @@ void Range::set_val(double p_val) {
 void Range::set_min(double p_min) {
 
 	shared->min=p_min;
-	set_val(shared->val);
+	set_value(shared->val);
 
 	shared->emit_changed("range/min");
 }
 void Range::set_max(double p_max) {
 
 	shared->max=p_max;
-	set_val(shared->val);
+	set_value(shared->val);
 
 	shared->emit_changed("range/max");
 
@@ -109,12 +109,12 @@ void Range::set_step(double p_step) {
 void Range::set_page(double p_page) {
 
 	shared->page=p_page;
-	set_val(shared->val);
+	set_value(shared->val);
 
 	shared->emit_changed("range/page");
 }
 
-double Range::get_val() const {
+double Range::get_value() const {
 
 	return shared->val;
 }
@@ -154,7 +154,7 @@ void Range::set_unit_value(double p_value) {
 			v = percent + get_min();
 		}
 	}
-	set_val( v );
+	set_value( v );
 }
 double Range::get_unit_value() const {
 
@@ -162,13 +162,13 @@ double Range::get_unit_value() const {
 
 		double exp_min = Math::log(get_min())/Math::log(2);
 		double exp_max = Math::log(get_max())/Math::log(2);
-		double v = Math::log(get_val())/Math::log(2);
+		double v = Math::log(get_value())/Math::log(2);
 
 		return (v - exp_min) / (exp_max - exp_min);
 
 	} else {
 
-		return (get_val() - get_min()) / (get_max() - get_min());
+		return (get_value() - get_min()) / (get_max() - get_min());
 	}
 }
 
@@ -222,38 +222,36 @@ void Range::_unref_shared() {
 
 void Range::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("get_val"),&Range::get_val);
-	ObjectTypeDB::bind_method(_MD("get_value"),&Range::get_val);
-	ObjectTypeDB::bind_method(_MD("get_min"),&Range::get_min);
-	ObjectTypeDB::bind_method(_MD("get_max"),&Range::get_max);
-	ObjectTypeDB::bind_method(_MD("get_step"),&Range::get_step);
-	ObjectTypeDB::bind_method(_MD("get_page"),&Range::get_page);
-	ObjectTypeDB::bind_method(_MD("get_unit_value"),&Range::get_unit_value);
-	ObjectTypeDB::bind_method(_MD("set_val","value"),&Range::set_val);
-	ObjectTypeDB::bind_method(_MD("set_value","value"),&Range::set_val);
-	ObjectTypeDB::bind_method(_MD("set_min","minimum"),&Range::set_min);
-	ObjectTypeDB::bind_method(_MD("set_max","maximum"),&Range::set_max);
-	ObjectTypeDB::bind_method(_MD("set_step","step"),&Range::set_step);
-	ObjectTypeDB::bind_method(_MD("set_page","pagesize"),&Range::set_page);
-	ObjectTypeDB::bind_method(_MD("set_unit_value","value"),&Range::set_unit_value);
-	ObjectTypeDB::bind_method(_MD("set_rounded_values","enabled"),&Range::set_rounded_values);
-	ObjectTypeDB::bind_method(_MD("is_rounded_values"),&Range::is_rounded_values);
-	ObjectTypeDB::bind_method(_MD("set_exp_unit_value","enabled"),&Range::set_exp_unit_value);
-	ObjectTypeDB::bind_method(_MD("is_unit_value_exp"),&Range::is_unit_value_exp);
+	ClassDB::bind_method(_MD("get_value"),&Range::get_value);
+	ClassDB::bind_method(_MD("get_min"),&Range::get_min);
+	ClassDB::bind_method(_MD("get_max"),&Range::get_max);
+	ClassDB::bind_method(_MD("get_step"),&Range::get_step);
+	ClassDB::bind_method(_MD("get_page"),&Range::get_page);
+	ClassDB::bind_method(_MD("get_unit_value"),&Range::get_unit_value);
+	ClassDB::bind_method(_MD("set_value","value"),&Range::set_value);
+	ClassDB::bind_method(_MD("set_min","minimum"),&Range::set_min);
+	ClassDB::bind_method(_MD("set_max","maximum"),&Range::set_max);
+	ClassDB::bind_method(_MD("set_step","step"),&Range::set_step);
+	ClassDB::bind_method(_MD("set_page","pagesize"),&Range::set_page);
+	ClassDB::bind_method(_MD("set_unit_value","value"),&Range::set_unit_value);
+	ClassDB::bind_method(_MD("set_rounded_values","enabled"),&Range::set_rounded_values);
+	ClassDB::bind_method(_MD("is_rounded_values"),&Range::is_rounded_values);
+	ClassDB::bind_method(_MD("set_exp_unit_value","enabled"),&Range::set_exp_unit_value);
+	ClassDB::bind_method(_MD("is_unit_value_exp"),&Range::is_unit_value_exp);
 
-	ObjectTypeDB::bind_method(_MD("share","with"),&Range::_share);
-	ObjectTypeDB::bind_method(_MD("unshare"),&Range::unshare);
+	ClassDB::bind_method(_MD("share","with"),&Range::_share);
+	ClassDB::bind_method(_MD("unshare"),&Range::unshare);
 
 	ADD_SIGNAL( MethodInfo("value_changed", PropertyInfo(Variant::REAL,"value")));
 	ADD_SIGNAL( MethodInfo("changed"));
 
-	ADD_PROPERTY( PropertyInfo( Variant::REAL, "range/min" ), _SCS("set_min"), _SCS("get_min") );
-	ADD_PROPERTY( PropertyInfo( Variant::REAL, "range/max" ), _SCS("set_max"), _SCS("get_max") );
-	ADD_PROPERTY( PropertyInfo( Variant::REAL, "range/step" ), _SCS("set_step"), _SCS("get_step") );
-	ADD_PROPERTY( PropertyInfo( Variant::REAL, "range/page" ), _SCS("set_page"), _SCS("get_page") );
-	ADD_PROPERTY( PropertyInfo( Variant::REAL, "range/value" ), _SCS("set_val"), _SCS("get_val") );
-	ADD_PROPERTY( PropertyInfo( Variant::BOOL, "range/exp_edit" ), _SCS("set_exp_unit_value"), _SCS("is_unit_value_exp") );
-	ADD_PROPERTY( PropertyInfo( Variant::BOOL, "range/rounded" ), _SCS("set_rounded_values"), _SCS("is_rounded_values") );
+	ADD_PROPERTY( PropertyInfo( Variant::REAL, "min_value" ), _SCS("set_min"), _SCS("get_min") );
+	ADD_PROPERTY( PropertyInfo( Variant::REAL, "max_value" ), _SCS("set_max"), _SCS("get_max") );
+	ADD_PROPERTY( PropertyInfo( Variant::REAL, "step" ), _SCS("set_step"), _SCS("get_step") );
+	ADD_PROPERTY( PropertyInfo( Variant::REAL, "page" ), _SCS("set_page"), _SCS("get_page") );
+	ADD_PROPERTY( PropertyInfo( Variant::REAL, "value" ), _SCS("set_value"), _SCS("get_value") );
+	ADD_PROPERTY( PropertyInfo( Variant::BOOL, "exp_edit" ), _SCS("set_exp_unit_value"), _SCS("is_unit_value_exp") );
+	ADD_PROPERTY( PropertyInfo( Variant::BOOL, "rounded" ), _SCS("set_rounded_values"), _SCS("is_rounded_values") );
 
 }
 
