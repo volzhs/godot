@@ -136,9 +136,13 @@ void RasterizerGLES3::initialize() {
 		ERR_PRINT("Error initializing GLAD");
 	}
 
+#ifdef __APPLE__
+	// FIXME glDebugMessageCallbackARB does not seem to work on Mac OS X and opengl 3, this may be an issue with our opengl canvas..
+#else
 	glEnable(_EXT_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
 	glDebugMessageCallbackARB(_gl_debug_print, NULL);
 	glEnable(_EXT_DEBUG_OUTPUT);
+#endif
 
 #endif
 
@@ -334,9 +338,9 @@ void RasterizerGLES3::make_current() {
 void RasterizerGLES3::register_config() {
 
 	GLOBAL_DEF("rendering/gles3/render_architecture",0);
-	Globals::get_singleton()->set_custom_property_info("rendering/gles3/render_architecture",PropertyInfo(Variant::INT,"",PROPERTY_HINT_ENUM,"Desktop,Mobile"));
-	GLOBAL_DEF("rendering/gles3/use_nearest_mipmap_filter",false);
-	GLOBAL_DEF("rendering/gles3/anisotropic_filter_level",4.0);
+	GlobalConfig::get_singleton()->set_custom_property_info("rendering/gles3/render_architecture",PropertyInfo(Variant::INT,"",PROPERTY_HINT_ENUM,"Desktop,Mobile"));
+	GLOBAL_DEF("rendering/quality/use_nearest_mipmap_filter",false);
+	GLOBAL_DEF("rendering/quality/anisotropic_filter_level",4.0);
 
 }
 
