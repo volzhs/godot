@@ -1468,13 +1468,13 @@ void TextEdit::_get_mouse_pos(const Point2i& p_mouse, int &r_row, int &r_col) co
 	r_col=col;
 }
 
-void TextEdit::_input_event(const InputEvent& p_input_event) {
+void TextEdit::_gui_input(const InputEvent& p_gui_input) {
 
-	switch(p_input_event.type) {
+	switch(p_gui_input.type) {
 
 		case InputEvent::MOUSE_BUTTON: {
 
-			const InputEventMouseButton &mb=p_input_event.mouse_button;
+			const InputEventMouseButton &mb=p_gui_input.mouse_button;
 
 			if (completion_active && completion_rect.has_point(Point2(mb.x,mb.y))) {
 
@@ -1685,7 +1685,7 @@ void TextEdit::_input_event(const InputEvent& p_input_event) {
 		} break;
 		case InputEvent::MOUSE_MOTION: {
 
-			const InputEventMouseMotion &mm=p_input_event.mouse_motion;
+			const InputEventMouseMotion &mm=p_gui_input.mouse_motion;
 
 			if (select_identifiers_enabled) {
 				if (mm.mod.command && mm.button_mask==0) {
@@ -1728,7 +1728,7 @@ void TextEdit::_input_event(const InputEvent& p_input_event) {
 
 		case InputEvent::KEY: {
 
-			InputEventKey k=p_input_event.key;
+			InputEventKey k=p_gui_input.key;
 
 
 #ifdef OSX_ENABLED
@@ -3794,11 +3794,11 @@ int TextEdit::_get_column_pos_of_word(const String &p_key, const String &p_searc
 	return col;
 }
 
-DVector<int> TextEdit::_search_bind(const String &p_key,uint32_t p_search_flags, int p_from_line,int p_from_column) const {
+PoolVector<int> TextEdit::_search_bind(const String &p_key,uint32_t p_search_flags, int p_from_line,int p_from_column) const {
 
 	int col,line;
 	if (search(p_key,p_search_flags,p_from_line,p_from_column,col,line)) {
-		DVector<int> result;
+		PoolVector<int> result;
 		result.resize(2);
 		result.set(0,line);
 		result.set(1,col);
@@ -3806,7 +3806,7 @@ DVector<int> TextEdit::_search_bind(const String &p_key,uint32_t p_search_flags,
 
 	} else {
 
-		return DVector<int>();
+		return PoolVector<int>();
 	}
 }
 
@@ -4230,7 +4230,6 @@ void TextEdit::_update_completion_candidates() {
 	String l = text[cursor.line];
 	int cofs = CLAMP(cursor.column,0,l.length());
 
-
 	String s;
 
 	//look for keywords first
@@ -4279,14 +4278,14 @@ void TextEdit::_update_completion_candidates() {
 
 		while(cofs>0 && l[cofs-1]>32 && _is_completable(l[cofs-1])) {
 			s=String::chr(l[cofs-1])+s;
-			if (l[cofs-1]=='\'' || l[cofs-1]=='"')
+			if (l[cofs-1]=='\'' || l[cofs-1]=='"' || l[cofs-1]=='$')
 				break;
 
 			cofs--;
 		}
 	}
 
-	if (cursor.column > 0 && l[cursor.column - 1] == '(' && !pre_keyword && !completion_strings[0].begins_with("\"")) {
+	if (cursor.column > 0 && l[cursor.column - 1] == '(' && !pre_keyword &&  !completion_strings[0].begins_with("\"")) {
 		cancel = true;
 	}
 
@@ -4308,8 +4307,9 @@ void TextEdit::_update_completion_candidates() {
 			_cancel_completion();
 			return;
 		}
+
 		if (s.is_subsequence_ofi(completion_strings[i])) {
-			// don't remove duplicates if no input is provided
+				// don't remove duplicates if no input is provided
 			if (s != "" && completion_options.find(completion_strings[i]) != -1) {
 				continue;
 			}
@@ -4345,6 +4345,7 @@ void TextEdit::_update_completion_candidates() {
 	if (completion_options.size()==0) {
 		//no options to complete, cancel
 		_cancel_completion();
+
 		return;
 
 	}
@@ -4607,7 +4608,7 @@ PopupMenu *TextEdit::get_menu() const {
 void TextEdit::_bind_methods() {
 
 
-	ClassDB::bind_method(_MD("_input_event"),&TextEdit::_input_event);
+	ClassDB::bind_method(_MD("_gui_input"),&TextEdit::_gui_input);
 	ClassDB::bind_method(_MD("_scroll_moved"),&TextEdit::_scroll_moved);
 	ClassDB::bind_method(_MD("_cursor_changed_emit"),&TextEdit::_cursor_changed_emit);
 	ClassDB::bind_method(_MD("_text_changed_emit"),&TextEdit::_text_changed_emit);
@@ -4835,7 +4836,7 @@ TextEdit::TextEdit()  {
 	menu->add_item(TTR("Clear"),MENU_CLEAR);
 	menu->add_separator();
 	menu->add_item(TTR("Undo"),MENU_UNDO,KEY_MASK_CMD|KEY_Z);
-	menu->connect("item_pressed",this,"menu_option");
+	menu->connect("id_pressed",this,"menu_option");
 
 
 }

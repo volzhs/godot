@@ -70,7 +70,7 @@ class NavigationPolygonEditor : public HBoxContainer {
 	int edited_outline;
 	int edited_point;
 	Vector2 edited_point_pos;
-	DVector<Vector2> pre_move_edit;
+	PoolVector<Vector2> pre_move_edit;
 	Vector<Vector2> wip;
 	bool wip_active;
 
@@ -87,7 +87,7 @@ protected:
 	static void _bind_methods();
 public:
 
-	bool forward_input_event(const InputEvent& p_event);
+	bool forward_gui_input(const InputEvent& p_event);
 	void edit(Node *p_collision_polygon);
 	NavigationPolygonEditor(EditorNode *p_editor);
 };
@@ -101,7 +101,7 @@ class NavigationPolygonEditorPlugin : public EditorPlugin {
 
 public:
 
-	virtual bool forward_canvas_input_event(const Matrix32& p_canvas_xform,const InputEvent& p_event) { return collision_polygon_editor->forward_input_event(p_event); }
+	virtual bool forward_canvas_gui_input(const Matrix32& p_canvas_xform,const InputEvent& p_event) { return collision_polygon_editor->forward_gui_input(p_event); }
 
 	virtual String get_name() const { return "NavigationPolygonInstance"; }
 	bool has_main_screen() const { return false; }

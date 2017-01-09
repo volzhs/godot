@@ -1605,17 +1605,17 @@ void Viewport::_gui_call_input(Control *p_control,const InputEvent& p_input) {
 
 		Control *control = ci->cast_to<Control>();
 		if (control) {
-			control->call_multilevel(SceneStringNames::get_singleton()->_input_event,ev);
+			control->call_multilevel(SceneStringNames::get_singleton()->_gui_input,ev);
 			if (gui.key_event_accepted)
 				break;
 			if (!control->is_inside_tree())
 				break;
-			control->emit_signal(SceneStringNames::get_singleton()->input_event,ev);
+			control->emit_signal(SceneStringNames::get_singleton()->gui_input,ev);
 			if (!control->is_inside_tree() || control->is_set_as_toplevel())
 				break;
 			if (gui.key_event_accepted)
 				break;
-			if (!cant_stop_me_now && control->data.stop_mouse && (ev.type==InputEvent::MOUSE_BUTTON || ev.type==InputEvent::MOUSE_MOTION))
+			if (!cant_stop_me_now && control->data.mouse_filter==Control::MOUSE_FILTER_STOP && (ev.type==InputEvent::MOUSE_BUTTON || ev.type==InputEvent::MOUSE_MOTION))
 				break;
 		}
 
@@ -1724,7 +1724,7 @@ Control* Viewport::_gui_find_control_at_pos(CanvasItem* p_node,const Point2& p_g
 	matrix.affine_invert();
 
 	//conditions for considering this as a valid control for return
-	if (!c->data.ignore_mouse && c->has_point(matrix.xform(p_global)) && (!gui.drag_preview || (c!=gui.drag_preview && !gui.drag_preview->is_a_parent_of(c)))) {
+	if (c->data.mouse_filter!=Control::MOUSE_FILTER_IGNORE && c->has_point(matrix.xform(p_global)) && (!gui.drag_preview || (c!=gui.drag_preview && !gui.drag_preview->is_a_parent_of(c)))) {
 		r_inv_xform=matrix;
 		return c;
 	} else
@@ -2086,8 +2086,8 @@ void Viewport::_gui_input_event(InputEvent p_event) {
 
 		} break;
 		case InputEvent::ACTION:
-		case InputEvent::JOYSTICK_BUTTON:
-		case InputEvent::JOYSTICK_MOTION:
+		case InputEvent::JOYPAD_BUTTON:
+		case InputEvent::JOYPAD_MOTION:
 		case InputEvent::KEY: {
 
 
@@ -2099,9 +2099,9 @@ void Viewport::_gui_input_event(InputEvent p_event) {
 
 				gui.key_event_accepted=false;
 				if (gui.key_focus->can_process()) {
-					gui.key_focus->call_multilevel("_input_event",p_event);
+					gui.key_focus->call_multilevel(SceneStringNames::get_singleton()->_gui_input,p_event);
 					if (gui.key_focus) //maybe lost it
-						gui.key_focus->emit_signal(SceneStringNames::get_singleton()->input_event,p_event);
+						gui.key_focus->emit_signal(SceneStringNames::get_singleton()->gui_input,p_event);
 				}
 
 
@@ -2409,7 +2409,7 @@ void Viewport::_gui_grab_click_focus(Control *p_control) {
 		mb.y=click.y;
 		mb.button_index=gui.mouse_focus_button;
 		mb.pressed=false;
-		gui.mouse_focus->call_deferred("_input_event",ie);
+		gui.mouse_focus->call_deferred(SceneStringNames::get_singleton()->_gui_input,ie);
 
 
 		gui.mouse_focus=p_control;
@@ -2419,7 +2419,7 @@ void Viewport::_gui_grab_click_focus(Control *p_control) {
 		mb.y=click.y;
 		mb.button_index=gui.mouse_focus_button;
 		mb.pressed=true;
-		gui.mouse_focus->call_deferred("_input_event",ie);
+		gui.mouse_focus->call_deferred(SceneStringNames::get_singleton()->_gui_input,ie);
 
 	}
 }

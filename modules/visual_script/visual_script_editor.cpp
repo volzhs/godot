@@ -485,8 +485,8 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 			gnode->set_overlay(GraphNode::OVERLAY_BREAKPOINT);
 		}
 
-		if (EditorSettings::get_singleton()->has("visual_script_editor/color_"+node->get_category())) {
-			gnode->set_modulate(EditorSettings::get_singleton()->get("visual_script_editor/color_"+node->get_category()));
+		if (EditorSettings::get_singleton()->has("editors/visual_script/color_"+node->get_category())) {
+			gnode->set_modulate(EditorSettings::get_singleton()->get("editors/visual_script/color_"+node->get_category()));
 		}
 
 
@@ -3306,7 +3306,7 @@ VisualScriptEditor::VisualScriptEditor() {
 	edit_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("visual_script_editor/cut_nodes"), EDIT_CUT_NODES);
 	edit_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("visual_script_editor/paste_nodes"), EDIT_PASTE_NODES);
 
-	edit_menu->get_popup()->connect("item_pressed",this,"_menu_option");
+	edit_menu->get_popup()->connect("id_pressed",this,"_menu_option");
 
 	main_hsplit = memnew( HSplitContainer );
 	add_child(main_hsplit);
@@ -3446,7 +3446,7 @@ VisualScriptEditor::VisualScriptEditor() {
 	undo_redo = EditorNode::get_singleton()->get_undo_redo();
 
 	new_function_menu = memnew( PopupMenu );
-	new_function_menu->connect("item_pressed",this,"_override_pressed");
+	new_function_menu->connect("id_pressed",this,"_override_pressed");
 	add_child(new_function_menu);
 	updating_members=false;
 
@@ -3468,7 +3468,7 @@ VisualScriptEditor::VisualScriptEditor() {
 
 	port_action_popup = memnew( PopupMenu );
 	add_child(port_action_popup);
-	port_action_popup->connect("item_pressed",this,"_port_action_menu");
+	port_action_popup->connect("id_pressed",this,"_port_action_menu");
 
 
 }
@@ -3500,12 +3500,12 @@ void VisualScriptEditor::free_clipboard() {
 static void register_editor_callback() {
 
 	ScriptEditor::register_create_script_editor_function(create_editor);
-	EditorSettings::get_singleton()->set("visual_script_editor/color_functions",Color(1,0.9,0.9));
-	EditorSettings::get_singleton()->set("visual_script_editor/color_data",Color(0.9,1.0,0.9));
-	EditorSettings::get_singleton()->set("visual_script_editor/color_operators",Color(0.9,0.9,1.0));
-	EditorSettings::get_singleton()->set("visual_script_editor/color_flow_control",Color(1.0,1.0,0.8));
-	EditorSettings::get_singleton()->set("visual_script_editor/color_custom",Color(0.8,1.0,1.0));
-	EditorSettings::get_singleton()->set("visual_script_editor/color_constants",Color(1.0,0.8,1.0));
+	EditorSettings::get_singleton()->set("editors/visual_script/color_functions",Color(1,0.9,0.9));
+	EditorSettings::get_singleton()->set("editors/visual_script/color_data",Color(0.9,1.0,0.9));
+	EditorSettings::get_singleton()->set("editors/visual_script/color_operators",Color(0.9,0.9,1.0));
+	EditorSettings::get_singleton()->set("editors/visual_script/color_flow_control",Color(1.0,1.0,0.8));
+	EditorSettings::get_singleton()->set("editors/visual_script/color_custom",Color(0.8,1.0,1.0));
+	EditorSettings::get_singleton()->set("editors/visual_script/color_constants",Color(1.0,0.8,1.0));
 
 
 	ED_SHORTCUT("visual_script_editor/delete_selected", TTR("Delete Selected"));

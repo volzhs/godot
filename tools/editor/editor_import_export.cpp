@@ -783,7 +783,7 @@ Error EditorExportPlatform::export_project_files(EditorExportSaveFunction p_func
 
 		if (atlas_valid) {
 			//compare options
-			Dictionary options;
+			/*Dictionary options;
 			options.parse_json(f->get_line());
 			if (!options.has("lossy_quality") || float(options["lossy_quality"])!=group_lossy_quality)
 				atlas_valid=false;
@@ -794,7 +794,7 @@ Error EditorExportPlatform::export_project_files(EditorExportSaveFunction p_func
 
 			if (!atlas_valid)
 				print_line("JSON INVALID");
-
+*/
 		}
 
 
@@ -921,7 +921,7 @@ Error EditorExportPlatform::export_project_files(EditorExportSaveFunction p_func
 			options["lossy_quality"]=group_lossy_quality;
 			options["shrink"]=EditorImportExport::get_singleton()->image_export_group_get_shrink(E->get());
 			options["image_format"]=group_format;
-			f->store_line(options.to_json());
+//			f->store_line(options.to_json());
 			f->store_line(image_list_md5);
 		}
 
@@ -1115,8 +1115,8 @@ void EditorExportPlatform::gen_export_flags(Vector<String> &r_flags, int p_flags
 		host="localhost";
 
 	if (p_flags&EXPORT_DUMB_CLIENT) {
-		int port = EditorSettings::get_singleton()->get("file_server/port");
-		String passwd = EditorSettings::get_singleton()->get("file_server/password");
+		int port = EditorSettings::get_singleton()->get("filesystem/file_server/port");
+		String passwd = EditorSettings::get_singleton()->get("filesystem/file_server/password");
 		r_flags.push_back("-rfs");
 		r_flags.push_back(host+":"+itos(port));
 		if (passwd!="") {
@@ -2174,9 +2174,9 @@ bool EditorImportExport::sample_get_trim() const{
 	return sample_action_trim;
 }
 
-DVector<String> EditorImportExport::_get_export_file_list() {
+PoolVector<String> EditorImportExport::_get_export_file_list() {
 
-	DVector<String> fl;
+	PoolVector<String> fl;
 	for (Map<StringName,FileAction>::Element *E=files.front();E;E=E->next()) {
 
 		fl.push_back(E->key());
@@ -2185,9 +2185,9 @@ DVector<String> EditorImportExport::_get_export_file_list() {
 	return fl;
 }
 
-DVector<String> EditorImportExport::_get_export_platforms() {
+PoolVector<String> EditorImportExport::_get_export_platforms() {
 
-	DVector<String> ep;
+	PoolVector<String> ep;
 	for (Map<StringName,Ref<EditorExportPlatform> >::Element *E=exporters.front();E;E=E->next()) {
 
 		ep.push_back(E->key());

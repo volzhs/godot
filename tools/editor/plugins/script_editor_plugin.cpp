@@ -183,7 +183,7 @@ void ScriptEditorQuickOpen::_sbox_input(const InputEvent& p_ie) {
 		p_ie.key.scancode == KEY_PAGEUP ||
 		p_ie.key.scancode == KEY_PAGEDOWN ) ) {
 
-		search_options->call("_input_event",p_ie);
+		search_options->call("_gui_input",p_ie);
 		search_box->accept_event();
 	}
 
@@ -258,7 +258,7 @@ ScriptEditorQuickOpen::ScriptEditorQuickOpen() {
 	search_box = memnew( LineEdit );
 	vbc->add_margin_child(TTR("Search:"),search_box);
 	search_box->connect("text_changed",this,"_text_changed");
-	search_box->connect("input_event",this,"_sbox_input");
+	search_box->connect("gui_input",this,"_sbox_input");
 	search_options = memnew( Tree );
 	vbc->add_margin_child(TTR("Matches:"),search_options,true);
 	get_ok()->set_text(TTR("Open"));
@@ -672,7 +672,7 @@ bool ScriptEditor::_test_script_times_on_disk(Ref<Script> p_for_script) {
 
 	bool need_ask=false;
 	bool need_reload=false;
-	bool use_autoreload=bool(EDITOR_DEF("text_editor/auto_reload_scripts_on_external_change",false));
+	bool use_autoreload=bool(EDITOR_DEF("text_editor/files/auto_reload_scripts_on_external_change",false));
 
 
 
@@ -783,7 +783,7 @@ void ScriptEditor::_menu_option(int p_option) {
 			file_dialog_option = FILE_SAVE_THEME_AS;
 			file_dialog->clear_filters();
 			file_dialog->add_filter("*.tet");
-			file_dialog->set_current_path(EditorSettings::get_singleton()->get_settings_path() + "/text_editor_themes/" + EditorSettings::get_singleton()->get("text_editor/color_theme"));
+			file_dialog->set_current_path(EditorSettings::get_singleton()->get_settings_path() + "/text_editor_themes/" + EditorSettings::get_singleton()->get("text_editor/theme/color_theme"));
 			file_dialog->popup_centered_ratio();
 			file_dialog->set_title(TTR("Save Theme As.."));
 		} break;
@@ -991,7 +991,7 @@ void ScriptEditor::_notification(int p_what) {
 		script_split->connect("dragged",this,"_script_split_dragged");
 		autosave_timer->connect("timeout",this,"_autosave_scripts");
 		{
-			float autosave_time = EditorSettings::get_singleton()->get("text_editor/autosave_interval_secs");
+			float autosave_time = EditorSettings::get_singleton()->get("text_editor/files/autosave_interval_secs");
 			if (autosave_time>0) {
 				autosave_timer->set_wait_time(autosave_time);
 				autosave_timer->start();
@@ -1343,12 +1343,12 @@ struct _ScriptEditorItemData {
 
 void ScriptEditor::_update_script_colors() {
 
-	bool script_temperature_enabled = EditorSettings::get_singleton()->get("text_editor/script_temperature_enabled");
-	bool highlight_current = EditorSettings::get_singleton()->get("text_editor/highlight_current_script");
+	bool script_temperature_enabled = EditorSettings::get_singleton()->get("text_editor/open_scripts/script_temperature_enabled");
+	bool highlight_current = EditorSettings::get_singleton()->get("text_editor/open_scripts/highlight_current_script");
 
-	int hist_size = EditorSettings::get_singleton()->get("text_editor/script_temperature_history_size");
-	Color hot_color=EditorSettings::get_singleton()->get("text_editor/script_temperature_hot_color");
-	Color cold_color=EditorSettings::get_singleton()->get("text_editor/script_temperature_cold_color");
+	int hist_size = EditorSettings::get_singleton()->get("text_editor/open_scripts/script_temperature_history_size");
+	Color hot_color=EditorSettings::get_singleton()->get("text_editor/open_scripts/script_temperature_hot_color");
+	Color cold_color=EditorSettings::get_singleton()->get("text_editor/open_scripts/script_temperature_cold_color");
 
 	for(int i=0;i<script_list->get_item_count();i++) {
 
@@ -1395,7 +1395,7 @@ void ScriptEditor::_update_script_names() {
 	}
 
 	script_list->clear();
-	bool split_script_help = EditorSettings::get_singleton()->get("text_editor/group_help_pages");
+	bool split_script_help = EditorSettings::get_singleton()->get("text_editor/open_scripts/group_help_pages");
 
 	Vector<_ScriptEditorItemData> sedata;
 
@@ -1481,12 +1481,12 @@ void ScriptEditor::edit(const Ref<Script>& p_script, bool p_grab_focus) {
 
 	// see if already has it
 
-	bool open_dominant = EditorSettings::get_singleton()->get("text_editor/open_dominant_script_on_scene_change");
+	bool open_dominant = EditorSettings::get_singleton()->get("text_editor/files/open_dominant_script_on_scene_change");
 
-	if (p_script->get_path().is_resource_file() && bool(EditorSettings::get_singleton()->get("external_editor/use_external_editor"))) {
+	if (p_script->get_path().is_resource_file() && bool(EditorSettings::get_singleton()->get("text_editor/external/use_external_editor"))) {
 
-		String path = EditorSettings::get_singleton()->get("external_editor/exec_path");
-		String flags = EditorSettings::get_singleton()->get("external_editor/exec_flags");
+		String path = EditorSettings::get_singleton()->get("text_editor/external/exec_path");
+		String flags = EditorSettings::get_singleton()->get("text_editor/external/exec_flags");
 		List<String> args;
 		flags=flags.strip_edges();
 		if (flags!=String()) {
@@ -1694,8 +1694,8 @@ void ScriptEditor::_save_layout() {
 
 void ScriptEditor::_editor_settings_changed() {
 
-	trim_trailing_whitespace_on_save = EditorSettings::get_singleton()->get("text_editor/trim_trailing_whitespace_on_save");
-	float autosave_time = EditorSettings::get_singleton()->get("text_editor/autosave_interval_secs");
+	trim_trailing_whitespace_on_save = EditorSettings::get_singleton()->get("text_editor/files/trim_trailing_whitespace_on_save");
+	float autosave_time = EditorSettings::get_singleton()->get("text_editor/files/autosave_interval_secs");
 	if (autosave_time>0) {
 		autosave_timer->set_wait_time(autosave_time);
 		autosave_timer->start();
@@ -1704,9 +1704,9 @@ void ScriptEditor::_editor_settings_changed() {
 	}
 
 	if (current_theme == "") {
-		current_theme = EditorSettings::get_singleton()->get("text_editor/color_theme");
-	} else if (current_theme != EditorSettings::get_singleton()->get("text_editor/color_theme")) {
-		current_theme = EditorSettings::get_singleton()->get("text_editor/color_theme");
+		current_theme = EditorSettings::get_singleton()->get("text_editor/theme/color_theme");
+	} else if (current_theme != EditorSettings::get_singleton()->get("text_editor/theme/color_theme")) {
+		current_theme = EditorSettings::get_singleton()->get("text_editor/theme/color_theme");
 		EditorSettings::get_singleton()->load_text_editor_theme();
 	}
 
@@ -1720,7 +1720,7 @@ void ScriptEditor::_editor_settings_changed() {
 	}
 	_update_script_colors();
 
-	ScriptServer::set_reload_scripts_on_save(EDITOR_DEF("text_editor/auto_reload_and_parse_scripts_on_save",true));
+	ScriptServer::set_reload_scripts_on_save(EDITOR_DEF("text_editor/files/auto_reload_and_parse_scripts_on_save",true));
 
 }
 
@@ -1761,7 +1761,7 @@ void ScriptEditor::_unhandled_input(const InputEvent& p_event) {
 
 void ScriptEditor::set_window_layout(Ref<ConfigFile> p_layout) {
 
-	if (!bool(EDITOR_DEF("text_editor/restore_scripts_on_load",true))) {
+	if (!bool(EDITOR_DEF("text_editor/files/restore_scripts_on_load",true))) {
 		return;
 	}
 
@@ -1974,9 +1974,9 @@ void ScriptEditor::_history_back(){
 }
 void ScriptEditor::set_scene_root_script( Ref<Script> p_script ) {
 
-	bool open_dominant = EditorSettings::get_singleton()->get("text_editor/open_dominant_script_on_scene_change");
+	bool open_dominant = EditorSettings::get_singleton()->get("text_editor/files/open_dominant_script_on_scene_change");
 
-	if (bool(EditorSettings::get_singleton()->get("external_editor/use_external_editor")))
+	if (bool(EditorSettings::get_singleton()->get("text_editor/external/use_external_editor")))
 		return;
 
 	if (open_dominant && p_script.is_valid() && _can_open_in_editor(p_script.ptr())) {
@@ -2128,7 +2128,7 @@ ScriptEditor::ScriptEditor(EditorNode *p_editor) {
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_docs", TTR("Close Docs")), CLOSE_DOCS);
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_file", TTR("Close"), KEY_MASK_CMD | KEY_W), FILE_CLOSE);
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_all", TTR("Close All")), CLOSE_ALL);
-	file_menu->get_popup()->connect("item_pressed", this,"_menu_option");
+	file_menu->get_popup()->connect("id_pressed", this,"_menu_option");
 
 
 
@@ -2137,7 +2137,7 @@ ScriptEditor::ScriptEditor(EditorNode *p_editor) {
 	script_search_menu->set_text(TTR("Search"));
 	script_search_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/find", TTR("Find.."), KEY_MASK_CMD|KEY_F), HELP_SEARCH_FIND);
 	script_search_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/find_next", TTR("Find Next"), KEY_F3), HELP_SEARCH_FIND_NEXT);
-	script_search_menu->get_popup()->connect("item_pressed", this,"_menu_option");
+	script_search_menu->get_popup()->connect("id_pressed", this,"_menu_option");
 	script_search_menu->hide();
 
 
@@ -2153,7 +2153,7 @@ ScriptEditor::ScriptEditor(EditorNode *p_editor) {
 	debug_menu->get_popup()->add_separator();
 	//debug_menu->get_popup()->add_check_item("Show Debugger",DEBUG_SHOW);
 	debug_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("debugger/keep_debugger_open", TTR("Keep Debugger Open")), DEBUG_SHOW_KEEP_OPEN);
-	debug_menu->get_popup()->connect("item_pressed", this,"_menu_option");
+	debug_menu->get_popup()->connect("id_pressed", this,"_menu_option");
 
 	debug_menu->get_popup()->set_item_disabled( debug_menu->get_popup()->get_item_index(DEBUG_NEXT), true);
 	debug_menu->get_popup()->set_item_disabled( debug_menu->get_popup()->get_item_index(DEBUG_STEP), true );
@@ -2170,7 +2170,7 @@ ScriptEditor::ScriptEditor(EditorNode *p_editor) {
 	window_menu->get_popup()->add_item(TTR("Move Left"),WINDOW_MOVE_LEFT,KEY_MASK_CMD|KEY_LEFT);
 	window_menu->get_popup()->add_item(TTR("Move Right"),WINDOW_MOVE_RIGHT,KEY_MASK_CMD|KEY_RIGHT);
 	window_menu->get_popup()->add_separator();
-	window_menu->get_popup()->connect("item_pressed", this,"_menu_option");
+	window_menu->get_popup()->connect("id_pressed", this,"_menu_option");
 
 #endif
 
@@ -2416,20 +2416,20 @@ ScriptEditorPlugin::ScriptEditorPlugin(EditorNode *p_node) {
 
 	script_editor->hide();
 
-	EDITOR_DEF("text_editor/auto_reload_scripts_on_external_change",true);
-	ScriptServer::set_reload_scripts_on_save(EDITOR_DEF("text_editor/auto_reload_and_parse_scripts_on_save",true));
-	EDITOR_DEF("text_editor/open_dominant_script_on_scene_change",true);
-	EDITOR_DEF("external_editor/use_external_editor",false);
-	EDITOR_DEF("external_editor/exec_path","");
-	EDITOR_DEF("text_editor/script_temperature_enabled",true);
-	EDITOR_DEF("text_editor/highlight_current_script", true);
-	EDITOR_DEF("text_editor/script_temperature_history_size",15);
-	EDITOR_DEF("text_editor/script_temperature_hot_color",Color(1,0,0,0.3));
-	EDITOR_DEF("text_editor/script_temperature_cold_color",Color(0,0,1,0.3));
-	EDITOR_DEF("text_editor/current_script_background_color",Color(0.81,0.81,0.14,0.63));
-	EDITOR_DEF("text_editor/group_help_pages",true);
-	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING,"external_editor/exec_path",PROPERTY_HINT_GLOBAL_FILE));
-	EDITOR_DEF("external_editor/exec_flags","");
+	EDITOR_DEF("text_editor/files/auto_reload_scripts_on_external_change",true);
+	ScriptServer::set_reload_scripts_on_save(EDITOR_DEF("text_editor/files/auto_reload_and_parse_scripts_on_save",true));
+	EDITOR_DEF("text_editor/files/open_dominant_script_on_scene_change",true);
+	EDITOR_DEF("text_editor/external/use_external_editor",false);
+	EDITOR_DEF("text_editor/external/exec_path","");
+	EDITOR_DEF("text_editor/open_scripts/script_temperature_enabled",true);
+	EDITOR_DEF("text_editor/open_scripts/highlight_current_script", true);
+	EDITOR_DEF("text_editor/open_scripts/script_temperature_history_size",15);
+	EDITOR_DEF("text_editor/open_scripts/script_temperature_hot_color",Color(1,0,0,0.3));
+	EDITOR_DEF("text_editor/open_scripts/script_temperature_cold_color",Color(0,0,1,0.3));
+	EDITOR_DEF("text_editor/open_scripts/current_script_background_color",Color(0.81,0.81,0.14,0.63));
+	EDITOR_DEF("text_editor/open_scripts/group_help_pages",true);
+	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING,"text_editor/external/exec_path",PROPERTY_HINT_GLOBAL_FILE));
+	EDITOR_DEF("text_editor/external/exec_flags","");
 
 
 }

@@ -59,7 +59,7 @@ class SampleLibraryEditor : public Panel {
 
 
 	void _load_pressed();
-	void _file_load_request(const DVector<String>& p_path);
+	void _file_load_request(const PoolVector<String>& p_path);
 	void _delete_pressed();
 	void _update_library();
 	void _item_edited();
@@ -74,7 +74,7 @@ class SampleLibraryEditor : public Panel {
 
 protected:
 	void _notification(int p_what);
-	void _input_event(InputEvent p_event);
+	void _gui_input(InputEvent p_event);
 	static void _bind_methods();
 public:
 

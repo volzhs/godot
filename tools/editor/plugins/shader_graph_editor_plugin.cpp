@@ -37,7 +37,7 @@
 #include "os/keyboard.h"
 #include "canvas_item_editor_plugin.h"
 
-void GraphColorRampEdit::_input_event(const InputEvent& p_event) {
+void GraphColorRampEdit::_gui_input(const InputEvent& p_event) {
 
 	if (p_event.type==InputEvent::KEY && p_event.key.pressed && p_event.key.scancode==KEY_DELETE && grabbed!=-1) {
 
@@ -296,7 +296,7 @@ Vector<Color> GraphColorRampEdit::get_colors() const{
 
 void GraphColorRampEdit::_bind_methods(){
 
-	ClassDB::bind_method(_MD("_input_event"),&GraphColorRampEdit::_input_event);
+	ClassDB::bind_method(_MD("_gui_input"),&GraphColorRampEdit::_gui_input);
 	ClassDB::bind_method(_MD("_color_changed"),&GraphColorRampEdit::_color_changed);
 	ADD_SIGNAL(MethodInfo("ramp_changed"));
 }
@@ -316,7 +316,7 @@ GraphColorRampEdit::GraphColorRampEdit(){
 }
 ////////////
 
-void GraphCurveMapEdit::_input_event(const InputEvent& p_event) {
+void GraphCurveMapEdit::_gui_input(const InputEvent& p_event) {
 
 	if (p_event.type==InputEvent::KEY && p_event.key.pressed && p_event.key.scancode==KEY_DELETE && grabbed!=-1) {
 
@@ -658,7 +658,7 @@ Vector<Vector2> GraphCurveMapEdit::get_points() const {
 
 void GraphCurveMapEdit::_bind_methods(){
 
-	ClassDB::bind_method(_MD("_input_event"),&GraphCurveMapEdit::_input_event);
+	ClassDB::bind_method(_MD("_gui_input"),&GraphCurveMapEdit::_gui_input);
 	ADD_SIGNAL(MethodInfo("curve_changed"));
 }
 
@@ -986,13 +986,13 @@ void ShaderGraphView::_color_ramp_changed(int p_id,Node* p_ramp) {
 	Vector<float> offsets=cr->get_offsets();
 	Vector<Color> colors=cr->get_colors();
 
-	DVector<float> new_offsets;
-	DVector<Color> new_colors;
+	PoolVector<float> new_offsets;
+	PoolVector<Color> new_colors;
 	{
 		new_offsets.resize(offsets.size());
 		new_colors.resize(colors.size());
-		DVector<float>::Write ow=new_offsets.write();
-		DVector<Color>::Write cw=new_colors.write();
+		PoolVector<float>::Write ow=new_offsets.write();
+		PoolVector<Color>::Write cw=new_colors.write();
 		for(int i=0;i<new_offsets.size();i++) {
 			ow[i]=offsets[i];
 			cw[i]=colors[i];
@@ -1001,8 +1001,8 @@ void ShaderGraphView::_color_ramp_changed(int p_id,Node* p_ramp) {
 	}
 
 
-	DVector<float> old_offsets=graph->color_ramp_node_get_offsets(type,p_id);
-	DVector<Color> old_colors=graph->color_ramp_node_get_colors(type,p_id);
+	PoolVector<float> old_offsets=graph->color_ramp_node_get_offsets(type,p_id);
+	PoolVector<Color> old_colors=graph->color_ramp_node_get_colors(type,p_id);
 
 	if (old_offsets.size()!=new_offsets.size())
 		ur->create_action(TTR("Add/Remove to Color Ramp"));
@@ -1027,10 +1027,10 @@ void ShaderGraphView::_curve_changed(int p_id,Node* p_curve) {
 
 	Vector<Point2> points=cr->get_points();
 
-	DVector<Vector2> new_points;
+	PoolVector<Vector2> new_points;
 	{
 		new_points.resize(points.size());
-		DVector<Vector2>::Write ow=new_points.write();
+		PoolVector<Vector2>::Write ow=new_points.write();
 		for(int i=0;i<new_points.size();i++) {
 			ow[i]=points[i];
 		}
@@ -1038,7 +1038,7 @@ void ShaderGraphView::_curve_changed(int p_id,Node* p_curve) {
 	}
 
 
-	DVector<Vector2> old_points=graph->curve_map_node_get_points(type,p_id);
+	PoolVector<Vector2> old_points=graph->curve_map_node_get_points(type,p_id);
 
 	if (old_points.size()!=new_points.size())
 		ur->create_action(TTR("Add/Remove to Curve Map"));
@@ -2131,14 +2131,14 @@ void ShaderGraphView::_create_node(int p_id) {
 		gn->set_title("ColorRamp");
 		GraphColorRampEdit * ramp  = memnew( GraphColorRampEdit );
 
-		DVector<real_t> offsets = graph->color_ramp_node_get_offsets(type,p_id);
-		DVector<Color> colors = graph->color_ramp_node_get_colors(type,p_id);
+		PoolVector<real_t> offsets = graph->color_ramp_node_get_offsets(type,p_id);
+		PoolVector<Color> colors = graph->color_ramp_node_get_colors(type,p_id);
 
 		int oc = offsets.size();
 
 		if (oc) {
-			DVector<real_t>::Read rofs = offsets.read();
-			DVector<Color>::Read rcol = colors.read();
+			PoolVector<real_t>::Read rofs = offsets.read();
+			PoolVector<Color>::Read rcol = colors.read();
 
 			Vector<float> ofsv;
 			Vector<Color> colorv;
@@ -2184,12 +2184,12 @@ void ShaderGraphView::_create_node(int p_id) {
 		gn->set_title("CurveMap");
 		GraphCurveMapEdit * map  = memnew( GraphCurveMapEdit );
 
-		DVector<Vector2> points = graph->curve_map_node_get_points(type,p_id);
+		PoolVector<Vector2> points = graph->curve_map_node_get_points(type,p_id);
 
 		int oc = points.size();
 
 		if (oc) {
-			DVector<Vector2>::Read rofs = points.read();
+			PoolVector<Vector2>::Read rofs = points.read();
 
 
 			Vector<Vector2> ofsv;
@@ -2320,7 +2320,7 @@ void ShaderGraphView::_create_node(int p_id) {
 		tex->set_custom_minimum_size(Size2(80,80));
 		tex->set_drag_forwarding(this);
 		gn->add_child(tex);
-		tex->set_ignore_mouse(false);
+		tex->set_mouse_filter(MOUSE_FILTER_PASS);
 		tex->set_texture(graph->texture_input_node_get_value(type,p_id));
 		ToolButton *edit = memnew( ToolButton );
 		edit->set_text("edit..");
@@ -2807,7 +2807,7 @@ void ShaderGraphEditor::_notification(int p_what) {
 			if (addsep)
 				popup->add_separator();
 		}
-		popup->connect("item_pressed",this,"_add_node");
+		popup->connect("id_pressed",this,"_add_node");
 
 
 	}

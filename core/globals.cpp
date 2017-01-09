@@ -616,7 +616,7 @@ static Variant _decode_variant(const String& p_string) {
 		ERR_FAIL_COND_V(params.size()!=2,Variant());
 
 		InputEvent ie;
-		ie.type=InputEvent::JOYSTICK_BUTTON;
+		ie.type=InputEvent::JOYPAD_BUTTON;
 		ie.device=params[0].to_int();
 		ie.joy_button.button_index=params[1].to_int();
 
@@ -628,7 +628,7 @@ static Variant _decode_variant(const String& p_string) {
 		ERR_FAIL_COND_V(params.size()!=2,Variant());
 
 		InputEvent ie;
-		ie.type=InputEvent::JOYSTICK_MOTION;
+		ie.type=InputEvent::JOYPAD_MOTION;
 		ie.device=params[0].to_int();
 		int axis = params[1].to_int();;
 		ie.joy_motion.axis=axis>>1;
@@ -691,9 +691,9 @@ static Variant _decode_variant(const String& p_string) {
 
 		String data=params[4];
 		int datasize=data.length()/2;
-		DVector<uint8_t> pixels;
+		PoolVector<uint8_t> pixels;
 		pixels.resize(datasize);
-		DVector<uint8_t>::Write wb = pixels.write();
+		PoolVector<uint8_t>::Write wb = pixels.write();
 		const CharType *cptr=data.c_str();
 
 		int idx=0;
@@ -720,7 +720,7 @@ static Variant _decode_variant(const String& p_string) {
 
 		}
 
-		wb = DVector<uint8_t>::Write();
+		wb = PoolVector<uint8_t>::Write();
 
 		return Image(w,h,mipmaps,imgformat,pixels);
 	}
@@ -992,9 +992,9 @@ static String _encode_variant(const Variant& p_variant) {
 				str+=itos(img.has_mipmaps())+", ";
 				str+=itos(img.get_width())+", ";
 				str+=itos(img.get_height())+", ";
-				DVector<uint8_t> data = img.get_data();
+				PoolVector<uint8_t> data = img.get_data();
 				int ds=data.size();
-				DVector<uint8_t>::Read r = data.read();
+				PoolVector<uint8_t>::Read r = data.read();
 				for(int i=0;i<ds;i++) {
 					uint8_t byte = r[i];
 					const char  hex[16]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
@@ -1031,11 +1031,11 @@ static String _encode_variant(const Variant& p_variant) {
 
 					return "mbutton("+itos(ev.device)+", "+itos(ev.mouse_button.button_index)+")";
 				} break;
-				case InputEvent::JOYSTICK_BUTTON: {
+				case InputEvent::JOYPAD_BUTTON: {
 
 					return "jbutton("+itos(ev.device)+", "+itos(ev.joy_button.button_index)+")";
 				} break;
-				case InputEvent::JOYSTICK_MOTION: {
+				case InputEvent::JOYPAD_MOTION: {
 
 					return "jaxis("+itos(ev.device)+", "+itos(ev.joy_motion.axis * 2 + (ev.joy_motion.axis_value<0?0:1))+")";
 				} break;
@@ -1463,7 +1463,7 @@ GlobalConfig::GlobalConfig() {
 	InputEvent key;
 	key.type=InputEvent::KEY;
 	InputEvent joyb;
-	joyb.type=InputEvent::JOYSTICK_BUTTON;
+	joyb.type=InputEvent::JOYPAD_BUTTON;
 
 
 	GLOBAL_DEF("application/name","" );

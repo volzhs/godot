@@ -1087,8 +1087,8 @@ void SceneTreeEditor::_warning_changed(Node* p_for_node) {
 
 
 void SceneTreeEditor::_editor_settings_changed() {
-	bool enable_rl = EditorSettings::get_singleton()->get("scenetree_editor/draw_relationship_lines");
-	Color rl_color = EditorSettings::get_singleton()->get("scenetree_editor/relationship_line_color");
+	bool enable_rl = EditorSettings::get_singleton()->get("docks/scene_tree/draw_relationship_lines");
+	Color rl_color = EditorSettings::get_singleton()->get("docks/scene_tree/relationship_line_color");
 
 	if (enable_rl) {
 		tree->add_constant_override("draw_relationship_lines",1);
@@ -1210,14 +1210,14 @@ SceneTreeEditor::SceneTreeEditor(bool p_label,bool p_can_rename, bool p_can_open
 	instance_menu->add_item(TTR("Discard Instancing"),SCENE_MENU_CLEAR_INSTANCING);
 	instance_menu->add_separator();
 	instance_menu->add_item(TTR("Open in Editor"),SCENE_MENU_OPEN);
-	instance_menu->connect("item_pressed",this,"_subscene_option");
+	instance_menu->connect("id_pressed",this,"_subscene_option");
 	add_child(instance_menu);
 
 	inheritance_menu = memnew( PopupMenu );
 	inheritance_menu->add_item(TTR("Clear Inheritance"),SCENE_MENU_CLEAR_INHERITANCE);
 	inheritance_menu->add_separator();
 	inheritance_menu->add_item(TTR("Open in Editor"),SCENE_MENU_OPEN_INHERITED);
-	inheritance_menu->connect("item_pressed",this,"_subscene_option");
+	inheritance_menu->connect("id_pressed",this,"_subscene_option");
 
 	add_child(inheritance_menu);
 

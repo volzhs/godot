@@ -151,8 +151,8 @@ void MeshLibraryEditor::_import_scene(Node *p_scene, Ref<MeshLibrary> p_library,
 		 VS::ViewportRect vr;
 		 vr.x=0;
 		 vr.y=0;
-		 vr.width=EditorSettings::get_singleton()->get("grid_map/preview_size");
-		 vr.height=EditorSettings::get_singleton()->get("grid_map/preview_size");
+		 vr.width=EditorSettings::get_singleton()->get("editors/grid_map/preview_size");
+		 vr.height=EditorSettings::get_singleton()->get("editors/grid_map/preview_size");
 		 VS::get_singleton()->viewport_set_rect(vp,vr);
 		 VS::get_singleton()->viewport_set_as_render_target(vp,true);
 		 VS::get_singleton()->viewport_set_render_target_update_mode(vp,VS::RENDER_TARGET_UPDATE_ALWAYS);
@@ -310,7 +310,7 @@ MeshLibraryEditor::MeshLibraryEditor(EditorNode *p_editor) {
 	options->get_popup()->add_item(TTR("Import from Scene"),MENU_OPTION_IMPORT_FROM_SCENE);
 	options->get_popup()->add_item(TTR("Update from Scene"),MENU_OPTION_UPDATE_FROM_SCENE);
 	options->get_popup()->set_item_disabled(options->get_popup()->get_item_index(MENU_OPTION_UPDATE_FROM_SCENE),true);
-	options->get_popup()->connect("item_pressed", this,"_menu_cbk");
+	options->get_popup()->connect("id_pressed", this,"_menu_cbk");
 	menu=options;
 	editor=p_editor;
 	cd = memnew(ConfirmationDialog);
@@ -343,7 +343,7 @@ void MeshLibraryEditorPlugin::make_visible(bool p_visible){
 
 MeshLibraryEditorPlugin::MeshLibraryEditorPlugin(EditorNode *p_node) {
 
-	EDITOR_DEF("grid_map/preview_size",64);
+	EDITOR_DEF("editors/grid_map/preview_size",64);
 	theme_editor = memnew( MeshLibraryEditor(p_node) );
 
 	p_node->get_viewport()->add_child(theme_editor);

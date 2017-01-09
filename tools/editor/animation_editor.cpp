@@ -157,7 +157,7 @@ private:
 		}
 	}
 
-	void _input_event(const InputEvent& p_ev) {
+	void _gui_input(const InputEvent& p_ev) {
 		if (p_ev.type==InputEvent::MOUSE_MOTION && p_ev.mouse_motion.button_mask&BUTTON_MASK_LEFT) {
 
 			if (mode==MODE_DISABLED)
@@ -199,7 +199,7 @@ public:
 	static void _bind_methods() {
 
 	//	ClassDB::bind_method("_update_obj",&AnimationKeyEdit::_update_obj);
-		ClassDB::bind_method("_input_event",&AnimationCurveEdit::_input_event);
+		ClassDB::bind_method("_gui_input",&AnimationCurveEdit::_gui_input);
 		ADD_SIGNAL(MethodInfo("transition_changed"));
 	}
 
@@ -1157,6 +1157,12 @@ void AnimationKeyEditor::_track_editor_draw() {
 	Ref<Texture> add_key_icon = get_icon("TrackAddKey","EditorIcons");
 	Ref<Texture> add_key_icon_hl = get_icon("TrackAddKeyHl","EditorIcons");
 	Ref<Texture> down_icon = get_icon("select_arrow","Tree");
+
+	Ref<Texture> wrap_icon[2]={
+		get_icon("InterpWrapClamp","EditorIcons"),
+		get_icon("InterpWrapLoop","EditorIcons"),
+	};
+
 	Ref<Texture> interp_icon[3]={
 		get_icon("InterpRaw","EditorIcons"),
 		get_icon("InterpLinear","EditorIcons"),
@@ -1181,7 +1187,7 @@ void AnimationKeyEditor::_track_editor_draw() {
 	Ref<Texture> type_hover=get_icon("KeyHover","EditorIcons");
 	Ref<Texture> type_selected=get_icon("KeySelected","EditorIcons");
 
-	int right_separator_ofs = down_icon->get_width() *2 + add_key_icon->get_width() + interp_icon[0]->get_width() + cont_icon[0]->get_width() + hsep*7;
+	int right_separator_ofs = down_icon->get_width() *3 + add_key_icon->get_width() + interp_icon[0]->get_width() + wrap_icon[0]->get_width() + cont_icon[0]->get_width() + hsep*9;
 
 	int h = font->get_height()+sep;
 
@@ -1421,6 +1427,20 @@ void AnimationKeyEditor::_track_editor_draw() {
 
 		icon_ofs.x-=hsep;
 		*/
+		track_ofs[0]=size.width-icon_ofs.x;
+		icon_ofs.x-=down_icon->get_width();
+		te->draw_texture(down_icon,icon_ofs);
+
+		int wrap_type = animation->track_get_interpolation_loop_wrap(idx)?1:0;
+		icon_ofs.x-=hsep;
+		icon_ofs.x-=wrap_icon[wrap_type]->get_width();
+		te->draw_texture(wrap_icon[wrap_type],icon_ofs);
+
+		icon_ofs.x-=hsep;
+		te->draw_line(Point2(icon_ofs.x,ofs.y+y),Point2(icon_ofs.x,ofs.y+y+h),sepcolor);
+
+		track_ofs[1]=size.width-icon_ofs.x;
+
 		icon_ofs.x-=down_icon->get_width();
 		te->draw_texture(down_icon,icon_ofs);
 
@@ -1432,6 +1452,8 @@ void AnimationKeyEditor::_track_editor_draw() {
 
 		icon_ofs.x-=hsep;
 		te->draw_line(Point2(icon_ofs.x,ofs.y+y),Point2(icon_ofs.x,ofs.y+y+h),sepcolor);
+
+		track_ofs[2]=size.width-icon_ofs.x;
 
 		if (animation->track_get_type(idx)==Animation::TYPE_VALUE) {
 
@@ -1453,9 +1475,13 @@ void AnimationKeyEditor::_track_editor_draw() {
 		icon_ofs.x-=hsep;
 		te->draw_line(Point2(icon_ofs.x,ofs.y+y),Point2(icon_ofs.x,ofs.y+y+h),sepcolor);
 
+		track_ofs[3]=size.width-icon_ofs.x;
+
 		icon_ofs.x-=hsep;
 		icon_ofs.x-=add_key_icon->get_width();
 		te->draw_texture((mouse_over.over==MouseOver::OVER_ADD_KEY && mouse_over.track==idx)?add_key_icon_hl:add_key_icon,icon_ofs);
+
+		track_ofs[4]=size.width-icon_ofs.x;
 
 		//draw the keys;
 		int tt = animation->track_get_type(idx);
@@ -1620,6 +1646,14 @@ void AnimationKeyEditor::_track_menu_selected(int p_idx) {
 		undo_redo->create_action(TTR("Anim Track Change Value Mode"));
 		undo_redo->add_do_method(animation.ptr(),"value_track_set_update_mode",cont_editing,p_idx);
 		undo_redo->add_undo_method(animation.ptr(),"value_track_set_update_mode",cont_editing,animation->value_track_get_update_mode(cont_editing));
+		undo_redo->commit_action();
+	} else if (wrap_editing!=-1) {
+
+		ERR_FAIL_INDEX(wrap_editing,animation->get_track_count());
+
+		undo_redo->create_action(TTR("Anim Track Change Wrap Mode"));
+		undo_redo->add_do_method(animation.ptr(),"track_set_interpolation_loop_wrap",wrap_editing,p_idx?true:false);
+		undo_redo->add_undo_method(animation.ptr(),"track_set_interpolation_loop_wrap",wrap_editing,animation->track_get_interpolation_loop_wrap(wrap_editing));
 		undo_redo->commit_action();
 	} else {
 		switch (p_idx) {
@@ -1811,7 +1845,7 @@ void AnimationKeyEditor::_anim_delete_keys() {
 	}
 }
 
-void AnimationKeyEditor::_track_editor_input_event(const InputEvent& p_input) {
+void AnimationKeyEditor::_track_editor_gui_input(const InputEvent& p_input) {
 
 	Control *te=track_editor;
 	Ref<StyleBox> style = get_stylebox("normal","TextEdit");
@@ -1833,6 +1867,10 @@ void AnimationKeyEditor::_track_editor_input_event(const InputEvent& p_input) {
 	Ref<Texture> hsize_icon = get_icon("Hsize","EditorIcons");
 	Ref<Texture> add_key_icon = get_icon("TrackAddKey","EditorIcons");
 
+	Ref<Texture> wrap_icon[2]={
+		get_icon("InterpWrapClamp","EditorIcons"),
+		get_icon("InterpWrapLoop","EditorIcons"),
+	};
 	Ref<Texture> interp_icon[3]={
 		get_icon("InterpRaw","EditorIcons"),
 		get_icon("InterpLinear","EditorIcons"),
@@ -1848,7 +1886,7 @@ void AnimationKeyEditor::_track_editor_input_event(const InputEvent& p_input) {
 		get_icon("KeyXform","EditorIcons"),
 		get_icon("KeyCall","EditorIcons")
 	};
-	int right_separator_ofs = down_icon->get_width() *2 + add_key_icon->get_width() + interp_icon[0]->get_width() + cont_icon[0]->get_width() + hsep*7;
+	int right_separator_ofs = down_icon->get_width() *3 + add_key_icon->get_width() + interp_icon[0]->get_width() + wrap_icon[0]->get_width() + cont_icon[0]->get_width() + hsep*9;
 
 	int h = font->get_height()+sep;
 
@@ -2054,6 +2092,7 @@ void AnimationKeyEditor::_track_editor_input_event(const InputEvent& p_input) {
 
 					interp_editing=-1;
 					cont_editing=-1;
+					wrap_editing=-1;
 
 					track_menu->popup();
 				}
@@ -2277,7 +2316,33 @@ void AnimationKeyEditor::_track_editor_input_event(const InputEvent& p_input) {
 						ofsx-=hsep*3+move_up_icon->get_width();
 						*/
 
-						if (ofsx < down_icon->get_width() + interp_icon[0]->get_width() + hsep*2) {
+
+						if (ofsx < track_ofs[1]) {
+
+							track_menu->clear();
+							track_menu->set_size(Point2(1,1));
+							static const char *interp_name[2]={"Clamp Loop Interp","Wrap Loop Interp"};
+							for(int i=0;i<2;i++) {
+								track_menu->add_icon_item(wrap_icon[i],interp_name[i]);
+							}
+
+							int popup_y = ofs.y+((int(mpos.y)/h)+2)*h;
+							int popup_x = size.width-track_ofs[1];
+
+							track_menu->set_pos(te->get_global_pos()+Point2(popup_x,popup_y));
+
+
+							wrap_editing=idx;
+							interp_editing=-1;
+							cont_editing=-1;
+
+							track_menu->popup();
+
+							return;
+						}
+
+
+						if (ofsx < track_ofs[2]) {
 
 							track_menu->clear();
 							track_menu->set_size(Point2(1,1));
@@ -2286,24 +2351,22 @@ void AnimationKeyEditor::_track_editor_input_event(const InputEvent& p_input) {
 								track_menu->add_icon_item(interp_icon[i],interp_name[i]);
 							}
 
-							int lofs = remove_icon->get_width() + move_up_icon->get_width() + move_down_icon->get_width() + down_icon->get_width() *2 + hsep*7;//interp_icon[0]->get_width() + cont_icon[0]->get_width() ;
 							int popup_y = ofs.y+((int(mpos.y)/h)+2)*h;
-							int popup_x = ofs.x+size.width-lofs;
+							int popup_x = size.width-track_ofs[2];
 
 							track_menu->set_pos(te->get_global_pos()+Point2(popup_x,popup_y));
 
 
 							interp_editing=idx;
 							cont_editing=-1;
+							wrap_editing=-1;
 
 							track_menu->popup();
 
 							return;
 						}
 
-						ofsx-=hsep*2+interp_icon[0]->get_width()+down_icon->get_width();
-
-						if (ofsx < down_icon->get_width() + cont_icon[0]->get_width()) {
+						if (ofsx < track_ofs[3]) {
 
 							track_menu->clear();
 							track_menu->set_size(Point2(1,1));
@@ -2312,13 +2375,14 @@ void AnimationKeyEditor::_track_editor_input_event(const InputEvent& p_input) {
 								track_menu->add_icon_item(cont_icon[i],cont_name[i]);
 							}
 
-							int lofs = settings_limit;
+
 							int popup_y = ofs.y+((int(mpos.y)/h)+2)*h;
-							int popup_x = ofs.x+lofs;
+							int popup_x = size.width-track_ofs[3];
 
 							track_menu->set_pos(te->get_global_pos()+Point2(popup_x,popup_y));
 
 							interp_editing=-1;
+							wrap_editing=-1;
 							cont_editing=idx;
 
 							track_menu->popup();
@@ -2326,9 +2390,7 @@ void AnimationKeyEditor::_track_editor_input_event(const InputEvent& p_input) {
 							return;
 						}
 
-						ofsx-=hsep*3+cont_icon[0]->get_width()+down_icon->get_width();
-
-						if (ofsx < add_key_icon->get_width()) {
+						if (ofsx < track_ofs[4]) {
 
 							Animation::TrackType tt = animation->track_get_type(idx);
 
@@ -2940,7 +3002,15 @@ void AnimationKeyEditor::_track_editor_input_event(const InputEvent& p_input) {
 
 	*/
 
-					if (ofsx < down_icon->get_width() + interp_icon[0]->get_width() + hsep*2) {
+					if (ofsx < down_icon->get_width() + wrap_icon[0]->get_width() + hsep*3) {
+
+						mouse_over.over=MouseOver::OVER_WRAP;
+						return;
+					}
+
+					ofsx-=hsep*3+wrap_icon[0]->get_width() + down_icon->get_width();
+
+					if (ofsx < down_icon->get_width() + interp_icon[0]->get_width() + hsep*3) {
 
 						mouse_over.over=MouseOver::OVER_INTERP;
 						return;
@@ -3012,7 +3082,7 @@ void AnimationKeyEditor::_notification(int p_what) {
 				tpp->add_item(TTR("In-Out"),TRACK_MENU_SET_ALL_TRANS_INOUT);
 				tpp->add_item(TTR("Out-In"),TRACK_MENU_SET_ALL_TRANS_OUTIN);
 				tpp->set_name(TTR("Transitions"));
-				tpp->connect("item_pressed",this,"_menu_track");
+				tpp->connect("id_pressed",this,"_menu_track");
 				optimize_dialog->connect("confirmed",this,"_animation_optimize");
 
 				menu_track->get_popup()->add_child(tpp);
@@ -3068,8 +3138,13 @@ void AnimationKeyEditor::_notification(int p_what) {
 						get_icon("TrackTrigger","EditorIcons")
 					};
 
+					Ref<Texture> wrap_icon[2]={
+						get_icon("InterpWrapClamp","EditorIcons"),
+						get_icon("InterpWrapLoop","EditorIcons"),
+					};
+
 					//right_data_size_cache = remove_icon->get_width() + move_up_icon->get_width() + move_down_icon->get_width() + down_icon->get_width() *2 + interp_icon[0]->get_width() + cont_icon[0]->get_width() + add_key_icon->get_width() + hsep*11;
-					right_data_size_cache = down_icon->get_width() *2 + add_key_icon->get_width() + interp_icon[0]->get_width() + cont_icon[0]->get_width() + hsep*7;
+					right_data_size_cache = down_icon->get_width() *3 + add_key_icon->get_width() + interp_icon[0]->get_width() + cont_icon[0]->get_width() + wrap_icon[0]->get_width() + hsep*8;
 
 
 				}
@@ -3233,7 +3308,7 @@ void AnimationKeyEditor::_query_insert(const InsertData& p_id) {
 	insert_data.push_back(p_id);
 
 	if (p_id.track_idx==-1) {
-		if (bool(EDITOR_DEF("animation/confirm_insert_track",true))) {
+		if (bool(EDITOR_DEF("editors/animation/confirm_insert_track",true))) {
 			//potential new key, does not exist
 			if (insert_data.size()==1)
 				insert_confirm->set_text(vformat(TTR("Create NEW track for %s and insert key?"),p_id.query));
@@ -3859,7 +3934,7 @@ void AnimationKeyEditor::_bind_methods() {
 
 	ClassDB::bind_method(_MD("_animation_changed"),&AnimationKeyEditor::_animation_changed);
 	ClassDB::bind_method(_MD("_scroll_changed"),&AnimationKeyEditor::_scroll_changed);
-	ClassDB::bind_method(_MD("_track_editor_input_event"),&AnimationKeyEditor::_track_editor_input_event);
+	ClassDB::bind_method(_MD("_track_editor_gui_input"),&AnimationKeyEditor::_track_editor_gui_input);
 	ClassDB::bind_method(_MD("_track_name_changed"),&AnimationKeyEditor::_track_name_changed);
 	ClassDB::bind_method(_MD("_track_menu_selected"),&AnimationKeyEditor::_track_menu_selected);
 	ClassDB::bind_method(_MD("_menu_add_track"),&AnimationKeyEditor::_menu_add_track);
@@ -3986,7 +4061,7 @@ AnimationKeyEditor::AnimationKeyEditor() {
 
 	menu_add_track = memnew( MenuButton );
 	hb->add_child(menu_add_track);
-	menu_add_track->get_popup()->connect("item_pressed",this,"_menu_add_track");
+	menu_add_track->get_popup()->connect("id_pressed",this,"_menu_add_track");
 	menu_add_track->set_tooltip(TTR("Add new tracks."));
 
 	move_up_button = memnew( ToolButton );
@@ -4014,7 +4089,7 @@ AnimationKeyEditor::AnimationKeyEditor() {
 
 	menu_track = memnew( MenuButton );
 	hb->add_child(menu_track);
-	menu_track->get_popup()->connect("item_pressed",this,"_menu_track");
+	menu_track->get_popup()->connect("id_pressed",this,"_menu_track");
 	menu_track->set_tooltip(TTR("Track tools"));
 
 	edit_button = memnew( ToolButton );
@@ -4071,7 +4146,7 @@ AnimationKeyEditor::AnimationKeyEditor() {
 	l->set_pos(Point2(0,3));
 //	dr_panel->add_child(l);*/
 
-//	menu->get_popup()->connect("item_pressed",this,"_menu_callback");
+//	menu->get_popup()->connect("id_pressed",this,"_menu_callback");
 
 
 	hb = memnew( HBoxContainer);
@@ -4082,7 +4157,7 @@ AnimationKeyEditor::AnimationKeyEditor() {
 	track_editor = memnew( Control );
 	track_editor->connect("draw",this,"_track_editor_draw");
 	hb->add_child(track_editor);
-	track_editor->connect("input_event",this,"_track_editor_input_event");
+	track_editor->connect("gui_input",this,"_track_editor_gui_input");
 	track_editor->set_focus_mode(Control::FOCUS_ALL);
 	track_editor->set_h_size_flags(SIZE_EXPAND_FILL);
 
@@ -4090,7 +4165,7 @@ AnimationKeyEditor::AnimationKeyEditor() {
 
 	track_pos = memnew( Control );
 	track_pos->set_area_as_parent_rect();
-	track_pos->set_ignore_mouse(true);
+	track_pos->set_mouse_filter(MOUSE_FILTER_IGNORE);
 	track_editor->add_child(track_pos);
 	track_pos->connect("draw",this,"_track_pos_draw");
 
@@ -4127,7 +4202,7 @@ AnimationKeyEditor::AnimationKeyEditor() {
 	add_child(type_menu);
 	for(int i=0;i<Variant::VARIANT_MAX;i++)
 		type_menu->add_item(Variant::get_type_name(Variant::Type(i)),i);
-	type_menu->connect("item_pressed",this,"_create_value_item");
+	type_menu->connect("id_pressed",this,"_create_value_item");
 
 	VBoxContainer *curve_vb = memnew( VBoxContainer );
 	curve_vb->set_name(TTR("Transition"));
@@ -4166,7 +4241,7 @@ AnimationKeyEditor::AnimationKeyEditor() {
 	track_name->connect("text_entered",this,"_track_name_changed");
 	track_menu = memnew( PopupMenu );
 	add_child(track_menu);
-	track_menu->connect("item_pressed",this,"_track_menu_selected");
+	track_menu->connect("id_pressed",this,"_track_menu_selected");
 
 	key_editor_tab->hide();
 

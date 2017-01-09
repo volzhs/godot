@@ -366,7 +366,7 @@ void SceneTree::input_text( const String& p_text ) {
 void SceneTree::input_event( const InputEvent& p_event ) {
 
 
-	if (is_editor_hint() && (p_event.type==InputEvent::JOYSTICK_MOTION || p_event.type==InputEvent::JOYSTICK_BUTTON))
+	if (is_editor_hint() && (p_event.type==InputEvent::JOYPAD_MOTION || p_event.type==InputEvent::JOYPAD_BUTTON))
 		return; //avoid joy input on editor
 
 	root_lock++;
@@ -831,11 +831,11 @@ Ref<Mesh> SceneTree::get_debug_contact_mesh() {
 		1,3,5,
 	};
 
-	DVector<int> indices;
+	PoolVector<int> indices;
 	for(int i=0;i<8*3;i++)
 		indices.push_back(diamond_faces[i]);
 
-	DVector<Vector3> vertices;
+	PoolVector<Vector3> vertices;
 	for(int i=0;i<6;i++)
 		vertices.push_back(diamond[i]*0.1);
 

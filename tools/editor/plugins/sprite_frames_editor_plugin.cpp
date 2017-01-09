@@ -35,7 +35,7 @@
 
 
 
-void SpriteFramesEditor::_input_event(InputEvent p_event) {
+void SpriteFramesEditor::_gui_input(InputEvent p_event) {
 
 
 }
@@ -64,7 +64,7 @@ void SpriteFramesEditor::_notification(int p_what) {
 	}
 }
 
-void SpriteFramesEditor::_file_load_request(const DVector<String>& p_path,int p_at_pos) {
+void SpriteFramesEditor::_file_load_request(const PoolVector<String>& p_path,int p_at_pos) {
 
 	ERR_FAIL_COND(!frames->has_animation(edited_anim));
 
@@ -744,7 +744,7 @@ void SpriteFramesEditor::drop_data_fw(const Point2& p_point,const Variant& p_dat
 
 	if (String(d["type"])=="files") {
 
-		DVector<String> files = d["files"];
+		PoolVector<String> files = d["files"];
 
 		_file_load_request(files,at_pos);
 	}
@@ -754,7 +754,7 @@ void SpriteFramesEditor::drop_data_fw(const Point2& p_point,const Variant& p_dat
 
 void SpriteFramesEditor::_bind_methods() {
 
-	ClassDB::bind_method(_MD("_input_event"),&SpriteFramesEditor::_input_event);
+	ClassDB::bind_method(_MD("_gui_input"),&SpriteFramesEditor::_gui_input);
 	ClassDB::bind_method(_MD("_load_pressed"),&SpriteFramesEditor::_load_pressed);
 	ClassDB::bind_method(_MD("_empty_pressed"),&SpriteFramesEditor::_empty_pressed);
 	ClassDB::bind_method(_MD("_empty2_pressed"),&SpriteFramesEditor::_empty2_pressed);

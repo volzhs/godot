@@ -126,16 +126,16 @@ bool InputDefault::is_action_pressed(const StringName& p_action) const{
 				 if(mouse_button_mask&(1<<iemb.button_index))
 					 return true;
 			} break;
-			case InputEvent::JOYSTICK_BUTTON: {
+			case InputEvent::JOYPAD_BUTTON: {
 
-				const InputEventJoystickButton &iejb=E->get().joy_button;
+				const InputEventJoypadButton &iejb=E->get().joy_button;
 				int c = _combine_device(iejb.button_index,device);
 				if (joy_buttons_pressed.has(c))
 					return true;
 			} break;
-			case InputEvent::JOYSTICK_MOTION: {
+			case InputEvent::JOYPAD_MOTION: {
 
-				const InputEventJoystickMotion &iejm=E->get().joy_motion;
+				const InputEventJoypadMotion &iejm=E->get().joy_motion;
 				int c = _combine_device(iejm.axis,device);
 				if (_joy_axis.has(c)) {
 					if (iejm.axis_value < 0) {
@@ -235,7 +235,7 @@ static String _hex_str(uint8_t p_byte) {
 void InputDefault::joy_connection_changed(int p_idx, bool p_connected, String p_name, String p_guid) {
 
 	_THREAD_SAFE_METHOD_
-	Joystick js;
+	Joypad js;
 	js.name = p_connected ? p_name : "";
 	js.uid = p_connected ? p_guid : "";
 	js.mapping = -1;
@@ -356,7 +356,7 @@ void InputDefault::parse_input_event(const InputEvent& p_event) {
 			}
 
 		} break;
-		case InputEvent::JOYSTICK_BUTTON: {
+		case InputEvent::JOYPAD_BUTTON: {
 
 			int c = _combine_device(p_event.joy_button.button_index,p_event.device);
 
@@ -365,7 +365,7 @@ void InputDefault::parse_input_event(const InputEvent& p_event) {
 			else
 				joy_buttons_pressed.erase(c);
 		} break;
-		case InputEvent::JOYSTICK_MOTION: {
+		case InputEvent::JOYPAD_MOTION: {
 			set_joy_axis(p_event.device, p_event.joy_motion.axis, p_event.joy_motion.axis_value);
 		} break;
 
@@ -791,7 +791,7 @@ InputDefault::InputDefault() {
 uint32_t InputDefault::joy_button(uint32_t p_last_id, int p_device, int p_button, bool p_pressed) {
 
 	_THREAD_SAFE_METHOD_;
-	Joystick& joy = joy_names[p_device];
+	Joypad& joy = joy_names[p_device];
 	//printf("got button %i, mapping is %i\n", p_button, joy.mapping);
 	if (joy.last_buttons[p_button] == p_pressed) {
 		return p_last_id;
@@ -831,7 +831,7 @@ uint32_t InputDefault::joy_axis(uint32_t p_last_id, int p_device, int p_axis, co
 
 	_THREAD_SAFE_METHOD_;
 
-	Joystick& joy = joy_names[p_device];
+	Joypad& joy = joy_names[p_device];
 
 	if (joy.last_axis[p_axis] == p_value.value) {
 		return p_last_id;
@@ -935,7 +935,7 @@ uint32_t InputDefault::joy_axis(uint32_t p_last_id, int p_device, int p_axis, co
 uint32_t InputDefault::joy_hat(uint32_t p_last_id, int p_device, int p_val) {
 
 	_THREAD_SAFE_METHOD_;
-	const Joystick& joy = joy_names[p_device];
+	const Joypad& joy = joy_names[p_device];
 
 	JoyEvent* map;
 
@@ -969,7 +969,7 @@ uint32_t InputDefault::joy_hat(uint32_t p_last_id, int p_device, int p_val) {
 uint32_t InputDefault::_button_event(uint32_t p_last_id, int p_device, int p_index, bool p_pressed) {
 
 	InputEvent ievent;
-	ievent.type = InputEvent::JOYSTICK_BUTTON;
+	ievent.type = InputEvent::JOYPAD_BUTTON;
 	ievent.device = p_device;
 	ievent.ID = ++p_last_id;
 	ievent.joy_button.button_index = p_index;
@@ -983,7 +983,7 @@ uint32_t InputDefault::_button_event(uint32_t p_last_id, int p_device, int p_ind
 uint32_t InputDefault::_axis_event(uint32_t p_last_id, int p_device, int p_axis, float p_value) {
 
 	InputEvent ievent;
-	ievent.type = InputEvent::JOYSTICK_MOTION;
+	ievent.type = InputEvent::JOYPAD_MOTION;
 	ievent.device = p_device;
 	ievent.ID = ++p_last_id;
 	ievent.joy_motion.axis = p_axis;
@@ -1148,9 +1148,9 @@ String InputDefault::get_joy_guid_remapped(int p_device) const {
 	return joy_names[p_device].uid;
 }
 
-Array InputDefault::get_connected_joysticks() {
+Array InputDefault::get_connected_joypads() {
 	Array ret;
-	Map<int, Joystick>::Element *elem = joy_names.front();
+	Map<int, Joypad>::Element *elem = joy_names.front();
 	while (elem) {
 		if (elem->get().connected) {
 			ret.push_back(elem->key());

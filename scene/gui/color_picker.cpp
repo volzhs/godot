@@ -88,7 +88,7 @@ void ColorPicker::set_color(const Color& p_color) {
 	if (!is_inside_tree())
 		return;
 
-
+	return; //it crashes, so returning
 	uv_edit->get_child(0)->cast_to<Control>()->update();
 	w_edit->get_child(0)->cast_to<Control>()->update();
 	_update_color();
@@ -170,11 +170,11 @@ void ColorPicker::_update_presets()
 	Size2 size=bt_add_preset->get_size();
 	preset->set_custom_minimum_size(Size2(size.width*presets.size(),size.height));
 
-	DVector<uint8_t> img;
+	PoolVector<uint8_t> img;
 	img.resize(size.x*presets.size()*size.y*3);
 
 	{
-		DVector<uint8_t>::Write w=img.write();
+		PoolVector<uint8_t>::Write w=img.write();
 		for (int y=0;y<size.y;y++) {
 			for (int x=0;x<size.x*presets.size();x++) {
 				int ofs = (y*(size.x*presets.size())+x)*3;
@@ -421,7 +421,7 @@ void ColorPicker::_screen_input(const InputEvent &ev)
 			int pw = last_capture.get_format()==Image::FORMAT_RGBA8?4:3;
 			int ofs = (mev.global_y*last_capture.get_width()+mev.global_x)*pw;
 
-			DVector<uint8_t>::Read r = last_capture.get_data().read();
+			PoolVector<uint8_t>::Read r = last_capture.get_data().read();
 
 			Color c( r[ofs+0]/255.0, r[ofs+1]/255.0, r[ofs+2]/255.0 );
 
@@ -442,7 +442,7 @@ void ColorPicker::_screen_pick_pressed()
 		r->add_child(screen);
 		screen->set_as_toplevel(true);
 		screen->set_area_as_parent_rect();
-		screen->connect("input_event",this,"_screen_input");
+		screen->connect("gui_input",this,"_screen_input");
 	}
 	screen->raise();
 	screen->show_modal();
@@ -501,9 +501,9 @@ ColorPicker::ColorPicker() :
 
 
 
-	uv_edit->set_ignore_mouse(false);
-	uv_edit->connect("input_event", this, "_uv_input");
-	uv_edit->set_stop_mouse(false);
+
+	uv_edit->connect("gui_input", this, "_uv_input");
+	uv_edit->set_mouse_filter(MOUSE_FILTER_PASS);
 	uv_edit->set_custom_minimum_size(Size2 (256,256));
 	Vector<Variant> args=Vector<Variant>();
 	args.push_back(0);
@@ -513,9 +513,9 @@ ColorPicker::ColorPicker() :
 	add_child(hb_edit);
 
 	w_edit= memnew( Control );
-	w_edit->set_ignore_mouse(false);
+	//w_edit->set_ignore_mouse(false);
 	w_edit->set_custom_minimum_size(Size2(30,256));
-	w_edit->connect("input_event", this, "_w_input");
+	w_edit->connect("gui_input", this, "_w_input");
 	args.clear();
 	args.push_back(1);
 	args.push_back(w_edit);
@@ -592,8 +592,8 @@ ColorPicker::ColorPicker() :
 
 	preset = memnew( TextureFrame );
 	bbc->add_child(preset);
-	preset->set_ignore_mouse(false);
-	preset->connect("input_event", this, "_preset_input");
+	//preset->set_ignore_mouse(false);
+	preset->connect("gui_input", this, "_preset_input");
 
 	bt_add_preset = memnew ( Button );
 	bt_add_preset->set_icon(get_icon("add_preset"));

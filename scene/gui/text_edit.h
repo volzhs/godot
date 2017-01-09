@@ -316,7 +316,7 @@ class TextEdit : public Control  {
 
 	int _get_column_pos_of_word(const String &p_key, const String &p_search, uint32_t p_search_flags, int p_from_column);
 
-	DVector<int> _search_bind(const String &p_key,uint32_t p_search_flags, int p_from_line,int p_from_column) const;
+	PoolVector<int> _search_bind(const String &p_key,uint32_t p_search_flags, int p_from_line,int p_from_column) const;
 
 	PopupMenu *menu;
 
@@ -333,7 +333,7 @@ protected:
 	void _insert_text(int p_line, int p_column,const String& p_text,int *r_end_line=NULL,int *r_end_char=NULL);
 	void _remove_text(int p_from_line, int p_from_column,int p_to_line,int p_to_column);
 	void _insert_text_at_cursor(const String& p_text);
-	void _input_event(const InputEvent& p_input);
+	void _gui_input(const InputEvent& p_input);
 	void _notification(int p_what);
 
 	void _consume_pair_symbol(CharType ch);

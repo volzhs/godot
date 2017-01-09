@@ -73,7 +73,7 @@ class SpriteFramesEditor : public PanelContainer {
 
 	void _load_pressed();
 	void _load_scene_pressed();
-	void _file_load_request(const DVector<String>& p_path, int p_at_pos=-1);
+	void _file_load_request(const PoolVector<String>& p_path, int p_at_pos=-1);
 	void _paste_pressed();
 	void _empty_pressed();
 	void _empty2_pressed();
@@ -104,7 +104,7 @@ class SpriteFramesEditor : public PanelContainer {
 
 protected:
 	void _notification(int p_what);
-	void _input_event(InputEvent p_event);
+	void _gui_input(InputEvent p_event);
 	static void _bind_methods();
 public:
 

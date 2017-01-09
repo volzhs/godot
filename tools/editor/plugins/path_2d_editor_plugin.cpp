@@ -62,7 +62,7 @@ void Path2DEditor::_node_removed(Node *p_node) {
 }
 
 
-bool Path2DEditor::forward_input_event(const InputEvent& p_event) {
+bool Path2DEditor::forward_gui_input(const InputEvent& p_event) {
 
 	if (!node)
 		return false;
@@ -86,7 +86,7 @@ bool Path2DEditor::forward_input_event(const InputEvent& p_event) {
 										: node->get_global_transform().affine_inverse().xform( canvas_item_editor->snap_point(canvas_item_editor->get_canvas_transform().affine_inverse().xform(gpoint)) );
 
 			//first check if a point is to be added (segment split)
-			real_t grab_treshold=EDITOR_DEF("poly_editor/point_grab_radius",8);
+			real_t grab_treshold=EDITOR_DEF("editors/poly_editor/point_grab_radius",8);
 
 
 
@@ -624,7 +624,7 @@ Path2DEditor::Path2DEditor(EditorNode *p_editor) {
 	options->set_area_as_parent_rect();
 	options->set_text("Polygon");
 	//options->get_popup()->add_item("Parse BBCode",PARSE_BBCODE);
-	options->get_popup()->connect("item_pressed", this,"_menu_option");
+	options->get_popup()->connect("id_pressed", this,"_menu_option");
 #endif
 
 	base_hb = memnew( HBoxContainer );

@@ -33,7 +33,7 @@
 #include "scene/scene_string_names.h"
 #include "scene/main/viewport.h"
 
-void BaseButton::_input_event(InputEvent p_event) {
+void BaseButton::_gui_input(InputEvent p_event) {
 
 
 	if (status.disabled) // no interaction with disabled button
@@ -90,10 +90,11 @@ void BaseButton::_input_event(InputEvent p_event) {
 
 					emit_signal("button_up");
 
-					if (status.press_attempt && status.pressing_inside) {
+/* this is pointless		if (status.press_attempt && status.pressing_inside) {
 //						released();
 						emit_signal("released");
 					}
+*/
 					status.press_attempt=false;
 				}
 				update();
@@ -156,7 +157,7 @@ void BaseButton::_input_event(InputEvent p_event) {
 			}
 		} break;
 		case InputEvent::ACTION:
-		case InputEvent::JOYSTICK_BUTTON:
+		case InputEvent::JOYPAD_BUTTON:
 		case InputEvent::KEY: {
 
 
@@ -464,7 +465,7 @@ String BaseButton::get_tooltip(const Point2& p_pos) const {
 
 void BaseButton::_bind_methods() {
 
-	ClassDB::bind_method(_MD("_input_event"),&BaseButton::_input_event);
+	ClassDB::bind_method(_MD("_gui_input"),&BaseButton::_gui_input);
 	ClassDB::bind_method(_MD("_unhandled_input"),&BaseButton::_unhandled_input);
 	ClassDB::bind_method(_MD("set_pressed","pressed"),&BaseButton::set_pressed);
 	ClassDB::bind_method(_MD("is_pressed"),&BaseButton::is_pressed);
@@ -485,7 +486,6 @@ void BaseButton::_bind_methods() {
 	BIND_VMETHOD(MethodInfo("_toggled",PropertyInfo(Variant::BOOL,"pressed")));
 
 	ADD_SIGNAL( MethodInfo("pressed" ) );
-	ADD_SIGNAL( MethodInfo("released" ) );
 	ADD_SIGNAL( MethodInfo("button_up") );
 	ADD_SIGNAL( MethodInfo("button_down") );
 	ADD_SIGNAL( MethodInfo("toggled", PropertyInfo( Variant::BOOL,"pressed") ) );

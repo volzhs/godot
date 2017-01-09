@@ -48,7 +48,7 @@
 #include "servers/physics_2d/physics_2d_server_sw.h"
 #include "servers/physics_2d/physics_2d_server_wrap_mt.h"
 #include "main/input_default.h"
-#include "joystick_linux.h"
+#include "joypad_linux.h"
 
 #include <X11/keysym.h>
 #include <X11/Xlib.h>
@@ -155,7 +155,7 @@ class OS_X11 : public OS_Unix {
 	InputDefault *input;
 
 #ifdef JOYDEV_ENABLED
-	joystick_linux *joystick;
+	JoypadLinux *joypad;
 #endif
 
 #ifdef RTAUDIO_ENABLED

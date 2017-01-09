@@ -35,7 +35,7 @@
 
 
 
-void SampleEditor::_input_event(InputEvent p_event) {
+void SampleEditor::_gui_input(InputEvent p_event) {
 
 
 }
@@ -77,15 +77,15 @@ void SampleEditor::_stop_pressed() {
 void SampleEditor::generate_preview_texture(const Ref<Sample>& p_sample,Ref<ImageTexture> &p_texture) {
 
 
-	DVector<uint8_t> data = p_sample->get_data();
+	PoolVector<uint8_t> data = p_sample->get_data();
 
-	DVector<uint8_t> img;
+	PoolVector<uint8_t> img;
 	int w = p_texture->get_width();
 	int h = p_texture->get_height();
 	img.resize(w*h*3);
-	DVector<uint8_t>::Write imgdata = img.write();
+	PoolVector<uint8_t>::Write imgdata = img.write();
 	uint8_t * imgw = imgdata.ptr();
-	DVector<uint8_t>::Read sampledata = data.read();
+	PoolVector<uint8_t>::Read sampledata = data.read();
 	const uint8_t *sdata=sampledata.ptr();
 
 	bool stereo = p_sample->is_stereo();
@@ -308,7 +308,7 @@ void SampleEditor::generate_preview_texture(const Ref<Sample>& p_sample,Ref<Imag
 		}
 	}
 
-	imgdata = DVector<uint8_t>::Write();
+	imgdata = PoolVector<uint8_t>::Write();
 
 
 	p_texture->set_data(Image(w,h,0,Image::FORMAT_RGB8,img));
@@ -348,7 +348,7 @@ void SampleEditor::edit(Ref<Sample> p_sample) {
 
 void SampleEditor::_bind_methods() {
 
-	ClassDB::bind_method(_MD("_input_event"),&SampleEditor::_input_event);
+	ClassDB::bind_method(_MD("_gui_input"),&SampleEditor::_gui_input);
 	ClassDB::bind_method(_MD("_play_pressed"),&SampleEditor::_play_pressed);
 	ClassDB::bind_method(_MD("_stop_pressed"),&SampleEditor::_stop_pressed);
 
@@ -392,7 +392,7 @@ SampleEditor::SampleEditor() {
 	add_child(stop);
 
 	peakdisplay=Ref<ImageTexture>( memnew( ImageTexture) );
-	peakdisplay->create( EDITOR_DEF("audio/sample_editor_preview_width",512),EDITOR_DEF("audio/sample_editor_preview_height",128),Image::FORMAT_RGB8);
+	peakdisplay->create( EDITOR_DEF("editors/sample_editor/preview_width",512),EDITOR_DEF("editors/sample_editor/preview_height",128),Image::FORMAT_RGB8);
 	sample_texframe->set_expand(true);
 	sample_texframe->set_texture(peakdisplay);
 

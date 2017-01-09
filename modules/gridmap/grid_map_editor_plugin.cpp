@@ -731,7 +731,7 @@ void GridMapEditor::update_pallete()  {
 		theme_pallete->set_icon_mode(ItemList::ICON_MODE_LEFT);
 	}
 
-	float min_size = EDITOR_DEF("grid_map/preview_size",64);
+	float min_size = EDITOR_DEF("editors/grid_map/preview_size",64);
 	theme_pallete->set_fixed_icon_size(Size2(min_size, min_size));
 	theme_pallete->set_fixed_column_width(min_size*3/2);
 	theme_pallete->set_max_text_lines(2);
@@ -1126,7 +1126,7 @@ void GridMapEditor::_update_areas_display() {
 
 		RID mesh = VisualServer::get_singleton()->mesh_create();
 
-		DVector<Plane> planes;
+		PoolVector<Plane> planes;
 		for(int i=0;i<3;i++) {
 
 			Vector3 axis;
@@ -1201,7 +1201,7 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 	editor=p_editor;
 	undo_redo=p_editor->get_undo_redo();
 
-	int mw = EDITOR_DEF("grid_map/palette_min_width",230);
+	int mw = EDITOR_DEF("editors/grid_map/palette_min_width",230);
 	Control *ec = memnew( Control);
 	ec->set_custom_minimum_size(Size2(mw,0));
 	add_child(ec);
@@ -1263,11 +1263,11 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 	settings_pick_distance->set_max(10000.0f);
 	settings_pick_distance->set_min(500.0f);
 	settings_pick_distance->set_step(1.0f);
-	settings_pick_distance->set_value(EDITOR_DEF("grid_map/pick_distance", 5000.0));
+	settings_pick_distance->set_value(EDITOR_DEF("editors/grid_map/pick_distance", 5000.0));
 	settings_vbc->add_margin_child("Pick Distance:", settings_pick_distance);
 
 	clip_mode=CLIP_DISABLED;
-	options->get_popup()->connect("item_pressed", this,"_menu_option");
+	options->get_popup()->connect("id_pressed", this,"_menu_option");
 
 	HBoxContainer *hb = memnew( HBoxContainer );
 	add_child(hb);
@@ -1295,6 +1295,8 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 	mode_list->set_icon(p_editor->get_gui_base()->get_icon("FileList", "EditorIcons"));
 	hb->add_child(mode_list);
 	mode_list->connect("pressed", this, "_set_display_mode", varray(DISPLAY_LIST));
+
+	EDITOR_DEF("editors/grid_map/preview_size",64)
 
 	display_mode = DISPLAY_THUMBNAIL;
 	selected_area=-1;
@@ -1341,8 +1343,8 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 		//selection mesh create
 
 
-		DVector<Vector3> lines;
-		DVector<Vector3> triangles;
+		PoolVector<Vector3> lines;
+		PoolVector<Vector3> triangles;
 
 		for (int i=0;i<6;i++) {
 

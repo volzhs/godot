@@ -54,7 +54,6 @@ public:
 	enum AnchorType {
 		ANCHOR_BEGIN,
 		ANCHOR_END,
-		ANCHOR_RATIO,
 		ANCHOR_CENTER,
 	};
 
@@ -66,10 +65,16 @@ public:
 
 	enum SizeFlags {
 
-		SIZE_EXPAND=1,
-		SIZE_FILL=2,
+		SIZE_FILL=1,
+		SIZE_EXPAND=2,
 		SIZE_EXPAND_FILL=SIZE_EXPAND|SIZE_FILL
 
+	};
+
+	enum MouseFilter {
+		MOUSE_FILTER_STOP,
+		MOUSE_FILTER_PASS,
+		MOUSE_FILTER_IGNORE
 	};
 
 	enum CursorShape {
@@ -125,8 +130,7 @@ private:
 		bool pending_min_size_update;
 		Point2 custom_minimum_size;
 
-		bool ignore_mouse;
-		bool stop_mouse;
+		MouseFilter mouse_filter;
 
 		bool block_minimum_size_adjust;
 		bool disable_visibility_clip;
@@ -208,7 +212,7 @@ protected:
 	virtual void add_child_notify(Node *p_child);
 	virtual void remove_child_notify(Node *p_child);
 
-	//virtual void _window_input_event(InputEvent p_event);
+	//virtual void _window_gui_input(InputEvent p_event);
 
 	bool _set(const StringName& p_name, const Variant& p_value);
 	bool _get(const StringName& p_name,Variant &r_ret) const;
@@ -338,11 +342,8 @@ public:
 
 	Control *get_focus_owner() const;
 
-	void set_ignore_mouse(bool p_ignore);
-	bool is_ignoring_mouse() const;
-
-	void set_stop_mouse(bool p_stop);
-	bool is_stopping_mouse() const;
+	void set_mouse_filter(MouseFilter p_filter);
+	MouseFilter get_mouse_filter() const;
 
 	/* SKINNING */
 
@@ -418,5 +419,6 @@ VARIANT_ENUM_CAST(Control::AnchorType);
 VARIANT_ENUM_CAST(Control::FocusMode);
 VARIANT_ENUM_CAST(Control::SizeFlags);
 VARIANT_ENUM_CAST(Control::CursorShape);
+VARIANT_ENUM_CAST(Control::MouseFilter);
 
 #endif

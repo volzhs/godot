@@ -1122,7 +1122,7 @@ void OS_OSX::initialize(const VideoMode& p_desired,int p_video_driver,int p_audi
 	physics_2d_server->init();
 
 	input = memnew( InputDefault );
-	joystick_osx = memnew( JoystickOSX );
+	joypad_osx = memnew( JoypadOSX );
 
 	_ensure_data_dir();
 
@@ -1165,7 +1165,7 @@ void OS_OSX::finalize() {
 	spatial_sound_2d_server->finish();
 	memdelete(spatial_sound_2d_server);
 
-	memdelete(joystick_osx);
+	memdelete(joypad_osx);
 	memdelete(input);
 
 	memdelete(sample_manager);
@@ -1327,8 +1327,8 @@ void OS_OSX::set_icon(const Image& p_icon) {
 	uint8_t *pixels = [imgrep bitmapData];
 
 	int len = img.get_width()*img.get_height();
-	DVector<uint8_t> data = img.get_data();
-	DVector<uint8_t>::Read r = data.read();
+	PoolVector<uint8_t> data = img.get_data();
+	PoolVector<uint8_t>::Read r = data.read();
 
 	/* Premultiply the alpha channel */
 	for (int i = 0; i<len ; i++) {
@@ -1738,7 +1738,7 @@ void OS_OSX::run() {
 	while (!force_quit) {
 
 		process_events(); // get rid of pending events
-		last_id = joystick_osx->process_joysticks(last_id);
+		last_id = joypad_osx->process_joypads(last_id);
 		if (Main::iteration()==true)
 			break;
 	};

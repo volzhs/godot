@@ -18,7 +18,7 @@ void PropertySelector::_sbox_input(const InputEvent& p_ie) {
 			case KEY_PAGEUP:
 			case KEY_PAGEDOWN: {
 
-				search_options->call("_input_event", p_ie);
+				search_options->call("_gui_input", p_ie);
 				search_box->accept_event();
 
 				TreeItem *root = search_options->get_root();
@@ -321,8 +321,8 @@ void PropertySelector::_item_selected() {
 			case InputEvent::KEY:  class_type="InputEventKey"; break;
 			case InputEvent::MOUSE_MOTION:  class_type="InputEventMouseMotion"; break;
 			case InputEvent::MOUSE_BUTTON:  class_type="InputEventMouseButton"; break;
-			case InputEvent::JOYSTICK_MOTION:  class_type="InputEventJoystickMotion"; break;
-			case InputEvent::JOYSTICK_BUTTON:  class_type="InputEventJoystickButton"; break;
+			case InputEvent::JOYPAD_MOTION:  class_type="InputEventJoypadMotion"; break;
+			case InputEvent::JOYPAD_BUTTON:  class_type="InputEventJoypadButton"; break;
 			case InputEvent::SCREEN_TOUCH:  class_type="InputEventScreenTouch"; break;
 			case InputEvent::SCREEN_DRAG:  class_type="InputEventScreenDrag"; break;
 			case InputEvent::ACTION:  class_type="InputEventAction"; break;
@@ -578,7 +578,7 @@ PropertySelector::PropertySelector() {
 	search_box = memnew( LineEdit );
 	vbc->add_margin_child(TTR("Search:"),search_box);
 	search_box->connect("text_changed",this,"_text_changed");
-	search_box->connect("input_event",this,"_sbox_input");
+	search_box->connect("gui_input",this,"_sbox_input");
 	search_options = memnew( Tree );
 	vbc->add_margin_child(TTR("Matches:"),search_options,true);
 	get_ok()->set_text(TTR("Open"));

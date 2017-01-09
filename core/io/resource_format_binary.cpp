@@ -68,6 +68,8 @@ enum {
 	VARIANT_VECTOR3_ARRAY=35,
 	VARIANT_COLOR_ARRAY=36,
 	VARIANT_VECTOR2_ARRAY=37,
+	VARIANT_INT64=40,
+	VARIANT_DOUBLE=41,
 
 	IMAGE_ENCODING_EMPTY=0,
 	IMAGE_ENCODING_RAW=1,
@@ -116,9 +118,17 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant& r_v)  {
 
 			r_v=int(f->get_32());
 		} break;
+		case VARIANT_INT64: {
+
+			r_v=int64_t(f->get_64());
+		} break;
 		case VARIANT_REAL: {
 
 			r_v=f->get_real();
+		} break;
+		case VARIANT_DOUBLE: {
+
+			r_v=f->get_double();
 		} break;
 		case VARIANT_STRING: {
 
@@ -264,22 +274,22 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant& r_v)  {
 
 				uint32_t datalen = f->get_32();
 
-				DVector<uint8_t> imgdata;
+				PoolVector<uint8_t> imgdata;
 				imgdata.resize(datalen);
-				DVector<uint8_t>::Write w = imgdata.write();
+				PoolVector<uint8_t>::Write w = imgdata.write();
 				f->get_buffer(w.ptr(),datalen);
 				_advance_padding(datalen);
-				w=DVector<uint8_t>::Write();
+				w=PoolVector<uint8_t>::Write();
 
 				r_v=Image(width,height,mipmaps,fmt,imgdata);
 
 			} else {
 				//compressed
-				DVector<uint8_t> data;
+				PoolVector<uint8_t> data;
 				data.resize(f->get_32());
-				DVector<uint8_t>::Write w = data.write();
+				PoolVector<uint8_t>::Write w = data.write();
 				f->get_buffer(w.ptr(),data.size());
-				w = DVector<uint8_t>::Write();
+				w = PoolVector<uint8_t>::Write();
 
 				Image img;
 
@@ -448,12 +458,12 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant& r_v)  {
 
 			uint32_t len = f->get_32();
 
-			DVector<uint8_t> array;
+			PoolVector<uint8_t> array;
 			array.resize(len);
-			DVector<uint8_t>::Write w = array.write();
+			PoolVector<uint8_t>::Write w = array.write();
 			f->get_buffer(w.ptr(),len);
 			_advance_padding(len);
-			w=DVector<uint8_t>::Write();
+			w=PoolVector<uint8_t>::Write();
 			r_v=array;
 
 		} break;
@@ -461,9 +471,9 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant& r_v)  {
 
 			uint32_t len = f->get_32();
 
-			DVector<int> array;
+			PoolVector<int> array;
 			array.resize(len);
-			DVector<int>::Write w = array.write();
+			PoolVector<int>::Write w = array.write();
 			f->get_buffer((uint8_t*)w.ptr(),len*4);
 #ifdef BIG_ENDIAN_ENABLED
 			{
@@ -475,16 +485,16 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant& r_v)  {
 			}
 
 #endif
-			w=DVector<int>::Write();
+			w=PoolVector<int>::Write();
 			r_v=array;
 		} break;
 		case VARIANT_REAL_ARRAY: {
 
 			uint32_t len = f->get_32();
 
-			DVector<real_t> array;
+			PoolVector<real_t> array;
 			array.resize(len);
-			DVector<real_t>::Write w = array.write();
+			PoolVector<real_t>::Write w = array.write();
 			f->get_buffer((uint8_t*)w.ptr(),len*sizeof(real_t));
 #ifdef BIG_ENDIAN_ENABLED
 			{
@@ -497,18 +507,18 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant& r_v)  {
 
 #endif
 
-			w=DVector<real_t>::Write();
+			w=PoolVector<real_t>::Write();
 			r_v=array;
 		} break;
 		case VARIANT_STRING_ARRAY: {
 
 			uint32_t len = f->get_32();
-			DVector<String> array;
+			PoolVector<String> array;
 			array.resize(len);
-			DVector<String>::Write w = array.write();
+			PoolVector<String>::Write w = array.write();
 			for(uint32_t i=0;i<len;i++)
 				w[i]=get_unicode_string();
-			w=DVector<String>::Write();
+			w=PoolVector<String>::Write();
 			r_v=array;
 
 
@@ -517,9 +527,9 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant& r_v)  {
 
 			uint32_t len = f->get_32();
 
-			DVector<Vector2> array;
+			PoolVector<Vector2> array;
 			array.resize(len);
-			DVector<Vector2>::Write w = array.write();
+			PoolVector<Vector2>::Write w = array.write();
 			if (sizeof(Vector2)==8) {
 				f->get_buffer((uint8_t*)w.ptr(),len*sizeof(real_t)*2);
 #ifdef BIG_ENDIAN_ENABLED
@@ -537,7 +547,7 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant& r_v)  {
 				ERR_EXPLAIN("Vector2 size is NOT 8!");
 				ERR_FAIL_V(ERR_UNAVAILABLE);
 			}
-			w=DVector<Vector2>::Write();
+			w=PoolVector<Vector2>::Write();
 			r_v=array;
 
 		} break;
@@ -545,9 +555,9 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant& r_v)  {
 
 			uint32_t len = f->get_32();
 
-			DVector<Vector3> array;
+			PoolVector<Vector3> array;
 			array.resize(len);
-			DVector<Vector3>::Write w = array.write();
+			PoolVector<Vector3>::Write w = array.write();
 			if (sizeof(Vector3)==12) {
 				f->get_buffer((uint8_t*)w.ptr(),len*sizeof(real_t)*3);
 #ifdef BIG_ENDIAN_ENABLED
@@ -565,7 +575,7 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant& r_v)  {
 				ERR_EXPLAIN("Vector3 size is NOT 12!");
 				ERR_FAIL_V(ERR_UNAVAILABLE);
 			}
-			w=DVector<Vector3>::Write();
+			w=PoolVector<Vector3>::Write();
 			r_v=array;
 
 		} break;
@@ -573,9 +583,9 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant& r_v)  {
 
 			uint32_t len = f->get_32();
 
-			DVector<Color> array;
+			PoolVector<Color> array;
 			array.resize(len);
-			DVector<Color>::Write w = array.write();
+			PoolVector<Color>::Write w = array.write();
 			if (sizeof(Color)==16) {
 				f->get_buffer((uint8_t*)w.ptr(),len*sizeof(real_t)*4);
 #ifdef BIG_ENDIAN_ENABLED
@@ -593,7 +603,7 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant& r_v)  {
 				ERR_EXPLAIN("Color size is NOT 16!");
 				ERR_FAIL_V(ERR_UNAVAILABLE);
 			}
-			w=DVector<Color>::Write();
+			w=PoolVector<Color>::Write();
 			r_v=array;
 		} break;
 
@@ -1416,15 +1426,33 @@ void ResourceFormatSaverBinaryInstance::write_variant(const Variant& p_property,
 		} break;
 		case Variant::INT: {
 
-			f->store_32(VARIANT_INT);
-			int val=p_property;
-			f->store_32(val);
+			int64_t val = p_property;
+			if (val>0x7FFFFFFF || val < -0x80000000) {
+				f->store_32(VARIANT_INT64);
+				f->store_64(val);
+
+			} else {
+				f->store_32(VARIANT_INT);
+				int val=p_property;
+				f->store_32(int32_t(val));
+
+			}
+
 		} break;
 		case Variant::REAL: {
 
-			f->store_32(VARIANT_REAL);
-			real_t val=p_property;
-			f->store_real(val);
+
+			double d = p_property;
+			float fl = d;
+			if (double(fl)!=d) {
+				f->store_32(VARIANT_DOUBLE);
+				f->store_double(d);
+			} else {
+
+				f->store_32(VARIANT_REAL);
+				f->store_real(fl);
+
+			}
 
 		} break;
 		case Variant::STRING: {
@@ -1587,12 +1615,12 @@ void ResourceFormatSaverBinaryInstance::write_variant(const Variant& p_property,
 
 				int dlen = val.get_data().size();
 				f->store_32(dlen);
-				DVector<uint8_t>::Read r = val.get_data().read();
+				PoolVector<uint8_t>::Read r = val.get_data().read();
 				f->store_buffer(r.ptr(),dlen);
 				_pad_buffer(dlen);
 			} else {
 
-				DVector<uint8_t> data;
+				PoolVector<uint8_t> data;
 				if (encoding==IMAGE_ENCODING_LOSSY) {
 					data=Image::lossy_packer(val,quality);
 
@@ -1604,7 +1632,7 @@ void ResourceFormatSaverBinaryInstance::write_variant(const Variant& p_property,
 				int ds=data.size();
 				f->store_32(ds);
 				if (ds>0) {
-					DVector<uint8_t>::Read r = data.read();
+					PoolVector<uint8_t>::Read r = data.read();
 					f->store_buffer(r.ptr(),ds);
 
 					_pad_buffer(ds);
@@ -1703,10 +1731,10 @@ void ResourceFormatSaverBinaryInstance::write_variant(const Variant& p_property,
 		case Variant::RAW_ARRAY: {
 
 			f->store_32(VARIANT_RAW_ARRAY);
-			DVector<uint8_t> arr = p_property;
+			PoolVector<uint8_t> arr = p_property;
 			int len=arr.size();
 			f->store_32(len);
-			DVector<uint8_t>::Read r = arr.read();
+			PoolVector<uint8_t>::Read r = arr.read();
 			f->store_buffer(r.ptr(),len);
 			_pad_buffer(len);
 
@@ -1714,10 +1742,10 @@ void ResourceFormatSaverBinaryInstance::write_variant(const Variant& p_property,
 		case Variant::INT_ARRAY: {
 
 			f->store_32(VARIANT_INT_ARRAY);
-			DVector<int> arr = p_property;
+			PoolVector<int> arr = p_property;
 			int len=arr.size();
 			f->store_32(len);
-			DVector<int>::Read r = arr.read();
+			PoolVector<int>::Read r = arr.read();
 			for(int i=0;i<len;i++)
 				f->store_32(r[i]);
 
@@ -1725,10 +1753,10 @@ void ResourceFormatSaverBinaryInstance::write_variant(const Variant& p_property,
 		case Variant::REAL_ARRAY: {
 
 			f->store_32(VARIANT_REAL_ARRAY);
-			DVector<real_t> arr = p_property;
+			PoolVector<real_t> arr = p_property;
 			int len=arr.size();
 			f->store_32(len);
-			DVector<real_t>::Read r = arr.read();
+			PoolVector<real_t>::Read r = arr.read();
 			for(int i=0;i<len;i++) {
 				f->store_real(r[i]);
 			}
@@ -1737,10 +1765,10 @@ void ResourceFormatSaverBinaryInstance::write_variant(const Variant& p_property,
 		case Variant::STRING_ARRAY: {
 
 			f->store_32(VARIANT_STRING_ARRAY);
-			DVector<String> arr = p_property;
+			PoolVector<String> arr = p_property;
 			int len=arr.size();
 			f->store_32(len);
-			DVector<String>::Read r = arr.read();
+			PoolVector<String>::Read r = arr.read();
 			for(int i=0;i<len;i++) {
 				save_unicode_string(r[i]);
 			}
@@ -1749,10 +1777,10 @@ void ResourceFormatSaverBinaryInstance::write_variant(const Variant& p_property,
 		case Variant::VECTOR3_ARRAY: {
 
 			f->store_32(VARIANT_VECTOR3_ARRAY);
-			DVector<Vector3> arr = p_property;
+			PoolVector<Vector3> arr = p_property;
 			int len=arr.size();
 			f->store_32(len);
-			DVector<Vector3>::Read r = arr.read();
+			PoolVector<Vector3>::Read r = arr.read();
 			for(int i=0;i<len;i++) {
 				f->store_real(r[i].x);
 				f->store_real(r[i].y);
@@ -1763,10 +1791,10 @@ void ResourceFormatSaverBinaryInstance::write_variant(const Variant& p_property,
 		case Variant::VECTOR2_ARRAY: {
 
 			f->store_32(VARIANT_VECTOR2_ARRAY);
-			DVector<Vector2> arr = p_property;
+			PoolVector<Vector2> arr = p_property;
 			int len=arr.size();
 			f->store_32(len);
-			DVector<Vector2>::Read r = arr.read();
+			PoolVector<Vector2>::Read r = arr.read();
 			for(int i=0;i<len;i++) {
 				f->store_real(r[i].x);
 				f->store_real(r[i].y);
@@ -1776,10 +1804,10 @@ void ResourceFormatSaverBinaryInstance::write_variant(const Variant& p_property,
 		case Variant::COLOR_ARRAY: {
 
 			f->store_32(VARIANT_COLOR_ARRAY);
-			DVector<Color> arr = p_property;
+			PoolVector<Color> arr = p_property;
 			int len=arr.size();
 			f->store_32(len);
-			DVector<Color>::Read r = arr.read();
+			PoolVector<Color>::Read r = arr.read();
 			for(int i=0;i<len;i++) {
 				f->store_real(r[i].r);
 				f->store_real(r[i].g);

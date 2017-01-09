@@ -50,7 +50,7 @@ void AnimationPlayerEditor::_node_removed(Node *p_node) {
 	}
 }
 
-void AnimationPlayerEditor::_input_event(InputEvent p_event) {
+void AnimationPlayerEditor::_gui_input(InputEvent p_event) {
 
 
 }
@@ -101,7 +101,7 @@ void AnimationPlayerEditor::_notification(int p_what) {
 		autoplay->set_icon( get_icon("AutoPlay","EditorIcons") );
 		load_anim->set_icon( get_icon("Folder","EditorIcons") );
 		save_anim->set_icon(get_icon("Save", "EditorIcons"));
-		save_anim->get_popup()->connect("item_pressed", this, "_animation_save_menu");
+		save_anim->get_popup()->connect("id_pressed", this, "_animation_save_menu");
 		remove_anim->set_icon( get_icon("Remove","EditorIcons") );
 
 		blend_anim->set_icon( get_icon("Blend","EditorIcons") );
@@ -115,7 +115,7 @@ void AnimationPlayerEditor::_notification(int p_what) {
 		resource_edit_anim->set_icon( get_icon("EditResource","EditorIcons") );
 		pin->set_icon(get_icon("Pin","EditorIcons") );
 		tool_anim->set_icon(get_icon("Tools","EditorIcons"));
-		tool_anim->get_popup()->connect("item_pressed",this,"_animation_tool_menu");
+		tool_anim->get_popup()->connect("id_pressed",this,"_animation_tool_menu");
 
 		blend_editor.next->connect("item_selected", this, "_blend_editor_next_changed");
 
@@ -375,9 +375,9 @@ void AnimationPlayerEditor::_animation_load() {
 void AnimationPlayerEditor::_animation_save_in_path(const Ref<Resource>& p_resource, const String& p_path) {
 
 	int flg = 0;
-	if (EditorSettings::get_singleton()->get("on_save/compress_binary_resources"))
+	if (EditorSettings::get_singleton()->get("filesystem/on_save/compress_binary_resources"))
 		flg |= ResourceSaver::FLAG_COMPRESS;
-	//if (EditorSettings::get_singleton()->get("on_save/save_paths_as_relative"))
+	//if (EditorSettings::get_singleton()->get("filesystem/on_save/save_paths_as_relative"))
 	//	flg |= ResourceSaver::FLAG_RELATIVE_PATHS;
 
 	String path = GlobalConfig::get_singleton()->localize_path(p_path);
@@ -1245,7 +1245,7 @@ void AnimationPlayerEditor::_unhandled_key_input(const InputEvent& p_ev) {
 
 void AnimationPlayerEditor::_bind_methods() {
 
-	ClassDB::bind_method(_MD("_input_event"),&AnimationPlayerEditor::_input_event);
+	ClassDB::bind_method(_MD("_gui_input"),&AnimationPlayerEditor::_gui_input);
 	ClassDB::bind_method(_MD("_node_removed"),&AnimationPlayerEditor::_node_removed);
 	ClassDB::bind_method(_MD("_play_pressed"),&AnimationPlayerEditor::_play_pressed);
 	ClassDB::bind_method(_MD("_play_from_pressed"),&AnimationPlayerEditor::_play_from_pressed);

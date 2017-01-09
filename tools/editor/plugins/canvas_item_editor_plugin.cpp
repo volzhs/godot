@@ -1064,7 +1064,7 @@ void CanvasItemEditor::_list_select(const InputEventMouseButton& b) {
 
 }
 
-void CanvasItemEditor::_viewport_input_event(const InputEvent& p_event) {
+void CanvasItemEditor::_viewport_gui_input(const InputEvent& p_event) {
 
 	 {
 
@@ -1072,7 +1072,7 @@ void CanvasItemEditor::_viewport_input_event(const InputEvent& p_event) {
 		EditorPluginList *over_plugin_list = en->get_editor_plugins_over();
 
 		if (!over_plugin_list->empty()) {
-			bool discard = over_plugin_list->forward_input_event(transform,p_event);
+			bool discard = over_plugin_list->forward_gui_input(transform,p_event);
 			if (discard) {
 				accept_event();
 				return;
@@ -1317,7 +1317,7 @@ void CanvasItemEditor::_viewport_input_event(const InputEvent& p_event) {
 		{
 			bone_ik_list.clear();
 			float closest_dist=1e20;
-			int bone_width = EditorSettings::get_singleton()->get("2d_editor/bone_width");
+			int bone_width = EditorSettings::get_singleton()->get("editors/2dbone_width");
 			for(Map<ObjectID,BoneList>::Element *E=bone_list.front();E;E=E->next()) {
 
 				if (E->get().from == E->get().to)
@@ -2117,11 +2117,11 @@ void CanvasItemEditor::_viewport_draw() {
        }
 
 	if (skeleton_show_bones) {
-		int bone_width = EditorSettings::get_singleton()->get("2d_editor/bone_width");
-		Color bone_color1 = EditorSettings::get_singleton()->get("2d_editor/bone_color1");
-		Color bone_color2 = EditorSettings::get_singleton()->get("2d_editor/bone_color2");
-		Color bone_ik_color = EditorSettings::get_singleton()->get("2d_editor/bone_ik_color");
-		Color bone_selected_color = EditorSettings::get_singleton()->get("2d_editor/bone_selected_color");
+		int bone_width = EditorSettings::get_singleton()->get("editors/2dbone_width");
+		Color bone_color1 = EditorSettings::get_singleton()->get("editors/2dbone_color1");
+		Color bone_color2 = EditorSettings::get_singleton()->get("editors/2dbone_color2");
+		Color bone_ik_color = EditorSettings::get_singleton()->get("editors/2dbone_ik_color");
+		Color bone_selected_color = EditorSettings::get_singleton()->get("editors/2dbone_selected_color");
 
 		for(Map<ObjectID,BoneList>::Element*E=bone_list.front();E;E=E->next()) {
 
@@ -3209,7 +3209,7 @@ void CanvasItemEditor::_bind_methods() {
 	ClassDB::bind_method("_keying_changed",&CanvasItemEditor::_keying_changed);
 	ClassDB::bind_method("_unhandled_key_input",&CanvasItemEditor::_unhandled_key_input);
 	ClassDB::bind_method("_viewport_draw",&CanvasItemEditor::_viewport_draw);
-	ClassDB::bind_method("_viewport_input_event",&CanvasItemEditor::_viewport_input_event);
+	ClassDB::bind_method("_viewport_gui_input",&CanvasItemEditor::_viewport_gui_input);
 	ClassDB::bind_method("_snap_changed",&CanvasItemEditor::_snap_changed);
 	ClassDB::bind_method(_MD("_selection_result_pressed"),&CanvasItemEditor::_selection_result_pressed);
 	ClassDB::bind_method(_MD("_selection_menu_hide"),&CanvasItemEditor::_selection_menu_hide);
@@ -3351,7 +3351,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	viewport->add_child(h_scroll);
 	viewport->add_child(v_scroll);
 	viewport->connect("draw",this,"_viewport_draw");
-	viewport->connect("input_event",this,"_viewport_input_event");
+	viewport->connect("gui_input",this,"_viewport_gui_input");
 
 
 	h_scroll->connect("value_changed", this,"_update_scroll",Vector<Variant>(),true);
@@ -3436,7 +3436,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	edit_menu = memnew( MenuButton );
 	edit_menu->set_text(TTR("Edit"));
 	hb->add_child(edit_menu);
-	edit_menu->get_popup()->connect("item_pressed", this,"_popup_callback");
+	edit_menu->get_popup()->connect("id_pressed", this,"_popup_callback");
 
 	PopupMenu *p;
 	p = edit_menu->get_popup();
@@ -3461,7 +3461,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	skeleton_menu->add_separator();
 	skeleton_menu->add_shortcut(ED_SHORTCUT("canvas_item_editor/skeleton_set_ik_chain", TTR("Make IK Chain")), SKELETON_SET_IK_CHAIN);
 	skeleton_menu->add_shortcut(ED_SHORTCUT("canvas_item_editor/skeleton_clear_ik_chain", TTR("Clear IK Chain")), SKELETON_CLEAR_IK_CHAIN);
-	skeleton_menu->connect("item_pressed", this,"_popup_callback");
+	skeleton_menu->connect("id_pressed", this,"_popup_callback");
 
 
 	/*
@@ -3473,7 +3473,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	view_menu = memnew( MenuButton );
 	view_menu->set_text(TTR("View"));
 	hb->add_child(view_menu);
-	view_menu->get_popup()->connect("item_pressed", this,"_popup_callback");
+	view_menu->get_popup()->connect("id_pressed", this,"_popup_callback");
 
 	p = view_menu->get_popup();
 
@@ -3488,7 +3488,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	anchor_menu = memnew( MenuButton );
 	anchor_menu->set_text(TTR("Anchor"));
 	hb->add_child(anchor_menu);
-	anchor_menu->get_popup()->connect("item_pressed", this,"_popup_callback");
+	anchor_menu->get_popup()->connect("id_pressed", this,"_popup_callback");
 	anchor_menu->hide();
 
 	//p = anchor_menu->get_popup();
@@ -3534,7 +3534,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	animation_menu = memnew( MenuButton );
 	animation_menu->set_text(TTR("Animation"));
 	animation_hb->add_child(animation_menu);
-	animation_menu->get_popup()->connect("item_pressed", this,"_popup_callback");
+	animation_menu->get_popup()->connect("id_pressed", this,"_popup_callback");
 
 	p = animation_menu->get_popup();
 
@@ -3571,7 +3571,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	selection_menu = memnew( PopupMenu );
 	add_child(selection_menu);
 	selection_menu->set_custom_minimum_size(Vector2(100, 0));
-	selection_menu->connect("item_pressed", this, "_selection_result_pressed");
+	selection_menu->connect("id_pressed", this, "_selection_result_pressed");
 	selection_menu->connect("popup_hide", this, "_selection_menu_hide");
 
 	key_pos=true;
@@ -3771,7 +3771,7 @@ void CanvasItemEditorViewport::_create_nodes(Node* parent, Node* child, String& 
 	if (default_type=="Patch9Frame") {
 		editor_data->get_undo_redo().add_do_property(child,"rect/size",texture_size);
 	} else if (default_type=="Polygon2D") {
-		DVector<Vector2> list;
+		PoolVector<Vector2> list;
 		list.push_back(Vector2(0,0));
 		list.push_back(Vector2(texture_size.width,0));
 		list.push_back(Vector2(texture_size.width,texture_size.height));

@@ -35,7 +35,7 @@
 #include "sample_editor_plugin.h"
 
 
-void SampleLibraryEditor::_input_event(InputEvent p_event) {
+void SampleLibraryEditor::_gui_input(InputEvent p_event) {
 
 
 }
@@ -66,7 +66,7 @@ void SampleLibraryEditor::_notification(int p_what) {
 	}
 }
 
-void SampleLibraryEditor::_file_load_request(const DVector<String>& p_path) {
+void SampleLibraryEditor::_file_load_request(const PoolVector<String>& p_path) {
 
 
 	for(int i=0;i<p_path.size();i++) {
@@ -400,7 +400,7 @@ void SampleLibraryEditor::drop_data_fw(const Point2& p_point,const Variant& p_da
 
 	if (String(d["type"])=="files") {
 
-		DVector<String> files = d["files"];
+		PoolVector<String> files = d["files"];
 
 		_file_load_request(files);
 
@@ -411,7 +411,7 @@ void SampleLibraryEditor::drop_data_fw(const Point2& p_point,const Variant& p_da
 
 void SampleLibraryEditor::_bind_methods() {
 
-	ClassDB::bind_method(_MD("_input_event"),&SampleLibraryEditor::_input_event);
+	ClassDB::bind_method(_MD("_gui_input"),&SampleLibraryEditor::_gui_input);
 	ClassDB::bind_method(_MD("_load_pressed"),&SampleLibraryEditor::_load_pressed);
 	ClassDB::bind_method(_MD("_item_edited"),&SampleLibraryEditor::_item_edited);
 	ClassDB::bind_method(_MD("_delete_pressed"),&SampleLibraryEditor::_delete_pressed);

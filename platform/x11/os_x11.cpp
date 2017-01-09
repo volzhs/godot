@@ -458,7 +458,7 @@ void OS_X11::initialize(const VideoMode& p_desired,int p_video_driver,int p_audi
 
 	input = memnew( InputDefault );
 #ifdef JOYDEV_ENABLED
-	joystick = memnew( joystick_linux(input));
+	joypad = memnew( JoypadLinux(input));
 #endif
 	_ensure_data_dir();
 }
@@ -479,7 +479,7 @@ void OS_X11::finalize() {
 //}
 
 #ifdef JOYDEV_ENABLED
-	memdelete(joystick);
+	memdelete(joypad);
 #endif
 	memdelete(input);
 
@@ -1894,7 +1894,7 @@ void OS_X11::set_icon(const Image& p_icon) {
 		pd[0]=w;
 		pd[1]=h;
 
-		DVector<uint8_t>::Read r = img.get_data().read();
+		PoolVector<uint8_t>::Read r = img.get_data().read();
 
 		long * wr = &pd[2];
 		uint8_t const * pr = r.ptr();
@@ -1932,7 +1932,7 @@ void OS_X11::run() {
 
 		process_xevents(); // get rid of pending events
 #ifdef JOYDEV_ENABLED
-		event_id = joystick->process_joysticks(event_id);
+		event_id = joypad->process_joypads(event_id);
 #endif
 		if (Main::iteration()==true)
 			break;

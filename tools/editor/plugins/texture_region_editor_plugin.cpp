@@ -818,7 +818,7 @@ TextureRegionEditor::TextureRegionEditor(EditorNode* p_editor)
 	for (int i = 0; i < 4; i++)
 		p->set_item_as_checkable(i,true);
 	p->set_item_checked(0,true);
-	p->connect("item_pressed", this, "_set_snap_mode");
+	p->connect("id_pressed", this, "_set_snap_mode");
 	hb_grid = memnew( HBoxContainer );
 	hb_tools->add_child(hb_grid);
 	hb_grid->add_child( memnew( VSeparator ));
@@ -921,7 +921,7 @@ TextureRegionEditor::TextureRegionEditor(EditorNode* p_editor)
 	hscroll->connect("value_changed",this,"_scroll_changed");
 
 	edit_draw->connect("draw",this,"_region_draw");
-	edit_draw->connect("input_event",this,"_region_input");
+	edit_draw->connect("gui_input",this,"_region_input");
 	draw_zoom=1.0;
 	updating_scroll=false;
 

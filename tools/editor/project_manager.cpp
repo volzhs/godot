@@ -451,7 +451,7 @@ public:
 		fdialog = memnew( FileDialog );
 		add_child(fdialog);
 		fdialog->set_access(FileDialog::ACCESS_FILESYSTEM);
-		fdialog->set_current_dir( EditorSettings::get_singleton()->get("global/default_project_path") );
+		fdialog->set_current_dir( EditorSettings::get_singleton()->get("filesystem/directories/default_project_path") );
 		project_name->connect("text_changed", this,"_text_changed");
 		project_path->connect("text_changed", this,"_path_text_changed");
 		fdialog->connect("dir_selected", this,"_path_selected");
@@ -856,7 +856,7 @@ void ProjectManager::_load_recent_projects() {
 		hb->set_meta("main_scene",main_scene);
 		hb->set_meta("favorite",is_favorite);
 		hb->connect("draw",this,"_panel_draw",varray(hb));
-		hb->connect("input_event",this,"_panel_input",varray(hb));
+		hb->connect("gui_input",this,"_panel_input",varray(hb));
 		hb->add_constant_override("separation",10*EDSCALE);
 
 		VBoxContainer *favorite_box = memnew( VBoxContainer );
@@ -1218,7 +1218,7 @@ ProjectManager::ProjectManager() {
 	EditorSettings::get_singleton()->set_optimize_save(false); //just write settings as they came
 
 	{
-		int dpi_mode = EditorSettings::get_singleton()->get("global/hidpi_mode");
+		int dpi_mode = EditorSettings::get_singleton()->get("interface/hidpi_mode");
 		if (dpi_mode==0) {
 			editor_set_scale( OS::get_singleton()->get_screen_dpi(0) > 150 && OS::get_singleton()->get_screen_size(OS::get_singleton()->get_current_screen()).x>2000 ? 2.0 : 1.0 );
 		} else if (dpi_mode==1) {
@@ -1232,7 +1232,7 @@ ProjectManager::ProjectManager() {
 		}
 	}
 
-	FileDialog::set_default_show_hidden_files(EditorSettings::get_singleton()->get("file_dialog/show_hidden_files"));
+	FileDialog::set_default_show_hidden_files(EditorSettings::get_singleton()->get("filesytem/file_dialog/show_hidden_files"));
 
 	set_area_as_parent_rect();
 	set_theme(create_editor_theme());
@@ -1341,7 +1341,7 @@ ProjectManager::ProjectManager() {
 	scan_dir->set_access(FileDialog::ACCESS_FILESYSTEM);
 	scan_dir->set_mode(FileDialog::MODE_OPEN_DIR);
 	scan_dir->set_title(TTR("Select a Folder to Scan")); // must be after mode or it's overridden
-	scan_dir->set_current_dir( EditorSettings::get_singleton()->get("global/default_project_path") );
+	scan_dir->set_current_dir( EditorSettings::get_singleton()->get("filesystem/directories/default_project_path") );
 	gui_base->add_child(scan_dir);
 	scan_dir->connect("dir_selected",this,"_scan_begin");
 
@@ -1418,8 +1418,8 @@ ProjectManager::ProjectManager() {
 	npdialog->connect("project_created", this,"_on_project_created");
 	_load_recent_projects();
 
-	if ( EditorSettings::get_singleton()->get("global/autoscan_project_path") ) {
-		_scan_begin( EditorSettings::get_singleton()->get("global/autoscan_project_path") );
+	if ( EditorSettings::get_singleton()->get("filesystem/directories/autoscan_project_path") ) {
+		_scan_begin( EditorSettings::get_singleton()->get("filesystem/directories/autoscan_project_path") );
 	}
 
 	//get_ok()->set_text("Open");

@@ -116,30 +116,7 @@ bool Control::_set(const StringName& p_name, const Variant& p_value) {
 
 	String name= p_name;
 	if (!name.begins_with("custom")) {
-		if (name.begins_with("margin/")) {
-			String dname = name.get_slicec('/', 1);
-			if (dname == "left") {
-				set_margin(MARGIN_LEFT, p_value);
-				return true;
-			}
-			else if (dname == "top") {
-				set_margin(MARGIN_TOP, p_value);
-				return true;
-			}
-			else if (dname == "right") {
-				set_margin(MARGIN_RIGHT, p_value);
-				return true;
-			}
-			else if (dname == "bottom") {
-				set_margin(MARGIN_BOTTOM, p_value);
-				return true;
-			}
-			else {
-				return false;
-			}
-		} else {
-			return false;
-		}
+		return false;
 	}
 
 	if (p_value.get_type()==Variant::NIL) {
@@ -235,30 +212,8 @@ bool Control::_get(const StringName& p_name,Variant &r_ret) const {
 	String sname=p_name;
 
 	if (!sname.begins_with("custom")) {
-		if (sname.begins_with("margin/")) {
-			String dname = sname.get_slicec('/', 1);
-			if (dname == "left") {
-				r_ret = get_margin(MARGIN_LEFT);
-				return true;
-			}
-			else if (dname == "top") {
-				r_ret = get_margin(MARGIN_TOP);
-				return true;
-			}
-			else if (dname == "right") {
-				r_ret = get_margin(MARGIN_RIGHT);
-				return true;
-			}
-			else if (dname == "bottom") {
-				r_ret = get_margin(MARGIN_BOTTOM);
-				return true;
-			}
-			else {
-				return false;
-			}
-		} else {
-			return false;
-		}
+		return false;
+
 	}
 
 	if (sname.begins_with("custom_icons/")) {
@@ -294,36 +249,6 @@ bool Control::_get(const StringName& p_name,Variant &r_ret) const {
 
 }
 void Control::_get_property_list( List<PropertyInfo> *p_list) const {
-
-	{
-		if (get_anchor(MARGIN_LEFT) == ANCHOR_RATIO) {
-			p_list->push_back(PropertyInfo(Variant::REAL, "margin/left", PROPERTY_HINT_RANGE, "-4096,4096,0.001"));
-		}
-		else {
-			p_list->push_back(PropertyInfo(Variant::INT, "margin/left", PROPERTY_HINT_RANGE, "-4096,4096"));
-		}
-
-		if (get_anchor(MARGIN_TOP) == ANCHOR_RATIO) {
-			p_list->push_back(PropertyInfo(Variant::REAL, "margin/top", PROPERTY_HINT_RANGE, "-4096,4096,0.001"));
-		}
-		else {
-			p_list->push_back(PropertyInfo(Variant::INT, "margin/top", PROPERTY_HINT_RANGE, "-4096,4096"));
-		}
-
-		if (get_anchor(MARGIN_RIGHT) == ANCHOR_RATIO) {
-			p_list->push_back(PropertyInfo(Variant::REAL, "margin/right", PROPERTY_HINT_RANGE, "-4096,4096,0.001"));
-		}
-		else {
-			p_list->push_back(PropertyInfo(Variant::INT, "margin/right", PROPERTY_HINT_RANGE, "-4096,4096"));
-		}
-
-		if (get_anchor(MARGIN_BOTTOM) == ANCHOR_RATIO) {
-			p_list->push_back(PropertyInfo(Variant::REAL, "margin/bottom", PROPERTY_HINT_RANGE, "-4096,4096,0.001"));
-		}
-		else {
-			p_list->push_back(PropertyInfo(Variant::INT, "margin/bottom", PROPERTY_HINT_RANGE, "-4096,4096"));
-		}
-	}
 
 	Ref<Theme> theme;
 	if (data.theme.is_valid()) {
@@ -1258,14 +1183,10 @@ void Control::_size_changed() {
 
 				margin_pos[i]=area-data.margin[i];
 			} break;
-			case ANCHOR_RATIO: {
+			case ANCHOR_CENTER: {
 
-				margin_pos[i]=area*data.margin[i];
+				margin_pos[i]=(area/2)-data.margin[i];
 			} break;
-            case ANCHOR_CENTER: {
-
-                margin_pos[i]=(area/2)-data.margin[i];
-            } break;
 		}
 	}
 
@@ -1334,12 +1255,9 @@ float Control::_s2a(float p_val, AnchorType p_anchor,float p_range) const {
 		case ANCHOR_END: {
 			return p_range-p_val;
 		} break;
-		case ANCHOR_RATIO: {
-			return p_val/p_range;
+		case ANCHOR_CENTER: {
+			return (p_range/2)-p_val;
 		} break;
-        case ANCHOR_CENTER: {
-            return (p_range/2)-p_val;
-        } break;
 	}
 
 	return 0;
@@ -1356,11 +1274,8 @@ float Control::_a2s(float p_val, AnchorType p_anchor,float p_range) const {
 		case ANCHOR_END: {
 			return Math::floor(p_range-p_val);
 		} break;
-		case ANCHOR_RATIO: {
-			return Math::floor(p_range*p_val);
-		} break;
 		case ANCHOR_CENTER: {
-		    return Math::floor((p_range/2)-p_val);
+			return Math::floor((p_range/2)-p_val);
 		} break;
 	}
 	return 0;
@@ -1387,7 +1302,7 @@ void Control::set_anchor(Margin p_margin,AnchorType p_anchor, bool p_keep_margin
 void Control::_set_anchor(Margin p_margin,AnchorType p_anchor) {
 	#ifdef TOOLS_ENABLED
 	if (is_inside_tree() && get_tree()->is_editor_hint()) {
-		set_anchor(p_margin, p_anchor, EDITOR_DEF("2d_editor/keep_margins_when_changing_anchors", false));
+		set_anchor(p_margin, p_anchor, EDITOR_DEF("editors/2d/keep_margins_when_changing_anchors", false));
 	} else {
 		set_anchor(p_margin, p_anchor, false);
 	}
@@ -2246,25 +2161,17 @@ int Control::get_v_size_flags() const{
 	return data.v_size_flags;
 }
 
-void Control::set_ignore_mouse(bool p_ignore) {
+void Control::set_mouse_filter(MouseFilter p_filter) {
 
-	data.ignore_mouse=p_ignore;
+	ERR_FAIL_INDEX(p_filter,3);
+	data.mouse_filter=p_filter;
 }
 
-bool Control::is_ignoring_mouse() const {
+Control::MouseFilter Control::get_mouse_filter() const{
 
-	return data.ignore_mouse;
+	return data.mouse_filter;
 }
 
-void Control::set_stop_mouse(bool p_stop) {
-
-	data.stop_mouse=p_stop;
-}
-
-bool Control::is_stopping_mouse() const {
-
-	return data.stop_mouse;
-}
 
 Control *Control::get_focus_owner() const {
 
@@ -2535,13 +2442,10 @@ void Control::_bind_methods() {
 	ClassDB::bind_method(_MD("set_focus_neighbour","margin","neighbour"),&Control::set_focus_neighbour);
 	ClassDB::bind_method(_MD("get_focus_neighbour","margin"),&Control::get_focus_neighbour);
 
-	ClassDB::bind_method(_MD("set_ignore_mouse","ignore"),&Control::set_ignore_mouse);
-	ClassDB::bind_method(_MD("is_ignoring_mouse"),&Control::is_ignoring_mouse);
-
 	ClassDB::bind_method(_MD("force_drag","data","preview"),&Control::force_drag);
 
-	ClassDB::bind_method(_MD("set_stop_mouse","stop"),&Control::set_stop_mouse);
-	ClassDB::bind_method(_MD("is_stopping_mouse"),&Control::is_stopping_mouse);
+	ClassDB::bind_method(_MD("set_mouse_filter","stop"),&Control::set_mouse_filter);
+	ClassDB::bind_method(_MD("get_mouse_filter"),&Control::get_mouse_filter);
 
 	ClassDB::bind_method(_MD("grab_click_focus"),&Control::grab_click_focus);
 
@@ -2558,17 +2462,23 @@ void Control::_bind_methods() {
 
 	ClassDB::bind_method(_MD("_font_changed"), &Control::_font_changed);
 
-	BIND_VMETHOD(MethodInfo("_input_event",PropertyInfo(Variant::INPUT_EVENT,"event")));
+	BIND_VMETHOD(MethodInfo("_gui_input",PropertyInfo(Variant::INPUT_EVENT,"event")));
 	BIND_VMETHOD(MethodInfo(Variant::VECTOR2,"get_minimum_size"));
 	BIND_VMETHOD(MethodInfo(Variant::OBJECT,"get_drag_data",PropertyInfo(Variant::VECTOR2,"pos")));
 	BIND_VMETHOD(MethodInfo(Variant::BOOL,"can_drop_data",PropertyInfo(Variant::VECTOR2,"pos"),PropertyInfo(Variant::NIL,"data")));
 	BIND_VMETHOD(MethodInfo("drop_data",PropertyInfo(Variant::VECTOR2,"pos"),PropertyInfo(Variant::NIL,"data")));
 
 	ADD_GROUP("Anchor","anchor_");
-	ADD_PROPERTYINZ( PropertyInfo(Variant::INT,"anchor_left", PROPERTY_HINT_ENUM, "Begin,End,Ratio,Center"), _SCS("_set_anchor"),_SCS("get_anchor"), MARGIN_LEFT );
-	ADD_PROPERTYINZ( PropertyInfo(Variant::INT,"anchor_top", PROPERTY_HINT_ENUM, "Begin,End,Ratio,Center"), _SCS("_set_anchor"),_SCS("get_anchor"), MARGIN_TOP );
-	ADD_PROPERTYINZ( PropertyInfo(Variant::INT,"anchor_right", PROPERTY_HINT_ENUM, "Begin,End,Ratio,Center"), _SCS("_set_anchor"),_SCS("get_anchor"), MARGIN_RIGHT );
-	ADD_PROPERTYINZ( PropertyInfo(Variant::INT,"anchor_bottom", PROPERTY_HINT_ENUM, "Begin,End,Ratio,Center"), _SCS("_set_anchor"),_SCS("get_anchor"), MARGIN_BOTTOM );
+	ADD_PROPERTYINZ( PropertyInfo(Variant::INT,"anchor_left", PROPERTY_HINT_ENUM, "Begin,End,Center"), _SCS("_set_anchor"),_SCS("get_anchor"), MARGIN_LEFT );
+	ADD_PROPERTYINZ( PropertyInfo(Variant::INT,"anchor_top", PROPERTY_HINT_ENUM, "Begin,End,Center"), _SCS("_set_anchor"),_SCS("get_anchor"), MARGIN_TOP );
+	ADD_PROPERTYINZ( PropertyInfo(Variant::INT,"anchor_right", PROPERTY_HINT_ENUM, "Begin,End,Center"), _SCS("_set_anchor"),_SCS("get_anchor"), MARGIN_RIGHT );
+	ADD_PROPERTYINZ( PropertyInfo(Variant::INT,"anchor_bottom", PROPERTY_HINT_ENUM, "Begin,End,Center"), _SCS("_set_anchor"),_SCS("get_anchor"), MARGIN_BOTTOM );
+
+	ADD_GROUP("Margin","margin_");
+	ADD_PROPERTYINZ( PropertyInfo(Variant::INT,"margin_left", PROPERTY_HINT_RANGE, "-4096,4096"), _SCS("set_margin"),_SCS("get_margin"),MARGIN_LEFT );
+	ADD_PROPERTYINZ( PropertyInfo(Variant::INT,"margin_top", PROPERTY_HINT_RANGE, "-4096,4096"), _SCS("set_margin"),_SCS("get_margin"),MARGIN_TOP );
+	ADD_PROPERTYINZ( PropertyInfo(Variant::INT,"margin_right", PROPERTY_HINT_RANGE, "-4096,4096"), _SCS("set_margin"),_SCS("get_margin"),MARGIN_RIGHT );
+	ADD_PROPERTYINZ( PropertyInfo(Variant::INT,"margin_bottom", PROPERTY_HINT_RANGE, "-4096,4096"), _SCS("set_margin"),_SCS("get_margin"),MARGIN_BOTTOM );
 
 	ADD_GROUP("Rect","rect_");
 	ADD_PROPERTYNZ( PropertyInfo(Variant::VECTOR2,"rect_pos", PROPERTY_HINT_NONE, "",PROPERTY_USAGE_EDITOR), _SCS("set_pos"),_SCS("get_pos") );
@@ -2577,20 +2487,22 @@ void Control::_bind_methods() {
 	ADD_PROPERTYNZ( PropertyInfo(Variant::REAL,"rect_rotation",PROPERTY_HINT_RANGE,"-1080,1080,0.01"), _SCS("set_rotation_deg"),_SCS("get_rotation_deg") );
 	ADD_PROPERTYNO( PropertyInfo(Variant::VECTOR2,"rect_scale"), _SCS("set_scale"),_SCS("get_scale") );
 
+
 	ADD_GROUP("Hint","hint_");
 	ADD_PROPERTYNZ( PropertyInfo(Variant::STRING,"hint_tooltip", PROPERTY_HINT_MULTILINE_TEXT), _SCS("set_tooltip"),_SCS("_get_tooltip") );
 
 	ADD_GROUP("Focus","focus_");
-	ADD_PROPERTY( PropertyInfo(Variant::BOOL,"focus_ignore_mouse"), _SCS("set_ignore_mouse"),_SCS("is_ignoring_mouse") );
-	ADD_PROPERTY( PropertyInfo(Variant::BOOL,"focus_stop_mouse"), _SCS("set_stop_mouse"),_SCS("is_stopping_mouse") );
 	ADD_PROPERTYINZ( PropertyInfo(Variant::NODE_PATH,"focus_neighbour_left" ), _SCS("set_focus_neighbour"),_SCS("get_focus_neighbour"),MARGIN_LEFT );
 	ADD_PROPERTYINZ( PropertyInfo(Variant::NODE_PATH,"focus_neighbour_top" ), _SCS("set_focus_neighbour"),_SCS("get_focus_neighbour"),MARGIN_TOP );
 	ADD_PROPERTYINZ( PropertyInfo(Variant::NODE_PATH,"focus_neighbour_right" ), _SCS("set_focus_neighbour"),_SCS("get_focus_neighbour"),MARGIN_RIGHT );
 	ADD_PROPERTYINZ( PropertyInfo(Variant::NODE_PATH,"focus_neighbour_bottom" ), _SCS("set_focus_neighbour"),_SCS("get_focus_neighbour"),MARGIN_BOTTOM );
 
+	ADD_GROUP("Mouse","mouse_");
+	ADD_PROPERTY( PropertyInfo(Variant::INT,"mouse_filter",PROPERTY_HINT_ENUM,"Stop,Pass,Ignore"), _SCS("set_mouse_filter"),_SCS("get_mouse_filter") );
+
 	ADD_GROUP("Size Flags","size_flags_");
-	ADD_PROPERTY( PropertyInfo(Variant::INT,"size_flags_horizontal", PROPERTY_HINT_FLAGS, "Expand,Fill"), _SCS("set_h_size_flags"),_SCS("get_h_size_flags") );
-	ADD_PROPERTY( PropertyInfo(Variant::INT,"size_flags_vertical", PROPERTY_HINT_FLAGS, "Expand,Fill"), _SCS("set_v_size_flags"),_SCS("get_v_size_flags") );
+	ADD_PROPERTYNO( PropertyInfo(Variant::INT,"size_flags_horizontal", PROPERTY_HINT_FLAGS, "Fill,Expand"), _SCS("set_h_size_flags"),_SCS("get_h_size_flags") );
+	ADD_PROPERTYNO( PropertyInfo(Variant::INT,"size_flags_vertical", PROPERTY_HINT_FLAGS, "Fill,Expand"), _SCS("set_v_size_flags"),_SCS("get_v_size_flags") );
 	ADD_PROPERTYNO( PropertyInfo(Variant::INT,"size_flags_stretch_ratio", PROPERTY_HINT_RANGE, "1,128,0.01"), _SCS("set_stretch_ratio"),_SCS("get_stretch_ratio") );
 	ADD_GROUP("Theme","");
 	ADD_PROPERTYNZ( PropertyInfo(Variant::OBJECT,"theme", PROPERTY_HINT_RESOURCE_TYPE, "Theme"), _SCS("set_theme"),_SCS("get_theme") );
@@ -2598,7 +2510,6 @@ void Control::_bind_methods() {
 
 	BIND_CONSTANT( ANCHOR_BEGIN );
 	BIND_CONSTANT( ANCHOR_END );
-	BIND_CONSTANT( ANCHOR_RATIO );
 	BIND_CONSTANT( ANCHOR_CENTER );
 	BIND_CONSTANT( FOCUS_NONE );
 	BIND_CONSTANT( FOCUS_CLICK );
@@ -2635,8 +2546,12 @@ void Control::_bind_methods() {
 	BIND_CONSTANT( SIZE_FILL );
 	BIND_CONSTANT( SIZE_EXPAND_FILL );
 
+	BIND_CONSTANT( MOUSE_FILTER_STOP );
+	BIND_CONSTANT( MOUSE_FILTER_PASS  );
+	BIND_CONSTANT( MOUSE_FILTER_IGNORE );
+
 	ADD_SIGNAL( MethodInfo("resized") );
-	ADD_SIGNAL( MethodInfo("input_event",PropertyInfo(Variant::INPUT_EVENT,"ev")) );
+	ADD_SIGNAL( MethodInfo("gui_input",PropertyInfo(Variant::INPUT_EVENT,"ev")) );
 	ADD_SIGNAL( MethodInfo("mouse_enter") );
 	ADD_SIGNAL( MethodInfo("mouse_exit") );
 	ADD_SIGNAL( MethodInfo("focus_enter") );
@@ -2651,9 +2566,7 @@ Control::Control() {
 
 	data.parent=NULL;
 
-	data.ignore_mouse=false;
-	data.stop_mouse=true;
-
+	data.mouse_filter=MOUSE_FILTER_STOP;
 
 	data.SI=NULL;
 	data.MI=NULL;

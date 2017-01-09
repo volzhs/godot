@@ -215,7 +215,7 @@ void PopupMenu::_submenu_timeout() {
 }
 
 
-void PopupMenu::_input_event(const InputEvent &p_event) {
+void PopupMenu::_gui_input(const InputEvent &p_event) {
 
 	switch( p_event.type) {
 
@@ -308,7 +308,7 @@ void PopupMenu::_input_event(const InputEvent &p_event) {
 						ie.type=InputEvent::MOUSE_MOTION;
 						ie.mouse_motion.x=b.x;
 						ie.mouse_motion.y=b.y+s;
-						_input_event(ie);
+						_gui_input(ie);
 					}
 				} break;
 				case BUTTON_WHEEL_UP: {
@@ -328,7 +328,7 @@ void PopupMenu::_input_event(const InputEvent &p_event) {
 						ie.type=InputEvent::MOUSE_MOTION;
 						ie.mouse_motion.x=b.x;
 						ie.mouse_motion.y=b.y-s;
-						_input_event(ie);
+						_gui_input(ie);
 
 
 					}
@@ -912,7 +912,8 @@ void PopupMenu::activate_item(int p_item) {
 	ERR_FAIL_INDEX(p_item,items.size());
 	ERR_FAIL_COND(items[p_item].separator);
 	int id = items[p_item].ID>=0?items[p_item].ID:p_item;
-	emit_signal("item_pressed",id);
+	emit_signal("id_pressed",id);
+	emit_signal("index_pressed",p_item);
 
 	//hide all parent PopupMenue's
 	Node *next = get_parent();
@@ -1098,7 +1099,7 @@ void PopupMenu::clear_autohide_areas(){
 
 void PopupMenu::_bind_methods() {
 
-	ClassDB::bind_method(_MD("_input_event"),&PopupMenu::_input_event);
+	ClassDB::bind_method(_MD("_gui_input"),&PopupMenu::_gui_input);
 	ClassDB::bind_method(_MD("add_icon_item","texture","label","id","accel"),&PopupMenu::add_icon_item,DEFVAL(-1),DEFVAL(0));
 	ClassDB::bind_method(_MD("add_item","label","id","accel"),&PopupMenu::add_item,DEFVAL(-1),DEFVAL(0));
 	ClassDB::bind_method(_MD("add_icon_check_item","texture","label","id","accel"),&PopupMenu::add_icon_check_item,DEFVAL(-1),DEFVAL(0));
@@ -1157,7 +1158,8 @@ void PopupMenu::_bind_methods() {
 	ADD_PROPERTY( PropertyInfo(Variant::ARRAY,"items",PROPERTY_HINT_NONE,"",PROPERTY_USAGE_NOEDITOR), _SCS("_set_items"),_SCS("_get_items") );
 	ADD_PROPERTYNO( PropertyInfo(Variant::BOOL, "hide_on_item_selection" ), _SCS("set_hide_on_item_selection"), _SCS("is_hide_on_item_selection") );
 
-	ADD_SIGNAL( MethodInfo("item_pressed", PropertyInfo( Variant::INT,"ID") ) );
+	ADD_SIGNAL( MethodInfo("id_pressed", PropertyInfo( Variant::INT,"ID") ) );
+	ADD_SIGNAL( MethodInfo("index_pressed", PropertyInfo( Variant::INT,"index") ) );
 
 }
 

@@ -187,7 +187,7 @@ const char *OS::get_last_error() const {
 
 void OS::dump_memory_to_file(const char* p_file) {
 
-	Memory::dump_static_mem_to_file(p_file);
+//	Memory::dump_static_mem_to_file(p_file);
 }
 
 static FileAccess *_OSPRF=NULL;
@@ -367,16 +367,16 @@ Error OS::dialog_input_text(String p_title, String p_description, String p_parti
 
 int OS::get_static_memory_usage() const {
 
-	return Memory::get_static_mem_usage();
+	return Memory::get_mem_usage();
 }
 int OS::get_dynamic_memory_usage() const{
 
-	return Memory::get_dynamic_mem_usage();
+	return MemoryPool::total_memory;
 }
 
 int OS::get_static_memory_peak_usage() const {
 
-	return Memory::get_static_mem_max_usage();
+	return Memory::get_mem_max_usage();
 }
 
 Error OS::set_cwd(const String& p_cwd) {
@@ -392,7 +392,7 @@ bool OS::has_touchscreen_ui_hint() const {
 
 int OS::get_free_static_memory() const {
 
-	return Memory::get_static_mem_available();
+	return Memory::get_mem_available();
 }
 
 void OS::yield() {
@@ -533,7 +533,7 @@ bool OS::is_joy_known(int p_device) {
 }
 
 String OS::get_joy_guid(int p_device) const {
-	return "Default Joystick";
+	return "Default Joypad";
 }
 
 void OS::set_context(int p_context) {

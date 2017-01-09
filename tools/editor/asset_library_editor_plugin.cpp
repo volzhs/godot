@@ -29,7 +29,7 @@
 #include "asset_library_editor_plugin.h"
 #include "editor_node.h"
 #include "editor_settings.h"
-
+#include "io/json.h"
 
 
 
@@ -157,7 +157,7 @@ EditorAssetLibraryItem::EditorAssetLibraryItem() {
 	set_custom_minimum_size(Size2(250,100));
 	set_h_size_flags(SIZE_EXPAND_FILL);
 
-	set_stop_mouse(false);
+	set_mouse_filter(MOUSE_FILTER_PASS);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1076,8 +1076,16 @@ void EditorAssetLibrary::_http_request_completed(int p_status, int p_code, const
 	}
 
 	print_line("response: "+itos(p_status)+" code: "+itos(p_code));
+
 	Dictionary d;
-	d.parse_json(str);
+	{
+		Variant js;
+		String errs;
+		int errl;
+		JSON::parse(str,js,errs,errl);
+		d=js;
+	}
+
 
 	print_line(Variant(d).get_construct_string());
 
@@ -1418,7 +1426,7 @@ EditorAssetLibrary::EditorAssetLibrary(bool p_templates_only) {
 	support->get_popup()->add_check_item(TTR("Testing"),SUPPORT_TESTING);
 	support->get_popup()->set_item_checked(SUPPORT_OFFICIAL,true);
 	support->get_popup()->set_item_checked(SUPPORT_COMMUNITY,true);
-	support->get_popup()->connect("item_pressed",this,"_support_toggled");
+	support->get_popup()->connect("id_pressed",this,"_support_toggled");
 
 	/////////
 
@@ -1446,7 +1454,7 @@ EditorAssetLibrary::EditorAssetLibrary(bool p_templates_only) {
 	library_scroll->add_child(library_vb_border);
 	library_vb_border->add_style_override("panel",border2);
 	library_vb_border->set_h_size_flags(SIZE_EXPAND_FILL);
-	library_vb_border->set_stop_mouse(false);
+	library_vb_border->set_mouse_filter(MOUSE_FILTER_PASS);
 
 
 

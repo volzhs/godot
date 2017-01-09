@@ -109,7 +109,7 @@ class TileMapEditor : public VBoxContainer {
 	bool * bucket_cache_visited;
 	Rect2i bucket_cache_rect;
 	int bucket_cache_tile;
-	DVector<Vector2> bucket_cache;
+	PoolVector<Vector2> bucket_cache;
 
 	struct CellOp {
 		int idx;
@@ -134,10 +134,10 @@ class TileMapEditor : public VBoxContainer {
 
 	void _pick_tile(const Point2& p_pos);
 
-	DVector<Vector2> _bucket_fill(const Point2i& p_start, bool erase=false, bool preview=false);
+	PoolVector<Vector2> _bucket_fill(const Point2i& p_start, bool erase=false, bool preview=false);
 
-	void _fill_points(const DVector<Vector2> p_points, const Dictionary& p_op);
-	void _erase_points(const DVector<Vector2> p_points);
+	void _fill_points(const PoolVector<Vector2> p_points, const Dictionary& p_op);
+	void _erase_points(const PoolVector<Vector2> p_points);
 
 	void _select(const Point2i& p_from, const Point2i& p_to);
 
@@ -175,7 +175,7 @@ public:
 
 	HBoxContainer *get_toolbar() const { return toolbar; }
 
-	bool forward_input_event(const InputEvent& p_event);
+	bool forward_gui_input(const InputEvent& p_event);
 	void edit(Node *p_tile_map);
 
 	TileMapEditor(EditorNode *p_editor);
@@ -190,7 +190,7 @@ class TileMapEditorPlugin : public EditorPlugin {
 
 public:
 
-	virtual bool forward_canvas_input_event(const Matrix32& p_canvas_xform,const InputEvent& p_event) { return tile_map_editor->forward_input_event(p_event); }
+	virtual bool forward_canvas_gui_input(const Matrix32& p_canvas_xform,const InputEvent& p_event) { return tile_map_editor->forward_gui_input(p_event); }
 
 	virtual String get_name() const { return "TileMap"; }
 	bool has_main_screen() const { return false; }

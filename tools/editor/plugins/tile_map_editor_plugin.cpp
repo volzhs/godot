@@ -189,7 +189,7 @@ void TileMapEditor::_sbox_input(const InputEvent& p_ie) {
 		p_ie.key.scancode == KEY_PAGEUP ||
 		p_ie.key.scancode == KEY_PAGEDOWN ) ) {
 
-		palette->call("_input_event", p_ie);
+		palette->call("_gui_input", p_ie);
 		search_box->accept_event();
 	}
 }
@@ -212,10 +212,10 @@ void TileMapEditor::_update_palette() {
 	if (tiles.empty())
 		return;
 
-	float min_size = EDITOR_DEF("tile_map/preview_size", 64);
+	float min_size = EDITOR_DEF("editors/tile_map/preview_size", 64);
 	min_size *= EDSCALE;
-	int hseparation = EDITOR_DEF("tile_map/palette_item_hseparation",8);
-	bool show_tile_names = bool(EDITOR_DEF("tile_map/show_tile_names", true));
+	int hseparation = EDITOR_DEF("editors/tile_map/palette_item_hseparation",8);
+	bool show_tile_names = bool(EDITOR_DEF("editors/tile_map/show_tile_names", true));
 
 	palette->add_constant_override("hseparation", hseparation*EDSCALE);
 	palette->add_constant_override("vseparation", 8*EDSCALE);
@@ -289,7 +289,7 @@ void TileMapEditor::_pick_tile(const Point2& p_pos) {
 	canvas_item_editor->update();
 }
 
-DVector<Vector2> TileMapEditor::_bucket_fill(const Point2i& p_start, bool erase, bool preview) {
+PoolVector<Vector2> TileMapEditor::_bucket_fill(const Point2i& p_start, bool erase, bool preview) {
 
 	int prev_id = node->get_cell(p_start.x, p_start.y);
 	int id = TileMap::INVALID_CELL;
@@ -297,7 +297,7 @@ DVector<Vector2> TileMapEditor::_bucket_fill(const Point2i& p_start, bool erase,
 		id = get_selected_tile();
 
 		if (id == TileMap::INVALID_CELL)
-			return DVector<Vector2>();
+			return PoolVector<Vector2>();
 	}
 
 	Rect2i r = node->get_item_rect();
@@ -324,7 +324,7 @@ DVector<Vector2> TileMapEditor::_bucket_fill(const Point2i& p_start, bool erase,
 		if(invalidate_cache) {
 			for(int i = 0; i < area; ++i)
 				bucket_cache_visited[i] = false;
-			bucket_cache = DVector<Vector2>();
+			bucket_cache = PoolVector<Vector2>();
 			bucket_cache_tile = prev_id;
 			bucket_cache_rect = r;
 		}
@@ -333,7 +333,7 @@ DVector<Vector2> TileMapEditor::_bucket_fill(const Point2i& p_start, bool erase,
 		}
 	}
 
-	DVector<Vector2> points;
+	PoolVector<Vector2> points;
 
 	List<Point2i> queue;
 	queue.push_back(p_start);
@@ -370,10 +370,10 @@ DVector<Vector2> TileMapEditor::_bucket_fill(const Point2i& p_start, bool erase,
 	return preview ? bucket_cache : points;
 }
 
-void TileMapEditor::_fill_points(const DVector<Vector2> p_points, const Dictionary& p_op) {
+void TileMapEditor::_fill_points(const PoolVector<Vector2> p_points, const Dictionary& p_op) {
 
 	int len = p_points.size();
-	DVector<Vector2>::Read pr = p_points.read();
+	PoolVector<Vector2>::Read pr = p_points.read();
 
 	int id = p_op["id"];
 	bool xf = p_op["flip_h"];
@@ -386,10 +386,10 @@ void TileMapEditor::_fill_points(const DVector<Vector2> p_points, const Dictiona
 	}
 }
 
-void TileMapEditor::_erase_points(const DVector<Vector2> p_points) {
+void TileMapEditor::_erase_points(const PoolVector<Vector2> p_points) {
 
 	int len = p_points.size();
-	DVector<Vector2>::Read pr = p_points.read();
+	PoolVector<Vector2>::Read pr = p_points.read();
 
 	for (int i=0;i<len;i++) {
 
@@ -507,8 +507,8 @@ void TileMapEditor::_draw_cell(int p_cell, const Point2i& p_point, bool p_flip_h
 
 void TileMapEditor::_draw_fill_preview(int p_cell, const Point2i& p_point, bool p_flip_h, bool p_flip_v, bool p_transpose, const Matrix32& p_xform) {
 
-	DVector<Vector2> points = _bucket_fill(p_point, false, true);
-	DVector<Vector2>::Read pr = points.read();
+	PoolVector<Vector2> points = _bucket_fill(p_point, false, true);
+	PoolVector<Vector2>::Read pr = points.read();
 	int len = points.size();
 	int time_after = OS::get_singleton()->get_ticks_msec();
 
@@ -595,7 +595,7 @@ static inline Vector<Point2i> line(int x0, int x1, int y0, int y1) {
 	return points;
 }
 
-bool TileMapEditor::forward_input_event(const InputEvent& p_event) {
+bool TileMapEditor::forward_gui_input(const InputEvent& p_event) {
 
 	if (!node || !node->get_tileset().is_valid() || !node->is_visible())
 		return false;
@@ -748,7 +748,7 @@ bool TileMapEditor::forward_input_event(const InputEvent& p_event) {
 							pop["flip_v"] = node->is_cell_y_flipped(over_tile.x, over_tile.y);
 							pop["transpose"] = node->is_cell_transposed(over_tile.x, over_tile.y);
 
-							DVector<Vector2> points = _bucket_fill(over_tile);
+							PoolVector<Vector2> points = _bucket_fill(over_tile);
 
 							if (points.size() == 0)
 								return false;
@@ -854,7 +854,7 @@ bool TileMapEditor::forward_input_event(const InputEvent& p_event) {
 						pop["flip_v"] = node->is_cell_y_flipped(over_tile.x, over_tile.y);
 						pop["transpose"] = node->is_cell_transposed(over_tile.x, over_tile.y);
 
-						DVector<Vector2> points = _bucket_fill(over_tile, true);
+						PoolVector<Vector2> points = _bucket_fill(over_tile, true);
 
 						if (points.size() == 0)
 							return false;
@@ -1204,7 +1204,7 @@ void TileMapEditor::_canvas_draw() {
 			canvas_item_editor->draw_line(endpoints[i],endpoints[(i+1)%4],col,2);
 
 
-		bool bucket_preview = EditorSettings::get_singleton()->get("tile_map/bucket_fill_preview");
+		bool bucket_preview = EditorSettings::get_singleton()->get("editors/tile_map/bucket_fill_preview");
 		if (tool==TOOL_SELECTING || tool==TOOL_PICKING || !bucket_preview) {
 			return;
 		}
@@ -1441,7 +1441,7 @@ TileMapEditor::TileMapEditor(EditorNode *p_editor) {
 	search_box->set_h_size_flags(SIZE_EXPAND_FILL);
 	search_box->connect("text_entered", this, "_text_entered");
 	search_box->connect("text_changed", this, "_text_changed");
-	search_box->connect("input_event", this, "_sbox_input");
+	search_box->connect("gui_input", this, "_sbox_input");
 	add_child(search_box);
 
 	size_slider = memnew( HSlider );
@@ -1453,7 +1453,7 @@ TileMapEditor::TileMapEditor(EditorNode *p_editor) {
 	size_slider->connect("value_changed", this, "_icon_size_changed");
 	add_child(size_slider);
 
-	int mw = EDITOR_DEF("tile_map/palette_min_width", 80);
+	int mw = EDITOR_DEF("editors/tile_map/palette_min_width", 80);
 
 	// Add tile palette
 	palette = memnew( ItemList );
@@ -1489,7 +1489,7 @@ TileMapEditor::TileMapEditor(EditorNode *p_editor) {
 	p->add_shortcut(ED_SHORTCUT("tile_map_editor/duplicate_selection", TTR("Duplicate Selection"), KEY_MASK_CMD+KEY_D), OPTION_DUPLICATE);
 	p->add_shortcut(ED_GET_SHORTCUT("tile_map_editor/erase_selection"), OPTION_ERASE_SELECTION);
 
-	p->connect("item_pressed", this, "_menu_option");
+	p->connect("id_pressed", this, "_menu_option");
 
 	toolbar->add_child(options);
 
@@ -1579,10 +1579,10 @@ void TileMapEditorPlugin::make_visible(bool p_visible) {
 
 TileMapEditorPlugin::TileMapEditorPlugin(EditorNode *p_node) {
 
-	EDITOR_DEF("tile_map/preview_size",64);
-	EDITOR_DEF("tile_map/palette_item_hseparation",8);
-	EDITOR_DEF("tile_map/show_tile_names", true);
-	EDITOR_DEF("tile_map/bucket_fill_preview", true);
+	EDITOR_DEF("editors/tile_map/preview_size",64);
+	EDITOR_DEF("editors/tile_map/palette_item_hseparation",8);
+	EDITOR_DEF("editors/tile_map/show_tile_names", true);
+	EDITOR_DEF("editors/tile_map/bucket_fill_preview", true);
 
 	tile_map_editor = memnew( TileMapEditor(p_node) );
 	add_control_to_container(CONTAINER_CANVAS_EDITOR_SIDE, tile_map_editor);

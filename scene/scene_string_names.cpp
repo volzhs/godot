@@ -51,6 +51,7 @@ SceneStringNames::SceneStringNames() {
 	sleeping_state_changed=StaticCString::create("sleeping_state_changed");
 
 	finished=StaticCString::create("finished");
+	animation_finished=StaticCString::create("animation_finished");
 	animation_changed=StaticCString::create("animation_changed");
 	animation_started=StaticCString::create("animation_started");
 
@@ -115,6 +116,9 @@ SceneStringNames::SceneStringNames() {
 	_area_exit_tree = StaticCString::create("_area_exit_tree");
 
 	_input_event=StaticCString::create("_input_event");
+
+	gui_input=StaticCString::create("gui_input");
+	_gui_input=StaticCString::create("_gui_input");
 
 	changed=StaticCString::create("changed");
 	_shader_changed=StaticCString::create("_shader_changed");

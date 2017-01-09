@@ -460,6 +460,9 @@ void GDTokenizerText::_advance() {
 			case ':':
 				_make_token(TK_COLON); //for methods maybe but now useless.
 				break;
+			case '$':
+				_make_token(TK_DOLLAR); //for the get_node() shortener
+				break;
 			case '^': {
 				if (GETCHAR(1)=='=') {
 					_make_token(TK_OP_ASSIGN_BIT_XOR);
@@ -728,14 +731,14 @@ void GDTokenizerText::_advance() {
 
 					INCPOS(str.length());
 					if (hexa_found) {
-						int val = str.hex_to_int();
+						int64_t val = str.hex_to_int64();
 						_make_constant(val);
 					} else if (period_found || exponent_found) {
-						real_t val = str.to_double();
+						double val = str.to_double();
 						//print_line("*%*%*%*% to convert: "+str+" result: "+rtos(val));
 						_make_constant(val);
 					} else {
-						int val = str.to_int();
+						int64_t val = str.to_int64();
 						_make_constant(val);
 
 					}
@@ -1057,7 +1060,7 @@ void GDTokenizerText::advance(int p_amount) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define BYTECODE_VERSION 11
+#define BYTECODE_VERSION 12
 
 Error GDTokenizerBuffer::set_code_buffer(const Vector<uint8_t> & p_buffer) {
 

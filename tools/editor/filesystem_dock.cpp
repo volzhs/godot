@@ -160,7 +160,7 @@ void FileSystemDock::_notification(int p_what) {
 
 			button_hist_next->set_icon( get_icon("Forward","EditorIcons"));
 			button_hist_prev->set_icon( get_icon("Back","EditorIcons"));
-			file_options->connect("item_pressed",this,"_file_option");
+			file_options->connect("id_pressed",this,"_file_option");
 
 
 			button_back->connect("pressed",this,"_go_to_tree",varray(),CONNECT_DEFERRED);
@@ -201,7 +201,7 @@ void FileSystemDock::_notification(int p_what) {
 		} break;
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
 
-			int new_mode = int(EditorSettings::get_singleton()->get("filesystem_dock/display_mode"));
+			int new_mode = int(EditorSettings::get_singleton()->get("docks/filesystem/display_mode"));
 
 			if (new_mode != display_mode) {
 				set_display_mode(new_mode);
@@ -323,7 +323,7 @@ void FileSystemDock::_change_file_display() {
 		button_display_mode->set_icon( get_icon("FileList","EditorIcons"));
 	}
 
-	EditorSettings::get_singleton()->set("filesystem_dock/display_mode", display_mode);
+	EditorSettings::get_singleton()->set("docks/filesystem/display_mode", display_mode);
 
 	_update_files(true);
 }
@@ -397,7 +397,7 @@ void FileSystemDock::_update_files(bool p_keep_selection) {
 	if (!efd)
 		return;
 
-	int thumbnail_size = EditorSettings::get_singleton()->get("filesystem_dock/thumbnail_size");
+	int thumbnail_size = EditorSettings::get_singleton()->get("docks/filesystem/thumbnail_size");
 	thumbnail_size*=EDSCALE;
 	Ref<Texture> folder_thumbnail;
 	Ref<Texture> file_thumbnail;

@@ -154,7 +154,7 @@ void EditorProfiler::_update_plot() {
 	}
 
 
-	DVector<uint8_t>::Write wr = graph_image.write();
+	PoolVector<uint8_t>::Write wr = graph_image.write();
 
 
 
@@ -336,7 +336,7 @@ void EditorProfiler::_update_plot() {
 	}
 
 
-	wr = DVector<uint8_t>::Write();
+	wr = PoolVector<uint8_t>::Write();
 
 	Image img(w,h,0,Image::FORMAT_RGBA8,graph_image);
 
@@ -710,10 +710,10 @@ EditorProfiler::EditorProfiler()
 
 	graph = memnew( TextureFrame );
 	graph->set_expand(true);
-	graph->set_stop_mouse(true);
-	graph->set_ignore_mouse(false);
+	graph->set_mouse_filter(MOUSE_FILTER_STOP);
+	//graph->set_ignore_mouse(false);
 	graph->connect("draw",this,"_graph_tex_draw");
-	graph->connect("input_event",this,"_graph_tex_input");
+	graph->connect("gui_input",this,"_graph_tex_input");
 	graph->connect("mouse_exit",this,"_graph_tex_mouse_exit");
 
 	h_split->add_child(graph);
