@@ -3745,7 +3745,7 @@ Error EditorNode::load_scene(const String& p_scene, bool p_ignore_broken_deps,bo
 		sdata->set_path(lpath,true); //take over path
 	}
 
-	Node*new_scene=sdata->instance(true);
+	Node*new_scene=sdata->instance(PackedScene::GEN_EDIT_STATE_MAIN);
 
 	if (!new_scene) {
 
@@ -5365,7 +5365,14 @@ void EditorNode::_bind_methods() {
 
 }
 
+static Node* _resource_get_edited_scene() {
+
+	return EditorNode::get_singleton()->get_edited_scene();
+}
+
 EditorNode::EditorNode() {
+
+	Resource::_get_local_scene_func=_resource_get_edited_scene;
 
 	VisualServer::get_singleton()->textures_keep_original(true);
 
@@ -5619,7 +5626,7 @@ EditorNode::EditorNode() {
 	dock_vb->add_child(dock_select);
 
 
-	dock_select_popoup->set_child_rect(dock_vb);
+
 	dock_select_popoup->set_as_minsize();
 	dock_select_rect_over=-1;
 	dock_popup_selected=-1;
@@ -6683,7 +6690,7 @@ EditorNode::EditorNode() {
 	load_error_dialog = memnew( AcceptDialog );
 	load_error_dialog->add_child(load_errors);
 	load_error_dialog->set_title(TTR("Load Errors"));
-	load_error_dialog->set_child_rect(load_errors);
+	//load_error_dialog->set_child_rect(load_errors);
 	gui_base->add_child(load_error_dialog);
 
 
