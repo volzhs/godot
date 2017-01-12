@@ -59,7 +59,7 @@ void AnimationCache::_clear_cache() {
 
 	while(connected_nodes.size()) {
 
-		connected_nodes.front()->get()->disconnect("exit_tree",this,"_node_exit_tree");
+		connected_nodes.front()->get()->disconnect("tree_exited",this,"_node_exit_tree");
 		connected_nodes.erase(connected_nodes.front());
 	}
 	path_cache.clear();;
@@ -206,7 +206,7 @@ void AnimationCache::_update_cache() {
 
 		if (!connected_nodes.has(path.node)) {
 			connected_nodes.insert(path.node);
-			path.node->connect("exit_tree",this,"_node_exit_tree",Node::make_binds(path.node),CONNECT_ONESHOT);
+			path.node->connect("tree_exited",this,"_node_exit_tree",Node::make_binds(path.node),CONNECT_ONESHOT);
 		}
 
 
@@ -292,7 +292,7 @@ void AnimationCache::set_all(float p_time, float p_delta) {
 				Vector3 loc,scale;
 				Quat rot;
 				animation->transform_track_interpolate(i,p_time,&loc,&rot,&scale);
-				Transform tr( Matrix3(rot), loc );
+				Transform tr( Basis(rot), loc );
 				tr.basis.scale(scale);
 
 				set_track_transform(i,tr);

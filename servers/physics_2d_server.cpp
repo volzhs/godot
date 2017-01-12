@@ -132,11 +132,11 @@ RID Physics2DShapeQueryParameters::get_shape_rid() const {
 	return shape;
 }
 
-void Physics2DShapeQueryParameters::set_transform(const Matrix32& p_transform){
+void Physics2DShapeQueryParameters::set_transform(const Transform2D& p_transform){
 
 	transform=p_transform;
 }
-Matrix32 Physics2DShapeQueryParameters::get_transform() const{
+Transform2D Physics2DShapeQueryParameters::get_transform() const{
 
 	return transform;
 }
@@ -241,9 +241,9 @@ Dictionary Physics2DDirectSpaceState::_intersect_ray(const Vector2& p_from, cons
 	bool res = intersect_ray(p_from,p_to,inters,exclude,p_layers,p_object_type_mask);
 
 	if (!res)
-		return Dictionary(true);
+		return Dictionary();
 
-	Dictionary d(true);
+	Dictionary d;
 	d["position"]=inters.position;
 	d["normal"]=inters.normal;
 	d["collider_id"]=inters.collider_id;
@@ -282,7 +282,7 @@ Array Physics2DDirectSpaceState::_cast_motion(const Ref<Physics2DShapeQueryParam
 	bool res = cast_motion(psq->shape,psq->transform,psq->motion,psq->margin,closest_safe,closest_unsafe,psq->exclude,psq->layer_mask,psq->object_type_mask);
 	if (!res)
 		return Array();
-	Array ret(true);
+	Array ret;
 	ret.resize(2);
 	ret[0]=closest_safe;
 	ret[1]=closest_unsafe;
@@ -339,7 +339,7 @@ Dictionary Physics2DDirectSpaceState::_get_rest_info(const Ref<Physics2DShapeQue
 	ShapeRestInfo sri;
 
 	bool res = rest_info(psq->shape,psq->transform,psq->motion,psq->margin,&sri,psq->exclude,psq->layer_mask,psq->object_type_mask);
-	Dictionary r(true);
+	Dictionary r;
 	if (!res)
 		return r;
 
@@ -493,7 +493,7 @@ Physics2DTestMotionResult::Physics2DTestMotionResult(){
 
 
 
-bool Physics2DServer::_body_test_motion(RID p_body,const Matrix32& p_from,const Vector2& p_motion,float p_margin,const Ref<Physics2DTestMotionResult>& p_result) {
+bool Physics2DServer::_body_test_motion(RID p_body,const Transform2D& p_from,const Vector2& p_motion,float p_margin,const Ref<Physics2DTestMotionResult>& p_result) {
 
 	MotionResult *r=NULL;
 	if (p_result.is_valid())
@@ -525,7 +525,7 @@ void Physics2DServer::_bind_methods() {
 	ClassDB::bind_method(_MD("area_set_space_override_mode","area","mode"),&Physics2DServer::area_set_space_override_mode);
 	ClassDB::bind_method(_MD("area_get_space_override_mode","area"),&Physics2DServer::area_get_space_override_mode);
 
-	ClassDB::bind_method(_MD("area_add_shape","area","shape","transform"),&Physics2DServer::area_add_shape,DEFVAL(Matrix32()));
+	ClassDB::bind_method(_MD("area_add_shape","area","shape","transform"),&Physics2DServer::area_add_shape,DEFVAL(Transform2D()));
 	ClassDB::bind_method(_MD("area_set_shape","area","shape_idx","shape"),&Physics2DServer::area_set_shape);
 	ClassDB::bind_method(_MD("area_set_shape_transform","area","shape_idx","transform"),&Physics2DServer::area_set_shape_transform);
 
@@ -558,7 +558,7 @@ void Physics2DServer::_bind_methods() {
 	ClassDB::bind_method(_MD("body_set_mode","body","mode"),&Physics2DServer::body_set_mode);
 	ClassDB::bind_method(_MD("body_get_mode","body"),&Physics2DServer::body_get_mode);
 
-	ClassDB::bind_method(_MD("body_add_shape","body","shape","transform"),&Physics2DServer::body_add_shape,DEFVAL(Matrix32()));
+	ClassDB::bind_method(_MD("body_add_shape","body","shape","transform"),&Physics2DServer::body_add_shape,DEFVAL(Transform2D()));
 	ClassDB::bind_method(_MD("body_set_shape","body","shape_idx","shape"),&Physics2DServer::body_set_shape);
 	ClassDB::bind_method(_MD("body_set_shape_transform","body","shape_idx","transform"),&Physics2DServer::body_set_shape_transform);
 	ClassDB::bind_method(_MD("body_set_shape_metadata","body","shape_idx","metadata"),&Physics2DServer::body_set_shape_metadata);

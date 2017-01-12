@@ -1317,7 +1317,7 @@ GDParser::Node* GDParser::_reduce_expression(Node *p_node,bool p_to_const) {
 				//reduce constant array expression
 
 				ConstantNode *cn = alloc_node<ConstantNode>();
-				Array arr(!p_to_const);
+				Array arr;
 				//print_line("mk array "+itos(!p_to_const));
 				arr.resize(an->elements.size());
 				for(int i=0;i<an->elements.size();i++) {
@@ -1352,7 +1352,7 @@ GDParser::Node* GDParser::_reduce_expression(Node *p_node,bool p_to_const) {
 				//reduce constant array expression
 
 				ConstantNode *cn = alloc_node<ConstantNode>();
-				Dictionary dict(!p_to_const);
+				Dictionary dict;
 				for(int i=0;i<dn->elements.size();i++) {
 					ConstantNode *key_c = static_cast<ConstantNode*>(dn->elements[i].key);
 					ConstantNode *value_c = static_cast<ConstantNode*>(dn->elements[i].value);
@@ -2002,6 +2002,64 @@ void GDParser::_parse_block(BlockNode *p_block,bool p_static) {
 						break;
 					}
 					return;
+				}
+
+				if (container->type==Node::TYPE_OPERATOR) {
+
+					OperatorNode* op = static_cast<OperatorNode*>(container);
+					if (op->op==OperatorNode::OP_CALL && op->arguments[0]->type==Node::TYPE_BUILT_IN_FUNCTION && static_cast<BuiltInFunctionNode*>(op->arguments[0])->function==GDFunctions::GEN_RANGE) {
+						//iterating a range, so see if range() can be optimized without allocating memory, by replacing it by vectors (which can work as iterable too!)
+
+						Vector<Node*> args;
+						Vector<double> constants;
+
+						bool constant=true;
+
+						for(int i=1;i<op->arguments.size();i++) {
+							args.push_back(op->arguments[i]);
+							if (constant && op->arguments[i]->type==Node::TYPE_CONSTANT) {
+								ConstantNode *c = static_cast<ConstantNode*>(op->arguments[i]);
+								if (c->value.get_type()==Variant::REAL || c->value.get_type()==Variant::INT) {
+									constants.push_back(c->value);
+								} else {
+									constant=false;
+								}
+							}
+						}
+
+						if (args.size()>0 || args.size()<4) {
+
+							if (constant) {
+
+								ConstantNode *cn = alloc_node<ConstantNode>();
+								switch(args.size()) {
+									case 1: cn->value=constants[0]; break;
+									case 2: cn->value=Vector2(constants[0],constants[1]); break;
+									case 3: cn->value=Vector3(constants[0],constants[1],constants[2]); break;
+								}
+								container=cn;
+							} else {
+								OperatorNode *on = alloc_node<OperatorNode>();
+								on->op=OperatorNode::OP_CALL;
+
+								TypeNode *tn = alloc_node<TypeNode>();
+								on->arguments.push_back(tn);
+
+								switch(args.size()) {
+									case 1: tn->vtype=Variant::REAL; break;
+									case 2: tn->vtype=Variant::VECTOR2; break;
+									case 3: tn->vtype=Variant::VECTOR3; break;
+								}
+
+								for(int i=0;i<args.size();i++) {
+									on->arguments.push_back(args[i]);
+								}
+
+								container=on;
+							}
+						}
+					}
+
 				}
 
 				ControlFlowNode *cf_for = alloc_node<ControlFlowNode>();
@@ -2658,17 +2716,41 @@ void GDParser::_parse_class(ClassNode *p_class) {
 						current_export.type=type;
 						current_export.usage|=PROPERTY_USAGE_SCRIPT_VARIABLE;
 						tokenizer->advance();
+						
+						String hint_prefix ="";
+						
+						if(type == Variant::ARRAY && tokenizer->get_token()==GDTokenizer::TK_COMMA) {
+							tokenizer->advance();
+
+							while(tokenizer->get_token()==GDTokenizer::TK_BUILT_IN_TYPE) {
+								type = tokenizer->get_token_type();
+								
+								tokenizer->advance();
+
+								if(type == Variant::ARRAY) {
+									hint_prefix += itos(Variant::ARRAY)+":";
+									if (tokenizer->get_token()==GDTokenizer::TK_COMMA) {
+										tokenizer->advance();
+									}
+								} else {
+									hint_prefix += itos(type);
+									break;
+								}
+							}
+						}
+						
 						if (tokenizer->get_token()==GDTokenizer::TK_COMMA) {
 							// hint expected next!
 							tokenizer->advance();
-							switch(current_export.type) {
+
+							switch(type) {
 
 
 								case Variant::INT: {
 
 									if (tokenizer->get_token()==GDTokenizer::TK_IDENTIFIER && tokenizer->get_token_identifier()=="FLAGS") {
 
-										current_export.hint=PROPERTY_HINT_ALL_FLAGS;
+										//current_export.hint=PROPERTY_HINT_ALL_FLAGS;
 										tokenizer->advance();
 
 										if (tokenizer->get_token()==GDTokenizer::TK_PARENTHESIS_CLOSE) {
@@ -3017,7 +3099,14 @@ void GDParser::_parse_class(ClassNode *p_class) {
 									return;
 								} break;
 							}
-
+							
+						}
+						if(current_export.type == Variant::ARRAY && !hint_prefix.empty()) {
+							if(current_export.hint) {
+								hint_prefix += "/"+itos(current_export.hint);
+							}
+							current_export.hint_string=hint_prefix+":"+current_export.hint_string;
+							current_export.hint=PROPERTY_HINT_NONE;
 						}
 
 					} else if (tokenizer->get_token()==GDTokenizer::TK_IDENTIFIER) {

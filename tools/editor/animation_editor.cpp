@@ -3248,12 +3248,12 @@ void AnimationKeyEditor::set_animation(const Ref<Animation>& p_anim) {
 void AnimationKeyEditor::set_root(Node *p_root) {
 
 	if (root)
-		root->disconnect("exit_tree",this,"_root_removed");
+		root->disconnect("tree_exited",this,"_root_removed");
 
 	root=p_root;
 
 	if (root)
-		root->connect("exit_tree",this,"_root_removed",make_binds(),CONNECT_ONESHOT);
+		root->connect("tree_exited",this,"_root_removed",make_binds(),CONNECT_ONESHOT);
 
 
 }
@@ -3525,7 +3525,7 @@ int AnimationKeyEditor::_confirm_insert(InsertData p_id,int p_last_track) {
 					h.type==Variant::VECTOR2 ||
 					h.type==Variant::RECT2 ||
 					h.type==Variant::VECTOR3 ||
-					h.type==Variant::_AABB ||
+					h.type==Variant::RECT3 ||
 					h.type==Variant::QUAT ||
 					h.type==Variant::COLOR ||
 					h.type==Variant::TRANSFORM ) {

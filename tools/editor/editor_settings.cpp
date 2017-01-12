@@ -47,6 +47,9 @@
 #include "io/compression.h"
 #include "os/keyboard.h"
 
+
+
+
 Ref<EditorSettings> EditorSettings::singleton=NULL;
 
 EditorSettings *EditorSettings::get_singleton() {
@@ -240,6 +243,7 @@ void EditorSettings::create() {
 
 	String exe_path = OS::get_singleton()->get_executable_path().get_base_dir();
 	DirAccess* d = DirAccess::create_for_path(exe_path);
+
 	if (d->file_exists(exe_path + "/._sc_")) {
 
 		// editor is self contained
@@ -324,12 +328,12 @@ void EditorSettings::create() {
 
 		// path at least is validated, so validate config file
 
-
-		config_file_path = config_path+"/"+config_dir+"/editor_config.tres";
+		String config_file_name = "editor_settings-" + String(_MKSTR(VERSION_MAJOR)) + ".tres";
+		config_file_path = config_path + "/" + config_dir + "/" + config_file_name;
 
 		String open_path = config_file_path;
 
-		if (!dir->file_exists("editor_config.tres")) {
+		if (!dir->file_exists(config_file_name)) {
 
 			goto fail;
 		}

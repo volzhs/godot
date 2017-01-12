@@ -47,6 +47,7 @@
 #include "editor_file_system.h"
 #include "create_dialog.h"
 #include "property_selector.h"
+#include "globals.h"
 
 void CustomPropertyEditor::_notification(int p_what) {
 
@@ -306,6 +307,7 @@ bool CustomPropertyEditor::edit(Object* p_owner,const String& p_name,Variant::Ty
 		action_buttons[i]->hide();
 	}
 
+	checks20gc->hide();
 	for(int i=0;i<20;i++)
 		checks20[i]->hide();
 
@@ -316,12 +318,16 @@ bool CustomPropertyEditor::edit(Object* p_owner,const String& p_name,Variant::Ty
 
 		case Variant::BOOL: {
 
+			checks20gc->show();
+
 			CheckBox *c=checks20[0];
 			c->set_text("True");
-			c->set_pos(Vector2(4,4));
+			checks20gc->set_pos(Vector2(4,4));
 			c->set_pressed(v);
 			c->show();
-			set_size(checks20[0]->get_pos()+checks20[0]->get_size()+Vector2(4,4)*EDSCALE);
+
+			checks20gc->set_size(checks20gc->get_minimum_size());
+			set_size(checks20gc->get_pos()+checks20gc->get_size()+Vector2(4,4)*EDSCALE);
 
 		} break;
 		case Variant::INT:
@@ -378,10 +384,19 @@ bool CustomPropertyEditor::edit(Object* p_owner,const String& p_name,Variant::Ty
 				return false;
 
 
-			} else if (hint==PROPERTY_HINT_ALL_FLAGS) {
+			} else if (hint==PROPERTY_HINT_LAYERS_2D_PHYSICS || hint==PROPERTY_HINT_LAYERS_2D_RENDER || hint==PROPERTY_HINT_LAYERS_3D_PHYSICS || hint==PROPERTY_HINT_LAYERS_3D_RENDER) {
 
-				checks20[0]->set_text("");
 
+				String title;
+				String basename;
+				switch (hint) {
+					case PROPERTY_HINT_LAYERS_2D_RENDER: basename="layer_names/2d_render"; title="2D Render Layers"; break;
+					case PROPERTY_HINT_LAYERS_2D_PHYSICS: basename="layer_names/2d_physics"; title="2D Physics Layers"; break;
+					case PROPERTY_HINT_LAYERS_3D_RENDER: basename="layer_names/3d_render"; title="3D Render Layers"; break;
+					case PROPERTY_HINT_LAYERS_3D_PHYSICS: basename="layer_names/3d_physics";title="3D Physics Layers";  break;
+				}
+
+				checks20gc->show();
 				uint32_t flgs = v;
 				for(int i=0;i<2;i++) {
 
@@ -389,12 +404,9 @@ bool CustomPropertyEditor::edit(Object* p_owner,const String& p_name,Variant::Ty
 					ofs.y+=22*i;
 					for(int j=0;j<10;j++) {
 
-						CheckBox *c=checks20[i*10+j];
-						Point2 o=ofs;
-						o.x+=j*22;
-						if (j>=5)
-							o.x+=4;
-						c->set_pos(o);
+						int idx = i*10+j;
+						CheckBox *c=checks20[idx];
+						c->set_text(GlobalConfig::get_singleton()->get(basename+"/layer_"+itos(idx+1)));
 						c->set_pressed( flgs & (1<<(i*10+j)) );
 						c->show();
 					}
@@ -402,7 +414,16 @@ bool CustomPropertyEditor::edit(Object* p_owner,const String& p_name,Variant::Ty
 
 				}
 
-				set_size(checks20[19]->get_pos()+Size2(20,25)*EDSCALE);
+				show();
+
+				value_label[0]->set_text(title);
+				value_label[0]->show();
+				value_label[0]->set_pos(Vector2(4,4)*EDSCALE);
+
+				checks20gc->set_pos(Vector2(4,4)*EDSCALE+Vector2(0,value_label[0]->get_size().height+4*EDSCALE));
+				checks20gc->set_size(checks20gc->get_minimum_size());
+
+				set_size(Vector2(4,4)*EDSCALE+checks20gc->get_pos()+checks20gc->get_size());
 
 
 			} else if (hint==PROPERTY_HINT_EXP_EASING) {
@@ -700,7 +721,7 @@ bool CustomPropertyEditor::edit(Object* p_owner,const String& p_name,Variant::Ty
 			value_editor[3]->set_text( String::num( q.w ) );
 
 		} break;
-		case Variant::_AABB: {
+		case Variant::RECT3: {
 
 			List<String> names;
 			names.push_back("px");
@@ -711,7 +732,7 @@ bool CustomPropertyEditor::edit(Object* p_owner,const String& p_name,Variant::Ty
 			names.push_back("sz");
 			config_value_editors(6,3,16,names);
 
-			AABB aabb=v;
+			Rect3 aabb=v;
 			value_editor[0]->set_text( String::num( aabb.pos.x ) );
 			value_editor[1]->set_text( String::num( aabb.pos.y ) );
 			value_editor[2]->set_text( String::num( aabb.pos.z ) );
@@ -720,7 +741,7 @@ bool CustomPropertyEditor::edit(Object* p_owner,const String& p_name,Variant::Ty
 			value_editor[5]->set_text( String::num( aabb.size.z ) );
 
 		} break;
-		case Variant::MATRIX32: {
+		case Variant::TRANSFORM2D: {
 
 			List<String> names;
 			names.push_back("xx");
@@ -731,14 +752,14 @@ bool CustomPropertyEditor::edit(Object* p_owner,const String& p_name,Variant::Ty
 			names.push_back("oy");
 			config_value_editors(6,2,16,names);
 
-			Matrix32 basis=v;
+			Transform2D basis=v;
 			for(int i=0;i<6;i++) {
 
 				value_editor[i]->set_text( String::num( basis.elements[i/2][i%2] ) );
 			}
 
 		} break;
-		case Variant::MATRIX3: {
+		case Variant::BASIS: {
 
 			List<String> names;
 			names.push_back("xx");
@@ -752,7 +773,7 @@ bool CustomPropertyEditor::edit(Object* p_owner,const String& p_name,Variant::Ty
 			names.push_back("zz");
 			config_value_editors(9,3,16,names);
 
-			Matrix3 basis=v;
+			Basis basis=v;
 			for(int i=0;i<9;i++) {
 
 				value_editor[i]->set_text( String::num( basis.elements[i/3][i%3] ) );
@@ -984,27 +1005,27 @@ bool CustomPropertyEditor::edit(Object* p_owner,const String& p_name,Variant::Ty
 
 
 		} break;
-		case Variant::RAW_ARRAY: {
+		case Variant::POOL_BYTE_ARRAY: {
 
 
 		} break;
-		case Variant::INT_ARRAY: {
+		case Variant::POOL_INT_ARRAY: {
 
 
 		} break;
-		case Variant::REAL_ARRAY: {
+		case Variant::POOL_REAL_ARRAY: {
 
 
 		} break;
-		case Variant::STRING_ARRAY: {
+		case Variant::POOL_STRING_ARRAY: {
 
 
 		} break;
-		case Variant::VECTOR3_ARRAY: {
+		case Variant::POOL_VECTOR3_ARRAY: {
 
 
 		} break;
-		case Variant::COLOR_ARRAY: {
+		case Variant::POOL_COLOR_ARRAY: {
 
 
 		} break;
@@ -1206,7 +1227,7 @@ void CustomPropertyEditor::_action_pressed(int p_which) {
 		} break;
 		case Variant::INT: {
 
-			if (hint==PROPERTY_HINT_ALL_FLAGS) {
+			if (hint==PROPERTY_HINT_LAYERS_2D_PHYSICS || hint==PROPERTY_HINT_LAYERS_2D_RENDER || hint==PROPERTY_HINT_LAYERS_3D_PHYSICS || hint==PROPERTY_HINT_LAYERS_3D_RENDER) {
 
 				uint32_t f = v;
 				if (checks20[p_which]->is_pressed())
@@ -1682,7 +1703,7 @@ void CustomPropertyEditor::_modified(String p_string) {
 			emit_signal("variant_changed");
 
 		} break;
-		case Variant::_AABB: {
+		case Variant::RECT3: {
 
 			Vector3 pos;
 			Vector3 size;
@@ -1702,13 +1723,13 @@ void CustomPropertyEditor::_modified(String p_string) {
 				size.y=value_editor[4]->get_text().to_double();
 				size.z=value_editor[5]->get_text().to_double();
 			}
-			v=AABB(pos,size);
+			v=Rect3(pos,size);
 			emit_signal("variant_changed");
 
 		} break;
-		case Variant::MATRIX32: {
+		case Variant::TRANSFORM2D: {
 
-			Matrix32 m;
+			Transform2D m;
 			for(int i=0;i<6;i++) {
 				if (evaluator) {
 					m.elements[i/2][i%2]=evaluator->eval(value_editor[i]->get_text());
@@ -1721,9 +1742,9 @@ void CustomPropertyEditor::_modified(String p_string) {
 			emit_signal("variant_changed");
 
 		} break;
-		case Variant::MATRIX3: {
+		case Variant::BASIS: {
 
-			Matrix3 m;
+			Basis m;
 			for(int i=0;i<9;i++) {
 
 				if (evaluator) {
@@ -1739,7 +1760,7 @@ void CustomPropertyEditor::_modified(String p_string) {
 		} break;
 		case Variant::TRANSFORM: {
 
-			Matrix3 basis;
+			Basis basis;
 			for(int i=0;i<9;i++) {
 
 				if (evaluator) {
@@ -1799,27 +1820,27 @@ void CustomPropertyEditor::_modified(String p_string) {
 
 
 		} break;
-		case Variant::RAW_ARRAY: {
+		case Variant::POOL_BYTE_ARRAY: {
 
 
 		} break;
-		case Variant::INT_ARRAY: {
+		case Variant::POOL_INT_ARRAY: {
 
 
 		} break;
-		case Variant::REAL_ARRAY: {
+		case Variant::POOL_REAL_ARRAY: {
 
 
 		} break;
-		case Variant::STRING_ARRAY: {
+		case Variant::POOL_STRING_ARRAY: {
 
 
 		} break;
-		case Variant::VECTOR3_ARRAY: {
+		case Variant::POOL_VECTOR3_ARRAY: {
 
 
 		} break;
-		case Variant::COLOR_ARRAY: {
+		case Variant::POOL_COLOR_ARRAY: {
 
 
 		} break;
@@ -1844,9 +1865,9 @@ void CustomPropertyEditor::_focus_enter() {
 		case Variant::VECTOR3:
 		case Variant::PLANE:
 		case Variant::QUAT:
-		case Variant::_AABB:
-		case Variant::MATRIX32:
-		case Variant::MATRIX3:
+		case Variant::RECT3:
+		case Variant::TRANSFORM2D:
+		case Variant::BASIS:
 		case Variant::TRANSFORM: {
 			for (int i=0;i<MAX_VALUE_EDITORS;++i) {
 				if (value_editor[i]->has_focus()) {
@@ -1869,9 +1890,9 @@ void CustomPropertyEditor::_focus_exit() {
 		case Variant::VECTOR3:
 		case Variant::PLANE:
 		case Variant::QUAT:
-		case Variant::_AABB:
-		case Variant::MATRIX32:
-		case Variant::MATRIX3:
+		case Variant::RECT3:
+		case Variant::TRANSFORM2D:
+		case Variant::BASIS:
 		case Variant::TRANSFORM: {
 			for (int i=0;i<MAX_VALUE_EDITORS;++i) {
 				value_editor[i]->select(0, 0);
@@ -1979,8 +2000,8 @@ CustomPropertyEditor::CustomPropertyEditor() {
 		value_editor[i]->hide();
 		value_label[i]->hide();
 		value_editor[i]->connect("text_entered", this,"_modified");
-		value_editor[i]->connect("focus_enter", this, "_focus_enter");
-		value_editor[i]->connect("focus_exit", this, "_focus_exit");
+		value_editor[i]->connect("focus_entered", this, "_focus_enter");
+		value_editor[i]->connect("focus_exited", this, "_focus_exit");
 	}
 
 	for(int i=0;i<4;i++) {
@@ -1995,11 +2016,21 @@ CustomPropertyEditor::CustomPropertyEditor() {
 
 	}
 
+	checks20gc = memnew( GridContainer );
+	add_child(checks20gc);
+	checks20gc->set_columns(11);
+
 	for(int i=0;i<20;i++) {
+		if (i==5 || i==15) {
+			Control *space = memnew( Control );
+			space->set_custom_minimum_size(Size2(20,0)*EDSCALE);
+			checks20gc->add_child(space);
+		}
+
 		checks20[i]=memnew( CheckBox );
 		checks20[i]->set_toggle_mode(true);
-		checks20[i]->set_focus_mode(FOCUS_NONE);
-		add_child(checks20[i]);
+		checks20[i]->set_focus_mode(FOCUS_NONE);		
+		checks20gc->add_child(checks20[i]);
 		checks20[i]->hide();
 		checks20[i]->connect("pressed",this,"_action_pressed",make_binds(i));
 		checks20[i]->set_tooltip(vformat(TTR("Bit %d, val %d."), i, 1<<i));
@@ -2302,7 +2333,7 @@ void PropertyEditor::set_item_text(TreeItem *p_item, int p_type, const String& p
 		case Variant::REAL:
 		case Variant::INT: {
 
-			if (p_hint==PROPERTY_HINT_ALL_FLAGS) {
+			if (p_hint==PROPERTY_HINT_LAYERS_2D_PHYSICS || p_hint==PROPERTY_HINT_LAYERS_2D_RENDER || p_hint==PROPERTY_HINT_LAYERS_3D_PHYSICS || p_hint==PROPERTY_HINT_LAYERS_3D_RENDER) {
 				tree->update();
 				break;
 			}
@@ -2388,10 +2419,10 @@ void PropertyEditor::set_item_text(TreeItem *p_item, int p_type, const String& p
 		case Variant::VECTOR3:
 		case Variant::QUAT:
 		case Variant::VECTOR2:
-		case Variant::_AABB:
+		case Variant::RECT3:
 		case Variant::RECT2:
-		case Variant::MATRIX32:
-		case Variant::MATRIX3:
+		case Variant::TRANSFORM2D:
+		case Variant::BASIS:
 		case Variant::TRANSFORM: {
 
 			p_item->set_text(1,obj->get(p_name));
@@ -3265,7 +3296,7 @@ void PropertyEditor::update_tree() {
 
 				}
 
-				if (p.hint==PROPERTY_HINT_ALL_FLAGS) {
+				if (p.hint==PROPERTY_HINT_LAYERS_2D_PHYSICS || p.hint==PROPERTY_HINT_LAYERS_2D_RENDER || p.hint==PROPERTY_HINT_LAYERS_3D_PHYSICS || p.hint==PROPERTY_HINT_LAYERS_3D_RENDER) {
 
 					item->set_cell_mode( 1, TreeItem::CELL_MODE_CUSTOM );
 					item->set_editable(1,!read_only);
@@ -3319,7 +3350,7 @@ void PropertyEditor::update_tree() {
 						max=p.hint_string.get_slice(",",1).to_double();
 					}
 
-					if (p.type!=PROPERTY_HINT_SPRITE_FRAME && c>=3) {
+					if (p.hint!=PROPERTY_HINT_SPRITE_FRAME && c>=3) {
 
 						step= p.hint_string.get_slice(",",2).to_double();
 					}
@@ -3464,17 +3495,37 @@ void PropertyEditor::update_tree() {
 
 
 				Variant v = obj->get(p.name);
+				String type_name = "Array";
+				String type_name_suffix = "";
+				
+				String hint = p.hint_string;
+				while(hint.begins_with(itos(Variant::ARRAY)+":")) {
+					type_name += "<Array";
+					type_name_suffix += ">";
+					hint = hint.substr(2, hint.size()-2);
+				}
+				if(hint.find(":") >= 0) {
+					hint = hint.substr(0,hint.find(":"));
+					if(hint.find("/") >= 0) {
+						hint = hint.substr(0,hint.find("/"));
+					}
+					type_name += "<" + Variant::get_type_name(Variant::Type(hint.to_int()));
+					type_name_suffix += ">";
+				}
+				type_name += type_name_suffix;
+				
 				if (v.is_array())
-					item->set_text(1,"Array["+itos(v.call("size"))+"]");
+					item->set_text(1,type_name+"["+itos(v.call("size"))+"]");
 				else
-					item->set_text(1,"Array[]");
+					item->set_text(1,type_name+"[]");
+				
 				if (show_type_icons)
 					item->set_icon( 0, get_icon("ArrayData","EditorIcons") );
 
 
 			} break;
 
-			case Variant::INT_ARRAY: {
+			case Variant::POOL_INT_ARRAY: {
 
 				item->set_cell_mode( 1, TreeItem::CELL_MODE_CUSTOM );
 				item->add_button(1,get_icon("EditResource","EditorIcons"));
@@ -3489,7 +3540,7 @@ void PropertyEditor::update_tree() {
 
 
 			} break;
-			case Variant::REAL_ARRAY: {
+			case Variant::POOL_REAL_ARRAY: {
 
 				item->set_cell_mode( 1, TreeItem::CELL_MODE_CUSTOM );
 				item->add_button(1,get_icon("EditResource","EditorIcons"));
@@ -3504,7 +3555,7 @@ void PropertyEditor::update_tree() {
 
 
 			} break;
-			case Variant::STRING_ARRAY: {
+			case Variant::POOL_STRING_ARRAY: {
 
 				item->set_cell_mode( 1, TreeItem::CELL_MODE_CUSTOM );
 				item->add_button(1,get_icon("EditResource","EditorIcons"));
@@ -3519,7 +3570,7 @@ void PropertyEditor::update_tree() {
 
 
 			} break;
-			case Variant::RAW_ARRAY: {
+			case Variant::POOL_BYTE_ARRAY: {
 
 				item->set_cell_mode( 1, TreeItem::CELL_MODE_CUSTOM );
 				item->add_button(1,get_icon("EditResource","EditorIcons"));
@@ -3534,7 +3585,7 @@ void PropertyEditor::update_tree() {
 
 
 			} break;
-			case Variant::VECTOR2_ARRAY: {
+			case Variant::POOL_VECTOR2_ARRAY: {
 
 				item->set_cell_mode( 1, TreeItem::CELL_MODE_CUSTOM );
 				item->add_button(1,get_icon("EditResource","EditorIcons"));
@@ -3549,7 +3600,7 @@ void PropertyEditor::update_tree() {
 
 
 			} break;
-			case Variant::VECTOR3_ARRAY: {
+			case Variant::POOL_VECTOR3_ARRAY: {
 
 				item->set_cell_mode( 1, TreeItem::CELL_MODE_CUSTOM );
 				item->add_button(1,get_icon("EditResource","EditorIcons"));
@@ -3564,7 +3615,7 @@ void PropertyEditor::update_tree() {
 
 
 			} break;
-			case Variant::COLOR_ARRAY: {
+			case Variant::POOL_COLOR_ARRAY: {
 
 				item->set_cell_mode( 1, TreeItem::CELL_MODE_CUSTOM );
 				item->add_button(1,get_icon("EditResource","EditorIcons"));
@@ -3606,8 +3657,8 @@ void PropertyEditor::update_tree() {
 					item->set_icon( 0,get_icon("Vector","EditorIcons") );
 
 			} break;
-			case Variant::MATRIX32:
-			case Variant::MATRIX3: {
+			case Variant::TRANSFORM2D:
+			case Variant::BASIS: {
 
 				item->set_cell_mode( 1, TreeItem::CELL_MODE_CUSTOM );
 				item->set_editable( 1, true );
@@ -3631,11 +3682,11 @@ void PropertyEditor::update_tree() {
 					item->set_icon( 0,get_icon("Plane","EditorIcons") );
 
 			} break;
-			case Variant::_AABB: {
+			case Variant::RECT3: {
 
 				item->set_cell_mode( 1, TreeItem::CELL_MODE_CUSTOM );
 				item->set_editable( 1, true );
-				item->set_text(1,"AABB");
+				item->set_text(1,"Rect3");
 				if (show_type_icons)
 					item->set_icon( 0,get_icon("Rect3","EditorIcons") );
 			} break;
@@ -3914,7 +3965,7 @@ void PropertyEditor::_item_edited() {
 		case Variant::INT:
 		case Variant::REAL: {
 
-			if (hint==PROPERTY_HINT_ALL_FLAGS)
+			if (hint==PROPERTY_HINT_LAYERS_2D_PHYSICS || hint==PROPERTY_HINT_LAYERS_2D_RENDER || hint==PROPERTY_HINT_LAYERS_3D_PHYSICS || hint==PROPERTY_HINT_LAYERS_3D_RENDER)
 				break;
 			if (hint==PROPERTY_HINT_EXP_EASING)
 				break;
@@ -3955,10 +4006,10 @@ void PropertyEditor::_item_edited() {
 		case Variant::QUAT: {
 
 		} break;
-		case Variant::_AABB: {
+		case Variant::RECT3: {
 
 		} break;
-		case Variant::MATRIX3: {
+		case Variant::BASIS: {
 
 		} break;
 		case Variant::TRANSFORM: {
@@ -3984,22 +4035,22 @@ void PropertyEditor::_item_edited() {
 		} break;
 
 			// arrays
-		case Variant::RAW_ARRAY: {
+		case Variant::POOL_BYTE_ARRAY: {
 
 		} break;
-		case Variant::INT_ARRAY: {
+		case Variant::POOL_INT_ARRAY: {
 
 		} break;
-		case Variant::REAL_ARRAY: {
+		case Variant::POOL_REAL_ARRAY: {
 
 		} break;
-		case Variant::STRING_ARRAY: {
+		case Variant::POOL_STRING_ARRAY: {
 
 		} break;
-		case Variant::VECTOR3_ARRAY: {
+		case Variant::POOL_VECTOR3_ARRAY: {
 
 		} break;
-		case Variant::COLOR_ARRAY: {
+		case Variant::POOL_COLOR_ARRAY: {
 
 		} break;
 
@@ -4192,7 +4243,7 @@ void PropertyEditor::_edit_button(Object *p_item, int p_column, int p_button) {
 			emit_signal("object_id_selected",obj->get(n));
 			print_line("OBJ ID SELECTED");
 
-		} else if (t==Variant::ARRAY || t==Variant::INT_ARRAY || t==Variant::REAL_ARRAY || t==Variant::STRING_ARRAY || t==Variant::VECTOR2_ARRAY || t==Variant::VECTOR3_ARRAY || t==Variant::COLOR_ARRAY || t==Variant::RAW_ARRAY) {
+		} else if (t==Variant::ARRAY || t==Variant::POOL_INT_ARRAY || t==Variant::POOL_REAL_ARRAY || t==Variant::POOL_STRING_ARRAY || t==Variant::POOL_VECTOR2_ARRAY || t==Variant::POOL_VECTOR3_ARRAY || t==Variant::POOL_COLOR_ARRAY || t==Variant::POOL_BYTE_ARRAY) {
 
 			Variant v = obj->get(n);
 
@@ -4202,7 +4253,7 @@ void PropertyEditor::_edit_button(Object *p_item, int p_column, int p_button) {
 			}
 
 			Ref<ArrayPropertyEdit> ape = memnew( ArrayPropertyEdit );
-			ape->edit(obj,n,Variant::Type(t));
+			ape->edit(obj,n,ht,Variant::Type(t));
 
 			EditorNode::get_singleton()->push_item(ape.ptr());
 		}
@@ -4533,7 +4584,7 @@ class SectionedPropertyEditorFilter : public Object {
 			PropertyInfo pi=E->get();
 			int sp = pi.name.find("/");
 
-			if (pi.name=="resource_path" || pi.name=="resource_name") //skip resource stuff
+			if (pi.name=="resource_path" || pi.name=="resource_name" || pi.name.begins_with("script/")) //skip resource stuff
 				continue;
 
 			if (sp==-1) {

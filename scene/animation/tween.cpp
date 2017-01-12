@@ -155,21 +155,21 @@ void Tween::_notification(int p_what) {
 			if (!processing) {
 				//make sure that a previous process state was not saved
 				//only process if "processing" is set
-				set_fixed_process(false);
-				set_process(false);
+				set_fixed_process_internal(false);
+				set_process_internal(false);
 			}
 		} break;
 		case NOTIFICATION_READY: {
 
 		} break;
-		case NOTIFICATION_PROCESS: {
+		case NOTIFICATION_INTERNAL_PROCESS: {
 			if (tween_process_mode==TWEEN_PROCESS_FIXED)
 				break;
 
 			if (processing)
 				_tween_process( get_process_delta_time() );
 		} break;
-		case NOTIFICATION_FIXED_PROCESS: {
+		case NOTIFICATION_INTERNAL_FIXED_PROCESS: {
 
 			if (tween_process_mode==TWEEN_PROCESS_IDLE)
 				break;
@@ -221,9 +221,9 @@ void Tween::_bind_methods() {
 	ClassDB::bind_method(_MD("targeting_property","object","property","initial","initial_val","final_val","times_in_sec","trans_type","ease_type","delay"),&Tween::targeting_property, DEFVAL(0) );
 	ClassDB::bind_method(_MD("targeting_method","object","method","initial","initial_method","final_val","times_in_sec","trans_type","ease_type","delay"),&Tween::targeting_method, DEFVAL(0) );
 
-	ADD_SIGNAL( MethodInfo("tween_start", PropertyInfo( Variant::OBJECT,"object"), PropertyInfo( Variant::STRING,"key")) );
+	ADD_SIGNAL( MethodInfo("tween_started", PropertyInfo( Variant::OBJECT,"object"), PropertyInfo( Variant::STRING,"key")) );
 	ADD_SIGNAL( MethodInfo("tween_step", PropertyInfo( Variant::OBJECT,"object"), PropertyInfo( Variant::STRING,"key"), PropertyInfo( Variant::REAL,"elapsed"), PropertyInfo( Variant::OBJECT,"value")) );
-	ADD_SIGNAL( MethodInfo("tween_complete", PropertyInfo( Variant::OBJECT,"object"), PropertyInfo( Variant::STRING,"key")) );
+	ADD_SIGNAL( MethodInfo("tween_completed", PropertyInfo( Variant::OBJECT,"object"), PropertyInfo( Variant::STRING,"key")) );
 
 	ADD_PROPERTY( PropertyInfo( Variant::INT, "playback_process_mode", PROPERTY_HINT_ENUM, "Fixed,Idle"), _SCS("set_tween_process_mode"), _SCS("get_tween_process_mode"));
 
@@ -383,11 +383,11 @@ Variant Tween::_run_equation(InterpolateData& p_data) {
 		}
 		break;
 
-	case Variant::MATRIX3:
+	case Variant::BASIS:
 		{
-			Matrix3 i = initial_val;
-			Matrix3 d = delta_val;
-			Matrix3 r;
+			Basis i = initial_val;
+			Basis d = delta_val;
+			Basis r;
 
 			APPLY_EQUATION(elements[0][0]);
 			APPLY_EQUATION(elements[0][1]);
@@ -403,11 +403,11 @@ Variant Tween::_run_equation(InterpolateData& p_data) {
 		}
 	break;
 
-	case Variant::MATRIX32:
+	case Variant::TRANSFORM2D:
 		{
-			Matrix3 i = initial_val;
-			Matrix3 d = delta_val;
-			Matrix3 r;
+			Basis i = initial_val;
+			Basis d = delta_val;
+			Basis r;
 
 			APPLY_EQUATION(elements[0][0]);
 			APPLY_EQUATION(elements[0][1]);
@@ -433,11 +433,11 @@ Variant Tween::_run_equation(InterpolateData& p_data) {
 			result = r;
 		}
 		break;
-	case Variant::_AABB:
+	case Variant::RECT3:
 		{
-			AABB i = initial_val;
-			AABB d = delta_val;
-			AABB r;
+			Rect3 i = initial_val;
+			Rect3 d = delta_val;
+			Rect3 r;
 
 			APPLY_EQUATION(pos.x);
 			APPLY_EQUATION(pos.y);
@@ -573,7 +573,7 @@ void Tween::_tween_process(float p_delta) {
 			continue;
 		else if(prev_delaying) {
 
-			emit_signal("tween_start",object,data.key);
+			emit_signal("tween_started",object,data.key);
 			_apply_tween_value(data, data.initial_val);
 		}
 
@@ -632,7 +632,7 @@ void Tween::_tween_process(float p_delta) {
 		_apply_tween_value(data, result);
 
 		if (data.finish) {
-			emit_signal("tween_complete",object,data.key);
+			emit_signal("tween_completed",object,data.key);
 			// not repeat mode, remove completed action
 			if (!repeat)
 				call_deferred("_remove", object, data.key, true);
@@ -666,8 +666,8 @@ void Tween::_set_process(bool p_process,bool p_force) {
 
 	switch(tween_process_mode) {
 
-		case TWEEN_PROCESS_FIXED: set_fixed_process(p_process && active); break;
-		case TWEEN_PROCESS_IDLE: set_process(p_process && active); break;
+		case TWEEN_PROCESS_FIXED: set_fixed_process_internal(p_process && active); break;
+		case TWEEN_PROCESS_IDLE: set_process_internal(p_process && active); break;
 	}
 
 	processing=p_process;
@@ -953,11 +953,11 @@ bool Tween::_calc_delta_val(const Variant& p_initial_val, const Variant& p_final
 			delta_val = final_val.operator Vector3() - initial_val.operator Vector3();
 			break;
 
-		case Variant::MATRIX3:
+		case Variant::BASIS:
 			{
-				Matrix3 i = initial_val;
-				Matrix3 f = final_val;
-				delta_val = Matrix3(f.elements[0][0] - i.elements[0][0],
+				Basis i = initial_val;
+				Basis f = final_val;
+				delta_val = Basis(f.elements[0][0] - i.elements[0][0],
 					f.elements[0][1] - i.elements[0][1],
 					f.elements[0][2] - i.elements[0][2],
 					f.elements[1][0] - i.elements[1][0],
@@ -970,11 +970,11 @@ bool Tween::_calc_delta_val(const Variant& p_initial_val, const Variant& p_final
 			}
 			break;
 
-		case Variant::MATRIX32:
+		case Variant::TRANSFORM2D:
 			{
-				Matrix32 i = initial_val;
-				Matrix32 f = final_val;
-				Matrix32 d = Matrix32();
+				Transform2D i = initial_val;
+				Transform2D f = final_val;
+				Transform2D d = Transform2D();
 				d[0][0] = f.elements[0][0] - i.elements[0][0];
 				d[0][1] = f.elements[0][1] - i.elements[0][1];
 				d[1][0] = f.elements[1][0] - i.elements[1][0];
@@ -987,11 +987,11 @@ bool Tween::_calc_delta_val(const Variant& p_initial_val, const Variant& p_final
 		case Variant::QUAT:
 			delta_val = final_val.operator Quat() - initial_val.operator Quat();
 			break;
-		case Variant::_AABB:
+		case Variant::RECT3:
 			{
-				AABB i = initial_val;
-				AABB f = final_val;
-				delta_val = AABB(f.pos - i.pos, f.size - i.size);
+				Rect3 i = initial_val;
+				Rect3 f = final_val;
+				delta_val = Rect3(f.pos - i.pos, f.size - i.size);
 			}
 			break;
 		case Variant::TRANSFORM:

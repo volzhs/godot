@@ -498,6 +498,7 @@ void SceneTree::init() {
 
 	//_quit=false;
 	accept_quit=true;
+	quit_on_go_back=true;
 	initialized=true;
 	input_handled=false;
 
@@ -523,6 +524,7 @@ bool SceneTree::iteration(float p_time) {
 
 	emit_signal("fixed_frame");
 
+	_notify_group_pause("fixed_process_internal",Node::NOTIFICATION_INTERNAL_FIXED_PROCESS);
 	_notify_group_pause("fixed_process",Node::NOTIFICATION_FIXED_PROCESS);
 	_flush_ugc();
 	_flush_transform_notifications();
@@ -554,6 +556,7 @@ bool SceneTree::idle(float p_time){
 
 	_flush_transform_notifications();
 
+	_notify_group_pause("idle_process_internal",Node::NOTIFICATION_INTERNAL_PROCESS);
 	_notify_group_pause("idle_process",Node::NOTIFICATION_PROCESS);
 
 	Size2 win_size=Size2( OS::get_singleton()->get_video_mode().width, OS::get_singleton()->get_video_mode().height );
@@ -644,6 +647,15 @@ void SceneTree::_notification(int p_notification) {
 				break;
 			}
 		} break;
+		case NOTIFICATION_WM_GO_BACK_REQUEST: {
+
+			get_root()->propagate_notification(p_notification);
+
+			if (quit_on_go_back) {
+				_quit=true;
+				break;
+			}
+		} break;
 		case NOTIFICATION_OS_MEMORY_WARNING:
 		case NOTIFICATION_WM_FOCUS_IN:
 		case NOTIFICATION_WM_FOCUS_OUT: {
@@ -668,6 +680,11 @@ void SceneTree::_notification(int p_notification) {
 void SceneTree::set_auto_accept_quit(bool p_enable) {
 
 	accept_quit=p_enable;
+}
+
+void SceneTree::set_quit_on_go_back(bool p_enable) {
+
+	quit_on_go_back=p_enable;
 }
 
 void SceneTree::set_editor_hint(bool p_enabled) {
@@ -2243,7 +2260,7 @@ void SceneTree::_bind_methods() {
 	ADD_SIGNAL( MethodInfo("idle_frame"));
 	ADD_SIGNAL( MethodInfo("fixed_frame"));
 
-	ADD_SIGNAL( MethodInfo("files_dropped",PropertyInfo(Variant::STRING_ARRAY,"files"),PropertyInfo(Variant::INT,"screen")) );
+	ADD_SIGNAL( MethodInfo("files_dropped",PropertyInfo(Variant::POOL_STRING_ARRAY,"files"),PropertyInfo(Variant::INT,"screen")) );
 	ADD_SIGNAL( MethodInfo("network_peer_connected",PropertyInfo(Variant::INT,"id")));
 	ADD_SIGNAL( MethodInfo("network_peer_disconnected",PropertyInfo(Variant::INT,"id")));
 	ADD_SIGNAL( MethodInfo("connected_to_server"));

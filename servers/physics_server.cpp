@@ -78,6 +78,9 @@ void PhysicsDirectBodyState::_bind_methods() {
 	ClassDB::bind_method(_MD("get_total_linear_damp"),&PhysicsDirectBodyState::get_total_linear_damp);
 	ClassDB::bind_method(_MD("get_total_angular_damp"),&PhysicsDirectBodyState::get_total_angular_damp);
 
+	ClassDB::bind_method(_MD("get_center_of_mass"),&PhysicsDirectBodyState::get_center_of_mass);
+	ClassDB::bind_method(_MD("get_principal_inetria_axes"),&PhysicsDirectBodyState::get_principal_inertia_axes);
+
 	ClassDB::bind_method(_MD("get_inverse_mass"),&PhysicsDirectBodyState::get_inverse_mass);
 	ClassDB::bind_method(_MD("get_inverse_inertia"),&PhysicsDirectBodyState::get_inverse_inertia);
 
@@ -92,6 +95,7 @@ void PhysicsDirectBodyState::_bind_methods() {
 
 	ClassDB::bind_method(_MD("add_force","force","pos"),&PhysicsDirectBodyState::add_force);
 	ClassDB::bind_method(_MD("apply_impulse","pos","j"),&PhysicsDirectBodyState::apply_impulse);
+	ClassDB::bind_method(_MD("apply_torqe_impulse","j"),&PhysicsDirectBodyState::apply_torque_impulse);
 
 	ClassDB::bind_method(_MD("set_sleep_state","enabled"),&PhysicsDirectBodyState::set_sleep_state);
 	ClassDB::bind_method(_MD("is_sleeping"),&PhysicsDirectBodyState::is_sleeping);
@@ -267,9 +271,9 @@ Dictionary PhysicsDirectSpaceState::_intersect_ray(const Vector3& p_from, const 
 	bool res = intersect_ray(p_from,p_to,inters,exclude,p_layers,p_object_type_mask);
 
 	if (!res)
-		return Dictionary(true);
+		return Dictionary();
 
-	Dictionary d(true);
+	Dictionary d;
 	d["position"]=inters.position;
 	d["normal"]=inters.normal;
 	d["collider_id"]=inters.collider_id;
@@ -306,7 +310,7 @@ Array PhysicsDirectSpaceState::_cast_motion(const Ref<PhysicsShapeQueryParameter
 	bool res = cast_motion(psq->shape,psq->transform,p_motion,psq->margin,closest_safe,closest_unsafe,psq->exclude,psq->layer_mask,psq->object_type_mask);
 	if (!res)
 		return Array();
-	Array ret(true);
+	Array ret;
 	ret.resize(2);
 	ret[0]=closest_safe;
 	ret[1]=closest_unsafe;
@@ -333,7 +337,7 @@ Dictionary PhysicsDirectSpaceState::_get_rest_info(const Ref<PhysicsShapeQueryPa
 	ShapeRestInfo sri;
 
 	bool res = rest_info(psq->shape,psq->transform,psq->margin,&sri,psq->exclude,psq->layer_mask,psq->object_type_mask);
-	Dictionary r(true);
+	Dictionary r;
 	if (!res)
 		return r;
 
@@ -517,6 +521,7 @@ void PhysicsServer::_bind_methods() {
 	ClassDB::bind_method(_MD("body_get_state","body","state"),&PhysicsServer::body_get_state);
 
 	ClassDB::bind_method(_MD("body_apply_impulse","body","pos","impulse"),&PhysicsServer::body_apply_impulse);
+	ClassDB::bind_method(_MD("body_apply_torque_impulse","body","impulse"),&PhysicsServer::body_apply_torque_impulse);
 	ClassDB::bind_method(_MD("body_set_axis_velocity","body","axis_velocity"),&PhysicsServer::body_set_axis_velocity);
 
 	ClassDB::bind_method(_MD("body_set_axis_lock","body","axis"),&PhysicsServer::body_set_axis_lock);

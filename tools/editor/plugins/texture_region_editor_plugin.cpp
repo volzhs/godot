@@ -57,13 +57,13 @@ void TextureRegionEditor::_region_draw()
 	if (base_tex.is_null())
 		return;
 
-	Matrix32 mtx;
+	Transform2D mtx;
 	mtx.elements[2]=-draw_ofs;
 	mtx.scale_basis(Vector2(draw_zoom,draw_zoom));
 
 	VS::get_singleton()->canvas_item_add_set_transform(edit_draw->get_canvas_item(),mtx);
 	edit_draw->draw_texture(base_tex,Point2());
-	VS::get_singleton()->canvas_item_add_set_transform(edit_draw->get_canvas_item(),Matrix32());
+	VS::get_singleton()->canvas_item_add_set_transform(edit_draw->get_canvas_item(),Transform2D());
 
 	if (snap_mode == SNAP_GRID) {
 		Size2 s = edit_draw->get_size();
@@ -203,7 +203,7 @@ void TextureRegionEditor::_region_draw()
 
 void TextureRegionEditor::_region_input(const InputEvent& p_input)
 {
-	Matrix32 mtx;
+	Transform2D mtx;
 	mtx.elements[2]=-draw_ofs;
 	mtx.scale_basis(Vector2(draw_zoom,draw_zoom));
 
@@ -653,17 +653,17 @@ void TextureRegionEditor::edit(Object *p_obj)
 			p_obj->connect("texture_changed",this,"_edit_region");
 		}
 		p_obj->add_change_receptor(this);
-		p_obj->connect("exit_tree",this,"_node_removed",varray(p_obj),CONNECT_ONESHOT);
+		p_obj->connect("tree_exited",this,"_node_removed",varray(p_obj),CONNECT_ONESHOT);
 		_edit_region();
 	} else {
 		if(node_sprite)
-			node_sprite->disconnect("exit_tree",this,"_node_removed");
+			node_sprite->disconnect("tree_exited",this,"_node_removed");
 		else if(node_patch9)
-			node_patch9->disconnect("exit_tree",this,"_node_removed");
+			node_patch9->disconnect("tree_exited",this,"_node_removed");
 		else if(obj_styleBox.is_valid())
-			obj_styleBox->disconnect("exit_tree",this,"_node_removed");
+			obj_styleBox->disconnect("tree_exited",this,"_node_removed");
 		else if(atlas_tex.is_valid())
-			atlas_tex->disconnect("exit_tree",this,"_node_removed");
+			atlas_tex->disconnect("tree_exited",this,"_node_removed");
 
 		node_sprite = NULL;
 		node_patch9 = NULL;

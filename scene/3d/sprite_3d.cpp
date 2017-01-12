@@ -207,7 +207,7 @@ void SpriteBase3D::_queue_update(){
 }
 
 
-AABB SpriteBase3D::get_aabb() const {
+Rect3 SpriteBase3D::get_aabb() const {
 
 	return aabb;
 }
@@ -445,7 +445,7 @@ void Sprite3D::_draw() {
 		}
 	}
 
-	AABB aabb;
+	Rect3 aabb;
 
 	for(int i=0;i<4;i++) {
 		VS::get_singleton()->immediate_normal(immediate,normal);
@@ -961,7 +961,7 @@ void AnimatedSprite3D::_draw() {
 		}
 	}
 
-	AABB aabb;
+	Rect3 aabb;
 
 	for(int i=0;i<4;i++) {
 		VS::get_singleton()->immediate_normal(immediate,normal);
@@ -1036,7 +1036,7 @@ void AnimatedSprite3D::_validate_property(PropertyInfo& property) const {
 void AnimatedSprite3D::_notification(int p_what) {
 
 	switch(p_what) {
-		case NOTIFICATION_PROCESS: {
+		case NOTIFICATION_INTERNAL_PROCESS: {
 
 			if (frames.is_null())
 				return;
@@ -1239,7 +1239,7 @@ void AnimatedSprite3D::_set_playing(bool p_playing) {
 		return;
 	playing=p_playing;
 	_reset_timeout();
-	set_process(playing);
+	set_process_internal(playing);
 }
 
 bool AnimatedSprite3D::_is_playing() const {

@@ -52,9 +52,9 @@ String JSON::_print_var(const Variant& p_var) {
 		case Variant::BOOL: return p_var.operator bool() ? "true": "false";
 		case Variant::INT: return itos(p_var);
 		case Variant::REAL: return rtos(p_var);
-		case Variant::INT_ARRAY:
-		case Variant::REAL_ARRAY:
-		case Variant::STRING_ARRAY:
+		case Variant::POOL_INT_ARRAY:
+		case Variant::POOL_REAL_ARRAY:
+		case Variant::POOL_STRING_ARRAY:
 		case Variant::ARRAY: {
 
 			String s = "[";
@@ -288,7 +288,7 @@ Error JSON::_parse_value(Variant &value,Token& token,const CharType *p_str,int &
 
 	if (token.type==TK_CURLY_BRACKET_OPEN) {
 
-		Dictionary d(true);
+		Dictionary d;
 		Error err = _parse_object(d,p_str,index,p_len,line,r_err_str);
 		if (err)
 			return err;
@@ -296,7 +296,7 @@ Error JSON::_parse_value(Variant &value,Token& token,const CharType *p_str,int &
 		return OK;
 	} else if (token.type==TK_BRACKET_OPEN) {
 
-		Array a(true);
+		Array a;
 		Error err = _parse_array(a,p_str,index,p_len,line,r_err_str);
 		if (err)
 			return err;

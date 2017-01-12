@@ -114,25 +114,25 @@ Color Light::get_shadow_color() const{
 }
 
 
-AABB Light::get_aabb() const {
+Rect3 Light::get_aabb() const {
 
 
 	if (type==VisualServer::LIGHT_DIRECTIONAL) {
 
-		return AABB( Vector3(-1,-1,-1), Vector3(2, 2, 2 ) );
+		return Rect3( Vector3(-1,-1,-1), Vector3(2, 2, 2 ) );
 
 	} else if (type==VisualServer::LIGHT_OMNI) {
 
-		return AABB( Vector3(-1,-1,-1) * param[PARAM_RANGE], Vector3(2, 2, 2 ) * param[PARAM_RANGE]);
+		return Rect3( Vector3(-1,-1,-1) * param[PARAM_RANGE], Vector3(2, 2, 2 ) * param[PARAM_RANGE]);
 
 	} else if (type==VisualServer::LIGHT_SPOT) {
 
 		float len=param[PARAM_RANGE];
 		float size=Math::tan(Math::deg2rad(param[PARAM_SPOT_ANGLE]))*len;
-		return AABB( Vector3( -size,-size,-len ), Vector3( size*2, size*2, len ) );
+		return Rect3( Vector3( -size,-size,-len ), Vector3( size*2, size*2, len ) );
 	}
 
-	return AABB();
+	return Rect3();
 }
 
 PoolVector<Face3> Light::get_faces(uint32_t p_usage_flags) const {
@@ -248,7 +248,7 @@ void Light::_bind_methods() {
 	ADD_PROPERTYI( PropertyInfo( Variant::REAL, "light_energy",PROPERTY_HINT_RANGE,"0,16,0.01"), _SCS("set_param"), _SCS("get_param"), PARAM_ENERGY);
 	ADD_PROPERTY( PropertyInfo( Variant::BOOL, "light_negative"), _SCS("set_negative"), _SCS("is_negative"));
 	ADD_PROPERTYI( PropertyInfo( Variant::REAL, "light_specular",PROPERTY_HINT_RANGE,"0,1,0.01"), _SCS("set_param"), _SCS("get_param"), PARAM_SPECULAR);
-	ADD_PROPERTY( PropertyInfo( Variant::INT, "light_cull_mask",PROPERTY_HINT_ALL_FLAGS), _SCS("set_cull_mask"), _SCS("get_cull_mask"));
+	ADD_PROPERTY( PropertyInfo( Variant::INT, "light_cull_mask",PROPERTY_HINT_LAYERS_3D_RENDER), _SCS("set_cull_mask"), _SCS("get_cull_mask"));
 	ADD_GROUP("Shadow","shadow_");
 	ADD_PROPERTY( PropertyInfo( Variant::BOOL, "shadow_enabled"), _SCS("set_shadow"), _SCS("has_shadow"));
 	ADD_PROPERTY( PropertyInfo( Variant::COLOR, "shadow_color",PROPERTY_HINT_COLOR_NO_ALPHA), _SCS("set_shadow_color"), _SCS("get_shadow_color"));

@@ -96,7 +96,7 @@ Size2 Control::edit_get_minimum_size() const {
 void Control::edit_set_rect(const Rect2& p_edit_rect) {
 
 
-	Matrix32 postxf;
+	Transform2D postxf;
 	postxf.set_rotation_and_scale(data.rotation,data.scale);
 	Vector2 new_pos = postxf.xform(p_edit_rect.pos);
 
@@ -374,7 +374,7 @@ void Control::remove_child_notify(Node *p_child) {
 
 void Control::_update_canvas_item_transform() {
 
-	Matrix32 xform=Matrix32(data.rotation,get_pos());
+	Transform2D xform=Transform2D(data.rotation,get_pos());
 	xform.scale_basis(data.scale);
 	VisualServer::get_singleton()->canvas_item_set_transform(get_canvas_item(),xform);
 
@@ -538,20 +538,20 @@ void Control::_notification(int p_notification) {
 		} break;
 		case NOTIFICATION_MOUSE_ENTER: {
 
-			emit_signal(SceneStringNames::get_singleton()->mouse_enter);
+			emit_signal(SceneStringNames::get_singleton()->mouse_entered);
 		} break;
 		case NOTIFICATION_MOUSE_EXIT: {
 
-			emit_signal(SceneStringNames::get_singleton()->mouse_exit);
+			emit_signal(SceneStringNames::get_singleton()->mouse_exited);
 		} break;
 		case NOTIFICATION_FOCUS_ENTER: {
 
-			emit_signal(SceneStringNames::get_singleton()->focus_enter);
+			emit_signal(SceneStringNames::get_singleton()->focus_entered);
 			update();
 		} break;
 		case NOTIFICATION_FOCUS_EXIT: {
 
-			emit_signal(SceneStringNames::get_singleton()->focus_exit);
+			emit_signal(SceneStringNames::get_singleton()->focus_exited);
 			update();
 
 		} break;
@@ -561,7 +561,7 @@ void Control::_notification(int p_notification) {
 		} break;
 		case NOTIFICATION_MODAL_CLOSE: {
 
-			emit_signal("modal_close");
+			emit_signal("modal_closed");
 		} break;
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 
@@ -754,8 +754,16 @@ Ref<Texture> Control::get_icon(const StringName& p_name,const StringName& p_type
 
 	while(theme_owner) {
 
-		if (theme_owner->data.theme->has_icon(p_name, type ) )
-			return theme_owner->data.theme->get_icon(p_name, type );
+		StringName class_name = type;
+
+		while(class_name!=StringName()) {
+			if (theme_owner->data.theme->has_icon(p_name, class_name ) ) {
+				return theme_owner->data.theme->get_icon(p_name, class_name );
+			}
+
+			class_name = ClassDB::get_parent_class_nocheck(class_name);
+		}
+
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -784,8 +792,16 @@ Ref<Shader> Control::get_shader(const StringName& p_name,const StringName& p_typ
 
 	while(theme_owner) {
 
-		if (theme_owner->data.theme->has_shader(p_name, type))
-			return theme_owner->data.theme->get_shader(p_name, type );
+		StringName class_name = type;
+
+		while(class_name!=StringName()) {
+			if (theme_owner->data.theme->has_shader(p_name, class_name ) ) {
+				return theme_owner->data.theme->get_shader(p_name, class_name );
+			}
+
+			class_name = ClassDB::get_parent_class_nocheck(class_name);
+		}
+
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -813,9 +829,16 @@ Ref<StyleBox> Control::get_stylebox(const StringName& p_name,const StringName& p
 
 	while(theme_owner) {
 
-		if (theme_owner->data.theme->has_stylebox(p_name, type ) ) {
-			return theme_owner->data.theme->get_stylebox(p_name, type );
+		StringName class_name = type;
+
+		while(class_name!=StringName()) {
+			if (theme_owner->data.theme->has_stylebox(p_name, class_name ) ) {
+				return theme_owner->data.theme->get_stylebox(p_name, class_name );
+			}
+
+			class_name = ClassDB::get_parent_class_nocheck(class_name);
 		}
+
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -842,8 +865,16 @@ Ref<Font> Control::get_font(const StringName& p_name,const StringName& p_type) c
 
 	while(theme_owner) {
 
-		if (theme_owner->data.theme->has_font(p_name, type ) )
-			return theme_owner->data.theme->get_font(p_name, type );
+		StringName class_name = type;
+
+		while(class_name!=StringName()) {
+			if (theme_owner->data.theme->has_font(p_name, class_name ) ) {
+				return theme_owner->data.theme->get_font(p_name, class_name );
+			}
+
+			class_name = ClassDB::get_parent_class_nocheck(class_name);
+		}
+
 		if (theme_owner->data.theme->get_default_theme_font().is_valid())
 			return theme_owner->data.theme->get_default_theme_font();
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
@@ -872,8 +903,16 @@ Color Control::get_color(const StringName& p_name,const StringName& p_type) cons
 
 	while(theme_owner) {
 
-		if (theme_owner->data.theme->has_color(p_name, type ) )
-			return theme_owner->data.theme->get_color(p_name, type );
+		StringName class_name = type;
+
+		while(class_name!=StringName()) {
+			if (theme_owner->data.theme->has_color(p_name, class_name ) ) {
+				return theme_owner->data.theme->get_color(p_name, class_name );
+			}
+
+			class_name = ClassDB::get_parent_class_nocheck(class_name);
+		}
+
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -901,8 +940,16 @@ int Control::get_constant(const StringName& p_name,const StringName& p_type) con
 
 	while(theme_owner) {
 
-		if (theme_owner->data.theme->has_constant(p_name, type ) )
-			return theme_owner->data.theme->get_constant(p_name, type );
+		StringName class_name = type;
+
+		while(class_name!=StringName()) {
+			if (theme_owner->data.theme->has_constant(p_name, class_name ) ) {
+				return theme_owner->data.theme->get_constant(p_name, class_name );
+			}
+
+			class_name = ClassDB::get_parent_class_nocheck(class_name);
+		}
+
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -985,8 +1032,15 @@ bool Control::has_icon(const StringName& p_name,const StringName& p_type) const 
 
 	while(theme_owner) {
 
-		if (theme_owner->data.theme->has_icon(p_name, type ) )
-			return true;
+		StringName class_name = type;
+
+		while(class_name!=StringName()) {
+			if (theme_owner->data.theme->has_icon(p_name, class_name ) ) {
+				return true;
+			}
+			class_name = ClassDB::get_parent_class_nocheck(class_name);
+		}
+
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -1014,8 +1068,15 @@ bool Control::has_shader(const StringName &p_name, const StringName &p_type) con
 
 	while(theme_owner) {
 
-		if (theme_owner->data.theme->has_shader(p_name, type))
-			return true;
+		StringName class_name = type;
+
+		while(class_name!=StringName()) {
+			if (theme_owner->data.theme->has_shader(p_name, class_name ) ) {
+				return true;
+			}
+			class_name = ClassDB::get_parent_class_nocheck(class_name);
+		}
+
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -1042,8 +1103,15 @@ bool Control::has_stylebox(const StringName& p_name,const StringName& p_type) co
 
 	while(theme_owner) {
 
-		if (theme_owner->data.theme->has_stylebox(p_name, type ) )
-			return true;
+		StringName class_name = type;
+
+		while(class_name!=StringName()) {
+			if (theme_owner->data.theme->has_stylebox(p_name, class_name ) ) {
+				return true;
+			}
+			class_name = ClassDB::get_parent_class_nocheck(class_name);
+		}
+
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -1071,8 +1139,15 @@ bool Control::has_font(const StringName& p_name,const StringName& p_type) const 
 
 	while(theme_owner) {
 
-		if (theme_owner->data.theme->has_font(p_name, type ) )
-			return true;
+		StringName class_name = type;
+
+		while(class_name!=StringName()) {
+			if (theme_owner->data.theme->has_font(p_name, class_name ) ) {
+				return true;
+			}
+			class_name = ClassDB::get_parent_class_nocheck(class_name);
+		}
+
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -1100,8 +1175,15 @@ bool Control::has_color(const StringName& p_name, const StringName& p_type) cons
 
 	while(theme_owner) {
 
-		if (theme_owner->data.theme->has_color(p_name, type ) )
-			return true;
+		StringName class_name = type;
+
+		while(class_name!=StringName()) {
+			if (theme_owner->data.theme->has_color(p_name, class_name ) ) {
+				return true;
+			}
+			class_name = ClassDB::get_parent_class_nocheck(class_name);
+		}
+
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -1130,8 +1212,15 @@ bool Control::has_constant(const StringName& p_name,const StringName& p_type) co
 
 	while(theme_owner) {
 
-		if (theme_owner->data.theme->has_constant(p_name, type ) )
-			return true;
+		StringName class_name = type;
+
+		while(class_name!=StringName()) {
+			if (theme_owner->data.theme->has_constant(p_name, class_name ) ) {
+				return true;
+			}
+			class_name = ClassDB::get_parent_class_nocheck(class_name);
+		}
+
 		Control *parent = theme_owner->get_parent()?theme_owner->get_parent()->cast_to<Control>():NULL;
 
 		if (parent)
@@ -1382,7 +1471,7 @@ Point2 Control::get_global_pos() const {
 
 void Control::set_global_pos(const Point2& p_point) {
 
-	Matrix32 inv;
+	Transform2D inv;
 
 	if (data.parent_canvas_item) {
 
@@ -1918,9 +2007,9 @@ Control::CursorShape Control::get_cursor_shape(const Point2& p_pos) const {
 	return data.default_cursor;
 }
 
-Matrix32 Control::get_transform() const {
+Transform2D Control::get_transform() const {
 
-	Matrix32 xform=Matrix32(data.rotation,get_pos());
+	Transform2D xform=Transform2D(data.rotation,get_pos());
 	xform.scale_basis(data.scale);
 	return xform;
 }
@@ -1981,7 +2070,7 @@ Control *Control::_get_focus_neighbour(Margin p_margin,int p_count) {
 
 	Point2 points[4];
 
-	Matrix32 xform = get_global_transform();
+	Transform2D xform = get_global_transform();
 	Rect2 rect = get_item_rect();
 
 	points[0]=xform.xform(rect.pos);
@@ -2041,7 +2130,7 @@ void Control::_window_find_focus_neighbour(const Vector2& p_dir, Node *p_at,cons
 
 		Point2 points[4];
 
-		Matrix32 xform = c->get_global_transform();
+		Transform2D xform = c->get_global_transform();
 		Rect2 rect = c->get_item_rect();
 
 		points[0]=xform.xform(rect.pos);
@@ -2566,13 +2655,13 @@ void Control::_bind_methods() {
 
 	ADD_SIGNAL( MethodInfo("resized") );
 	ADD_SIGNAL( MethodInfo("gui_input",PropertyInfo(Variant::INPUT_EVENT,"ev")) );
-	ADD_SIGNAL( MethodInfo("mouse_enter") );
-	ADD_SIGNAL( MethodInfo("mouse_exit") );
-	ADD_SIGNAL( MethodInfo("focus_enter") );
-	ADD_SIGNAL( MethodInfo("focus_exit") );
+	ADD_SIGNAL( MethodInfo("mouse_entered") );
+	ADD_SIGNAL( MethodInfo("mouse_exited") );
+	ADD_SIGNAL( MethodInfo("focus_entered") );
+	ADD_SIGNAL( MethodInfo("focus_exited") );
 	ADD_SIGNAL( MethodInfo("size_flags_changed") );
 	ADD_SIGNAL( MethodInfo("minimum_size_changed") );
-	ADD_SIGNAL( MethodInfo("modal_close") );
+	ADD_SIGNAL( MethodInfo("modal_closed") );
 
 
 }

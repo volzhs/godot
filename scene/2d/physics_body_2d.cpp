@@ -101,10 +101,10 @@ void PhysicsBody2D::_bind_methods() {
 	ClassDB::bind_method(_MD("get_one_way_collision_max_depth"),&PhysicsBody2D::get_one_way_collision_max_depth);
 	ClassDB::bind_method(_MD("add_collision_exception_with","body:PhysicsBody2D"),&PhysicsBody2D::add_collision_exception_with);
 	ClassDB::bind_method(_MD("remove_collision_exception_with","body:PhysicsBody2D"),&PhysicsBody2D::remove_collision_exception_with);
-	ADD_PROPERTY(PropertyInfo(Variant::INT,"layers",PROPERTY_HINT_ALL_FLAGS,"",0),_SCS("_set_layers"),_SCS("_get_layers")); //for backwards compat
+	ADD_PROPERTY(PropertyInfo(Variant::INT,"layers",PROPERTY_HINT_LAYERS_2D_PHYSICS,"",0),_SCS("_set_layers"),_SCS("_get_layers")); //for backwards compat
 	ADD_GROUP("Collision","collision_");
-	ADD_PROPERTY(PropertyInfo(Variant::INT,"collision_layers",PROPERTY_HINT_ALL_FLAGS),_SCS("set_layer_mask"),_SCS("get_layer_mask"));
-	ADD_PROPERTY(PropertyInfo(Variant::INT,"collision_mask",PROPERTY_HINT_ALL_FLAGS),_SCS("set_collision_mask"),_SCS("get_collision_mask"));
+	ADD_PROPERTY(PropertyInfo(Variant::INT,"collision_layers",PROPERTY_HINT_LAYERS_2D_PHYSICS),_SCS("set_layer_mask"),_SCS("get_layer_mask"));
+	ADD_PROPERTY(PropertyInfo(Variant::INT,"collision_mask",PROPERTY_HINT_LAYERS_2D_PHYSICS),_SCS("set_collision_mask"),_SCS("get_collision_mask"));
 	ADD_GROUP("","");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::VECTOR2,"one_way_collision/direction"),_SCS("set_one_way_collision_direction"),_SCS("get_one_way_collision_direction"));
 	ADD_PROPERTYNZ(PropertyInfo(Variant::REAL,"one_way_collision/max_depth"),_SCS("set_one_way_collision_max_depth"),_SCS("get_one_way_collision_max_depth"));
@@ -226,7 +226,7 @@ void StaticBody2D::_update_xform() {
 	setting=true;
 
 
-	Matrix32 new_xform = get_global_transform(); //obtain the new one
+	Transform2D new_xform = get_global_transform(); //obtain the new one
 
 	set_block_transform_notify(true);
 	Physics2DServer::get_singleton()->body_set_state(get_rid(),Physics2DServer::BODY_STATE_TRANSFORM,*pre_xform); //then simulate motion!
@@ -315,12 +315,12 @@ void RigidBody2D::_body_enter_tree(ObjectID p_id) {
 	contact_monitor->locked=true;
 
 	E->get().in_scene=true;
-	emit_signal(SceneStringNames::get_singleton()->body_enter,node);
+	emit_signal(SceneStringNames::get_singleton()->body_entered,node);
 
 
 	for(int i=0;i<E->get().shapes.size();i++) {
 
-		emit_signal(SceneStringNames::get_singleton()->body_enter_shape,p_id,node,E->get().shapes[i].body_shape,E->get().shapes[i].local_shape);
+		emit_signal(SceneStringNames::get_singleton()->body_shape_entered,p_id,node,E->get().shapes[i].body_shape,E->get().shapes[i].local_shape);
 	}
 
 	contact_monitor->locked=false;
@@ -340,11 +340,11 @@ void RigidBody2D::_body_exit_tree(ObjectID p_id) {
 
 	contact_monitor->locked=true;
 
-	emit_signal(SceneStringNames::get_singleton()->body_exit,node);
+	emit_signal(SceneStringNames::get_singleton()->body_exited,node);
 
 	for(int i=0;i<E->get().shapes.size();i++) {
 
-		emit_signal(SceneStringNames::get_singleton()->body_exit_shape,p_id,node,E->get().shapes[i].body_shape,E->get().shapes[i].local_shape);
+		emit_signal(SceneStringNames::get_singleton()->body_shape_exited,p_id,node,E->get().shapes[i].body_shape,E->get().shapes[i].local_shape);
 	}
 
 	contact_monitor->locked=false;
@@ -377,10 +377,10 @@ void RigidBody2D::_body_inout(int p_status, ObjectID p_instance, int p_body_shap
 //			E->get().rc=0;
 			E->get().in_scene=node && node->is_inside_tree();
 			if (node) {
-				node->connect(SceneStringNames::get_singleton()->enter_tree,this,SceneStringNames::get_singleton()->_body_enter_tree,make_binds(objid));
-				node->connect(SceneStringNames::get_singleton()->exit_tree,this,SceneStringNames::get_singleton()->_body_exit_tree,make_binds(objid));
+				node->connect(SceneStringNames::get_singleton()->tree_entered,this,SceneStringNames::get_singleton()->_body_enter_tree,make_binds(objid));
+				node->connect(SceneStringNames::get_singleton()->tree_exited,this,SceneStringNames::get_singleton()->_body_exit_tree,make_binds(objid));
 				if (E->get().in_scene) {
-					emit_signal(SceneStringNames::get_singleton()->body_enter,node);
+					emit_signal(SceneStringNames::get_singleton()->body_entered,node);
 				}
 			}
 
@@ -392,7 +392,7 @@ void RigidBody2D::_body_inout(int p_status, ObjectID p_instance, int p_body_shap
 
 
 		if (E->get().in_scene) {
-			emit_signal(SceneStringNames::get_singleton()->body_enter_shape,objid,node,p_body_shape,p_local_shape);
+			emit_signal(SceneStringNames::get_singleton()->body_shape_entered,objid,node,p_body_shape,p_local_shape);
 		}
 
 	} else {
@@ -407,17 +407,17 @@ void RigidBody2D::_body_inout(int p_status, ObjectID p_instance, int p_body_shap
 		if (E->get().shapes.empty()) {
 
 			if (node) {
-				node->disconnect(SceneStringNames::get_singleton()->enter_tree,this,SceneStringNames::get_singleton()->_body_enter_tree);
-				node->disconnect(SceneStringNames::get_singleton()->exit_tree,this,SceneStringNames::get_singleton()->_body_exit_tree);
+				node->disconnect(SceneStringNames::get_singleton()->tree_entered,this,SceneStringNames::get_singleton()->_body_enter_tree);
+				node->disconnect(SceneStringNames::get_singleton()->tree_exited,this,SceneStringNames::get_singleton()->_body_exit_tree);
 				if (in_scene)
-					emit_signal(SceneStringNames::get_singleton()->body_exit,obj);
+					emit_signal(SceneStringNames::get_singleton()->body_exited,obj);
 
 			}
 
 			contact_monitor->body_map.erase(E);
 		}
 		if (node && in_scene) {
-			emit_signal(SceneStringNames::get_singleton()->body_exit_shape,objid,obj,p_body_shape,p_local_shape);
+			emit_signal(SceneStringNames::get_singleton()->body_shape_exited,objid,obj,p_body_shape,p_local_shape);
 		}
 
 	}
@@ -972,10 +972,10 @@ void RigidBody2D::_bind_methods() {
 	ADD_PROPERTY( PropertyInfo(Variant::REAL,"angular_velocity"),_SCS("set_angular_velocity"),_SCS("get_angular_velocity"));
 	ADD_PROPERTY( PropertyInfo(Variant::REAL,"angular_damp",PROPERTY_HINT_RANGE,"-1,128,0.01"),_SCS("set_angular_damp"),_SCS("get_angular_damp"));
 
-	ADD_SIGNAL( MethodInfo("body_enter_shape",PropertyInfo(Variant::INT,"body_id"),PropertyInfo(Variant::OBJECT,"body"),PropertyInfo(Variant::INT,"body_shape"),PropertyInfo(Variant::INT,"local_shape")));
-	ADD_SIGNAL( MethodInfo("body_exit_shape",PropertyInfo(Variant::INT,"body_id"),PropertyInfo(Variant::OBJECT,"body"),PropertyInfo(Variant::INT,"body_shape"),PropertyInfo(Variant::INT,"local_shape")));
-	ADD_SIGNAL( MethodInfo("body_enter",PropertyInfo(Variant::OBJECT,"body")));
-	ADD_SIGNAL( MethodInfo("body_exit",PropertyInfo(Variant::OBJECT,"body")));
+	ADD_SIGNAL( MethodInfo("body_shape_entered",PropertyInfo(Variant::INT,"body_id"),PropertyInfo(Variant::OBJECT,"body"),PropertyInfo(Variant::INT,"body_shape"),PropertyInfo(Variant::INT,"local_shape")));
+	ADD_SIGNAL( MethodInfo("body_shape_exited",PropertyInfo(Variant::INT,"body_id"),PropertyInfo(Variant::OBJECT,"body"),PropertyInfo(Variant::INT,"body_shape"),PropertyInfo(Variant::INT,"local_shape")));
+	ADD_SIGNAL( MethodInfo("body_entered",PropertyInfo(Variant::OBJECT,"body")));
+	ADD_SIGNAL( MethodInfo("body_exited",PropertyInfo(Variant::OBJECT,"body")));
 	ADD_SIGNAL( MethodInfo("sleeping_state_changed"));
 
 	BIND_CONSTANT( MODE_STATIC );
@@ -1046,7 +1046,7 @@ Variant KinematicBody2D::_get_collider() const {
 
 void KinematicBody2D::revert_motion() {
 
-	Matrix32 gt = get_global_transform();
+	Transform2D gt = get_global_transform();
 	gt.elements[2]-=travel;
 	travel=Vector2();
 	set_global_transform(gt);
@@ -1062,7 +1062,7 @@ Vector2 KinematicBody2D::move(const Vector2& p_motion) {
 
 #if 1
 
-	Matrix32 gt = get_global_transform();
+	Transform2D gt = get_global_transform();
 	Physics2DServer::MotionResult result;
 	colliding = Physics2DServer::get_singleton()->body_test_motion(get_rid(),gt,p_motion,margin,&result);
 
@@ -1152,7 +1152,7 @@ Vector2 KinematicBody2D::move(const Vector2& p_motion) {
 
 
 
-		Matrix32 gt = get_global_transform();
+		Transform2D gt = get_global_transform();
 		gt.elements[2]+=recover_motion;
 		set_global_transform(gt);
 
@@ -1203,7 +1203,7 @@ Vector2 KinematicBody2D::move(const Vector2& p_motion) {
 	} else {
 
 		//it collided, let's get the rest info in unsafe advance
-		Matrix32 ugt = get_global_transform();
+		Transform2D ugt = get_global_transform();
 		ugt.elements[2]+=p_motion*unsafe;
 		Physics2DDirectSpaceState::ShapeRestInfo rest_info;
 		bool c2 = dss->rest_info(get_shape(best_shape)->get_rid(), ugt*get_shape_transform(best_shape), Vector2(), margin,&rest_info,exclude,get_layer_mask(),mask);
@@ -1227,7 +1227,7 @@ Vector2 KinematicBody2D::move(const Vector2& p_motion) {
 	}
 
 	Vector2 motion=p_motion*safe;
-	Matrix32 gt = get_global_transform();
+	Transform2D gt = get_global_transform();
 	gt.elements[2]+=motion;
 	set_global_transform(gt);
 
@@ -1318,7 +1318,7 @@ Vector2 KinematicBody2D::move_to(const Vector2& p_position) {
 	return move(p_position-get_global_position());
 }
 
-bool KinematicBody2D::test_move(const Matrix32& p_from,const Vector2& p_motion) {
+bool KinematicBody2D::test_move(const Transform2D& p_from,const Vector2& p_motion) {
 
 	ERR_FAIL_COND_V(!is_inside_tree(),false);
 

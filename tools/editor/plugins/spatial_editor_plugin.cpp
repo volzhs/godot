@@ -61,8 +61,8 @@ void SpatialEditorViewport::_update_camera() {
 
 	Transform camera_transform;
 	camera_transform.translate(cursor.pos);
-	camera_transform.basis.rotate(Vector3(0, 1, 0), -cursor.y_rot);
 	camera_transform.basis.rotate(Vector3(1, 0, 0), -cursor.x_rot);
+	camera_transform.basis.rotate(Vector3(0, 1, 0), -cursor.y_rot);
 
 	if (orthogonal)
 		camera_transform.translate(0, 0, 4096);
@@ -474,8 +474,8 @@ Vector3 SpatialEditorViewport::_get_screen_to_space(const Vector3& p_pos) {
 
 	Transform camera_transform;
 	camera_transform.translate( cursor.pos );
-	camera_transform.basis.rotate(Vector3(0,1,0),-cursor.y_rot);
 	camera_transform.basis.rotate(Vector3(1,0,0),-cursor.x_rot);
+	camera_transform.basis.rotate(Vector3(0,1,0),-cursor.y_rot);
 	camera_transform.translate(0,0,cursor.distance);
 
 	return camera_transform.xform(Vector3( ((p_pos.x/get_size().width)*2.0-1.0)*screen_w, ((1.0-(p_pos.y/get_size().height))*2.0-1.0)*screen_h,-get_znear()));
@@ -894,7 +894,7 @@ void SpatialEditorViewport::_sinput(const InputEvent &p_event) {
 									continue;
 
 								//optimize by checking AABB (although should pre sort by distance)
-								AABB aabb =  vi->get_global_transform().xform(vi->get_aabb());
+								Rect3 aabb =  vi->get_global_transform().xform(vi->get_aabb());
 								if (p.distance_to(aabb.get_support(-ray_dir))>min_d)
 									continue;
 
@@ -1352,7 +1352,7 @@ void SpatialEditorViewport::_sinput(const InputEvent &p_event) {
 
 								Transform original=se->original;
 
-								Transform base=Transform( Matrix3(), _edit.center);
+								Transform base=Transform( Basis(), _edit.center);
 								Transform t=base * (r * (base.inverse() * original));
 
 								sp->set_global_transform(t);
@@ -1501,8 +1501,8 @@ void SpatialEditorViewport::_sinput(const InputEvent &p_event) {
 
 								Transform original=se->original;
 
-								Transform base=Transform( Matrix3(), _edit.center);
-								Transform t=base * (r * (base.inverse() * original));
+								Transform base=Transform( Basis(), _edit.center);
+								Transform t=base * r * base.inverse() * original;
 
 								sp->set_global_transform(t);
 							}
@@ -1591,8 +1591,8 @@ void SpatialEditorViewport::_sinput(const InputEvent &p_event) {
 					Transform camera_transform;
 
 					camera_transform.translate(cursor.pos);
-					camera_transform.basis.rotate(Vector3(0,1,0),-cursor.y_rot);
 					camera_transform.basis.rotate(Vector3(1,0,0),-cursor.x_rot);
+					camera_transform.basis.rotate(Vector3(0,1,0),-cursor.y_rot);
 					Vector3 translation(-m.relative_x*pan_speed,m.relative_y*pan_speed,0);
 					translation*=cursor.distance/DISTANCE_DEFAULT;
 					camera_transform.translate(translation);
@@ -1791,7 +1791,7 @@ void SpatialEditorViewport::_notification(int p_what) {
 
 			if (se->aabb.has_no_surface()) {
 
-				se->aabb=vi?vi->get_aabb():AABB( Vector3(-0.2,-0.2,-0.2),Vector3(0.4,0.4,0.4));
+				se->aabb=vi?vi->get_aabb():Rect3( Vector3(-0.2,-0.2,-0.2),Vector3(0.4,0.4,0.4));
 			}
 
 			Transform t=sp->get_global_transform();
@@ -1853,7 +1853,7 @@ void SpatialEditorViewport::_notification(int p_what) {
 
 		surface->connect("draw",this,"_draw");
 		surface->connect("gui_input",this,"_sinput");
-		surface->connect("mouse_enter",this,"_smouseenter");
+		surface->connect("mouse_entered",this,"_smouseenter");
 		preview_camera->set_icon(get_icon("Camera","EditorIcons"));
 		_init_gizmo_instance(index);
 	}
@@ -2150,7 +2150,7 @@ void SpatialEditorViewport::_toggle_camera_preview(bool p_activate) {
 
 	if (!p_activate) {
 
-		previewing->disconnect("exit_tree",this,"_preview_exited_scene");
+		previewing->disconnect("tree_exited",this,"_preview_exited_scene");
 		previewing=NULL;
 		VS::get_singleton()->viewport_attach_camera( viewport->get_viewport(), camera->get_camera() ); //restore
 		if (!preview)
@@ -2161,7 +2161,7 @@ void SpatialEditorViewport::_toggle_camera_preview(bool p_activate) {
 	} else {
 
 		previewing=preview;
-		previewing->connect("exit_tree",this,"_preview_exited_scene");
+		previewing->connect("tree_exited",this,"_preview_exited_scene");
 		VS::get_singleton()->viewport_attach_camera( viewport->get_viewport(), preview->get_camera() ); //replace
 		view_menu->hide();
 		surface->update();
@@ -2266,7 +2266,7 @@ void SpatialEditorViewport::set_state(const Dictionary& p_state) {
 		Node *pv = EditorNode::get_singleton()->get_edited_scene()->get_node(p_state["previewing"]);
 		if (pv && pv->cast_to<Camera>()) {
 			previewing=pv->cast_to<Camera>();
-			previewing->connect("exit_tree",this,"_preview_exited_scene");
+			previewing->connect("tree_exited",this,"_preview_exited_scene");
 			VS::get_singleton()->viewport_attach_camera( viewport->get_viewport(), previewing->get_camera() ); //replace
 			view_menu->hide();
 			surface->update();
@@ -2486,10 +2486,10 @@ void SpatialEditor::select_gizmo_hilight_axis(int p_axis) {
 void SpatialEditor::update_transform_gizmo() {
 
 	List<Node*> &selection = editor_selection->get_selected_node_list();
-	AABB center;
+	Rect3 center;
 	bool first=true;
 
-	Matrix3 gizmo_basis;
+	Basis gizmo_basis;
 	bool local_gizmo_coords = transform_menu->get_popup()->is_item_checked( transform_menu->get_popup()->get_item_index(MENU_TRANSFORM_LOCAL_COORDS) );
 
 
@@ -2513,7 +2513,7 @@ void SpatialEditor::update_transform_gizmo() {
 			}
 		} else {
 			center.expand_to(xf.origin);
-			gizmo_basis=Matrix3();
+			gizmo_basis=Basis();
 		}
 //		count++;
 	}
@@ -2551,7 +2551,7 @@ Object *SpatialEditor::_get_editor_data(Object *p_what) {
 
 void SpatialEditor::_generate_selection_box() {
 
-	AABB aabb( Vector3(), Vector3(1,1,1) );
+	Rect3 aabb( Vector3(), Vector3(1,1,1) );
 	aabb.grow_by( aabb.get_longest_axis_size()/20.0 );
 
 	Ref<SurfaceTool> st = memnew( SurfaceTool );
@@ -2803,21 +2803,10 @@ void SpatialEditor::_xform_dialog_action() {
 		rotate[i]=Math::deg2rad(xform_rotate[i]->get_text().to_double());
 		scale[i]=xform_scale[i]->get_text().to_double();
 	}
-
+	
+	t.basis.scale(scale);
+	t.basis.rotate(rotate);
 	t.origin=translate;
-	for(int i=0;i<3;i++) {
-		if (!rotate[i])
-			continue;
-		Vector3 axis;
-		axis[i]=1.0;
-		t.basis.rotate(axis,rotate[i]); // BUG(?): Angle not flipped; please check during the review of PR #6865.
-	}
-
-	for(int i=0;i<3;i++) {
-		if (scale[i]==1)
-			continue;
-		t.basis.set_axis(i,t.basis.get_axis(i)*scale[i]);
-	}
 
 
 	undo_redo->create_action(TTR("XForm Dialog"));
@@ -3354,8 +3343,8 @@ void SpatialEditor::_init_indicators() {
 				for(int k = 0; k < 7 ; k++) {
 
 
-					Matrix3 ma(ivec,Math_PI*2*float(k)/arrow_sides);
-					Matrix3 mb(ivec,Math_PI*2*float(k+1)/arrow_sides);
+					Basis ma(ivec,Math_PI*2*float(k)/arrow_sides);
+					Basis mb(ivec,Math_PI*2*float(k+1)/arrow_sides);
 
 
 					for(int j=0;j<arrow_points-1;j++) {
@@ -3399,8 +3388,8 @@ void SpatialEditor::_init_indicators() {
 				for(int k = 0; k < 33 ; k++) {
 
 
-					Matrix3 ma(ivec,Math_PI*2*float(k)/32);
-					Matrix3 mb(ivec,Math_PI*2*float(k+1)/32);
+					Basis ma(ivec,Math_PI*2*float(k)/32);
+					Basis mb(ivec,Math_PI*2*float(k+1)/32);
 
 
 					for(int j=0;j<4;j++) {

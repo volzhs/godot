@@ -109,6 +109,7 @@ const char *GDFunctions::get_func_name(Function p_func) {
 		"to_json",
 		"hash",
 		"Color8",
+		"ColorN",
 		"print_stack",
 		"instance_from_id",
 	};
@@ -672,7 +673,7 @@ void GDFunctions::call(Function p_func,const Variant **p_args,int p_arg_count,Va
 		case VAR_TO_BYTES: {
 			VALIDATE_ARG_COUNT(1);
 
-			ByteArray barr;
+			PoolByteArray barr;
 			int len;
 			Error err = encode_variant(*p_args[0],NULL,len);
 			if (err) {
@@ -685,7 +686,7 @@ void GDFunctions::call(Function p_func,const Variant **p_args,int p_arg_count,Va
 
 			barr.resize(len);
 			{
-				ByteArray::Write w = barr.write();
+				PoolByteArray::Write w = barr.write();
 				encode_variant(*p_args[0],w.ptr(),len);
 
 			}
@@ -693,24 +694,24 @@ void GDFunctions::call(Function p_func,const Variant **p_args,int p_arg_count,Va
 		} break;
 		case BYTES_TO_VAR: {
 			VALIDATE_ARG_COUNT(1);
-			if (p_args[0]->get_type()!=Variant::RAW_ARRAY) {
+			if (p_args[0]->get_type()!=Variant::POOL_BYTE_ARRAY) {
 				r_error.error=Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument=0;
-				r_error.expected=Variant::RAW_ARRAY;
+				r_error.expected=Variant::POOL_BYTE_ARRAY;
 				r_ret=Variant();
 				return;
 			}
 
-			ByteArray varr=*p_args[0];
+			PoolByteArray varr=*p_args[0];
 			Variant ret;
 			{
-				ByteArray::Read r=varr.read();
+				PoolByteArray::Read r=varr.read();
 				Error err = decode_variant(ret,r.ptr(),varr.size(),NULL);
 				if (err!=OK) {
 					r_ret=RTR("Not enough bytes for decoding bytes, or invalid format.");
 					r_error.error=Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
 					r_error.argument=0;
-					r_error.expected=Variant::RAW_ARRAY;
+					r_error.expected=Variant::POOL_BYTE_ARRAY;
 					return;
 				}
 
@@ -734,7 +735,7 @@ void GDFunctions::call(Function p_func,const Variant **p_args,int p_arg_count,Va
 
 					VALIDATE_ARG_NUM(0);
 					int count=*p_args[0];
-					Array arr(true);
+					Array arr;
 					if (count<=0) {
 						r_ret=arr;
 						return;
@@ -760,7 +761,7 @@ void GDFunctions::call(Function p_func,const Variant **p_args,int p_arg_count,Va
 					int from=*p_args[0];
 					int to=*p_args[1];
 
-					Array arr(true);
+					Array arr;
 					if (from>=to) {
 						r_ret=arr;
 						return;
@@ -791,7 +792,7 @@ void GDFunctions::call(Function p_func,const Variant **p_args,int p_arg_count,Va
 						return;
 					}
 
-					Array arr(true);
+					Array arr;
 					if (from>=to && incr>0) {
 						r_ret=arr;
 						return;
@@ -920,7 +921,7 @@ void GDFunctions::call(Function p_func,const Variant **p_args,int p_arg_count,Va
 
 					NodePath cp(sname,Vector<StringName>(),false);
 
-					Dictionary d(true);
+					Dictionary d;
 					d["@subpath"]=cp;
 					d["@path"]=p->path;
 
@@ -1115,6 +1116,36 @@ void GDFunctions::call(Function p_func,const Variant **p_args,int p_arg_count,Va
 			}
 
 			r_ret=color;
+
+		} break;
+		case COLORN: {
+
+			if (p_arg_count<1) {
+				r_error.error=Variant::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
+				r_error.argument=1;
+				r_ret=Variant();
+				return;
+			}
+
+			if (p_arg_count>2) {
+				r_error.error=Variant::CallError::CALL_ERROR_TOO_MANY_ARGUMENTS;
+				r_error.argument=2;
+				r_ret=Variant();
+				return;
+			}
+			
+			if (p_args[0]->get_type()!=Variant::STRING) {
+				r_error.error=Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.argument=0;
+				r_ret=Variant();
+			} else {
+				Color color = Color::named(*p_args[0]);
+				if (p_arg_count==2) {
+					VALIDATE_ARG_NUM(1);
+					color.a=*p_args[1];
+				}
+				r_ret=color;
+			}
 
 		} break;
 
@@ -1531,13 +1562,13 @@ MethodInfo GDFunctions::get_info(Function p_func) {
 		} break;
 		case VAR_TO_BYTES: {
 			MethodInfo mi("var2bytes",PropertyInfo(Variant::NIL,"var"));
-			mi.return_val.type=Variant::RAW_ARRAY;
+			mi.return_val.type=Variant::POOL_BYTE_ARRAY;
 			return mi;
 
 		} break;
 		case BYTES_TO_VAR: {
 
-			MethodInfo mi("bytes2var:Variant",PropertyInfo(Variant::RAW_ARRAY,"bytes"));
+			MethodInfo mi("bytes2var:Variant",PropertyInfo(Variant::POOL_BYTE_ARRAY,"bytes"));
 			mi.return_val.type=Variant::NIL;
 			return mi;
 		} break;
@@ -1593,6 +1624,12 @@ MethodInfo GDFunctions::get_info(Function p_func) {
 		case COLOR8: {
 
 			MethodInfo mi("Color8",PropertyInfo(Variant::INT,"r8"),PropertyInfo(Variant::INT,"g8"),PropertyInfo(Variant::INT,"b8"),PropertyInfo(Variant::INT,"a8"));
+			mi.return_val.type=Variant::COLOR;
+			return mi;
+		} break;
+		case COLORN: {
+
+			MethodInfo mi("ColorN",PropertyInfo(Variant::STRING,"name"),PropertyInfo(Variant::REAL,"alpha"));
 			mi.return_val.type=Variant::COLOR;
 			return mi;
 		} break;

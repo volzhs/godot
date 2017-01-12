@@ -162,9 +162,9 @@ ReflectionProbe::UpdateMode ReflectionProbe::get_update_mode() const {
 }
 
 
-AABB ReflectionProbe::get_aabb() const {
+Rect3 ReflectionProbe::get_aabb() const {
 
-	AABB aabb;
+	Rect3 aabb;
 	aabb.pos=-origin_offset;
 	aabb.size=origin_offset+extents;
 	return aabb;
@@ -229,7 +229,7 @@ void ReflectionProbe::_bind_methods() {
 	ADD_PROPERTY( PropertyInfo(Variant::VECTOR2,"origin_offset"),_SCS("set_origin_offset"),_SCS("get_origin_offset"));
 	ADD_PROPERTY( PropertyInfo(Variant::BOOL,"box_projection"),_SCS("set_enable_box_projection"),_SCS("is_box_projection_enabled"));
 	ADD_PROPERTY( PropertyInfo(Variant::BOOL,"enable_shadows"),_SCS("set_enable_shadows"),_SCS("are_shadows_enabled"));
-	ADD_PROPERTY( PropertyInfo(Variant::INT,"cull_mask",PROPERTY_HINT_ALL_FLAGS),_SCS("set_cull_mask"),_SCS("get_cull_mask"));
+	ADD_PROPERTY( PropertyInfo(Variant::INT,"cull_mask",PROPERTY_HINT_LAYERS_3D_RENDER),_SCS("set_cull_mask"),_SCS("get_cull_mask"));
 
 	ADD_GROUP("Interior","interior_");
 	ADD_PROPERTY( PropertyInfo(Variant::BOOL,"interior_enable"),_SCS("set_as_interior"),_SCS("is_set_as_interior"));

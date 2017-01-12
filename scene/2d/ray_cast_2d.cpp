@@ -161,7 +161,7 @@ void RayCast2D::_notification(int p_what) {
 
 			if (!get_tree()->is_editor_hint()  && !get_tree()->is_debugging_collisions_hint())
 				break;
-			Matrix32 xf;
+			Transform2D xf;
 			xf.rotate(cast_to.angle());
 			xf.translate(Vector2(0,cast_to.length()));
 
@@ -201,7 +201,7 @@ void RayCast2D::_update_raycast_state() {
 	Physics2DDirectSpaceState *dss = Physics2DServer::get_singleton()->space_get_direct_state(w2d->get_space());
 	ERR_FAIL_COND( !dss );
 
-	Matrix32 gt = get_global_transform();
+	Transform2D gt = get_global_transform();
 
 	Vector2 to = cast_to;
 	if (to==Vector2())
@@ -297,7 +297,7 @@ void RayCast2D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL,"enabled"),_SCS("set_enabled"),_SCS("is_enabled"));
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL,"exclude_parent"),_SCS("set_exclude_parent_body"),_SCS("get_exclude_parent_body"));
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2,"cast_to"),_SCS("set_cast_to"),_SCS("get_cast_to"));
-	ADD_PROPERTY(PropertyInfo(Variant::INT,"layer_mask",PROPERTY_HINT_ALL_FLAGS),_SCS("set_layer_mask"),_SCS("get_layer_mask"));
+	ADD_PROPERTY(PropertyInfo(Variant::INT,"layer_mask",PROPERTY_HINT_LAYERS_2D_PHYSICS),_SCS("set_layer_mask"),_SCS("get_layer_mask"));
 	ADD_PROPERTY(PropertyInfo(Variant::INT,"type_mask",PROPERTY_HINT_FLAGS,"Static,Kinematic,Rigid,Character,Area"),_SCS("set_type_mask"),_SCS("get_type_mask"));
 }
 
