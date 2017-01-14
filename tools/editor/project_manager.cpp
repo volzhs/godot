@@ -488,7 +488,7 @@ void ProjectManager::_notification(int p_what) {
 
 	} else if (p_what==NOTIFICATION_VISIBILITY_CHANGED) {
 
-		set_process_unhandled_input(is_visible());
+		set_process_unhandled_input(is_visible_in_tree());
 	}
 }
 
@@ -869,7 +869,7 @@ void ProjectManager::_load_recent_projects() {
 		favorite_box->add_child(favorite);
 		hb->add_child(favorite_box);
 
-		TextureFrame *tf = memnew( TextureFrame );
+		TextureRect *tf = memnew( TextureRect );
 		tf->set_texture(icon);
 		hb->add_child(tf);
 

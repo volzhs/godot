@@ -340,24 +340,6 @@ Array _OS::get_fullscreen_mode_list(int p_screen) const {
 	return vmarr;
 }
 
-void _OS::set_iterations_per_second(int p_ips) {
-
-	OS::get_singleton()->set_iterations_per_second(p_ips);
-}
-int _OS::get_iterations_per_second() const {
-
-	return OS::get_singleton()->get_iterations_per_second();
-
-}
-
-void _OS::set_target_fps(int p_fps) {
-	OS::get_singleton()->set_target_fps(p_fps);
-}
-
-float _OS::get_target_fps() const {
-	return OS::get_singleton()->get_target_fps();
-}
-
 void _OS::set_low_processor_usage_mode(bool p_enabled) {
 
 	OS::get_singleton()->set_low_processor_usage_mode(p_enabled);
@@ -452,19 +434,7 @@ String _OS::get_model_name() const {
     return OS::get_singleton()->get_model_name();
 }
 
-MainLoop *_OS::get_main_loop() const {
 
-	return OS::get_singleton()->get_main_loop();
-}
-
-void _OS::set_time_scale(float p_scale) {
-	OS::get_singleton()->set_time_scale(p_scale);
-}
-
-float _OS::get_time_scale() {
-
-	return OS::get_singleton()->get_time_scale();
-}
 
 bool _OS::is_ok_left_and_cancel_right() const {
 
@@ -804,10 +774,6 @@ bool _OS::can_draw() const {
 	return OS::get_singleton()->can_draw();
 }
 
-int  _OS::get_frames_drawn() {
-
-	return OS::get_singleton()->get_frames_drawn();
-}
 
 int _OS::get_processor_count() const {
 
@@ -936,11 +902,6 @@ String _OS::get_data_dir() const {
 	return OS::get_singleton()->get_data_dir();
 };
 
-float _OS::get_frames_per_second() const {
-
-	return OS::get_singleton()->get_frames_per_second();
-}
-
 Error _OS::native_video_play(String p_path, float p_volume, String p_audio_track, String p_subtitle_track) {
 
 	return OS::get_singleton()->native_video_play(p_path, p_volume, p_audio_track, p_subtitle_track);
@@ -1005,10 +966,7 @@ String _OS::get_system_dir(SystemDir p_dir) const {
 	return OS::get_singleton()->get_system_dir(OS::SystemDir(p_dir));
 }
 
-String _OS::get_custom_level() const {
 
-	return OS::get_singleton()->get_custom_level();
-}
 
 String _OS::get_scancode_string(uint32_t p_code) const {
 
@@ -1026,11 +984,6 @@ int _OS::find_scancode_from_string(const String& p_code) const {
 void _OS::alert(const String& p_alert,const String& p_title) {
 
 	OS::get_singleton()->alert(p_alert,p_title);
-}
-
-Dictionary _OS::get_engine_version() const {
-
-	return OS::get_singleton()->get_engine_version();
 }
 
 _OS *_OS::singleton=NULL;
@@ -1079,13 +1032,6 @@ void _OS::_bind_methods() {
 	ClassDB::bind_method(_MD("set_keep_screen_on","enabled"),&_OS::set_keep_screen_on);
 	ClassDB::bind_method(_MD("is_keep_screen_on"),&_OS::is_keep_screen_on);
 
-	ClassDB::bind_method(_MD("set_iterations_per_second","iterations_per_second"),&_OS::set_iterations_per_second);
-	ClassDB::bind_method(_MD("get_iterations_per_second"),&_OS::get_iterations_per_second);
-	ClassDB::bind_method(_MD("set_target_fps","target_fps"),&_OS::set_target_fps);
-	ClassDB::bind_method(_MD("get_target_fps"),&_OS::get_target_fps);
-
-	ClassDB::bind_method(_MD("set_time_scale","time_scale"),&_OS::set_time_scale);
-	ClassDB::bind_method(_MD("get_time_scale"),&_OS::get_time_scale);
 
 	ClassDB::bind_method(_MD("has_touchscreen_ui_hint"),&_OS::has_touchscreen_ui_hint);
 
@@ -1107,7 +1053,6 @@ void _OS::_bind_methods() {
 
 	ClassDB::bind_method(_MD("get_name"),&_OS::get_name);
 	ClassDB::bind_method(_MD("get_cmdline_args"),&_OS::get_cmdline_args);
-	ClassDB::bind_method(_MD("get_main_loop"),&_OS::get_main_loop);
 
 	ClassDB::bind_method(_MD("get_datetime","utc"),&_OS::get_datetime,DEFVAL(false));
 	ClassDB::bind_method(_MD("get_date","utc"),&_OS::get_date,DEFVAL(false));
@@ -1133,10 +1078,8 @@ void _OS::_bind_methods() {
 	ClassDB::bind_method(_MD("get_latin_keyboard_variant"),&_OS::get_latin_keyboard_variant);
 	ClassDB::bind_method(_MD("get_model_name"),&_OS::get_model_name);
 
-	ClassDB::bind_method(_MD("get_custom_level"),&_OS::get_custom_level);
 
 	ClassDB::bind_method(_MD("can_draw"),&_OS::can_draw);
-	ClassDB::bind_method(_MD("get_frames_drawn"),&_OS::get_frames_drawn);
 	ClassDB::bind_method(_MD("is_stdout_verbose"),&_OS::is_stdout_verbose);
 
 	ClassDB::bind_method(_MD("can_use_threads"),&_OS::can_use_threads);
@@ -1163,7 +1106,6 @@ void _OS::_bind_methods() {
 
 	ClassDB::bind_method(_MD("is_ok_left_and_cancel_right"),&_OS::is_ok_left_and_cancel_right);
 
-	ClassDB::bind_method(_MD("get_frames_per_second"),&_OS::get_frames_per_second);
 
 	ClassDB::bind_method(_MD("print_all_textures_by_size"),&_OS::print_all_textures_by_size);
 	ClassDB::bind_method(_MD("print_resources_by_type","types"),&_OS::print_resources_by_type);
@@ -1186,8 +1128,6 @@ void _OS::_bind_methods() {
 
 	ClassDB::bind_method(_MD("set_use_vsync","enable"),&_OS::set_use_vsync);
 	ClassDB::bind_method(_MD("is_vsync_enabled"),&_OS::is_vsync_enabled);
-
-	ClassDB::bind_method(_MD("get_engine_version"),&_OS::get_engine_version);
 
 	BIND_CONSTANT( DAY_SUNDAY );
 	BIND_CONSTANT( DAY_MONDAY );
@@ -2595,4 +2535,89 @@ _ClassDB::_ClassDB(){
 _ClassDB::~_ClassDB(){
 
 
+}
+///////////////////////////////
+
+
+void _Engine::set_iterations_per_second(int p_ips) {
+
+	Engine::get_singleton()->set_iterations_per_second(p_ips);
+}
+int _Engine::get_iterations_per_second() const {
+
+	return Engine::get_singleton()->get_iterations_per_second();
+
+}
+
+void _Engine::set_target_fps(int p_fps) {
+	Engine::get_singleton()->set_target_fps(p_fps);
+}
+
+float _Engine::get_target_fps() const {
+	return Engine::get_singleton()->get_target_fps();
+}
+
+
+
+float _Engine::get_frames_per_second() const {
+
+	return Engine::get_singleton()->get_frames_per_second();
+}
+
+String _Engine::get_custom_level() const {
+
+	return Engine::get_singleton()->get_custom_level();
+}
+
+void _Engine::set_time_scale(float p_scale) {
+	Engine::get_singleton()->set_time_scale(p_scale);
+}
+
+float _Engine::get_time_scale() {
+
+	return Engine::get_singleton()->get_time_scale();
+}
+
+int  _Engine::get_frames_drawn() {
+
+	return Engine::get_singleton()->get_frames_drawn();
+}
+
+MainLoop *_Engine::get_main_loop() const {
+
+	//needs to remain in OS, since it's actually OS that interacts with it, but it's better exposed here
+	return OS::get_singleton()->get_main_loop();
+}
+
+Dictionary _Engine::get_version_info() const {
+
+	return Engine::get_singleton()->get_version_info();
+}
+
+
+void _Engine::_bind_methods() {
+
+	ClassDB::bind_method(_MD("set_iterations_per_second","iterations_per_second"),&_Engine::set_iterations_per_second);
+	ClassDB::bind_method(_MD("get_iterations_per_second"),&_Engine::get_iterations_per_second);
+	ClassDB::bind_method(_MD("set_target_fps","target_fps"),&_Engine::set_target_fps);
+	ClassDB::bind_method(_MD("get_target_fps"),&_Engine::get_target_fps);
+
+	ClassDB::bind_method(_MD("set_time_scale","time_scale"),&_Engine::set_time_scale);
+	ClassDB::bind_method(_MD("get_time_scale"),&_Engine::get_time_scale);
+
+	ClassDB::bind_method(_MD("get_custom_level"),&_Engine::get_custom_level);
+
+	ClassDB::bind_method(_MD("get_frames_drawn"),&_Engine::get_frames_drawn);
+	ClassDB::bind_method(_MD("get_frames_per_second"),&_Engine::get_frames_per_second);
+
+	ClassDB::bind_method(_MD("get_main_loop:MainLoop"),&_Engine::get_main_loop);
+
+	ClassDB::bind_method(_MD("get_version_info"),&_Engine::get_version_info);
+
+}
+
+_Engine *_Engine::singleton = NULL;
+
+_Engine::_Engine() {
+	singleton=this;
 }

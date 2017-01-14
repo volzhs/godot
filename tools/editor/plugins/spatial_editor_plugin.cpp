@@ -468,7 +468,7 @@ Vector3 SpatialEditorViewport::_get_screen_to_space(const Vector3& p_pos) {
 
 
 	CameraMatrix cm;
-	cm.set_perspective(get_fov(),get_size().get_aspect(),get_znear(),get_zfar());
+	cm.set_perspective(get_fov(),get_size().aspect(),get_znear(),get_zfar());
 	float screen_w,screen_h;
 	cm.get_viewport_size(screen_w,screen_h);
 
@@ -616,23 +616,6 @@ static int _get_key_modifier(const String& p_property) {
 		case 4: return KEY_CONTROL;
 	}
 	return 0;
-}
-
-SpatialEditorViewport::NavigationScheme SpatialEditorViewport::_get_navigation_schema(const String& p_property) {
-	switch(EditorSettings::get_singleton()->get(p_property).operator int()) {
-		case 0: return NAVIGATION_GODOT;
-		case 1: return NAVIGATION_MAYA;
-		case 2: return NAVIGATION_MODO;
-	}
-	return NAVIGATION_GODOT;
-}
-
-SpatialEditorViewport::NavigationZoomStyle SpatialEditorViewport::_get_navigation_zoom_style(const String& p_property) {
-	switch(EditorSettings::get_singleton()->get(p_property).operator int()) {
-		case 0: return NAVIGATION_ZOOM_VERTICAL;
-		case 1: return NAVIGATION_ZOOM_HORIZONTAL;
-	}
-	return NAVIGATION_ZOOM_VERTICAL;
 }
 
 bool SpatialEditorViewport::_gizmo_select(const Vector2& p_screenpos,bool p_hilite_only) {
@@ -854,7 +837,7 @@ void SpatialEditorViewport::_sinput(const InputEvent &p_event) {
 				} break;
 				case BUTTON_RIGHT: {
 
-					NavigationScheme nav_scheme = _get_navigation_schema("editors/3d/navigation_scheme");
+					NavigationScheme nav_scheme = (NavigationScheme)EditorSettings::get_singleton()->get("editors/3d/navigation_scheme").operator int();
 
 					if (b.pressed && _edit.gizmo.is_valid()) {
 						//restore
@@ -1014,7 +997,7 @@ void SpatialEditorViewport::_sinput(const InputEvent &p_event) {
 
 					if (b.pressed) {
 
-						NavigationScheme nav_scheme = _get_navigation_schema("editors/3d/navigation_scheme");
+						NavigationScheme nav_scheme = (NavigationScheme)EditorSettings::get_singleton()->get("editors/3d/navigation_scheme").operator int();
 						if ( (nav_scheme==NAVIGATION_MAYA || nav_scheme==NAVIGATION_MODO) && b.mod.alt) {
 							break;
 						}
@@ -1251,7 +1234,7 @@ void SpatialEditorViewport::_sinput(const InputEvent &p_event) {
 
 			}
 
-			NavigationScheme nav_scheme = _get_navigation_schema("editors/3d/navigation_scheme");
+			NavigationScheme nav_scheme = (NavigationScheme)EditorSettings::get_singleton()->get("editors/3d/navigation_scheme").operator int();
 			NavigationMode nav_mode = NAVIGATION_NONE;
 
 			if (_edit.gizmo.is_valid()) {
@@ -1558,7 +1541,7 @@ void SpatialEditorViewport::_sinput(const InputEvent &p_event) {
 						nav_mode = NAVIGATION_PAN;
 				}
 
-			} else if (EditorSettings::get_singleton()->get("editors/3d/emulate_3_button_mouse")) {
+            } else if (EditorSettings::get_singleton()->get("editors/3d/emulate_3_button_mouse")) {
 				// Handle trackpad (no external mouse) use case
 				int mod = 0;
 				if (m.mod.shift)
@@ -1606,7 +1589,7 @@ void SpatialEditorViewport::_sinput(const InputEvent &p_event) {
 					if (nav_scheme==NAVIGATION_MAYA && m.mod.shift)
 						zoom_speed *= zoom_speed_modifier;
 
-					NavigationZoomStyle zoom_style = _get_navigation_zoom_style("3d_editor/zoom_style");
+					NavigationZoomStyle zoom_style = (NavigationZoomStyle)EditorSettings::get_singleton()->get("3d_editor/zoom_style").operator int();
 					if (zoom_style == NAVIGATION_ZOOM_HORIZONTAL) {
 						if ( m.relative_x > 0)
 							cursor.distance*=1-m.relative_x*zoom_speed;
@@ -1740,7 +1723,7 @@ void SpatialEditorViewport::_notification(int p_what) {
 
 	if (p_what==NOTIFICATION_VISIBILITY_CHANGED) {
 
-		bool visible=is_visible();
+		bool visible=is_visible_in_tree();
 
 		set_process(visible);
 
@@ -1915,7 +1898,7 @@ void SpatialEditorViewport::_draw() {
 
 
 		Size2 ss = Size2( GlobalConfig::get_singleton()->get("display/width"), GlobalConfig::get_singleton()->get("display/height") );
-		float aspect = ss.get_aspect();
+		float aspect = ss.aspect();
 		Size2 s = get_size();
 
 		Rect2 draw_rect;
@@ -2205,7 +2188,7 @@ void SpatialEditorViewport::set_can_preview(Camera* p_preview) {
 
 void SpatialEditorViewport::update_transform_gizmo_view() {
 
-	if (!is_visible())
+	if (!is_visible_in_tree())
 		return;
 
 	Transform xform = spatial_editor->get_gizmo_transform();
@@ -3484,7 +3467,7 @@ void SpatialEditor::_instance_scene() {
 
 void SpatialEditor::_unhandled_key_input(InputEvent p_event) {
 
-	if (!is_visible() || get_viewport()->gui_has_modal_stack())
+	if (!is_visible_in_tree() || get_viewport()->gui_has_modal_stack())
 		return;
 
 #if 0

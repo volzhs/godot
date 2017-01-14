@@ -206,7 +206,7 @@ void CollisionObject::_mouse_exit() {
 void CollisionObject::_update_pickable() {
 	if (!is_inside_tree())
 		return;
-	bool pickable = ray_pickable && is_inside_tree() && is_visible();
+	bool pickable = ray_pickable && is_inside_tree() && is_visible_in_tree();
 	if (area)
 		PhysicsServer::get_singleton()->area_set_ray_pickable(rid,pickable);
 	else
@@ -360,7 +360,7 @@ CollisionObject::CollisionObject() {
 
 	capture_input_on_drag=false;
 	ray_pickable=true;
-
+	set_notify_transform(true);
 	//owner=
 
 	//set_transform_notify(true);

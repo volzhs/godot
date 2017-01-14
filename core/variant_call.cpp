@@ -272,8 +272,8 @@ static void _call_##m_type##_##m_method(Variant& r_ret,Variant& p_self,const Var
 	VCALL_LOCALMEM1R(String,left);
 	VCALL_LOCALMEM1R(String,right);
 	VCALL_LOCALMEM2R(String,strip_edges);
-	VCALL_LOCALMEM0R(String,extension);
-	VCALL_LOCALMEM0R(String,basename);
+	VCALL_LOCALMEM0R(String,get_extension);
+	VCALL_LOCALMEM0R(String,get_basename);
 	VCALL_LOCALMEM1R(String,plus_file);
 	VCALL_LOCALMEM1R(String,ord_at);
 	VCALL_LOCALMEM2(String,erase);
@@ -349,7 +349,7 @@ static void _call_##m_type##_##m_method(Variant& r_ret,Variant& p_self,const Var
 	VCALL_LOCALMEM0R(Vector2,tangent);
 	VCALL_LOCALMEM0R(Vector2,floor);
 	VCALL_LOCALMEM1R(Vector2,snapped);
-	VCALL_LOCALMEM0R(Vector2,get_aspect);
+	VCALL_LOCALMEM0R(Vector2,aspect);
 	VCALL_LOCALMEM1R(Vector2,dot);
 	VCALL_LOCALMEM1R(Vector2,slide);
 	VCALL_LOCALMEM1R(Vector2,reflect);
@@ -1405,8 +1405,8 @@ _VariantCall::addfunc(Variant::m_vtype,Variant::m_ret,_SCS(#m_method),VCALL(m_cl
 	ADDFUNC1(STRING,STRING,String,left,INT,"pos",varray());
 	ADDFUNC1(STRING,STRING,String,right,INT,"pos",varray());
 	ADDFUNC2(STRING,STRING,String,strip_edges,BOOL,"left",BOOL,"right",varray(true,true));
-	ADDFUNC0(STRING,STRING,String,extension,varray());
-	ADDFUNC0(STRING,STRING,String,basename,varray());
+	ADDFUNC0(STRING,STRING,String,get_extension,varray());
+	ADDFUNC0(STRING,STRING,String,get_basename,varray());
 	ADDFUNC1(STRING,STRING,String,plus_file,STRING,"file",varray());
 	ADDFUNC1(STRING,INT,String,ord_at,INT,"at",varray());
 	ADDFUNC2(STRING,NIL,String,erase,INT,"pos",INT,"chars", varray());
@@ -1457,7 +1457,7 @@ _VariantCall::addfunc(Variant::m_vtype,Variant::m_ret,_SCS(#m_method),VCALL(m_cl
 	ADDFUNC0(VECTOR2,VECTOR2,Vector2,tangent,varray());
 	ADDFUNC0(VECTOR2,VECTOR2,Vector2,floor,varray());
 	ADDFUNC1(VECTOR2,VECTOR2,Vector2,snapped,VECTOR2,"by",varray());
-	ADDFUNC0(VECTOR2,REAL,Vector2,get_aspect,varray());
+	ADDFUNC0(VECTOR2,REAL,Vector2,aspect,varray());
 	ADDFUNC1(VECTOR2,REAL,Vector2,dot,VECTOR2,"with",varray());
 	ADDFUNC1(VECTOR2,VECTOR2,Vector2,slide,VECTOR2,"vec",varray());
 	ADDFUNC1(VECTOR2,VECTOR2,Vector2,reflect,VECTOR2,"vec",varray());

@@ -176,7 +176,7 @@ void ProjectExportDialog::_scan_finished() {
 	print_line("**********SCAN DONEEE********");
 	print_line("**********SCAN DONEEE********");*/
 
-	if (!is_visible()) {
+	if (!is_visible_in_tree()) {
 		pending_update_tree=true;
 		return;
 	}
@@ -288,7 +288,7 @@ void ProjectExportDialog::_notification(int p_what) {
 
 
 			CenterContainer *cc = memnew( CenterContainer );
-			TextureFrame *tf = memnew( TextureFrame);
+			TextureRect *tf = memnew( TextureRect);
 			tf->set_texture(get_icon("ErrorSign","EditorIcons"));
 			cc->add_child(tf);
 			plat_errors->add_child(cc);
@@ -368,7 +368,7 @@ void ProjectExportDialog::_notification(int p_what) {
 
 		} break;
 		case NOTIFICATION_VISIBILITY_CHANGED: {
-			if (is_visible())
+			if (is_visible_in_tree())
 				_validate_platform();
 
 		} break;
@@ -921,7 +921,7 @@ bool ProjectExportDialog::_update_group_treef(TreeItem *p_parent,EditorFileSyste
 	for(int i=0;i<p_dir->get_file_count();i++) {
 
 		String fname = p_dir->get_file(i);
-		if (p_extensions.has(fname.to_lower().extension())) {
+		if (p_extensions.has(fname.to_lower().get_extension())) {
 			String path = p_dir->get_file_path(i);
 
 			if (filter!=String() && path.find(filter)==-1)
@@ -1578,7 +1578,7 @@ ProjectExportDialog::ProjectExportDialog(EditorNode *p_editor) {
 	ScrollContainer *scroll = memnew( ScrollContainer );
 	atlas_preview_dialog->add_child(scroll);
 	//atlas_preview_dialog->set_child_rect(scroll);
-	atlas_preview_frame = memnew( TextureFrame );
+	atlas_preview_frame = memnew( TextureRect );
 	scroll->add_child(atlas_preview_frame);
 	add_child(atlas_preview_dialog);
 

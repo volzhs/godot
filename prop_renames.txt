@@ -112,7 +112,7 @@ motion/mirroring = motion_mirroring
 
 [PhysicsBody2D]
 
-collision/layers = collision_layers
+collision/layers = collision_layer
 collision/mask = collision_mask
 
 [Polygon2D]
@@ -227,7 +227,7 @@ mesh/skeleton = skeleton
 
 [PhysicsBody]
 
-collision/layers = collision_layers
+collision/layers = collision_layer
 collision/mask = collision_mask
 
 [Quad]
@@ -509,7 +509,7 @@ modulate = self_modulate
 
 modulate = self_modulate
 
-[TextureFrame]
+[TextureRect]
 
 modulate = self_modulate
 

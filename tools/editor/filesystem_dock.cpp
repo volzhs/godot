@@ -186,7 +186,7 @@ void FileSystemDock::_notification(int p_what) {
 		case NOTIFICATION_DRAG_BEGIN: {
 
 			Dictionary dd = get_viewport()->gui_get_drag_data();
-			if (tree->is_visible() && dd.has("type") ) {
+			if (tree->is_visible_in_tree() && dd.has("type") ) {
 				if  ( (String(dd["type"])=="files") || (String(dd["type"])=="files_and_dirs") || (String(dd["type"])=="resource")) {
 					tree->set_drop_mode_flags(Tree::DROP_MODE_ON_ITEM);
 				}
@@ -292,7 +292,7 @@ void FileSystemDock::_thumbnail_done(const String& p_path,const Ref<Texture>& p_
 
 	bool valid=false;
 
-	if (!search_box->is_hidden()) {
+	if (search_box->is_visible()) {
 		valid=true;
 	} else {
 		valid=(path==p_path.get_base_dir());
@@ -624,7 +624,7 @@ void FileSystemDock::_go_to_dir(const String& p_dir){
 
 void FileSystemDock::_preview_invalidated(const String& p_path) {
 
-	if (p_path.get_base_dir()==path && search_box->get_text()==String() && file_list_vb->is_visible()) {
+	if (p_path.get_base_dir()==path && search_box->get_text()==String() && file_list_vb->is_visible_in_tree()) {
 
 
 		for(int i=0;i<files->get_item_count();i++) {
@@ -649,13 +649,13 @@ void FileSystemDock::_fs_changed() {
 	scanning_vb->hide();
 	split_box->show();
 
-	if (!tree->is_hidden()) {
+	if (tree->is_visible()) {
 		button_favorite->show();
 		_update_tree();
 
 	}
 
-	if (!file_list_vb->is_hidden()) {
+	if (file_list_vb->is_visible()) {
 
 		_update_files(true);
 	}
@@ -685,14 +685,14 @@ void FileSystemDock::_fw_history() {
 
 	path=history[history_pos];
 
-	if (!tree->is_hidden()) {
+	if (tree->is_visible()) {
 		_update_tree();
 		tree->grab_focus();
 		tree->ensure_cursor_is_visible();
 
 	}
 
-	if (!file_list_vb->is_hidden()) {
+	if (file_list_vb->is_visible()) {
 		_update_files(false);
 		current_path->set_text(path);
 	}
@@ -710,13 +710,13 @@ void FileSystemDock::_bw_history() {
 	path=history[history_pos];
 
 
-	if (!tree->is_hidden()) {
+	if (tree->is_visible()) {
 		_update_tree();
 		tree->grab_focus();
 		tree->ensure_cursor_is_visible();
 	}
 
-	if (!file_list_vb->is_hidden()) {
+	if (file_list_vb->is_visible()) {
 		_update_files(false);
 		current_path->set_text(path);
 	}
@@ -1015,7 +1015,7 @@ void FileSystemDock::_file_option(int p_option) {
 			if (move_dirs.empty() && move_files.size()==1) {
 
 				rename_dialog->clear_filters();
-				rename_dialog->add_filter("*."+move_files[0].extension());
+				rename_dialog->add_filter("*."+move_files[0].get_extension());
 				rename_dialog->set_mode(EditorFileDialog::MODE_SAVE_FILE);
 				rename_dialog->set_current_path(move_files[0]);
 				rename_dialog->popup_centered_ratio();
@@ -1167,7 +1167,7 @@ void FileSystemDock::_dir_rmb_pressed(const Vector2& p_pos) {
 
 void FileSystemDock::_search_changed(const String& p_text) {
 
-	if (!search_box->is_visible())
+	if (!search_box->is_visible_in_tree())
 		return; //wtf
 
 	_update_files(false);
@@ -1770,8 +1770,8 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	path_hb->add_child(search_box);
 	search_box->connect("text_changed",this,"_search_changed");
 
-	search_icon = memnew( TextureFrame );
-	search_icon->set_stretch_mode(TextureFrame::STRETCH_KEEP_CENTERED);
+	search_icon = memnew( TextureRect );
+	search_icon->set_stretch_mode(TextureRect::STRETCH_KEEP_CENTERED);
 	path_hb->add_child(search_icon);
 
 	button_display_mode = memnew( ToolButton );

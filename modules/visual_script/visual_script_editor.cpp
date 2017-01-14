@@ -590,9 +590,9 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 					t=type_icons[left_type];
 				}
 				if (t.is_valid()) {
-					TextureFrame *tf = memnew(TextureFrame);
+					TextureRect *tf = memnew(TextureRect);
 					tf->set_texture(t);
-					tf->set_stretch_mode(TextureFrame::STRETCH_KEEP_CENTERED);
+					tf->set_stretch_mode(TextureRect::STRETCH_KEEP_CENTERED);
 					hbc->add_child(tf);
 				}
 
@@ -657,9 +657,9 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 					t=type_icons[right_type];
 				}
 				if (t.is_valid()) {
-					TextureFrame *tf = memnew(TextureFrame);
+					TextureRect *tf = memnew(TextureRect);
 					tf->set_texture(t);
-					tf->set_stretch_mode(TextureFrame::STRETCH_KEEP_CENTERED);
+					tf->set_stretch_mode(TextureRect::STRETCH_KEEP_CENTERED);
 					hbc->add_child(tf);
 				}
 
@@ -1776,7 +1776,7 @@ void VisualScriptEditor::drop_data_fw(const Point2& p_point,const Variant& p_dat
 			if (node) {
 				graph->set_selected(node);
 				_node_selected(node);
-			}			
+			}
 		}
 
 		if (d.has("type") && String(d["type"])=="resource") {
@@ -3082,7 +3082,7 @@ void VisualScriptEditor::_menu_option(int p_what) {
 			//popup disappearing grabs focus to owner, so use call deferred
 			node_filter->call_deferred("grab_focus");
 			node_filter->call_deferred("select_all");
-		} break;			
+		} break;
 		case EDIT_COPY_NODES:
 		case EDIT_CUT_NODES: {
 
@@ -3346,8 +3346,8 @@ VisualScriptEditor::VisualScriptEditor() {
 	node_filter->connect("text_changed",this,"_node_filter_changed");
 	hbc_nodes->add_child(node_filter);
 	node_filter->set_h_size_flags(SIZE_EXPAND_FILL);
-	node_filter_icon = memnew( TextureFrame );
-	node_filter_icon->set_stretch_mode(TextureFrame::STRETCH_KEEP_CENTERED);
+	node_filter_icon = memnew( TextureRect );
+	node_filter_icon->set_stretch_mode(TextureRect::STRETCH_KEEP_CENTERED);
 	hbc_nodes->add_child(node_filter_icon);
 	vbc_nodes->add_child(hbc_nodes);
 

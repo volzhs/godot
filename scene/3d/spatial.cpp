@@ -74,7 +74,7 @@ SpatialGizmo::SpatialGizmo() {
 
 void Spatial::_notify_dirty() {
 
-	if (!data.ignore_notification && !xform_change.in_list()) {
+	if (data.notify_transform && !data.ignore_notification && !xform_change.in_list()) {
 
 		get_tree()->xform_change_list.add(&xform_change);
 	}
@@ -108,7 +108,7 @@ void Spatial::_propagate_transform_changed(Spatial *p_origin) {
 	}
 
 
-	if (!data.ignore_notification && !xform_change.in_list()) {
+	if (data.notify_transform && !data.ignore_notification && !xform_change.in_list()) {
 
 		get_tree()->xform_change_list.add(&xform_change);
 
@@ -482,7 +482,7 @@ void Spatial::_update_gizmo() {
 
 	data.gizmo_dirty=false;
 	if (data.gizmo.is_valid()) {
-		if (is_visible())
+		if (is_visible_in_tree())
 			data.gizmo->redraw();
 		else
 			data.gizmo->clear();
@@ -573,7 +573,7 @@ void Spatial::show() {
 	if (!is_inside_tree())
 		return;
 
-	if (!data.parent || is_visible()) {
+	if (!data.parent || is_visible_in_tree()) {
 
 		_propagate_visibility_changed();
 	}
@@ -584,7 +584,7 @@ void Spatial::hide(){
 	if (!data.visible)
 		return;
 
-	bool was_visible = is_visible();
+	bool was_visible = is_visible_in_tree();
 	data.visible=false;
 
 	if (!data.parent || was_visible) {
@@ -593,7 +593,7 @@ void Spatial::hide(){
 	}
 
 }
-bool Spatial::is_visible() const{
+bool Spatial::is_visible_in_tree() const{
 
 	const Spatial *s=this;
 
@@ -608,21 +608,7 @@ bool Spatial::is_visible() const{
 }
 
 
-bool Spatial::is_hidden() const{
-
-	return !data.visible;
-}
-
-void Spatial::set_hidden(bool p_hidden) {
-
-	if (data.visible != p_hidden) {
-		return;
-	}
-
-	_set_visible_(!p_hidden);
-}
-
-void Spatial::_set_visible_(bool p_visible) {
+void Spatial::set_visible(bool p_visible) {
 
 	if (p_visible)
 		show();
@@ -630,9 +616,9 @@ void Spatial::_set_visible_(bool p_visible) {
 		hide();
 }
 
-bool Spatial::_is_visible_() const {
+bool Spatial::is_visible() const {
 
-	return !is_hidden();
+	return !data.visible;
 }
 
 void Spatial::rotate(const Vector3& p_normal,float p_radians) {
@@ -736,6 +722,14 @@ void Spatial::look_at_from_pos(const Vector3& p_pos,const Vector3& p_target, con
 
 }
 
+void Spatial::set_notify_transform(bool p_enable) {
+	data.notify_transform=p_enable;
+}
+
+bool Spatial::is_transform_notification_enabled() const {
+	return data.notify_transform;
+}
+
 void Spatial::set_notify_local_transform(bool p_enable) {
 	data.notify_local_transform=p_enable;
 }
@@ -779,17 +773,17 @@ void Spatial::_bind_methods() {
 	ClassDB::bind_method(_MD("set_gizmo","gizmo:SpatialGizmo"), &Spatial::set_gizmo);
 	ClassDB::bind_method(_MD("get_gizmo:SpatialGizmo"), &Spatial::get_gizmo);
 
+	ClassDB::bind_method(_MD("set_visible"), &Spatial::set_visible);
+	ClassDB::bind_method(_MD("is_visible"), &Spatial::is_visible);
+	ClassDB::bind_method(_MD("is_visible_in_tree"), &Spatial::is_visible_in_tree);
 	ClassDB::bind_method(_MD("show"), &Spatial::show);
 	ClassDB::bind_method(_MD("hide"), &Spatial::hide);
-	ClassDB::bind_method(_MD("is_visible"), &Spatial::is_visible);
-	ClassDB::bind_method(_MD("is_hidden"), &Spatial::is_hidden);
-	ClassDB::bind_method(_MD("set_hidden","hidden"), &Spatial::set_hidden);
-
-	ClassDB::bind_method(_MD("_set_visible_"), &Spatial::_set_visible_);
-	ClassDB::bind_method(_MD("_is_visible_"), &Spatial::_is_visible_);
 
 	ClassDB::bind_method(_MD("set_notify_local_transform","enable"), &Spatial::set_notify_local_transform);
 	ClassDB::bind_method(_MD("is_local_transform_notification_enabled"), &Spatial::is_local_transform_notification_enabled);
+
+	ClassDB::bind_method(_MD("set_notify_transform","enable"), &Spatial::set_notify_transform);
+	ClassDB::bind_method(_MD("is_transform_notification_enabled"), &Spatial::is_transform_notification_enabled);
 
 	void rotate(const Vector3& p_normal,float p_radians);
 	void rotate_x(float p_radians);
@@ -848,11 +842,13 @@ Spatial::Spatial() : xform_change(this)
 	data.viewport=NULL;
 	data.inside_world=false;
 	data.visible=true;
+
 #ifdef TOOLS_ENABLED
 	data.gizmo_disabled=false;
 	data.gizmo_dirty=false;
 #endif
 	data.notify_local_transform=false;
+	data.notify_transform=false;
 	data.parent=NULL;
 	data.C=NULL;
 

@@ -45,7 +45,7 @@ void VisualInstance::_update_visibility() {
 		return;
 
 	_change_notify("visible");
-	VS::get_singleton()->instance_set_visible(get_instance(),is_visible());
+	VS::get_singleton()->instance_set_visible(get_instance(),is_visible_in_tree());
 }
 
 
@@ -162,6 +162,7 @@ VisualInstance::VisualInstance()
 	instance = VisualServer::get_singleton()->instance_create();
 	VisualServer::get_singleton()->instance_attach_object_instance_ID( instance, get_instance_ID() );
 	layers=1;
+	set_notify_transform(true);
 }
 
 

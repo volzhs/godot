@@ -160,6 +160,8 @@ Variant GDScript::_new(const Variant** p_args,int p_argcount,Variant::CallError&
 		_baseptr=_baseptr->_base;
 	}
 
+	ERR_FAIL_COND_V(_baseptr->native.is_null(), Variant());
+
 	if (_baseptr->native.ptr()) {
 		owner=_baseptr->native->instance();
 	} else {
@@ -2066,7 +2068,7 @@ bool ResourceFormatLoaderGDScript::handles_type(const String& p_type) const {
 
 String ResourceFormatLoaderGDScript::get_resource_type(const String &p_path) const {
 
-	String el = p_path.extension().to_lower();
+	String el = p_path.get_extension().to_lower();
 	if (el=="gd" || el=="gdc" || el=="gde")
 		return "GDScript";
 	return "";

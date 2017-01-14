@@ -953,7 +953,7 @@ Variant SceneTreeEditor::get_drag_data_fw(const Point2& p_point,Control* p_from)
 
 		if (i<list_max){
 			HBoxContainer *hb = memnew( HBoxContainer );
-			TextureFrame *tf = memnew(TextureFrame);
+			TextureRect *tf = memnew(TextureRect);
 			tf->set_texture(icons[i]);
 			hb->add_child(tf);
 			Label *label = memnew( Label( selected[i]->get_name() ) );
@@ -1264,7 +1264,7 @@ void SceneTreeDialog::_notification(int p_what) {
 		get_stylebox("panel","PopupMenu")->draw(ci,Rect2(Point2(),get_size()));
 	}
 
-	if (p_what==NOTIFICATION_VISIBILITY_CHANGED && is_visible()) {
+	if (p_what==NOTIFICATION_VISIBILITY_CHANGED && is_visible_in_tree()) {
 
 		tree->update_tree();
 	}
