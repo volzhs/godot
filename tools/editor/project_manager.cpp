@@ -42,7 +42,7 @@
 #include "scene/gui/center_container.h"
 #include "io/stream_peer_ssl.h"
 
-#include "scene/gui/texture_frame.h"
+#include "scene/gui/texture_rect.h"
 #include "scene/gui/margin_container.h"
 #include "io/resource_saver.h"
 
@@ -404,7 +404,7 @@ public:
 
 		VBoxContainer *vb = memnew( VBoxContainer );
 		add_child(vb);
-	//	set_child_rect(vb);
+		//set_child_rect(vb);
 
 		Label* l = memnew(Label);
 		l->set_text(TTR("Project Path:"));
@@ -1003,7 +1003,7 @@ void ProjectManager::_run_project_confirm() {
 		Error err = OS::get_singleton()->execute(exec,args,false,&pid);
 		ERR_FAIL_COND(err);
 	}
-	//	get_scene()->quit(); do not quit
+	//get_scene()->quit(); do not quit
 }
 
 void ProjectManager::_run_project() {
