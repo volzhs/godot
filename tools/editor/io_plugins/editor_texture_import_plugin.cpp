@@ -27,6 +27,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "editor_texture_import_plugin.h"
+
 #include "io/image_loader.h"
 #include "tools/editor/editor_node.h"
 #include "io/resource_saver.h"
@@ -779,7 +780,7 @@ EditorTextureImportDialog::EditorTextureImportDialog(EditorTextureImportPlugin* 
 
 	set_hide_on_ok(false);
 
-	texture_options = memnew( EditorImportTextureOptions );;
+	texture_options = memnew( EditorImportTextureOptions );
 	vbc->add_child(texture_options);
 	texture_options->set_v_size_flags(SIZE_EXPAND_FILL);
 

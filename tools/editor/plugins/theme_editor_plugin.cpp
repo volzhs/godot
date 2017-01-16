@@ -26,8 +26,9 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "version.h"
 #include "theme_editor_plugin.h"
+
+#include "version.h"
 #include "os/file_access.h"
 
 void ThemeEditor::edit(const Ref<Theme>& p_theme) {
@@ -584,7 +585,7 @@ void ThemeEditor::_theme_menu_cbk(int p_option) {
 	List<StringName> types;
 	base_theme->get_type_list(&types);
 
-	type_menu->get_popup()->clear();;
+	type_menu->get_popup()->clear();
 
 	if (p_option==0 || p_option==1) {//add
 

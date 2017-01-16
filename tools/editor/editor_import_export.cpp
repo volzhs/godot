@@ -26,8 +26,9 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "version.h"
 #include "editor_import_export.h"
+
+#include "version.h"
 #include "script_language.h"
 #include "globals.h"
 #include "os/file_access.h"
@@ -1174,7 +1175,7 @@ Error EditorExportPlatform::save_pack_file(void *p_userdata,const String& p_path
 	pd->f->store_32(cs.length());
 	pd->f->store_buffer((uint8_t*)cs.get_data(),cs.length());
 	TempData td;
-	td.pos=pd->f->get_pos();;
+	td.pos=pd->f->get_pos();
 	td.ofs=pd->ftmp->get_pos();
 	td.size=p_data.size();
 	pd->file_ofs.push_back(td);

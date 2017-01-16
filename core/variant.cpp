@@ -27,6 +27,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "variant.h"
+
 #include "resource.h"
 #include "print_string.h"
 #include "scene/main/node.h"
@@ -1764,7 +1765,7 @@ Variant::operator Transform() const {
 	 if (type==TRANSFORM2D) {
 		 return *_data._transform2d;
 	 } else if (type==TRANSFORM) {
-		 const Transform& t = *_data._transform;;
+		 const Transform& t = *_data._transform;
 		 Transform2D m;
 		 m.elements[0][0]=t.basis.elements[0][0];
 		 m.elements[0][1]=t.basis.elements[1][0];

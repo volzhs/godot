@@ -27,6 +27,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "project_settings.h"
+
 #include "scene/gui/tab_container.h"
 #include "globals.h"
 #include "os/keyboard.h"
@@ -779,7 +780,7 @@ void ProjectSettings::_copy_to_platform(int p_which) {
 	String name = catname+"/"+propname;
 	Variant value=GlobalConfig::get_singleton()->get(name);
 
-	catname+="."+popup_platform->get_popup()->get_item_text(p_which);;
+	catname+="."+popup_platform->get_popup()->get_item_text(p_which);
 	name = catname+"/"+propname;
 
 	GlobalConfig::get_singleton()->set(name,value);
@@ -1362,7 +1363,7 @@ ProjectSettings::ProjectSettings(EditorData *p_data) {
 
 	Control *input_base = memnew( Control );
 	input_base->set_name(TTR("Input Map"));
-	input_base->set_area_as_parent_rect();;
+	input_base->set_area_as_parent_rect();
 	tab_container->add_child(input_base);
 
 	VBoxContainer *vbc = memnew( VBoxContainer );

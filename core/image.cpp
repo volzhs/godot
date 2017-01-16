@@ -27,11 +27,13 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "image.h"
+
 #include "hash_map.h"
 #include "core/io/image_loader.h"
 #include "core/os/copymem.h"
 #include "hq2x.h"
 #include "print_string.h"
+
 #include <stdio.h>
 
 
@@ -762,7 +764,7 @@ void Image::flip_y() {
 	bool gm=mipmaps;
 
 	if (gm)
-		clear_mipmaps();;
+		clear_mipmaps();
 
 
 
@@ -789,7 +791,7 @@ void Image::flip_y() {
 
 
 	if (gm)
-		generate_mipmaps();;
+		generate_mipmaps();
 
 }
 
@@ -802,7 +804,7 @@ void Image::flip_x() {
 
 	bool gm=mipmaps;
 	if (gm)
-		clear_mipmaps();;
+		clear_mipmaps();
 
 
 	{
@@ -827,7 +829,7 @@ void Image::flip_x() {
 	}
 
 	if (gm)
-		generate_mipmaps();;
+		generate_mipmaps();
 
 }
 

@@ -27,6 +27,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "editor_file_dialog.h"
+
 #include "scene/gui/label.h"
 #include "scene/gui/center_container.h"
 #include "print_string.h"
@@ -36,6 +37,7 @@
 #include "scene/gui/margin_container.h"
 #include "os/file_access.h"
 #include "editor_scale.h"
+
 EditorFileDialog::GetIconFunc EditorFileDialog::get_icon_func=NULL;
 EditorFileDialog::GetIconFunc EditorFileDialog::get_large_icon_func=NULL;
 
@@ -1150,7 +1152,7 @@ void EditorFileDialog::set_display_mode(DisplayMode p_mode) {
 		mode_list->set_pressed(true);
 	}
 	display_mode=p_mode;
-	invalidate();;
+	invalidate();
 }
 
 EditorFileDialog::DisplayMode EditorFileDialog::get_display_mode() const{

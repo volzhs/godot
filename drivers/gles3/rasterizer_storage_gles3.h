@@ -24,6 +24,7 @@ public:
 
 	RasterizerCanvasGLES3 *canvas;
 	RasterizerSceneGLES3 *scene;
+	static GLuint system_fbo; //on some devices, such as apple, screen is rendered to yet another fbo.
 
 	enum RenderArchitecture {
 		RENDER_ARCH_MOBILE,
@@ -33,8 +34,6 @@ public:
 	struct Config {
 
 		RenderArchitecture render_arch;
-
-		GLuint system_fbo; //on some devices, such as apple, screen is rendered to yet another fbo.
 
 		bool shrink_textures_x2;
 		bool use_fast_texture_filter;
@@ -1011,7 +1010,7 @@ public:
 		Particles() : particle_element(this) {
 			emitting=false;
 			amount=0;
-			lifetime=1.0;;
+			lifetime=1.0;
 			pre_process_time=0.0;
 			explosiveness=0.0;
 			randomness=0.0;

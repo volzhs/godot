@@ -3,6 +3,11 @@
 #include "os/os.h"
 #include "rasterizer_canvas_gles3.h"
 
+#ifdef IPHONE_ENABLED
+// for some reason glClearDepth seems to have been removed in iOS ES3.h
+#define glClearDepth glClearDepthf
+#endif
+
 static const GLenum _cube_side_enum[6]={
 
 	GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
@@ -141,7 +146,7 @@ void RasterizerSceneGLES3::shadow_atlas_set_size(RID p_atlas,int p_size){
 				       GL_TEXTURE_2D, shadow_atlas->depth, 0);
 
 		glViewport(0,0,shadow_atlas->size,shadow_atlas->size);
-		glClearDepth(0);
+		glClearDepth(0.0f);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 	}
@@ -2270,9 +2275,9 @@ void RasterizerSceneGLES3::_setup_directional_light(int p_index,const Transform&
 	float sign = li->light_ptr->negative?-1:1;
 
 	Color linear_col = li->light_ptr->color.to_linear();
-	ubo_data.light_color_energy[0]=linear_col.r*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];;
-	ubo_data.light_color_energy[1]=linear_col.g*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];;
-	ubo_data.light_color_energy[2]=linear_col.b*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];;
+	ubo_data.light_color_energy[0]=linear_col.r*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];
+	ubo_data.light_color_energy[1]=linear_col.g*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];
+	ubo_data.light_color_energy[2]=linear_col.b*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];
 	ubo_data.light_color_energy[3]=0;
 
 	//omni, keep at 0
@@ -2427,9 +2432,9 @@ void RasterizerSceneGLES3::_setup_lights(RID *p_light_cull_result,int p_light_cu
 				float sign = li->light_ptr->negative?-1:1;
 
 				Color linear_col = li->light_ptr->color.to_linear();
-				ubo_data.light_color_energy[0]=linear_col.r*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];;
-				ubo_data.light_color_energy[1]=linear_col.g*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];;
-				ubo_data.light_color_energy[2]=linear_col.b*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];;
+				ubo_data.light_color_energy[0]=linear_col.r*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];
+				ubo_data.light_color_energy[1]=linear_col.g*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];
+				ubo_data.light_color_energy[2]=linear_col.b*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];
 				ubo_data.light_color_energy[3]=0;
 
 
@@ -2520,9 +2525,9 @@ void RasterizerSceneGLES3::_setup_lights(RID *p_light_cull_result,int p_light_cu
 				float sign = li->light_ptr->negative?-1:1;
 
 				Color linear_col = li->light_ptr->color.to_linear();
-				ubo_data.light_color_energy[0]=linear_col.r*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];;
-				ubo_data.light_color_energy[1]=linear_col.g*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];;
-				ubo_data.light_color_energy[2]=linear_col.b*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];;
+				ubo_data.light_color_energy[0]=linear_col.r*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];
+				ubo_data.light_color_energy[1]=linear_col.g*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];
+				ubo_data.light_color_energy[2]=linear_col.b*sign*li->light_ptr->param[VS::LIGHT_PARAM_ENERGY];
 				ubo_data.light_color_energy[3]=0;
 
 				Vector3 pos = p_camera_inverse_transform.xform(li->transform.origin);
@@ -3753,8 +3758,7 @@ void RasterizerSceneGLES3::render_scene(const Transform& p_cam_transform,const C
 		glViewport(0,0,storage->frame.current_rt->width,storage->frame.current_rt->height);
 
 		glColorMask(0,0,0,0);
-
-		glClearDepth(1.0);
+		glClearDepth(1.0f);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 
@@ -3866,7 +3870,7 @@ void RasterizerSceneGLES3::render_scene(const Transform& p_cam_transform,const C
 	}
 
 	if (!fb_cleared) {
-		glClearDepth(1.0);
+		glClearDepth(1.0f);
 		glClear(GL_DEPTH_BUFFER_BIT);
 	}
 
@@ -3973,7 +3977,6 @@ void RasterizerSceneGLES3::render_scene(const Transform& p_cam_transform,const C
 		_render_mrts(env,p_cam_projection);
 	}
 
-	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 	glEnable(GL_BLEND);
 	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
@@ -4419,7 +4422,7 @@ void RasterizerSceneGLES3::render_shadow(RID p_light,RID p_shadow_atlas,int p_pa
 	}
 
 	glEnable(GL_SCISSOR_TEST);
-	glClearDepth(1.0);
+	glClearDepth(1.0f);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_SCISSOR_TEST);
 
@@ -4472,7 +4475,7 @@ void RasterizerSceneGLES3::render_shadow(RID p_light,RID p_shadow_atlas,int p_pa
 			glViewport(local_x,local_y,local_width,local_height);
 			glScissor(local_x,local_y,local_width,local_height);
 			glEnable(GL_SCISSOR_TEST);
-			glClearDepth(1.0);
+			glClearDepth(1.0f);
 			glClear(GL_DEPTH_BUFFER_BIT);
 			glDisable(GL_SCISSOR_TEST);
 			//glDisable(GL_DEPTH_TEST);

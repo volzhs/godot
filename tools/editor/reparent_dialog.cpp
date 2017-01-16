@@ -30,8 +30,6 @@
 
 #include "scene/gui/label.h"
 #include "scene/gui/box_container.h"
-
-
 #include "print_string.h"
 
 void ReparentDialog::_notification(int p_what) {
@@ -107,7 +105,7 @@ ReparentDialog::ReparentDialog() {
 	vbc->add_child(keep_transform);
 
 
-	//vbc->add_margin_child("Options:",node_only);;
+	//vbc->add_margin_child("Options:",node_only);
 
 	//cancel->connect("pressed", this,"_cancel");
 

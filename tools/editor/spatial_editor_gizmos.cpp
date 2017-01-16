@@ -27,6 +27,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "spatial_editor_gizmos.h"
+
 #include "geometry.h"
 #include "scene/3d/camera.h"
 #include "scene/resources/surface_tool.h"
@@ -285,7 +286,8 @@ void EditorSpatialGizmo::add_handles(const Vector<Vector3> &p_handles, bool p_bi
 		Vector<Vector3> normals;
 
 		int vtx_idx=0;
-#define ADD_VTX(m_idx);\
+
+#define ADD_VTX(m_idx) \
 	vertices.push_back( (face_points[m_idx]*HANDLE_HALF_SIZE+p_handles[ih]) );\
 	normals.push_back( normal_points[m_idx] );\
 	vtx_idx++;\
@@ -2120,7 +2122,7 @@ void VisibilityNotifierGizmo::set_handle(int p_idx,Camera *p_camera, const Point
 	Vector3 ray_dir = p_camera->project_ray_normal(p_point);
 
 	Vector3 sg[2]={gi.xform(ray_from),gi.xform(ray_from+ray_dir*4096)};
-	Vector3 ofs = aabb.pos+aabb.size*0.5;;
+	Vector3 ofs = aabb.pos+aabb.size*0.5;
 
 	Vector3 axis;
 	axis[p_idx]=1.0;
@@ -3436,7 +3438,7 @@ SpatialEditorGizmos::SpatialEditorGizmos() {
 		PoolVector<Vector3> vertices;
 
 #undef ADD_VTX
-#define ADD_VTX(m_idx);\
+#define ADD_VTX(m_idx) \
 	vertices.push_back( face_points[m_idx] );
 
 		for (int i=0;i<6;i++) {

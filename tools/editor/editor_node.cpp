@@ -26,22 +26,20 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "version.h"
 #include "editor_node.h"
+
+#include "version.h"
 #include "print_string.h"
 #include "editor_themes.h"
-
 #include "editor_help.h"
 #include "core/io/resource_saver.h"
 #include "core/io/resource_loader.h"
 #include "servers/physics_2d_server.h"
 #include "scene/resources/packed_scene.h"
 #include "editor_settings.h"
-#include "io_plugins/editor_import_collada.h"
-#include "io_plugins/editor_scene_importer_fbxconv.h"
 #include "globals.h"
 #include <stdio.h>
-#include "object_type_db.h"
+#include "class_db.h"
 #include "os/keyboard.h"
 #include "os/os.h"
 #include "os/file_access.h"
@@ -56,6 +54,8 @@
 #include "io/config_file.h"
 #include "animation_editor.h"
 #include "io/stream_peer_ssl.h"
+#include "main/input_default.h"
+
 // plugins
 #include "plugins/sprite_frames_editor_plugin.h"
 #include "plugins/texture_region_editor_plugin.h"
@@ -76,7 +76,6 @@
 #include "plugins/mesh_instance_editor_plugin.h"
 #include "plugins/mesh_editor_plugin.h"
 #include "plugins/theme_editor_plugin.h"
-
 #include "plugins/tile_map_editor_plugin.h"
 #include "plugins/cube_grid_theme_editor_plugin.h"
 #include "plugins/shader_editor_plugin.h"
@@ -100,17 +99,19 @@
 #include "plugins/color_ramp_editor_plugin.h"
 #include "plugins/collision_shape_2d_editor_plugin.h"
 #include "plugins/gi_probe_editor_plugin.h"
-#include "main/input_default.h"
+
 // end
-#include "tools/editor/editor_settings.h"
-#include "tools/editor/io_plugins/editor_texture_import_plugin.h"
-#include "tools/editor/io_plugins/editor_scene_import_plugin.h"
-#include "tools/editor/io_plugins/editor_font_import_plugin.h"
-#include "tools/editor/io_plugins/editor_sample_import_plugin.h"
-#include "tools/editor/io_plugins/editor_translation_import_plugin.h"
-#include "tools/editor/io_plugins/editor_bitmask_import_plugin.h"
-#include "tools/editor/io_plugins/editor_mesh_import_plugin.h"
-#include "tools/editor/io_plugins/editor_export_scene.h"
+#include "editor_settings.h"
+#include "io_plugins/editor_texture_import_plugin.h"
+#include "io_plugins/editor_scene_import_plugin.h"
+#include "io_plugins/editor_font_import_plugin.h"
+#include "io_plugins/editor_sample_import_plugin.h"
+#include "io_plugins/editor_translation_import_plugin.h"
+#include "io_plugins/editor_bitmask_import_plugin.h"
+#include "io_plugins/editor_mesh_import_plugin.h"
+#include "io_plugins/editor_export_scene.h"
+#include "io_plugins/editor_import_collada.h"
+#include "io_plugins/editor_scene_importer_fbxconv.h"
 
 #include "plugins/editor_preview_plugins.h"
 #include "editor_initialize_ssl.h"
@@ -830,7 +831,7 @@ bool EditorNode::_find_and_save_edited_subresources(Object *obj,Map<RES,bool>& p
 			case Variant::DICTIONARY: {
 
 
-				Dictionary d=obj->get(E->get().name);;
+				Dictionary d=obj->get(E->get().name);
 				List<Variant> keys;
 				d.get_key_list(&keys);
 				for(List<Variant>::Element *E=keys.front();E;E=E->next()) {
@@ -916,7 +917,7 @@ void EditorNode::_save_scene_with_preview(String p_file) {
 	save.step(TTR("Creating Thumbnail"),3);
 #if 0
 	Image img = VS::get_singleton()->viewport_texture(scree_capture(viewport);
-	int preview_size = EditorSettings::get_singleton()->get("filesystem/file_dialog/thumbnail_size");;
+	int preview_size = EditorSettings::get_singleton()->get("filesystem/file_dialog/thumbnail_size");
 	preview_size*=EDSCALE;
 	int width,height;
 	if (img.get_width() > preview_size && img.get_width() >= img.get_height()) {
@@ -1055,7 +1056,7 @@ void EditorNode::_import_action(const String& p_action) {
 			//accept->get_cancel()->hide();
 			accept->get_ok()->set_text("Ugh");
 			accept->set_text("Error importing scene.");
-			accept->popup_centered(Size2(300,70));;
+			accept->popup_centered(Size2(300,70));
 			return;
 		}
 
@@ -1071,7 +1072,7 @@ void EditorNode::_import_action(const String& p_action) {
 			//accept->get_cancel()->hide();
 			accept->get_ok()->set_text("Ugh");
 			accept->set_text("Error load scene to update.");
-			accept->popup_centered(Size2(300,70));;
+			accept->popup_centered(Size2(300,70));
 			return;
 		}
 
@@ -1112,7 +1113,7 @@ void EditorNode::_import(const String &p_file) {
 		//accept->get_cancel()->hide();
 		accept->get_ok()->set_text("Ugh");
 		accept->set_text("Error importing scene.");
-		accept->popup_centered(Size2(300,70));;
+		accept->popup_centered(Size2(300,70));
 		return;
 	}
 
@@ -2254,7 +2255,7 @@ void EditorNode::_menu_option_confirm(int p_option,bool p_confirmed) {
 				//confirmation->get_cancel()->hide();
 				accept->get_ok()->set_text("I see..");
 				accept->set_text("This operation can't be done without a tree root.");
-				accept->popup_centered(Size2(300,70));;
+				accept->popup_centered(Size2(300,70));
 				break;
 			}
 
@@ -2276,7 +2277,7 @@ void EditorNode::_menu_option_confirm(int p_option,bool p_confirmed) {
 				//confirmation->get_cancel()->hide();
 				accept->get_ok()->set_text("I see..");
 				accept->set_text("Please save the scene first.");
-				accept->popup_centered(Size2(300,70));;
+				accept->popup_centered(Size2(300,70));
 				break;
 
 			}
@@ -2291,7 +2292,7 @@ void EditorNode::_menu_option_confirm(int p_option,bool p_confirmed) {
 			Ref<EditorExporter> exporter = export_db->get_exporter(target);
 			if (exporter.is_null()) {
 				accept->set_text("No exporter for platform '"+target+"' yet.");
-				accept->popup_centered(Size2(300,70));;
+				accept->popup_centered(Size2(300,70));
 				return;
 			}
 
@@ -2474,7 +2475,7 @@ void EditorNode::_menu_option_confirm(int p_option,bool p_confirmed) {
 				//accept->get_cancel()->hide();
 				accept->get_ok()->set_text("I see..");
 				accept->set_text("This operation can't be done without a selected node.");
-				accept->popup_centered(Size2(300,70));;
+				accept->popup_centered(Size2(300,70));
 				break;
 			}
 
@@ -2486,7 +2487,7 @@ void EditorNode::_menu_option_confirm(int p_option,bool p_confirmed) {
 				//confirmation->get_cancel()->hide();
 				accept->get_ok()->set_text("I see..");
 				accept->set_text("This operation can't be done without a selected node.");
-				accept->popup_centered(Size2(300,70));;
+				accept->popup_centered(Size2(300,70));
 				break;
 			}
 
@@ -2498,7 +2499,7 @@ void EditorNode::_menu_option_confirm(int p_option,bool p_confirmed) {
 				//accept->get_cancel()->hide();
 				accept->get_ok()->set_text("Ugh");
 				accept->set_text("Error loading scene from "+external_file);
-				accept->popup_centered(Size2(300,70));;
+				accept->popup_centered(Size2(300,70));
 				return;
 			}
 
@@ -2593,20 +2594,20 @@ void EditorNode::_menu_option_confirm(int p_option,bool p_confirmed) {
 		} break;
 		case OBJECT_COPY_PARAMS: {
 
-			editor_data.apply_changes_in_editors();;
+			editor_data.apply_changes_in_editors();
 			if (current)
 				editor_data.copy_object_params(current);
 		} break;
 		case OBJECT_PASTE_PARAMS: {
 
-			editor_data.apply_changes_in_editors();;
+			editor_data.apply_changes_in_editors();
 			if (current)
 				editor_data.paste_object_params(current);
 			editor_data.get_undo_redo().clear_history();
 		} break;
 		case OBJECT_UNIQUE_RESOURCES: {
 
-			editor_data.apply_changes_in_editors();;
+			editor_data.apply_changes_in_editors();
 			if (current) {
 				List<PropertyInfo> props;
 				current->get_property_list(&props);
@@ -2914,7 +2915,7 @@ void EditorNode::_menu_option_confirm(int p_option,bool p_confirmed) {
 					//accept->get_cancel()->hide();
 					accept->get_ok()->set_text("I see..");
 					accept->set_text("Can't import if edited scene was not saved."); //i dont think this code will ever run
-					accept->popup_centered(Size2(300,70));;
+					accept->popup_centered(Size2(300,70));
 					break;
 
 				}
@@ -3381,7 +3382,7 @@ Error EditorNode::save_optimized_copy(const String& p_scene,const String& p_pres
 		//accept->"()->hide();
 		accept->get_ok()->set_text("I see..");
 		accept->set_text("Optimizer preset not found: "+p_preset);
-		accept->popup_centered(Size2(300,70));;
+		accept->popup_centered(Size2(300,70));
 		ERR_EXPLAIN("Optimizer preset not found: "+p_preset);
 		ERR_FAIL_V(ERR_INVALID_PARAMETER);
 
@@ -3441,7 +3442,7 @@ Error EditorNode::save_optimized_copy(const String& p_scene,const String& p_pres
 		//accept->get_cancel()->hide();
 		accept->get_ok()->set_text("I see..");
 		accept->set_text("Couldn't save scene. Likely dependencies (instances) couldn't be satisfied.");
-		accept->popup_centered(Size2(300,70));;
+		accept->popup_centered(Size2(300,70));
 		return ERR_INVALID_DATA;
 
 	}
@@ -3452,7 +3453,7 @@ Error EditorNode::save_optimized_copy(const String& p_scene,const String& p_pres
 		//accept->"()->hide();
 		accept->get_ok()->set_text("I see..");
 		accept->set_text("Error saving optimized scene: "+path);
-		accept->popup_centered(Size2(300,70));;
+		accept->popup_centered(Size2(300,70));
 
 		ERR_FAIL_COND_V(err,err);
 
@@ -4037,7 +4038,7 @@ void EditorNode::_save_optimized() {
 		//accept->"()->hide();
 		accept->get_ok()->set_text("I see..");
 		accept->set_text("Error saving optimized scene: "+path);
-		accept->popup_centered(Size2(300,70));;
+		accept->popup_centered(Size2(300,70));
 		return;
 
 	}
@@ -5519,7 +5520,7 @@ EditorNode::EditorNode() {
 
 	FileAccess::set_backup_save(true);
 
-	PathRemap::get_singleton()->clear_remaps();; //editor uses no remaps
+	PathRemap::get_singleton()->clear_remaps(); //editor uses no remaps
 	TranslationServer::get_singleton()->set_enabled(false);
 	// load settings
 	if (!EditorSettings::get_singleton())
@@ -5614,7 +5615,7 @@ EditorNode::EditorNode() {
 #if 0
 	PanelContainer *top_dark_panel = memnew( PanelContainer );
 	Ref<StyleBoxTexture> top_dark_sb;
-	top_dark_sb.instance();;
+	top_dark_sb.instance();
 	top_dark_sb->set_texture(theme->get_icon("PanelTop","EditorIcons"));
 	for(int i=0;i<4;i++) {
 		top_dark_sb->set_margin_size(Margin(i),3);
@@ -5936,7 +5937,7 @@ EditorNode::EditorNode() {
 #if 0
 	node_menu = memnew( MenuButton );
 	node_menu->set_text("Node");
-	node_menu->set_pos( Point2( 50,0) );;
+	node_menu->set_pos( Point2( 50,0) );
 	menu_panel->add_child( node_menu );
 
 	p=node_menu->get_popup();
@@ -6454,7 +6455,7 @@ EditorNode::EditorNode() {
 	animation_menu->set_focus_mode(Control::FOCUS_NONE);
 	menu_panel->add_child(animation_menu);
 	animation_menu->set_icon(gui_base->get_icon("Animation","EditorIcons"));
-	animation_menu->connect("pressed",this,"_animation_visibility_toggle");;
+	animation_menu->connect("pressed",this,"_animation_visibility_toggle");
 */
 
 

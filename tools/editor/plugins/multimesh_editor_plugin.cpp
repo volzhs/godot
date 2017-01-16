@@ -27,6 +27,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "multimesh_editor_plugin.h"
+
 #include "scene/gui/box_container.h"
 #include "scene/3d/mesh_instance.h"
 #include "spatial_editor_plugin.h"
@@ -177,7 +178,7 @@ void MultiMeshEditor::_populate() {
 	Map<float,int> triangle_area_map;
 	for(int i=0;i<facecount;i++) {
 
-		float area = r[i].get_area();;
+		float area = r[i].get_area();
 		if (area<CMP_EPSILON)
 			continue;
 		triangle_area_map[area_accum]=i;
