@@ -115,6 +115,7 @@
 
 #include "plugins/editor_preview_plugins.h"
 #include "editor_initialize_ssl.h"
+#include "editor_audio_buses.h"
 #include "script_editor_debugger.h"
 
 EditorNode *EditorNode::singleton=NULL;
@@ -188,6 +189,9 @@ void EditorNode::_unhandled_input(const InputEvent& p_event) {
 			int next_tab = editor_data.get_edited_scene() - 1;
 			next_tab = next_tab >= 0 ? next_tab : editor_data.get_edited_scene_count() - 1;
 			_scene_tab_changed(next_tab);
+		}
+		if (ED_IS_SHORTCUT("editor/filter_files", p_event)) {
+			filesystem_dock->focus_on_filter();
 		}
 
 		switch(p_event.key.scancode) {
@@ -1934,7 +1938,7 @@ void EditorNode::_run(bool p_current,const String& p_custom) {
 
 	List<String> breakpoints;
 	editor_data.get_editor_breakpoints(&breakpoints);
-    
+
 	args = GlobalConfig::get_singleton()->get("editor/main_run_args");
 
 	Error error = editor_run.run(run_filename,args,breakpoints,current_filename);
@@ -2073,14 +2077,6 @@ void EditorNode::_menu_option_confirm(int p_option,bool p_confirmed) {
 
 			quick_open->popup("Script", true);
 			quick_open->set_title(TTR("Quick Open Script.."));
-
-		} break;
-		case FILE_QUICK_OPEN_FILE: {
-
-
-			//quick_open->popup("Resource", false, true);
-			//quick_open->set_title("Quick Search File..");
-			scenes_dock->focus_on_filter();
 
 		} break;
 		case FILE_RUN_SCRIPT: {
@@ -2807,10 +2803,10 @@ void EditorNode::_menu_option_confirm(int p_option,bool p_confirmed) {
 			update_menu->get_popup()->set_item_checked(1,true);
 			OS::get_singleton()->set_low_processor_usage_mode(true);
 		} break;
-        case SETTINGS_UPDATE_SPINNER_HIDE: {
+	case SETTINGS_UPDATE_SPINNER_HIDE: {
 			update_menu->set_icon(gui_base->get_icon("Collapse","EditorIcons"));
-            update_menu->get_popup()->toggle_item_checked(3);
-        } break;
+	    update_menu->get_popup()->toggle_item_checked(3);
+	} break;
 		case SETTINGS_PREFERENCES: {
 
 			settings_config_dialog->popup_edit_settings();
@@ -2935,16 +2931,7 @@ void EditorNode::_menu_option_confirm(int p_option,bool p_confirmed) {
 
 		default: {
 
-			if (p_option>=TOOL_MENU_BASE) {
-				int idx = p_option - TOOL_MENU_BASE;
-
-				if (tool_menu_items[idx].submenu != "")
-					break;
-
-				Object *handler = ObjectDB::get_instance(tool_menu_items[idx].handler);
-				ERR_FAIL_COND(!handler);
-				handler->call(tool_menu_items[idx].callback, tool_menu_items[idx].ud);
-			} else if (p_option>=OBJECT_METHOD_BASE) {
+			if (p_option>=OBJECT_METHOD_BASE) {
 
 				ERR_FAIL_COND(!current);
 
@@ -3861,9 +3848,9 @@ void EditorNode::request_instance_scenes(const Vector<String>& p_files) {
 	scene_tree_dock->instance_scenes(p_files);
 }
 
-FileSystemDock *EditorNode::get_scenes_dock() {
+FileSystemDock *EditorNode::get_filesystem_dock() {
 
-	return scenes_dock;
+	return filesystem_dock;
 }
 SceneTreeDock *EditorNode::get_scene_tree_dock() {
 
@@ -5187,7 +5174,7 @@ Variant EditorNode::drag_files_and_dirs(const Vector<String>& p_files, Control *
 
 void EditorNode::_dropped_files(const Vector<String>& p_files,int p_screen) {
 
-	String cur_path = scenes_dock->get_current_path();
+	String cur_path = filesystem_dock->get_current_path();
 	for(int i=0;i<EditorImportExport::get_singleton()->get_import_plugin_count();i++) {
 		EditorImportExport::get_singleton()->get_import_plugin(i)->import_from_drop(p_files,cur_path);
 	}
@@ -5279,100 +5266,6 @@ void EditorNode::add_plugin_init_callback(EditorPluginInitializeCallback p_callb
 
 EditorPluginInitializeCallback EditorNode::plugin_init_callbacks[EditorNode::MAX_INIT_CALLBACKS];
 
-void EditorNode::_tool_menu_insert_item(const ToolMenuItem& p_item) {
-
-	int idx = tool_menu_items.size();
-
-	String cat;
-	if (p_item.name.find("/") >= 0) {
-		cat = p_item.name.get_slice("/", 0);
-	} else {
-		idx = 0;
-		cat = "";
-	}
-
-	for (int i = tool_menu_items.size() - 1; i >= 0; i--) {
-		String name = tool_menu_items[i].name;
-
-		if (name.begins_with(cat) && (cat != "" || name.find("/") < 0)) {
-			idx = i + 1;
-			break;
-		}
-	}
-
-	tool_menu_items.insert(idx, p_item);
-}
-
-void EditorNode::_rebuild_tool_menu() const {
-
-	if (_initializing_tool_menu)
-		return;
-
-	PopupMenu *menu = tool_menu->get_popup();
-	menu->clear();
-
-	for (int i = 0; i < tool_menu_items.size(); i++) {
-		menu->add_item(tool_menu_items[i].name.get_slice("/", 1), TOOL_MENU_BASE + i);
-
-		if (tool_menu_items[i].submenu != "")
-			menu->set_item_submenu(i, tool_menu_items[i].submenu);
-	}
-}
-
-void EditorNode::add_tool_menu_item(const String& p_name, Object *p_handler, const String& p_callback, const Variant& p_ud) {
-
-	ERR_FAIL_COND(!p_handler);
-
-	ToolMenuItem tmi;
-	tmi.name = p_name;
-	tmi.submenu = "";
-	tmi.ud = p_ud;
-	tmi.handler = p_handler->get_instance_ID();
-	tmi.callback = p_callback;
-	_tool_menu_insert_item(tmi);
-
-	_rebuild_tool_menu();
-}
-
-void EditorNode::add_tool_submenu_item(const String& p_name, PopupMenu *p_submenu) {
-
-	ERR_FAIL_COND(!p_submenu);
-	ERR_FAIL_COND(p_submenu->get_parent() != NULL);
-
-	ToolMenuItem tmi;
-	tmi.name = p_name;
-	tmi.submenu = p_submenu->get_name();
-	tmi.ud = Variant();
-	tmi.handler = -1;
-	tmi.callback = "";
-	_tool_menu_insert_item(tmi);
-
-	tool_menu->get_popup()->add_child(p_submenu);
-
-	_rebuild_tool_menu();
-}
-
-void EditorNode::remove_tool_menu_item(const String& p_name) {
-
-	for (int i = 0; i < tool_menu_items.size(); i++) {
-		if (tool_menu_items[i].name == p_name) {
-			String submenu = tool_menu_items[i].submenu;
-
-			if (submenu != "") {
-				Node *n = tool_menu->get_popup()->get_node(submenu);
-
-				if (n) {
-					tool_menu->get_popup()->remove_child(n);
-					memdelete(n);
-				}
-			}
-
-			tool_menu_items.remove(i);
-		}
-	}
-
-	_rebuild_tool_menu();
-}
 
 int EditorNode::build_callback_count=0;
 
@@ -5515,8 +5408,6 @@ EditorNode::EditorNode() {
 	_initializing_addons=false;
 	docks_visible = true;
 
-
-	_initializing_tool_menu = true;
 
 	FileAccess::set_backup_save(true);
 
@@ -5860,6 +5751,7 @@ EditorNode::EditorNode() {
 
 	ED_SHORTCUT("editor/next_tab", TTR("Next tab"), KEY_MASK_CMD+KEY_TAB);
 	ED_SHORTCUT("editor/prev_tab", TTR("Previous tab"), KEY_MASK_CMD+KEY_MASK_SHIFT+KEY_TAB);
+	ED_SHORTCUT("editor/filter_files", TTR("Filter Files.."), KEY_MASK_ALT+KEY_MASK_CMD+KEY_P);
 
 
 	file_menu->set_tooltip(TTR("Operations with scene files."));
@@ -5879,7 +5771,6 @@ EditorNode::EditorNode() {
 	p->add_separator();
 	p->add_shortcut(ED_SHORTCUT("editor/quick_open_scene",TTR("Quick Open Scene.."),KEY_MASK_SHIFT+KEY_MASK_CMD+KEY_O),FILE_QUICK_OPEN_SCENE);
 	p->add_shortcut(ED_SHORTCUT("editor/quick_open_script",TTR("Quick Open Script.."),KEY_MASK_ALT+KEY_MASK_CMD+KEY_O),FILE_QUICK_OPEN_SCRIPT);
-	p->add_shortcut(ED_SHORTCUT("editor/quick_filter_files",TTR("Quick Filter Files.."),KEY_MASK_ALT+KEY_MASK_CMD+KEY_P),FILE_QUICK_OPEN_FILE);
 	p->add_separator();
 
 	PopupMenu *pm_export = memnew(PopupMenu );
@@ -5977,9 +5868,10 @@ EditorNode::EditorNode() {
 
 	//tool_menu->set_icon(gui_base->get_icon("Save","EditorIcons"));
 	left_menu_hb->add_child( tool_menu );
-	tool_menu->get_popup()->connect("id_pressed", this, "_menu_option");
 
-	add_tool_menu_item(TTR("Orphan Resource Explorer"), this, "_menu_option", TOOLS_ORPHAN_RESOURCES);
+	p=tool_menu->get_popup();
+	p->connect("id_pressed",this,"_menu_option");
+	p->add_item(TTR("Orphan Resource Explorer"),TOOLS_ORPHAN_RESOURCES);
 
 	export_button = memnew( ToolButton );
 	export_button->set_tooltip(TTR("Export the project to many platforms."));
@@ -6376,21 +6268,21 @@ EditorNode::EditorNode() {
 		dock_slot[DOCK_SLOT_RIGHT_BL]->add_child(node_dock);
 	}
 
-	scenes_dock = memnew( FileSystemDock(this) );
-	scenes_dock->set_name(TTR("FileSystem"));
-	scenes_dock->set_display_mode(int(EditorSettings::get_singleton()->get("docks/filesystem/display_mode")));
+	filesystem_dock = memnew( FileSystemDock(this) );
+	filesystem_dock->set_name(TTR("FileSystem"));
+	filesystem_dock->set_display_mode(int(EditorSettings::get_singleton()->get("docks/filesystem/display_mode")));
 
 	if (use_single_dock_column) {
-		dock_slot[DOCK_SLOT_RIGHT_BL]->add_child(scenes_dock);
+		dock_slot[DOCK_SLOT_RIGHT_BL]->add_child(filesystem_dock);
 		left_r_vsplit->hide();
 		dock_slot[DOCK_SLOT_LEFT_UR]->hide();
 		dock_slot[DOCK_SLOT_LEFT_BR]->hide();
 	} else {
-		dock_slot[DOCK_SLOT_LEFT_UR]->add_child(scenes_dock);
+		dock_slot[DOCK_SLOT_LEFT_UR]->add_child(filesystem_dock);
 	}
-	//prop_pallete->add_child(scenes_dock);
-	scenes_dock->connect("open",this,"open_request");
-	scenes_dock->connect("instance",this,"_instance_request");
+	//prop_pallete->add_child(filesystem_dock);
+	filesystem_dock->connect("open",this,"open_request");
+	filesystem_dock->connect("instance",this,"_instance_request");
 
 	const String docks_section = "docks";
 
@@ -6663,6 +6555,9 @@ EditorNode::EditorNode() {
 	add_editor_plugin( memnew( SpatialEditorPlugin(this) ) );
 	add_editor_plugin( memnew( ScriptEditorPlugin(this) ) );
 
+
+	EditorAudioBuses::register_editor();
+
 	ScriptTextEditor::register_editor(); //register one for text scripts
 
 	if (StreamPeerSSL::is_available()) {
@@ -6860,8 +6755,7 @@ EditorNode::EditorNode() {
 		_initializing_addons=false;
 	}
 
-	_initializing_tool_menu = false;
-	_rebuild_tool_menu();
+
 
 	_load_docks();
 
