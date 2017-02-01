@@ -126,6 +126,11 @@ private:
 	Tree * tree; //directories
 	ItemList *files;
 
+
+	void _file_multi_selected(int p_index, bool p_selected);
+	void _file_selected();
+
+
 	void _go_to_tree();
 	void _go_to_dir(const String& p_dir);
 	void _select_file(int p_idx);
@@ -201,6 +206,7 @@ public:
 
 	int get_split_offset() { return split_box->get_split_offset(); }
 	void set_split_offset(int p_offset) { split_box->set_split_offset(p_offset); }
+	void select_file(const String& p_file);
 
 	FileSystemDock(EditorNode *p_editor);
 	~FileSystemDock();

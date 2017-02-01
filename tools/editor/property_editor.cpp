@@ -118,7 +118,7 @@ void CustomPropertyEditor::_menu_option(int p_which) {
 
 					Set<String> valid_extensions;
 					for (List<String>::Element *E=extensions.front();E;E=E->next()) {
-
+						print_line("found: "+E->get());
 						valid_extensions.insert(E->get());
 					}
 
@@ -208,13 +208,13 @@ void CustomPropertyEditor::_menu_option(int p_which) {
 				case OBJ_MENU_REIMPORT: {
 
 					RES r=v;
-					if (r.is_valid() && r->get_import_metadata().is_valid()) {
+/*					if (r.is_valid() && r->get_import_metadata().is_valid()) {
 						Ref<ResourceImportMetadata> rimd = r->get_import_metadata();
 						Ref<EditorImportPlugin> eip = EditorImportExport::get_singleton()->get_import_plugin_by_name(rimd->get_editor());
 						if (eip.is_valid()) {
 							eip->import_dialog(r->get_path());
 						}
-					}
+					}*/
 				} break;
 				case OBJ_MENU_NEW_SCRIPT: {
 
@@ -945,11 +945,11 @@ bool CustomPropertyEditor::edit(Object* p_owner,const String& p_name,Variant::Ty
 				menu->add_icon_item(get_icon("EditResource","EditorIcons"),"Edit",OBJ_MENU_EDIT);
 				menu->add_icon_item(get_icon("Del","EditorIcons"),"Clear",OBJ_MENU_CLEAR);
 				menu->add_icon_item(get_icon("Duplicate","EditorIcons"),"Make Unique",OBJ_MENU_MAKE_UNIQUE);
-				RES r = v;
+				/*RES r = v;
 				if (r.is_valid() && r->get_path().is_resource_file() && r->get_import_metadata().is_valid()) {
 					menu->add_separator();
 					menu->add_icon_item(get_icon("ReloadSmall","EditorIcons"),"Re-Import",OBJ_MENU_REIMPORT);
-				}
+				}*/
 				/*if (r.is_valid() && r->get_path().is_resource_file()) {
 					menu->set_item_tooltip(1,r->get_path());
 				} else if (r.is_valid()) {
@@ -2431,7 +2431,7 @@ void PropertyEditor::set_item_text(TreeItem *p_item, int p_type, const String& p
 		} break;
 		case Variant::COLOR: {
 
-			p_item->set_custom_bg_color(1,obj->get(p_name));
+			tree->update();
 			//p_item->set_text(1,obj->get(p_name));
 
 		} break;
@@ -3140,6 +3140,10 @@ void PropertyEditor::update_tree() {
 		} else  if ( ! (p.usage&PROPERTY_USAGE_EDITOR ) )
 			continue;
 
+
+		if (hide_script && p.name=="script/script")
+			continue;
+
 		String basename=p.name;
 		if (group!="") {
 			if (group_base!="") {
@@ -3708,7 +3712,7 @@ void PropertyEditor::update_tree() {
 				item->set_cell_mode( 1, TreeItem::CELL_MODE_CUSTOM );
 				item->set_editable( 1, !read_only );
 				//item->set_text(1,obj->get(p.name));
-				item->set_custom_bg_color(1,obj->get(p.name));
+				item->set_custom_draw(1,this,"_draw_transparency");
 				if (show_type_icons)
 					item->set_icon( 0,get_icon("Color","EditorIcons") );
 
@@ -3856,6 +3860,25 @@ void PropertyEditor::update_tree() {
 	}
 }
 
+void PropertyEditor::_draw_transparency(Object *t, const Rect2& p_rect) {
+
+	TreeItem *ti=t->cast_to<TreeItem>();
+	if (!ti)
+		   return;
+
+	Color color=obj->get(ti->get_metadata(1));
+	Ref<Texture> arrow=tree->get_icon("select_arrow");
+
+	// make a little space between consecutive color fields
+	Rect2 area=p_rect;
+	area.pos.y+=1;
+	area.size.height-=2;
+	area.size.width-=arrow->get_size().width+5;
+	tree->draw_texture_rect(get_icon("Transparent", "EditorIcons"), area, true);
+	tree->draw_rect(area, color);
+
+}
+
 
 void PropertyEditor::_item_selected() {
 
@@ -3867,7 +3890,7 @@ void PropertyEditor::_item_selected() {
 }
 
 
-void PropertyEditor::_edit_set(const String& p_name, const Variant& p_value) {
+void PropertyEditor::_edit_set(const String& p_name, const Variant& p_value, bool p_refresh_all) {
 
 	if (autoclear) {
 		TreeItem *item = tree->get_selected();
@@ -3880,7 +3903,11 @@ void PropertyEditor::_edit_set(const String& p_name, const Variant& p_value) {
 	if (!undo_redo || obj->cast_to<MultiNodeEdit>() || obj->cast_to<ArrayPropertyEdit>()) { //kind of hacky
 
 		obj->set(p_name,p_value);
-		_changed_callbacks(obj,p_name);
+		if (p_refresh_all)
+			_changed_callbacks(obj,"");
+		else
+			_changed_callbacks(obj,p_name);
+
 		emit_signal(_prop_edited,p_name);
 
 
@@ -3890,9 +3917,14 @@ void PropertyEditor::_edit_set(const String& p_name, const Variant& p_value) {
 		undo_redo->add_do_property(obj,p_name,p_value);
 		undo_redo->add_undo_property(obj,p_name,obj->get(p_name));
 
+		if (p_refresh_all) {
+			undo_redo->add_do_method(this,"_changed_callback",obj,"");
+			undo_redo->add_undo_method(this,"_changed_callback",obj,"");
+		} else {
 
-		undo_redo->add_do_method(this,"_changed_callback",obj,p_name);
-		undo_redo->add_undo_method(this,"_changed_callback",obj,p_name);
+			undo_redo->add_do_method(this,"_changed_callback",obj,p_name);
+			undo_redo->add_undo_method(this,"_changed_callback",obj,p_name);
+		}
 
 		Resource *r = obj->cast_to<Resource>();
 		if (r) {
@@ -3954,6 +3986,9 @@ void PropertyEditor::_item_edited() {
 
 	int type=d["type"];
 	int hint= d["hint"];
+	int usage = d["usage"];
+	bool refresh_all = usage&PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED;
+
 	String hint_text=d["hint_text"];
 	switch(type) {
 
@@ -3962,7 +3997,7 @@ void PropertyEditor::_item_edited() {
 		} break;
 		case Variant::BOOL: {
 
-			_edit_set(name,item->is_checked(1));
+			_edit_set(name,item->is_checked(1),refresh_all);
 			item->set_tooltip(1, item->is_checked(1) ? "True" : "False");
 		} break;
 		case Variant::INT:
@@ -3976,9 +4011,9 @@ void PropertyEditor::_item_edited() {
 				break;
 
 			if (type==Variant::INT)
-				_edit_set(name,int(item->get_range(1)));
+				_edit_set(name,int(item->get_range(1)),refresh_all);
 			else
-				_edit_set(name,item->get_range(1));
+				_edit_set(name,item->get_range(1),refresh_all);
 		} break;
 		case Variant::STRING: {
 
@@ -3993,9 +4028,9 @@ void PropertyEditor::_item_edited() {
 					txt=strings[idx];
 				}
 
-				_edit_set(name,txt);
+				_edit_set(name,txt,refresh_all);
 			} else {
-				_edit_set(name,item->get_text(1));
+				_edit_set(name,item->get_text(1),refresh_all);
 			}
 		} break;
 			// math types
@@ -4026,7 +4061,7 @@ void PropertyEditor::_item_edited() {
 
 		} break;
 		case Variant::NODE_PATH: {
-			_edit_set(name, NodePath(item->get_text(1)));
+			_edit_set(name, NodePath(item->get_text(1)),refresh_all);
 
 		} break;
 
@@ -4366,6 +4401,7 @@ void PropertyEditor::_bind_methods() {
 	ClassDB::bind_method( "update_tree",&PropertyEditor::update_tree);
 	ClassDB::bind_method( "_resource_preview_done",&PropertyEditor::_resource_preview_done);
 	ClassDB::bind_method( "refresh",&PropertyEditor::refresh);
+	ClassDB::bind_method( "_draw_transparency",&PropertyEditor::_draw_transparency);
 
 	ClassDB::bind_method(_MD("get_drag_data_fw"), &PropertyEditor::get_drag_data_fw);
 	ClassDB::bind_method(_MD("can_drop_data_fw"), &PropertyEditor::can_drop_data_fw);
@@ -4455,6 +4491,8 @@ void PropertyEditor::set_subsection_selectable(bool p_selectable) {
 PropertyEditor::PropertyEditor() {
 
 	_prop_edited="property_edited";
+
+	hide_script=false;
 
 	undo_redo=NULL;
 	obj=NULL;

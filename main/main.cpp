@@ -38,7 +38,7 @@
 #include "script_debugger_local.h"
 #include "script_debugger_remote.h"
 #include "message_queue.h"
-#include "path_remap.h"
+
 #include "input_map.h"
 #include "io/resource_loader.h"
 #include "scene/main/scene_main_loop.h"
@@ -85,7 +85,7 @@ AudioServer *audio_server=NULL;
 
 static MessageQueue *message_queue=NULL;
 static Performance *performance = NULL;
-static PathRemap *path_remap;
+
 static PackedData *packed_data=NULL;
 #ifdef MINIZIP_ENABLED
 static ZipArchive *zip_packed_data=NULL;
@@ -183,8 +183,6 @@ void Main::print_help(const char* p_binary) {
 #ifdef TOOLS_ENABLED
 	OS::get_singleton()->print("\t-doctool FILE: Dump the whole engine api to FILE in XML format. If FILE exists, it will be merged.\n");
 	OS::get_singleton()->print("\t-nodocbase: Disallow dump the base types (used with -doctool).\n");
-	OS::get_singleton()->print("\t-optimize FILE Save an optimized copy of scene to FILE.\n");
-	OS::get_singleton()->print("\t-optimize_preset [preset] Use a given preset for optimization.\n");
 	OS::get_singleton()->print("\t-export [target] Export the project using given export target.\n");
 #endif
 }
@@ -215,7 +213,6 @@ Error Main::setup(const char *execpath,int argc, char *argv[],bool p_second_phas
 
 	register_core_settings(); //here globals is present
 
-	path_remap = memnew( PathRemap );
 	translation_server = memnew( TranslationServer );
 	performance = memnew( Performance );
 	globals->add_singleton(GlobalConfig::Singleton("Performance",performance));
@@ -874,8 +871,6 @@ Error Main::setup(const char *execpath,int argc, char *argv[],bool p_second_phas
 		memdelete(packed_data);
 	if (file_access_network_client)
 		memdelete(file_access_network_client);
-	if(path_remap)
-		memdelete(path_remap);
 
 // Note 1: *zip_packed_data live into *packed_data
 // Note 2: PackedData::~PackedData destroy this.
@@ -934,8 +929,6 @@ Error Main::setup2() {
 		OS::get_singleton()->set_window_fullscreen(true);
 	}
 	MAIN_PRINT("Main: Load Remaps");
-
-	path_remap->load_remaps();
 
 	Color clear = GLOBAL_DEF("rendering/viewport/default_clear_color",Color(0.3,0.3,0.3));
 	VisualServer::get_singleton()->set_default_clear_color(clear);
@@ -1046,6 +1039,7 @@ Error Main::setup2() {
 	translation_server->load_translations();
 
 
+	audio_server->load_default_bus_layout();
 
 	if (use_debug_profiler && script_debugger) {
 		script_debugger->profiling_start();
@@ -1078,12 +1072,9 @@ bool Main::start() {
 	String script;
 	String test;
 	String screen;
-	String optimize;
-	String optimize_preset;
 	String _export_platform;
 	String _import;
 	String _import_script;
-	String dumpstrings;
 	bool noquit=false;
 	bool export_debug=false;
 	bool project_manager_request = false;
@@ -1112,10 +1103,6 @@ bool Main::start() {
 				Engine::get_singleton()->_custom_level=args[i+1];
 			} else if (args[i]=="-test") {
 				test=args[i+1];
-			} else if (args[i]=="-optimize") {
-				optimize=args[i+1];
-			} else if (args[i]=="-optimize_preset") {
-				optimize_preset=args[i+1];
 			} else if (args[i]=="-export") {
 				editor=true; //needs editor
 				_export_platform=args[i+1];
@@ -1129,9 +1116,6 @@ bool Main::start() {
 			} else if (args[i]=="-import_script") {
 				editor=true; //needs editor
 				_import_script=args[i+1];
-			} else if (args[i]=="-dumpstrings") {
-				editor=true; //needs editor
-				dumpstrings=args[i+1];
 			} else {
 				// The parameter does not match anything known, don't skip the next argument
 				parsed_pair=false;
@@ -1165,10 +1149,6 @@ bool Main::start() {
 
 		return false;
 	}
-
-	if (optimize!="")
-		editor=true; //need editor
-
 
 
 #endif
@@ -1403,22 +1383,7 @@ bool Main::start() {
 
 					Error serr = editor_node->load_scene(local_game_path);
 
-					if (serr==OK) {
 
-						if (optimize!="") {
-
-							editor_node->save_optimized_copy(optimize,optimize_preset);
-							if (!noquit)
-								sml->quit();
-						}
-
-						if (dumpstrings!="") {
-
-							editor_node->save_translatable_strings(dumpstrings);
-							if (!noquit)
-								sml->quit();
-						}
-					}
 				}
 				OS::get_singleton()->set_context(OS::CONTEXT_EDITOR);
 
@@ -1790,8 +1755,6 @@ void Main::cleanup() {
 		memdelete(input_map);
 	if (translation_server)
 		memdelete( translation_server );
-	if (path_remap)
-		memdelete(path_remap);
 	if (globals)
 		memdelete(globals);
 	if (engine)
