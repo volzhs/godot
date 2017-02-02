@@ -649,6 +649,13 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 
 			Node *tocopy = selection.front()->get();
 
+			if (tocopy==scene){
+				accept->get_ok()->set_text(TTR("I see.."));
+				accept->set_text(TTR("Can not perform with the root node."));
+				accept->popup_centered_minsize();
+				break;
+			}
+
 			if (tocopy!=editor_data->get_edited_scene_root() && tocopy->get_filename()!="") {
 				accept->get_ok()->set_text(TTR("I see.."));
 				accept->set_text(TTR("This operation can't be done on instanced scenes."));
@@ -768,6 +775,7 @@ Node *SceneTreeDock::_duplicate(Node *p_node, Map<Node*,Node*> &duplimap) {
 		ERR_FAIL_COND_V(!sd.is_valid(),NULL);
 		node = sd->instance(PackedScene::GEN_EDIT_STATE_INSTANCE);
 		ERR_FAIL_COND_V(!node,NULL);
+		node->set_scene_instance_load_placeholder(p_node->get_scene_instance_load_placeholder());
 		//node->generate_instance_state();
 	} else {
 		Object *obj = ClassDB::instance(p_node->get_class());
@@ -1760,7 +1768,9 @@ void SceneTreeDock::_nodes_dragged(Array p_nodes,NodePath p_to,int p_type) {
 
 	for(int i=0;i<p_nodes.size();i++) {
 		Node *n=get_node((p_nodes[i]));
-		nodes.push_back(n);
+		if (n) {
+			nodes.push_back(n);
+		}
 	}
 
 	if (nodes.size()==0)
