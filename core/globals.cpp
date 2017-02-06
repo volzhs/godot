@@ -38,6 +38,8 @@
 #include "io/file_access_network.h"
 #include "variant_parser.h"
 
+#define FORMAT_VERSION 3
+
 GlobalConfig *GlobalConfig::singleton=NULL;
 
 GlobalConfig *GlobalConfig::get_singleton() {
@@ -122,6 +124,7 @@ String GlobalConfig::globalize_path(const String& p_path) const {
 bool GlobalConfig::_set(const StringName& p_name, const Variant& p_value) {
 
 	_THREAD_SAFE_METHOD_
+
 
 	if (p_value.get_type()==Variant::NIL)
 		props.erase(p_name);
@@ -253,7 +256,7 @@ Error GlobalConfig::setup(const String& p_path,const String & p_main_pack) {
 		bool ok = _load_resource_pack(p_main_pack);
 		ERR_FAIL_COND_V(!ok,ERR_CANT_OPEN);
 
-		if (_load_settings("res://engine.cfg")==OK || _load_settings_binary("res://engine.cfb")==OK) {
+		if (_load_settings("res://godot.cfg")==OK || _load_settings_binary("res://godot.cfb")==OK) {
 
 			_load_settings("res://override.cfg");
 
@@ -275,7 +278,7 @@ Error GlobalConfig::setup(const String& p_path,const String & p_main_pack) {
 				memdelete(d);
 
 			}
-			if (_load_settings("res://engine.cfg")==OK || _load_settings_binary("res://engine.cfb")==OK) {
+			if (_load_settings("res://godot.cfg")==OK || _load_settings_binary("res://godot.cfb")==OK) {
 
 				_load_settings("res://override.cfg");
 
@@ -291,7 +294,7 @@ Error GlobalConfig::setup(const String& p_path,const String & p_main_pack) {
 
 	if (FileAccessNetworkClient::get_singleton()) {
 
-		if (_load_settings("res://engine.cfg")==OK || _load_settings_binary("res://engine.cfb")==OK) {
+		if (_load_settings("res://godot.cfg")==OK || _load_settings_binary("res://godot.cfb")==OK) {
 
 			_load_settings("res://override.cfg");
 
@@ -311,9 +314,9 @@ Error GlobalConfig::setup(const String& p_path,const String & p_main_pack) {
 		if (!_load_resource_pack("res://data.pck"))
 			_load_resource_pack("res://data.zip");
 		// make sure this is load from the resource path
-		print_line("exists engine cfg? "+itos(FileAccess::exists("/engine.cfg")));
-		if (_load_settings("res://engine.cfg")==OK || _load_settings_binary("res://engine.cfb")==OK) {
-			print_line("loaded engine.cfg");
+		print_line("exists engine cfg? "+itos(FileAccess::exists("/godot.cfg")));
+		if (_load_settings("res://godot.cfg")==OK || _load_settings_binary("res://godot.cfb")==OK) {
+			print_line("loaded godot.cfg");
 			_load_settings("res://override.cfg");
 
 		}
@@ -341,7 +344,7 @@ Error GlobalConfig::setup(const String& p_path,const String & p_main_pack) {
 
 			//tries to open pack, but only first time
 			if (first_time && (_load_resource_pack(current_dir+"/"+exec_name+".pck") || _load_resource_pack(current_dir+"/"+exec_name+".zip") )) {
-				if (_load_settings("res://engine.cfg")==OK || _load_settings_binary("res://engine.cfb")==OK) {
+				if (_load_settings("res://godot.cfg")==OK || _load_settings_binary("res://godot.cfb")==OK) {
 
 					_load_settings("res://override.cfg");
 					found=true;
@@ -350,7 +353,7 @@ Error GlobalConfig::setup(const String& p_path,const String & p_main_pack) {
 				}
 				break;
 			} else if (first_time && (_load_resource_pack(current_dir+"/data.pck") || _load_resource_pack(current_dir+"/data.zip") )) {
-				if (_load_settings("res://engine.cfg")==OK || _load_settings_binary("res://engine.cfb")==OK) {
+				if (_load_settings("res://godot.cfg")==OK || _load_settings_binary("res://godot.cfb")==OK) {
 
 					_load_settings("res://override.cfg");
 					found=true;
@@ -358,7 +361,7 @@ Error GlobalConfig::setup(const String& p_path,const String & p_main_pack) {
 
 				}
 				break;
-			} else if (_load_settings(current_dir+"/engine.cfg")==OK || _load_settings_binary(current_dir+"/engine.cfb")==OK) {
+			} else if (_load_settings(current_dir+"/godot.cfg")==OK || _load_settings_binary(current_dir+"/godot.cfb")==OK) {
 
 				_load_settings(current_dir+"/override.cfg");
 				candidate=current_dir;
@@ -416,7 +419,7 @@ Error GlobalConfig::_load_settings_binary(const String p_path) {
 	if (hdr[0]!='E'|| hdr[1]!='C' || hdr[2]!='F' || hdr[3]!='G') {
 
 		memdelete(f);
-		ERR_EXPLAIN("Corrupted header in binary engine.cfb (not ECFG)");
+		ERR_EXPLAIN("Corrupted header in binary godot.cfb (not ECFG)");
 		ERR_FAIL_V(ERR_FILE_CORRUPT;)
 	}
 
@@ -491,6 +494,14 @@ Error GlobalConfig::_load_settings(const String p_path) {
 		}
 
 		if (assign!=String()) {
+			if (section==String() && assign=="config_version") {
+				int config_version = value;
+				if (config_version > FORMAT_VERSION) {
+					memdelete(f);
+					ERR_FAIL_COND_V(config_version > FORMAT_VERSION,ERR_FILE_CANT_OPEN);
+				}
+
+			}
 			set(section+"/"+assign,value);
 		} else if (next_tag.name!=String()) {
 			section=next_tag.name;
@@ -526,7 +537,7 @@ void GlobalConfig::clear(const String& p_name) {
 
 Error GlobalConfig::save() {
 
-	return save_custom(get_resource_path()+"/engine.cfg");
+	return save_custom(get_resource_path()+"/godot.cfg");
 }
 
 Error GlobalConfig::_save_settings_binary(const String& p_file,const Map<String,List<String> > &props,const CustomMap& p_custom) {
@@ -536,7 +547,7 @@ Error GlobalConfig::_save_settings_binary(const String& p_file,const Map<String,
 	FileAccess *file = FileAccess::open(p_file,FileAccess::WRITE,&err);
 	if (err!=OK) {
 
-		ERR_EXPLAIN("Coudln't save engine.cfb at "+p_file);
+		ERR_EXPLAIN("Coudln't save godot.cfb at "+p_file);
 		ERR_FAIL_COND_V(err,err)
 	}
 
@@ -604,9 +615,12 @@ Error GlobalConfig::_save_settings_text(const String& p_file,const Map<String,Li
 	FileAccess *file = FileAccess::open(p_file,FileAccess::WRITE,&err);
 
 	if (err) {
-		ERR_EXPLAIN("Coudln't save engine.cfg - "+p_file);
+		ERR_EXPLAIN("Coudln't save godot.cfg - "+p_file);
 		ERR_FAIL_COND_V(err,err)
 	}
+
+	file->store_string("config_version="+itos(FORMAT_VERSION)+"\n");
+
 
 	for(Map<String,List<String> >::Element *E=props.front();E;E=E->next()) {
 
@@ -734,7 +748,7 @@ Error GlobalConfig::save_custom(const String& p_path,const CustomMap& p_custom,c
 	Error err = file->open(dst_file,FileAccess::WRITE);
 	if (err) {
 		memdelete(file);
-		ERR_EXPLAIN("Coudln't save engine.cfg");
+		ERR_EXPLAIN("Coudln't save godot.cfg");
 		ERR_FAIL_COND_V(err,err)
 	}
 
