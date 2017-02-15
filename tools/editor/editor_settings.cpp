@@ -242,13 +242,20 @@ void EditorSettings::create() {
 
 	String exe_path = OS::get_singleton()->get_executable_path().get_base_dir();
 	DirAccess* d = DirAccess::create_for_path(exe_path);
+	bool self_contained = false;
 
 	if (d->file_exists(exe_path + "/._sc_")) {
+		self_contained = true;
+		extra_config->load(exe_path + "/._sc_");
+	} else if (d->file_exists(exe_path + "/_sc_")) {
+		self_contained = true;
+		extra_config->load(exe_path + "/_sc_");
+	}
 
+	if (self_contained) {
 		// editor is self contained
 		config_path = exe_path;
 		config_dir = "editor_data";
-		extra_config->load(exe_path + "/._sc_");
 	} else {
 
 		if (OS::get_singleton()->has_environment("APPDATA")) {
@@ -655,6 +662,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("run/auto_save/save_before_running",true);
 	set("run/output/always_clear_output_on_play",true);
 	set("run/output/always_open_output_on_play",true);
+	set("run/output/always_close_output_on_stop",false);
 	set("filesystem/resources/save_compressed_resources",true);
 	set("filesystem/resources/auto_reload_modified_images",true);
 
@@ -1029,42 +1037,38 @@ void EditorSettings::set_optimize_save(bool p_optimize) {
 	optimize_save=p_optimize;
 }
 
-String EditorSettings::get_last_selected_language()
-{
+Variant EditorSettings::get_project_metadata(const String& p_section, const String& p_key, Variant p_default) {
 	Ref<ConfigFile> cf = memnew( ConfigFile );
 	String path = get_project_settings_path().plus_file("project_metadata.cfg");
 	Error err = cf->load(path);
 	if (err != OK) {
-		return "";
+		return p_default;
 	}
-	Variant last_selected_language = cf->get_value("script_setup", "last_selected_language");
-	if (last_selected_language.get_type() != Variant::STRING)
-		return "";
-	return static_cast<String>(last_selected_language);
+	return cf->get_value(p_section, p_key, p_default);
 }
 
-void EditorSettings::set_last_selected_language(String p_language)
+void EditorSettings::set_project_metadata(const String& p_section, const String& p_key, Variant p_data)
 {
 	Ref<ConfigFile> cf = memnew( ConfigFile );
 	String path = get_project_settings_path().plus_file("project_metadata.cfg");
 	cf->load(path);
-	cf->set_value("script_setup", "last_selected_language", p_language);
+	cf->set_value(p_section, p_key, p_data);
 	cf->save(path);
 }
 
 void EditorSettings::_bind_methods() {
 
-	ClassDB::bind_method(_MD("erase","property"),&EditorSettings::erase);
-	ClassDB::bind_method(_MD("get_settings_path"),&EditorSettings::get_settings_path);
-	ClassDB::bind_method(_MD("get_project_settings_path"),&EditorSettings::get_project_settings_path);
+	ClassDB::bind_method(D_METHOD("erase","property"),&EditorSettings::erase);
+	ClassDB::bind_method(D_METHOD("get_settings_path"),&EditorSettings::get_settings_path);
+	ClassDB::bind_method(D_METHOD("get_project_settings_path"),&EditorSettings::get_project_settings_path);
 
-	ClassDB::bind_method(_MD("add_property_info", "info"),&EditorSettings::_add_property_info_bind);
+	ClassDB::bind_method(D_METHOD("add_property_info", "info"),&EditorSettings::_add_property_info_bind);
 
-	ClassDB::bind_method(_MD("set_favorite_dirs","dirs"),&EditorSettings::set_favorite_dirs);
-	ClassDB::bind_method(_MD("get_favorite_dirs"),&EditorSettings::get_favorite_dirs);
+	ClassDB::bind_method(D_METHOD("set_favorite_dirs","dirs"),&EditorSettings::set_favorite_dirs);
+	ClassDB::bind_method(D_METHOD("get_favorite_dirs"),&EditorSettings::get_favorite_dirs);
 
-	ClassDB::bind_method(_MD("set_recent_dirs","dirs"),&EditorSettings::set_recent_dirs);
-	ClassDB::bind_method(_MD("get_recent_dirs"),&EditorSettings::get_recent_dirs);
+	ClassDB::bind_method(D_METHOD("set_recent_dirs","dirs"),&EditorSettings::set_recent_dirs);
+	ClassDB::bind_method(D_METHOD("get_recent_dirs"),&EditorSettings::get_recent_dirs);
 
 	ADD_SIGNAL(MethodInfo("settings_changed"));
 

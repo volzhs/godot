@@ -79,7 +79,15 @@ void TextureRect::_notification(int p_what) {
 
 				draw_texture_rect(texture,Rect2(ofs_x,ofs_y,tex_width,tex_height));
 			} break;
-
+			case STRETCH_KEEP_ASPECT_COVERED: {
+				Size2 size = get_size();
+				Size2 tex_size = texture->get_size();
+				Size2 scaleSize(size.width/tex_size.width, size.height/tex_size.height);
+				float scale = scaleSize.width > scaleSize.height? scaleSize.width : scaleSize.height;
+				Size2 scaledTexSize = tex_size * scale;
+				Point2 ofs = ((scaledTexSize - size) / scale).abs() / 2.0f;
+				draw_texture_rect_region(texture, Rect2(Point2(), size), Rect2(ofs, size/scale));
+			} break;
 		}
 
 	}
@@ -95,16 +103,16 @@ Size2 TextureRect::get_minimum_size() const {
 void TextureRect::_bind_methods() {
 
 
-	ClassDB::bind_method(_MD("set_texture","texture"), & TextureRect::set_texture );
-	ClassDB::bind_method(_MD("get_texture"), & TextureRect::get_texture );
-	ClassDB::bind_method(_MD("set_expand","enable"), & TextureRect::set_expand );
-	ClassDB::bind_method(_MD("has_expand"), & TextureRect::has_expand );
-	ClassDB::bind_method(_MD("set_stretch_mode","stretch_mode"), & TextureRect::set_stretch_mode );
-	ClassDB::bind_method(_MD("get_stretch_mode"), & TextureRect::get_stretch_mode );
+	ClassDB::bind_method(D_METHOD("set_texture","texture"), & TextureRect::set_texture );
+	ClassDB::bind_method(D_METHOD("get_texture"), & TextureRect::get_texture );
+	ClassDB::bind_method(D_METHOD("set_expand","enable"), & TextureRect::set_expand );
+	ClassDB::bind_method(D_METHOD("has_expand"), & TextureRect::has_expand );
+	ClassDB::bind_method(D_METHOD("set_stretch_mode","stretch_mode"), & TextureRect::set_stretch_mode );
+	ClassDB::bind_method(D_METHOD("get_stretch_mode"), & TextureRect::get_stretch_mode );
 
-	ADD_PROPERTYNZ( PropertyInfo( Variant::OBJECT, "texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture"), _SCS("set_texture"),_SCS("get_texture") );
-	ADD_PROPERTYNZ( PropertyInfo( Variant::BOOL, "expand" ), _SCS("set_expand"),_SCS("has_expand") );
-	ADD_PROPERTYNO( PropertyInfo( Variant::INT, "stretch_mode",PROPERTY_HINT_ENUM,"Scale On Expand (Compat),Scale,Tile,Keep,Keep Centered,Keep Aspect,Keep Aspect Centered"), _SCS("set_stretch_mode"),_SCS("get_stretch_mode") );
+	ADD_PROPERTYNZ( PropertyInfo( Variant::OBJECT, "texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture"), "set_texture", "get_texture");
+	ADD_PROPERTYNZ( PropertyInfo( Variant::BOOL, "expand" ), "set_expand","has_expand");
+	ADD_PROPERTYNO( PropertyInfo( Variant::INT, "stretch_mode",PROPERTY_HINT_ENUM,"Scale On Expand (Compat),Scale,Tile,Keep,Keep Centered,Keep Aspect,Keep Aspect Centered,Keep Aspect Covered"), "set_stretch_mode", "get_stretch_mode");
 
 	BIND_CONSTANT( STRETCH_SCALE_ON_EXPAND );
 	BIND_CONSTANT( STRETCH_SCALE );
@@ -113,7 +121,7 @@ void TextureRect::_bind_methods() {
 	BIND_CONSTANT( STRETCH_KEEP_CENTERED );
 	BIND_CONSTANT( STRETCH_KEEP_ASPECT );
 	BIND_CONSTANT( STRETCH_KEEP_ASPECT_CENTERED );
-
+	BIND_CONSTANT( STRETCH_KEEP_ASPECT_COVERED );
 }
 
 

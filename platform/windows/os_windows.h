@@ -92,7 +92,6 @@ class OS_Windows : public OS {
 	ContextGL_Win *gl_context;
 #endif
 	VisualServer *visual_server;
-	Rasterizer *rasterizer;
 	PhysicsServer *physics_server;
 	Physics2DServer *physics_2d_server;
 	int pressrc;
@@ -285,6 +284,8 @@ public:
 
 	virtual void set_use_vsync(bool p_enable);
 	virtual bool is_vsync_enabled() const;
+
+	virtual bool check_feature_support(const String& p_feature);
 
 	OS_Windows(HINSTANCE _hInstance);
 	~OS_Windows();

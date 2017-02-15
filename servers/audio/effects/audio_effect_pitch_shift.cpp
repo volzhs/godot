@@ -220,7 +220,7 @@ void SMBPitchShift::smbFft(float *fftBuffer, long fftFrameSize, long sign)
 			*p1 = *p2; *p2 = temp;
 		}
 	}
-	for (k = 0, le = 2; k < (long)(log(fftFrameSize)/log(2.)+.5); k++) {
+	for (k = 0, le = 2; k < (long)(log((double)fftFrameSize)/log(2.)+.5); k++) {
 		le <<= 1;
 		le2 = le>>1;
 		ur = 1.0;
@@ -285,10 +285,10 @@ float AudioEffectPitchShift::get_pitch_scale() const {
 
 void AudioEffectPitchShift::_bind_methods() {
 
-	ClassDB::bind_method(_MD("set_pitch_scale","rate"),&AudioEffectPitchShift::set_pitch_scale);
-	ClassDB::bind_method(_MD("get_pitch_scale"),&AudioEffectPitchShift::get_pitch_scale);
+	ClassDB::bind_method(D_METHOD("set_pitch_scale","rate"),&AudioEffectPitchShift::set_pitch_scale);
+	ClassDB::bind_method(D_METHOD("get_pitch_scale"),&AudioEffectPitchShift::get_pitch_scale);
 
-	ADD_PROPERTY(PropertyInfo(Variant::REAL,"pitch_scale",PROPERTY_HINT_RANGE,"0.01,16,0.01"),_SCS("set_pitch_scale"),_SCS("get_pitch_scale"));
+	ADD_PROPERTY(PropertyInfo(Variant::REAL,"pitch_scale",PROPERTY_HINT_RANGE,"0.01,16,0.01"),"set_pitch_scale","get_pitch_scale");
 
 }
 

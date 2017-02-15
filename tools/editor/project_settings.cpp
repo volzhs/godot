@@ -242,7 +242,7 @@ void ProjectSettings::_device_input_add() {
 	undo_redo->add_undo_method(this,"_settings_changed");
 	undo_redo->commit_action();
 
-	_show_last_added(ie);
+	_show_last_added(ie, name);
 }
 
 
@@ -279,12 +279,14 @@ void ProjectSettings::_press_a_key_confirm() {
 	undo_redo->add_undo_method(this,"_settings_changed");
 	undo_redo->commit_action();
 
-	_show_last_added(ie);
+	_show_last_added(ie, name);
 }
 
-void ProjectSettings::_show_last_added(const InputEvent& p_event) {
+void ProjectSettings::_show_last_added(const InputEvent& p_event, const String &p_name) {
 	TreeItem *r = input_editor->get_root();
 
+	String name = p_name;
+	name.erase(0,6);
 	if (!r)
 		return;
 	r=r->get_children();
@@ -292,6 +294,10 @@ void ProjectSettings::_show_last_added(const InputEvent& p_event) {
 		return;
 	bool found = false;
 	while(r){
+		if (r->get_text(0) != name) {
+			r=r->get_next();
+			continue;
+		}
 		TreeItem *child = r->get_children();
 		while(child){
 			Variant input = child->get_meta("__input");
@@ -377,7 +383,7 @@ void ProjectSettings::_add_item(int p_item){
 		} break;
 		case InputEvent::JOYPAD_BUTTON: {
 
-			device_id->set_value(3);
+			device_id->set_value(0);
 			device_index_label->set_text(TTR("Joypad Button Index:"));
 			device_index->clear();
 
@@ -1175,41 +1181,41 @@ void ProjectSettings::set_plugins_page() {
 
 void ProjectSettings::_bind_methods() {
 
-	ClassDB::bind_method(_MD("_item_selected"),&ProjectSettings::_item_selected);
-	ClassDB::bind_method(_MD("_item_add"),&ProjectSettings::_item_add);
-	ClassDB::bind_method(_MD("_item_adds"),&ProjectSettings::_item_adds);
-	ClassDB::bind_method(_MD("_item_del"),&ProjectSettings::_item_del);
-	ClassDB::bind_method(_MD("_item_checked"),&ProjectSettings::_item_checked);
-	ClassDB::bind_method(_MD("_save"),&ProjectSettings::_save);
-	ClassDB::bind_method(_MD("_action_add"),&ProjectSettings::_action_add);
-	ClassDB::bind_method(_MD("_action_adds"),&ProjectSettings::_action_adds);
-	ClassDB::bind_method(_MD("_action_selected"),&ProjectSettings::_action_selected);
-	ClassDB::bind_method(_MD("_action_edited"),&ProjectSettings::_action_edited);
-	ClassDB::bind_method(_MD("_action_button_pressed"),&ProjectSettings::_action_button_pressed);
-	ClassDB::bind_method(_MD("_update_actions"),&ProjectSettings::_update_actions);
-	ClassDB::bind_method(_MD("_wait_for_key"),&ProjectSettings::_wait_for_key);
-	ClassDB::bind_method(_MD("_add_item"),&ProjectSettings::_add_item);
-	ClassDB::bind_method(_MD("_device_input_add"),&ProjectSettings::_device_input_add);
-	ClassDB::bind_method(_MD("_press_a_key_confirm"),&ProjectSettings::_press_a_key_confirm);
-	ClassDB::bind_method(_MD("_settings_prop_edited"),&ProjectSettings::_settings_prop_edited);
-	ClassDB::bind_method(_MD("_copy_to_platform"),&ProjectSettings::_copy_to_platform);
-	ClassDB::bind_method(_MD("_update_translations"),&ProjectSettings::_update_translations);
-	ClassDB::bind_method(_MD("_translation_delete"),&ProjectSettings::_translation_delete);
-	ClassDB::bind_method(_MD("_settings_changed"),&ProjectSettings::_settings_changed);
-	ClassDB::bind_method(_MD("_translation_add"),&ProjectSettings::_translation_add);
-	ClassDB::bind_method(_MD("_translation_file_open"),&ProjectSettings::_translation_file_open);
+	ClassDB::bind_method(D_METHOD("_item_selected"),&ProjectSettings::_item_selected);
+	ClassDB::bind_method(D_METHOD("_item_add"),&ProjectSettings::_item_add);
+	ClassDB::bind_method(D_METHOD("_item_adds"),&ProjectSettings::_item_adds);
+	ClassDB::bind_method(D_METHOD("_item_del"),&ProjectSettings::_item_del);
+	ClassDB::bind_method(D_METHOD("_item_checked"),&ProjectSettings::_item_checked);
+	ClassDB::bind_method(D_METHOD("_save"),&ProjectSettings::_save);
+	ClassDB::bind_method(D_METHOD("_action_add"),&ProjectSettings::_action_add);
+	ClassDB::bind_method(D_METHOD("_action_adds"),&ProjectSettings::_action_adds);
+	ClassDB::bind_method(D_METHOD("_action_selected"),&ProjectSettings::_action_selected);
+	ClassDB::bind_method(D_METHOD("_action_edited"),&ProjectSettings::_action_edited);
+	ClassDB::bind_method(D_METHOD("_action_button_pressed"),&ProjectSettings::_action_button_pressed);
+	ClassDB::bind_method(D_METHOD("_update_actions"),&ProjectSettings::_update_actions);
+	ClassDB::bind_method(D_METHOD("_wait_for_key"),&ProjectSettings::_wait_for_key);
+	ClassDB::bind_method(D_METHOD("_add_item"),&ProjectSettings::_add_item);
+	ClassDB::bind_method(D_METHOD("_device_input_add"),&ProjectSettings::_device_input_add);
+	ClassDB::bind_method(D_METHOD("_press_a_key_confirm"),&ProjectSettings::_press_a_key_confirm);
+	ClassDB::bind_method(D_METHOD("_settings_prop_edited"),&ProjectSettings::_settings_prop_edited);
+	ClassDB::bind_method(D_METHOD("_copy_to_platform"),&ProjectSettings::_copy_to_platform);
+	ClassDB::bind_method(D_METHOD("_update_translations"),&ProjectSettings::_update_translations);
+	ClassDB::bind_method(D_METHOD("_translation_delete"),&ProjectSettings::_translation_delete);
+	ClassDB::bind_method(D_METHOD("_settings_changed"),&ProjectSettings::_settings_changed);
+	ClassDB::bind_method(D_METHOD("_translation_add"),&ProjectSettings::_translation_add);
+	ClassDB::bind_method(D_METHOD("_translation_file_open"),&ProjectSettings::_translation_file_open);
 
-	ClassDB::bind_method(_MD("_translation_res_add"),&ProjectSettings::_translation_res_add);
-	ClassDB::bind_method(_MD("_translation_res_file_open"),&ProjectSettings::_translation_res_file_open);
-	ClassDB::bind_method(_MD("_translation_res_option_add"),&ProjectSettings::_translation_res_option_add);
-	ClassDB::bind_method(_MD("_translation_res_option_file_open"),&ProjectSettings::_translation_res_option_file_open);
-	ClassDB::bind_method(_MD("_translation_res_select"),&ProjectSettings::_translation_res_select);
-	ClassDB::bind_method(_MD("_translation_res_option_changed"),&ProjectSettings::_translation_res_option_changed);
-	ClassDB::bind_method(_MD("_translation_res_delete"),&ProjectSettings::_translation_res_delete);
-	ClassDB::bind_method(_MD("_translation_res_option_delete"),&ProjectSettings::_translation_res_option_delete);
+	ClassDB::bind_method(D_METHOD("_translation_res_add"),&ProjectSettings::_translation_res_add);
+	ClassDB::bind_method(D_METHOD("_translation_res_file_open"),&ProjectSettings::_translation_res_file_open);
+	ClassDB::bind_method(D_METHOD("_translation_res_option_add"),&ProjectSettings::_translation_res_option_add);
+	ClassDB::bind_method(D_METHOD("_translation_res_option_file_open"),&ProjectSettings::_translation_res_option_file_open);
+	ClassDB::bind_method(D_METHOD("_translation_res_select"),&ProjectSettings::_translation_res_select);
+	ClassDB::bind_method(D_METHOD("_translation_res_option_changed"),&ProjectSettings::_translation_res_option_changed);
+	ClassDB::bind_method(D_METHOD("_translation_res_delete"),&ProjectSettings::_translation_res_delete);
+	ClassDB::bind_method(D_METHOD("_translation_res_option_delete"),&ProjectSettings::_translation_res_option_delete);
 
-	ClassDB::bind_method(_MD("_clear_search_box"),&ProjectSettings::_clear_search_box);
-	ClassDB::bind_method(_MD("_toggle_search_bar"),&ProjectSettings::_toggle_search_bar);
+	ClassDB::bind_method(D_METHOD("_clear_search_box"),&ProjectSettings::_clear_search_box);
+	ClassDB::bind_method(D_METHOD("_toggle_search_bar"),&ProjectSettings::_toggle_search_bar);
 
 }
 
