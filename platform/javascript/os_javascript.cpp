@@ -34,7 +34,7 @@
 #include "drivers/unix/dir_access_unix.h"
 #include "servers/visual/visual_server_raster.h"
 #include "main/main.h"
-#include "core/globals.h"
+#include "core/global_config.h"
 #include "dom_keys.h"
 
 #include <stdlib.h>
@@ -282,6 +282,8 @@ void OS_JavaScript::initialize(const VideoMode& p_desired,int p_video_driver,int
 	javascript_eval = memnew(JavaScript);
 	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("JavaScript", javascript_eval));
 #endif
+
+	visual_server->init();
 }
 
 void OS_JavaScript::set_main_loop( MainLoop * p_main_loop ) {

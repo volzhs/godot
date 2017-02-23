@@ -12,8 +12,6 @@ def get_name():
 
 
 def can_build():
-
-    import os
     return os.environ.has_key("EMSCRIPTEN_ROOT")
 
 
@@ -35,31 +33,41 @@ def get_flags():
     ]
 
 
+def create(env):
+    # remove Windows' .exe suffix
+    return env.Clone(PROGSUFFIX='')
+
+
+def escape_sources_backslashes(target, source, env, for_signature):
+    return [path.replace('\\','\\\\') for path in env.GetBuildPath(source)]
+
+def escape_target_backslashes(target, source, env, for_signature):
+    return env.GetBuildPath(target[0]).replace('\\','\\\\')
+
+
 def configure(env):
     env['ENV'] = os.environ
-    env.use_windows_spawn_fix('javascript')
 
     env.Append(CPPPATH=['#platform/javascript'])
 
-    em_path = os.environ["EMSCRIPTEN_ROOT"]
+    env.PrependENVPath('PATH', os.environ['EMSCRIPTEN_ROOT'])
+    env['CC']      = 'emcc'
+    env['CXX']     = 'em++'
+    env['LINK']    = 'emcc'
+    env['RANLIB']  = 'emranlib'
+    # Emscripten's ar has issues with duplicate file names, so use cc
+    env['AR']      = 'emcc'
+    env['ARFLAGS'] = '-o'
+    if (os.name == 'nt'):
+        # use TempFileMunge on Windows since some commands get too long for
+        # cmd.exe even with spawn_fix
+        # need to escape backslashes for this
+        env['ESCAPED_SOURCES'] = escape_sources_backslashes
+        env['ESCAPED_TARGET'] = escape_target_backslashes
+        env['ARCOM'] = '${TEMPFILE("%s")}' % env['ARCOM'].replace('$SOURCES', '$ESCAPED_SOURCES').replace('$TARGET', '$ESCAPED_TARGET')
 
-    env['ENV']['PATH'] = em_path + ":" + env['ENV']['PATH']
-    env['CC'] = em_path + '/emcc'
-    env['CXX'] = em_path + '/emcc'
-    #env['AR'] = em_path+"/emar"
-    env['AR'] = em_path + "/emcc"
-    env['ARFLAGS'] = "-o"
-
-#	env['RANLIB'] = em_path+"/emranlib"
-    env['RANLIB'] = em_path + "/emcc"
     env['OBJSUFFIX'] = '.bc'
     env['LIBSUFFIX'] = '.bc'
-    env['CCCOM'] = "$CC -o $TARGET $CFLAGS $CCFLAGS $_CCCOMCOM $SOURCES"
-    env['CXXCOM'] = "$CC -o $TARGET $CFLAGS $CCFLAGS $_CCCOMCOM $SOURCES"
-
-#	env.Append(LIBS=['c','m','stdc++','log','GLESv1_CM','GLESv2'])
-
-#	env["LINKFLAGS"]= string.split(" -g --sysroot="+ld_sysroot+" -Wl,--no-undefined -Wl,-z,noexecstack ")
 
     if (env["target"] == "release"):
         env.Append(CCFLAGS=['-O2'])
@@ -78,7 +86,6 @@ def configure(env):
     env.Append(CPPFLAGS=["-fno-exceptions", '-DNO_SAFE_CAST', '-fno-rtti'])
     env.Append(CPPFLAGS=['-DJAVASCRIPT_ENABLED', '-DUNIX_ENABLED', '-DPTHREAD_NO_RENAME', '-DNO_FCNTL', '-DMPC_FIXED_POINT', '-DTYPED_METHOD_BIND', '-DNO_THREADS'])
     env.Append(CPPFLAGS=['-DGLES3_ENABLED'])
-    env.Append(CPPFLAGS=['-DGLES_NO_CLIENT_ARRAYS'])
 
     if env['wasm'] == 'yes':
         env.Append(LINKFLAGS=['-s', 'BINARYEN=1'])
@@ -88,7 +95,7 @@ def configure(env):
         # what is set during compilation, check TOTAL_MEMORY in Emscripten's
         # src/settings.js for the default.
         env.Append(LINKFLAGS=['-s', 'ALLOW_MEMORY_GROWTH=1'])
-        env["PROGSUFFIX"] += ".webassembly"
+        env.extra_suffix = '.webassembly' + env.extra_suffix
     else:
         env.Append(CPPFLAGS=['-s', 'ASM_JS=1'])
         env.Append(LINKFLAGS=['-s', 'ASM_JS=1'])
@@ -100,8 +107,5 @@ def configure(env):
     env.Append(LINKFLAGS=['-O2'])
     env.Append(LINKFLAGS=['-s', 'USE_WEBGL2=1'])
     # env.Append(LINKFLAGS=['-g4'])
-
-    # print "CCCOM is:", env.subst('$CCCOM')
-    # print "P: ", env['p'], " Platofrm: ", env['platform']
 
     import methods

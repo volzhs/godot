@@ -39,6 +39,7 @@
 class EditorProgress;
 class FileAccess;
 class EditorExportPlatform;
+class EditorFileSystemDirectory;
 
 class EditorExportPreset : public Reference {
 
@@ -48,7 +49,6 @@ public:
 		EXPORT_ALL_RESOURCES,
 		EXPORT_SELECTED_SCENES,
 		EXPORT_SELECTED_RESOURCES,
-		EXPORT_ALL_FILES,
 	};
 
 private:
@@ -64,6 +64,7 @@ private:
 
 	Vector<String> patches;
 
+
 friend class EditorExport;
 friend class EditorExportPlatform;
 
@@ -78,7 +79,7 @@ protected:
 
 public:
 
-	Ref<EditorExportPlatform> get_platform();
+	Ref<EditorExportPlatform> get_platform() const;
 	bool has(const StringName& p_property) const { return values.has(p_property); }
 
 	Vector<String> get_files_to_export() const;
@@ -126,9 +127,14 @@ private:
 
 	struct SavedData {
 
-		String path;
 		uint64_t ofs;
 		uint64_t size;
+		Vector<uint8_t> md5;
+		CharString path_utf8;
+
+		bool operator<(const SavedData& p_data) const {
+			return path_utf8 < p_data.path_utf8;
+		}
 	};
 
 	struct PackData {
@@ -142,9 +148,11 @@ private:
 
 		void* zip;
 		EditorProgress *ep;
-		int count;
 
 	};
+
+	void _export_find_resources(EditorFileSystemDirectory *p_dir,Set<String>& p_paths);
+	void _export_find_dependencies(const String& p_path,Set<String>& p_paths);
 
 	void gen_debug_flags(Vector<String> &r_flags, int p_flags);
 	static Error _save_pack_file(void *p_userdata,const String& p_path, const Vector<uint8_t>& p_data,int p_file,int p_total);
@@ -176,7 +184,7 @@ public:
 
 	Error export_project_files(const Ref<EditorExportPreset>& p_preset,EditorExportSaveFunction p_func, void* p_udata);
 
-	Error save_pack(const Ref<EditorExportPreset>& p_preset,FileAccess *p_where);
+	Error save_pack(const Ref<EditorExportPreset>& p_preset,const String& p_path);
 	Error save_zip(const Ref<EditorExportPreset>& p_preset,const String& p_path);
 
 
@@ -195,10 +203,10 @@ public:
 
 	virtual Error run(int p_device,int p_debug_flags) { return OK; }
 
-	virtual bool can_export(String *r_error=NULL) const=0;
+	virtual bool can_export(const Ref<EditorExportPreset>& p_preset,String &r_error,bool &r_missing_templates) const=0;
 
 	virtual String get_binary_extension() const=0;
-	virtual Error export_project(const Ref<EditorExportPreset>& p_preset,const String& p_path,int p_flags=0)=0;
+	virtual Error export_project(const Ref<EditorExportPreset>& p_preset,bool p_debug,const String& p_path,int p_flags=0)=0;
 
 	EditorExportPlatform();
 };
@@ -254,7 +262,10 @@ class EditorExportPlatformPC : public EditorExportPlatform {
 	String name;
 	String extension;
 
-
+	String release_file_32;
+	String release_file_64;
+	String debug_file_32;
+	String debug_file_64;
 
 public:
 
@@ -265,14 +276,19 @@ public:
 	virtual String get_name() const;
 	virtual Ref<Texture> get_logo() const;
 
-	virtual bool can_export(String *r_error=NULL) const;
+	virtual bool can_export(const Ref<EditorExportPreset>& p_preset,String &r_error,bool &r_missing_templates) const;
 	virtual String get_binary_extension() const;
-	virtual Error export_project(const Ref<EditorExportPreset>& p_preset,const String& p_path,int p_flags=0);
+	virtual Error export_project(const Ref<EditorExportPreset>& p_preset,bool p_debug,const String& p_path,int p_flags=0);
 
 	void set_extension(const String& p_extension);
 	void set_name(const String& p_name);
 
 	void set_logo(const Ref<Texture>& p_loco);
+
+	void set_release_64(const String& p_file);
+	void set_release_32(const String& p_file);
+	void set_debug_64(const String& p_file);
+	void set_debug_32(const String& p_file);
 
 	EditorExportPlatformPC();
 };
