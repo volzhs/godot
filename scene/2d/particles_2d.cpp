@@ -27,6 +27,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "particles_2d.h"
+#include "scene/scene_string_names.h"
 
 
 
@@ -227,21 +228,10 @@ ParticleAttractor2D::ParticleAttractor2D() {
 
 /****************************************/
 
-_FORCE_INLINE_ static float _rand_from_seed(uint32_t *seed) {
+_FORCE_INLINE_ static float _rand_from_seed(uint64_t *seed) {
 
-	uint32_t k;
-	uint32_t s = (*seed);
-	if (s == 0)
-		s = 0x12345987;
-	k = s / 127773;
-	s = 16807 * (s - k * 127773) - 2836 * k;
-	if (s < 0)
-		s += 2147483647;
-	(*seed) = s;
-
-	float v=((float)((*seed) & 0xFFFFF))/(float)0xFFFFF;
-	v=v*2.0-1.0;
-	return v;
+	uint32_t r = Math::rand_from_seed(seed);
+	return 2.0f * (float)r / (float)Math::RANDOM_MAX - 1.0f;
 }
 
 void Particles2D::_process_particles(float p_delta) {
@@ -348,7 +338,7 @@ void Particles2D::_process_particles(float p_delta) {
 					}
 				}
 				p.seed=Math::rand() % 12345678;
-				uint32_t rand_seed=p.seed*(i+1);
+				uint64_t rand_seed=p.seed*(i+1);
 
 				float angle = Math::deg2rad(param[PARAM_DIRECTION]+_rand_from_seed(&rand_seed)*param[PARAM_SPREAD]);
 
@@ -377,7 +367,7 @@ void Particles2D::_process_particles(float p_delta) {
 			if (!p.active)
 				continue;
 
-			uint32_t rand_seed=p.seed*(i+1);
+			uint64_t rand_seed=p.seed*(i+1);
 
 			Vector2 force;
 
@@ -451,8 +441,9 @@ void Particles2D::_process_particles(float p_delta) {
 
 	time=Math::fmod( time+frame_time, lifetime );
 	if (!emitting && active_count==0) {
+		emit_signal(SceneStringNames::get_singleton()->emission_finished);
 		set_process(false);
-
+		set_fixed_process(false);
 	}
 
 	update();
@@ -468,6 +459,11 @@ void Particles2D::_notification(int p_what) {
 		case NOTIFICATION_PROCESS: {
 
 			_process_particles( get_process_delta_time() );
+		} break;
+
+		case NOTIFICATION_FIXED_PROCESS: {
+
+			_process_particles( get_fixed_process_delta_time() );
 		} break;
 
 		case NOTIFICATION_ENTER_TREE: {
@@ -530,7 +526,7 @@ void Particles2D::_notification(int p_what) {
 				else
 					ptime=(1.0-ptime)+time_pos;
 
-				uint32_t rand_seed=p.seed*(i+1);
+				uint64_t rand_seed=p.seed*(i+1);
 
 				Color color;
 
@@ -695,7 +691,8 @@ void Particles2D::set_emitting(bool p_emitting) {
 
 		if (active_count==0)
 			time=0;
-		set_process(true);
+		set_process(process_mode==PROCESS_IDLE);
+		set_fixed_process(process_mode==PROCESS_FIXED);
 		time_to_live = emit_timeout;
 	};
 	emitting=p_emitting;
@@ -705,6 +702,19 @@ void Particles2D::set_emitting(bool p_emitting) {
 bool Particles2D::is_emitting() const {
 
 	return emitting;
+}
+
+void Particles2D::set_process_mode(ProcessMode p_mode) {
+
+	process_mode=p_mode;
+	const bool should_process=emitting || active_count!=0;
+	set_process(should_process && process_mode==PROCESS_IDLE);
+	set_fixed_process(should_process && process_mode==PROCESS_FIXED);
+}
+
+Particles2D::ProcessMode Particles2D::get_process_mode() const {
+
+	return process_mode;
 }
 
 void Particles2D::set_amount(int p_amount) {
@@ -918,15 +928,6 @@ Vector2 Particles2D::get_emission_half_extents() const {
 	return extents;
 }
 
-void Particles2D::testee(int a, int b, int c, int d, int e) {
-
-	print_line(itos(a));
-	print_line(itos(b));
-	print_line(itos(c));
-	print_line(itos(d));
-	print_line(itos(e));
-}
-
 void Particles2D::set_initial_velocity(const Vector2& p_velocity) {
 
 
@@ -1020,6 +1021,9 @@ void Particles2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_emitting","active"),&Particles2D::set_emitting);
 	ClassDB::bind_method(D_METHOD("is_emitting"),&Particles2D::is_emitting);
 
+	ClassDB::bind_method(D_METHOD("set_process_mode","mode"),&Particles2D::set_process_mode);
+	ClassDB::bind_method(D_METHOD("get_process_mode"),&Particles2D::get_process_mode);
+
 	ClassDB::bind_method(D_METHOD("set_amount","amount"),&Particles2D::set_amount);
 	ClassDB::bind_method(D_METHOD("get_amount"),&Particles2D::get_amount);
 
@@ -1092,12 +1096,15 @@ void Particles2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_emission_points","points"),&Particles2D::set_emission_points);
 	ClassDB::bind_method(D_METHOD("get_emission_points"),&Particles2D::get_emission_points);
 
+	ADD_SIGNAL(MethodInfo("emission_finished"));
+
 	ADD_PROPERTY(PropertyInfo(Variant::INT,"config/amount",PROPERTY_HINT_EXP_RANGE,"1,1024"),"set_amount","get_amount") ;
 	ADD_PROPERTY(PropertyInfo(Variant::REAL,"config/lifetime",PROPERTY_HINT_EXP_RANGE,"0.1,3600,0.1"),"set_lifetime","get_lifetime") ;
 	ADD_PROPERTYNO(PropertyInfo(Variant::REAL,"config/time_scale",PROPERTY_HINT_EXP_RANGE,"0.01,128,0.01"),"set_time_scale","get_time_scale") ;
 	ADD_PROPERTYNZ(PropertyInfo(Variant::REAL,"config/preprocess",PROPERTY_HINT_EXP_RANGE,"0.1,3600,0.1"),"set_pre_process_time","get_pre_process_time") ;
 	ADD_PROPERTYNZ(PropertyInfo(Variant::REAL,"config/emit_timeout",PROPERTY_HINT_RANGE,"0,3600,0.1"),"set_emit_timeout","get_emit_timeout") ;
 	ADD_PROPERTYNO(PropertyInfo(Variant::BOOL,"config/emitting"),"set_emitting","is_emitting") ;
+	ADD_PROPERTY(PropertyInfo(Variant::INT,"config/process_mode",PROPERTY_HINT_ENUM, "Fixed,Idle"),"set_process_mode","get_process_mode");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::VECTOR2,"config/offset"),"set_emissor_offset","get_emissor_offset");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::VECTOR2,"config/half_extents"),"set_emission_half_extents","get_emission_half_extents");
 	ADD_PROPERTYNO(PropertyInfo(Variant::BOOL,"config/local_space"),"set_use_local_space","is_using_local_space");
@@ -1180,6 +1187,7 @@ Particles2D::Particles2D() {
 	particles.resize(32);
 	active_count=-1;
 	set_emitting(true);
+	process_mode=PROCESS_IDLE;
 	local_space=true;
 	preprocess=0;
 	time_scale=1.0;

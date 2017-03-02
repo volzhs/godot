@@ -1255,6 +1255,10 @@ void OS_Windows::finalize() {
 
 	main_loop=NULL;
 
+	for (int i = 0; i < get_audio_driver_count(); i++) {
+		AudioDriverManager::get_driver(i)->finish();
+	}
+
 	memdelete(joypad);
 	memdelete(input);
 
@@ -1282,13 +1286,8 @@ void OS_Windows::finalize() {
 	memdelete(physics_2d_server);
 
 	monitor_info.clear();
-
-	for (int i = 0; i < get_audio_driver_count(); i++)
-	{
-		AudioDriverManager::get_driver(i)->finish();
-	}
-
 }
+
 void OS_Windows::finalize_core() {
 
 	memdelete(process_map);
@@ -1969,10 +1968,10 @@ Error OS_Windows::execute(const String& p_path, const List<String>& p_arguments,
 
 		String argss;
 		argss="\"\""+p_path+"\"";
+		
+		for (const List<String>::Element* E=p_arguments.front(); E; E=E->next()) {
 
-		for(int i=0;i<p_arguments.size();i++) {
-
-			argss+=String(" \"")+p_arguments[i]+"\"";
+			argss+=String(" \"")+E->get()+"\"";
 		}
 
 		//print_line("ARGS: "+argss);

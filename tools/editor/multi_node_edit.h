@@ -41,6 +41,8 @@ class MultiNodeEdit : public Reference {
 		PropertyInfo info;
 	};
 
+	bool _set_impl(const StringName& p_name, const Variant& p_value, const String& p_field);
+
 
 protected:
 
@@ -54,6 +56,8 @@ public:
 
 	void clear_nodes();
 	void add_node(const NodePath& p_node);
+
+	void set_property_field(const StringName& p_property, const Variant& p_value, const String& p_field);
 
 	MultiNodeEdit();
 };

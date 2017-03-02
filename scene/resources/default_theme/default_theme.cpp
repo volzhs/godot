@@ -583,24 +583,19 @@ void fill_default_theme(Ref<Theme>& t, const Ref<Font> & default_font, const Ref
 
 	// WindowDialog
 
-	Ref<StyleBoxTexture> style_pp_win = sb_expand(make_stylebox( popup_window_png,10,30,10,8),8,26,8,4);
-	/*for(int i=0;i<4;i++)
-		style_pp_win->set_expand_margin_size((Margin)i,3);
-	style_pp_win->set_expand_margin_size(MARGIN_TOP,26);*/
+	Ref<StyleBoxTexture> style_pp_win = sb_expand(make_stylebox(popup_window_png, 10, 26, 10, 8), 8, 24, 8, 6);
+	t->set_stylebox("panel", "WindowDialog", style_pp_win);
+	t->set_constant("titlebar_height", "WindowDialog", 20 * scale);
+	t->set_constant("scaleborder_size", "WindowDialog", 4);
 
-	t->set_stylebox("panel","WindowDialog", style_pp_win );
+	t->set_font("title_font", "WindowDialog", large_font);
+	t->set_color("title_color", "WindowDialog", Color(0, 0, 0));
+	t->set_constant("title_height", "WindowDialog", 18 * scale);
 
-	t->set_icon("close","WindowDialog", make_icon( close_png ) );
-	t->set_icon("close_hilite","WindowDialog", make_icon( close_hl_png ) );
-
-	t->set_font("title_font","WindowDialog", large_font );
-
-	t->set_color("title_color","WindowDialog", Color(0,0,0) );
-
-	t->set_constant("close_h_ofs","WindowDialog", 22 *scale);
-	t->set_constant("close_v_ofs","WindowDialog", 20 *scale);
-	t->set_constant("titlebar_height","WindowDialog", 18 *scale);
-	t->set_constant("title_height","WindowDialog", 20 *scale);
+	t->set_icon("close", "WindowDialog", make_icon(close_png));
+	t->set_icon("close_hilite", "WindowDialog", make_icon(close_hl_png));
+	t->set_constant("close_h_ofs", "WindowDialog", 18 * scale);
+	t->set_constant("close_v_ofs", "WindowDialog", 18 * scale);
 
 
 	// File Dialog
@@ -750,6 +745,7 @@ void fill_default_theme(Ref<Theme>& t, const Ref<Font> & default_font, const Ref
 
 	t->set_stylebox("tab_fg","TabContainer", sb_expand( make_stylebox( tab_current_png,4,4,4,1,16,4,16,4),2,2,2,2) );
 	t->set_stylebox("tab_bg","TabContainer", sb_expand( make_stylebox( tab_behind_png,5,5,5,1,16,6,16,4),3,0,3,3) );
+	t->set_stylebox("tab_disabled", "TabContainer", sb_expand(make_stylebox(tab_disabled_png, 5, 5, 5, 1, 16, 6, 16, 4), 3, 0, 3, 3));
 	t->set_stylebox("panel","TabContainer", tc_sb );
 
 	t->set_icon("increment","TabContainer",make_icon( scroll_button_right_png));
@@ -763,6 +759,7 @@ void fill_default_theme(Ref<Theme>& t, const Ref<Font> & default_font, const Ref
 
 	t->set_color("font_color_fg","TabContainer", control_font_color_hover );
 	t->set_color("font_color_bg","TabContainer", control_font_color_low );
+	t->set_color("font_color_disabled", "TabContainer", control_font_color_disabled);
 
 	t->set_constant("side_margin","TabContainer", 8 *scale);
 	t->set_constant("top_margin","TabContainer", 24 *scale);
@@ -776,6 +773,7 @@ void fill_default_theme(Ref<Theme>& t, const Ref<Font> & default_font, const Ref
 
 	t->set_stylebox("tab_fg","Tabs", sb_expand( make_stylebox( tab_current_png,4,3,4,1,16,3,16,2),2,2,2,2) );
 	t->set_stylebox("tab_bg","Tabs", sb_expand( make_stylebox( tab_behind_png,5,4,5,1,16,5,16,2),3,3,3,3) );
+	t->set_stylebox("tab_disabled", "Tabs", sb_expand(make_stylebox(tab_disabled_png, 5, 4, 5, 1, 16, 5, 16, 2), 3, 3, 3, 3));
 	t->set_stylebox("panel","Tabs",tc_sb );
 	t->set_stylebox("button_pressed","Tabs", make_stylebox( button_pressed_png,4,4,4,4) );
 	t->set_stylebox("button","Tabs", make_stylebox( button_normal_png,4,4,4,4) );
@@ -790,6 +788,7 @@ void fill_default_theme(Ref<Theme>& t, const Ref<Font> & default_font, const Ref
 
 	t->set_color("font_color_fg","Tabs", control_font_color_hover );
 	t->set_color("font_color_bg","Tabs", control_font_color_low );
+	t->set_color("font_color_disabled", "Tabs", control_font_color_disabled);
 
 	t->set_constant("top_margin","Tabs", 24 *scale);
 	t->set_constant("label_valign_fg","Tabs", 0 *scale);
@@ -982,7 +981,7 @@ void make_default_theme(bool p_hidpi,Ref<Font> p_font) {
 	Ref<BitmapFont> default_font;
 	if (p_font.is_valid()) {
 		default_font=p_font;
-	} if (p_hidpi) {
+	} else if (p_hidpi) {
 		default_font=make_font2(_hidpi_font_height,_hidpi_font_ascent,_hidpi_font_charcount,&_hidpi_font_charrects[0][0],_hidpi_font_kerning_pair_count,&_hidpi_font_kerning_pairs[0][0],_hidpi_font_img_width,_hidpi_font_img_height,_hidpi_font_img_data);
 	} else {
 		default_font=make_font2(_lodpi_font_height,_lodpi_font_ascent,_lodpi_font_charcount,&_lodpi_font_charrects[0][0],_lodpi_font_kerning_pair_count,&_lodpi_font_kerning_pairs[0][0],_lodpi_font_img_width,_lodpi_font_img_height,_lodpi_font_img_data);

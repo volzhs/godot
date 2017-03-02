@@ -39,6 +39,7 @@
 #define Math_PI 3.14159265358979323846
 #define Math_SQRT12 0.7071067811865475244008443621048490
 #define Math_LN2 0.693147180559945309417
+#define Math_INF INFINITY
 #define Math_NAN NAN
 
 class Math {
@@ -49,7 +50,7 @@ public:
 	Math() {} // useless to instance
 
 	enum {
-		RANDOM_MAX=2147483647L
+		RANDOM_MAX=4294967295L
 	};
 
 
