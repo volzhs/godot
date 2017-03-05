@@ -1,14 +1,40 @@
+/*************************************************************************/
+/*  visual_script_builtin_funcs.h                                        */
+/*************************************************************************/
+/*                       This file is part of:                           */
+/*                           GODOT ENGINE                                */
+/*                    http://www.godotengine.org                         */
+/*************************************************************************/
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/*                                                                       */
+/* Permission is hereby granted, free of charge, to any person obtaining */
+/* a copy of this software and associated documentation files (the       */
+/* "Software"), to deal in the Software without restriction, including   */
+/* without limitation the rights to use, copy, modify, merge, publish,   */
+/* distribute, sublicense, and/or sell copies of the Software, and to    */
+/* permit persons to whom the Software is furnished to do so, subject to */
+/* the following conditions:                                             */
+/*                                                                       */
+/* The above copyright notice and this permission notice shall be        */
+/* included in all copies or substantial portions of the Software.       */
+/*                                                                       */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
+/*************************************************************************/
 #ifndef VISUAL_SCRIPT_BUILTIN_FUNCS_H
 #define VISUAL_SCRIPT_BUILTIN_FUNCS_H
 
 #include "visual_script.h"
 
-
 class VisualScriptBuiltinFunc : public VisualScriptNode {
 
-	GDCLASS(VisualScriptBuiltinFunc,VisualScriptNode)
+	GDCLASS(VisualScriptBuiltinFunc, VisualScriptNode)
 public:
-
 	enum BuiltinFunc {
 		MATH_SIN,
 		MATH_COS,
@@ -72,26 +98,24 @@ public:
 
 	static int get_func_argument_count(BuiltinFunc p_func);
 	static String get_func_name(BuiltinFunc p_func);
-	static void exec_func(BuiltinFunc p_func, const Variant** p_inputs, Variant* r_return, Variant::CallError& r_error, String& r_error_str);
-	static BuiltinFunc find_function(const String& p_string);
+	static void exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant *r_return, Variant::CallError &r_error, String &r_error_str);
+	static BuiltinFunc find_function(const String &p_string);
 
 private:
-	static const char* func_name[FUNC_MAX];
+	static const char *func_name[FUNC_MAX];
 	BuiltinFunc func;
+
 protected:
 	static void _bind_methods();
-public:
 
+public:
 	virtual int get_output_sequence_port_count() const;
 	virtual bool has_input_sequence_port() const;
 
-
 	virtual String get_output_sequence_port_text(int p_port) const;
-
 
 	virtual int get_input_value_port_count() const;
 	virtual int get_output_value_port_count() const;
-
 
 	virtual PropertyInfo get_input_value_port_info(int p_idx) const;
 	virtual PropertyInfo get_output_value_port_info(int p_idx) const;
@@ -103,15 +127,13 @@ public:
 	void set_func(BuiltinFunc p_which);
 	BuiltinFunc get_func();
 
-	virtual VisualScriptNodeInstance* instance(VisualScriptInstance* p_instance);
+	virtual VisualScriptNodeInstance *instance(VisualScriptInstance *p_instance);
 
 	VisualScriptBuiltinFunc();
 };
 
 VARIANT_ENUM_CAST(VisualScriptBuiltinFunc::BuiltinFunc)
 
-
 void register_visual_script_builtin_func_node();
-
 
 #endif // VISUAL_SCRIPT_BUILTIN_FUNCS_H

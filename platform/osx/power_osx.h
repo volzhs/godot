@@ -5,7 +5,7 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -41,7 +41,7 @@ private:
 	int nsecs_left;
 	int percent_left;
 	PowerState power_state;
-	void checkps(CFDictionaryRef dict, bool * have_ac, bool * have_battery, bool * charging);
+	void checkps(CFDictionaryRef dict, bool *have_ac, bool *have_battery, bool *charging);
 	bool GetPowerInfo_MacOSX(/*PowerState * state, int *seconds, int *percent*/);
 	bool UpdatePowerInfo();
 

@@ -1,3 +1,31 @@
+/*************************************************************************/
+/*  audio_effect_distortion.h                                            */
+/*************************************************************************/
+/*                       This file is part of:                           */
+/*                           GODOT ENGINE                                */
+/*                    http://www.godotengine.org                         */
+/*************************************************************************/
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/*                                                                       */
+/* Permission is hereby granted, free of charge, to any person obtaining */
+/* a copy of this software and associated documentation files (the       */
+/* "Software"), to deal in the Software without restriction, including   */
+/* without limitation the rights to use, copy, modify, merge, publish,   */
+/* distribute, sublicense, and/or sell copies of the Software, and to    */
+/* permit persons to whom the Software is furnished to do so, subject to */
+/* the following conditions:                                             */
+/*                                                                       */
+/* The above copyright notice and this permission notice shall be        */
+/* included in all copies or substantial portions of the Software.       */
+/*                                                                       */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
+/*************************************************************************/
 #ifndef AUDIOEFFECTDISTORTION_H
 #define AUDIOEFFECTDISTORTION_H
 
@@ -6,19 +34,17 @@
 class AudioEffectDistortion;
 
 class AudioEffectDistortionInstance : public AudioEffectInstance {
-	GDCLASS(AudioEffectDistortionInstance,AudioEffectInstance)
-friend class AudioEffectDistortion;
+	GDCLASS(AudioEffectDistortionInstance, AudioEffectInstance)
+	friend class AudioEffectDistortion;
 	Ref<AudioEffectDistortion> base;
 	float h[2];
+
 public:
-
-	virtual void process(const AudioFrame *p_src_frames,AudioFrame *p_dst_frames,int p_frame_count);
-
+	virtual void process(const AudioFrame *p_src_frames, AudioFrame *p_dst_frames, int p_frame_count);
 };
 
-
 class AudioEffectDistortion : public AudioEffect {
-	GDCLASS(AudioEffectDistortion,AudioEffect)
+	GDCLASS(AudioEffectDistortion, AudioEffect)
 public:
 	enum Mode {
 		MODE_CLIP,
@@ -28,7 +54,7 @@ public:
 		MODE_WAVESHAPE,
 	};
 
-friend class AudioEffectDistortionInstance;
+	friend class AudioEffectDistortionInstance;
 	Mode mode;
 	float pre_gain;
 	float post_gain;
@@ -36,13 +62,10 @@ friend class AudioEffectDistortionInstance;
 	float drive;
 
 protected:
-
 	static void _bind_methods();
+
 public:
-
-
 	Ref<AudioEffectInstance> instance();
-
 
 	void set_mode(Mode p_mode);
 	Mode get_mode() const;
@@ -59,11 +82,9 @@ public:
 	void set_post_gain(float post_gain);
 	float get_post_gain() const;
 
-
-
 	AudioEffectDistortion();
 };
 
-VARIANT_ENUM_CAST( AudioEffectDistortion::Mode )
+VARIANT_ENUM_CAST(AudioEffectDistortion::Mode)
 
 #endif // AUDIOEFFECTDISTORTION_H

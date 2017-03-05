@@ -5,7 +5,7 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -29,13 +29,10 @@
 #ifndef TEST_MAIN_H
 #define TEST_MAIN_H
 
-#include "ustring.h"
 #include "list.h"
+#include "ustring.h"
 
-const char ** tests_get_names();
-MainLoop* test_main(String p_test,const List<String>& p_args);
-
+const char **tests_get_names();
+MainLoop *test_main(String p_test, const List<String> &p_args);
 
 #endif
-
-

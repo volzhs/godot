@@ -1,10 +1,36 @@
+/*************************************************************************/
+/*  listener.cpp                                                         */
+/*************************************************************************/
+/*                       This file is part of:                           */
+/*                           GODOT ENGINE                                */
+/*                    http://www.godotengine.org                         */
+/*************************************************************************/
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/*                                                                       */
+/* Permission is hereby granted, free of charge, to any person obtaining */
+/* a copy of this software and associated documentation files (the       */
+/* "Software"), to deal in the Software without restriction, including   */
+/* without limitation the rights to use, copy, modify, merge, publish,   */
+/* distribute, sublicense, and/or sell copies of the Software, and to    */
+/* permit persons to whom the Software is furnished to do so, subject to */
+/* the following conditions:                                             */
+/*                                                                       */
+/* The above copyright notice and this permission notice shall be        */
+/* included in all copies or substantial portions of the Software.       */
+/*                                                                       */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
+/*************************************************************************/
 #include "listener.h"
 
 #include "scene/resources/mesh.h"
 
 void Listener::_update_audio_listener_state() {
-
-
 }
 
 void Listener::_request_listener_update() {
@@ -12,53 +38,48 @@ void Listener::_request_listener_update() {
 	_update_listener();
 }
 
-bool Listener::_set(const StringName& p_name, const Variant& p_value) {
+bool Listener::_set(const StringName &p_name, const Variant &p_value) {
 
 	if (p_name == "current") {
 		if (p_value.operator bool()) {
 			make_current();
-		}
-		else {
+		} else {
 			clear_current();
 		}
-	}
-	else
+	} else
 		return false;
 
 	return true;
 }
-bool Listener::_get(const StringName& p_name,Variant &r_ret) const {
+bool Listener::_get(const StringName &p_name, Variant &r_ret) const {
 
 	if (p_name == "current") {
 		if (is_inside_tree() && get_tree()->is_node_being_edited(this)) {
 			r_ret = current;
-		}
-		else {
+		} else {
 			r_ret = is_current();
 		}
-	}
-	else
+	} else
 		return false;
 
 	return true;
 }
 
-void Listener::_get_property_list( List<PropertyInfo> *p_list) const {
+void Listener::_get_property_list(List<PropertyInfo> *p_list) const {
 
-	p_list->push_back( PropertyInfo( Variant::BOOL, "current" ) );
+	p_list->push_back(PropertyInfo(Variant::BOOL, "current"));
 }
 
 void Listener::_update_listener() {
 
 	if (is_inside_tree() && is_current()) {
 		get_viewport()->_listener_transform_changed_notify();
-
 	}
 }
 
 void Listener::_notification(int p_what) {
 
-	switch(p_what) {
+	switch (p_what) {
 
 		case NOTIFICATION_ENTER_WORLD: {
 			bool first_listener = get_viewport()->_listener_add(this);
@@ -73,23 +94,18 @@ void Listener::_notification(int p_what) {
 			if (!get_tree()->is_node_being_edited(this)) {
 				if (is_current()) {
 					clear_current();
-					current=true; //keep it true
+					current = true; //keep it true
 
 				} else {
-					current=false;
+					current = false;
 				}
 			}
 
 			get_viewport()->_listener_remove(this);
 
-
 		} break;
-
-
 	}
-
 }
-
 
 Transform Listener::get_listener_transform() const {
 
@@ -98,7 +114,7 @@ Transform Listener::get_listener_transform() const {
 
 void Listener::make_current() {
 
-	current=true;
+	current = true;
 
 	if (!is_inside_tree())
 		return;
@@ -106,27 +122,23 @@ void Listener::make_current() {
 	get_viewport()->_listener_set(this);
 }
 
-
-
-
 void Listener::clear_current() {
 
-	current=false;
+	current = false;
 	if (!is_inside_tree())
 		return;
 
-	if (get_viewport()->get_listener()==this) {
+	if (get_viewport()->get_listener() == this) {
 		get_viewport()->_listener_set(NULL);
 		get_viewport()->_listener_make_next_current(this);
 	}
-
 }
 
 bool Listener::is_current() const {
 
 	if (is_inside_tree() && !get_tree()->is_node_being_edited(this)) {
 
-		return get_viewport()->get_listener()==this;
+		return get_viewport()->get_listener() == this;
 	} else
 		return current;
 
@@ -146,23 +158,19 @@ RES Listener::_get_gizmo_geometry() const {
 
 void Listener::_bind_methods() {
 
-	ClassDB::bind_method( D_METHOD("make_current"),&Listener::make_current );
-	ClassDB::bind_method( D_METHOD("clear_current"),&Listener::clear_current );
-	ClassDB::bind_method( D_METHOD("is_current"),&Listener::is_current );
-	ClassDB::bind_method( D_METHOD("get_listener_transform"),&Listener::get_listener_transform );
+	ClassDB::bind_method(D_METHOD("make_current"), &Listener::make_current);
+	ClassDB::bind_method(D_METHOD("clear_current"), &Listener::clear_current);
+	ClassDB::bind_method(D_METHOD("is_current"), &Listener::is_current);
+	ClassDB::bind_method(D_METHOD("get_listener_transform"), &Listener::get_listener_transform);
 }
 
 Listener::Listener() {
 
-	current=false;
-	force_change=false;
+	current = false;
+	force_change = false;
 	set_notify_transform(true);
 	//active=false;
 }
 
-
 Listener::~Listener() {
-
 }
-
-
