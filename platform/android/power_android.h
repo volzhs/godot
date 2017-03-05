@@ -1,11 +1,11 @@
 /*************************************************************************/
-/*  popup.h                                                              */
+/*  power_android.h                                                      */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -26,66 +26,57 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef POPUP_H
-#define POPUP_H
 
-#include "scene/gui/control.h"
+#ifndef PLATFORM_ANDROID_POWER_ANDROID_H_
+#define PLATFORM_ANDROID_POWER_ANDROID_H_
 
-/**
-	@author Juan Linietsky <reduzio@gmail.com>
-*/
-class Popup : public Control {
+#include "os/power.h"
+#include <android/native_window_jni.h>
 
-	GDCLASS( Popup, Control );
+class power_android {
 
-	bool exclusive;
-	bool popped_up;
-
-protected:
-
-	virtual void _post_popup() {}
-
-	void _gui_input(InputEvent p_event);
-	void _notification(int p_what);
-	virtual void _fix_size();
-	static void _bind_methods();
-public:
-
-	enum {
-		NOTIFICATION_POST_POPUP=80,
-		NOTIFICATION_POPUP_HIDE=81
-	};
-
-	void set_exclusive(bool p_exclusive);
-	bool is_exclusive() const;
-
-	void popup_centered_ratio(float p_screen_ratio=0.75);
-	void popup_centered(const Size2& p_size=Size2());
-	void popup_centered_minsize(const Size2& p_minsize=Size2());
-	void set_as_minsize();
-	virtual void popup(const Rect2& p_bounds=Rect2());
-
-	virtual String get_configuration_warning() const;
-
-	Popup();
-	~Popup();
-
+struct LocalReferenceHolder
+{
+    JNIEnv *m_env;
+    const char *m_func;
 };
 
-class PopupPanel : public Popup {
+private:
+	static struct LocalReferenceHolder refs;
+	static JNIEnv* env;
+	static jmethodID mid;
+	static jobject context;
+	static jstring action;
+	static jclass cls;
+	static jobject filter;
+	static jobject intent;
+	static jstring iname;
+	static jmethodID imid;
+	static jstring bname;
+	static jmethodID bmid;
 
-	GDCLASS(PopupPanel,Popup);
 
+	int nsecs_left;
+	int percent_left;
+	PowerState power_state;
 
-protected:
+	bool GetPowerInfo_Android();
+	bool UpdatePowerInfo();
 
-	void _notification(int p_what);
 public:
+	
+	static int s_active;
+	
 
-	void set_child_rect(Control *p_child);
-	PopupPanel();
+	power_android();
+	virtual ~power_android();
+	static bool LocalReferenceHolder_Init(struct LocalReferenceHolder *refholder, JNIEnv *env);
+	static struct LocalReferenceHolder LocalReferenceHolder_Setup(const char *func);
+	static void LocalReferenceHolder_Cleanup(struct LocalReferenceHolder *refholder);
 
+	PowerState get_power_state();
+	int get_power_seconds_left();
+	int get_power_percent_left();
 };
 
-
-#endif
+#endif /* PLATFORM_ANDROID_POWER_ANDROID_H_ */

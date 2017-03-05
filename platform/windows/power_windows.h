@@ -1,11 +1,11 @@
 /*************************************************************************/
-/*  popup.h                                                              */
+/*  power_windows.h                                                      */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -26,66 +26,32 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef POPUP_H
-#define POPUP_H
 
-#include "scene/gui/control.h"
+#ifndef PLATFORM_WINDOWS_POWER_WINDOWS_H_
+#define PLATFORM_WINDOWS_POWER_WINDOWS_H_
 
-/**
-	@author Juan Linietsky <reduzio@gmail.com>
-*/
-class Popup : public Control {
+#include "os/dir_access.h"
+#include "os/file_access.h"
+#include "os/power.h"
 
-	GDCLASS( Popup, Control );
+#include <windows.h>
 
-	bool exclusive;
-	bool popped_up;
+class PowerWindows {
 
-protected:
+private:
+	int nsecs_left;
+	int percent_left;
+	PowerState power_state;
 
-	virtual void _post_popup() {}
+	bool GetPowerInfo_Windows();
 
-	void _gui_input(InputEvent p_event);
-	void _notification(int p_what);
-	virtual void _fix_size();
-	static void _bind_methods();
 public:
+	PowerWindows();
+	virtual ~PowerWindows();
 
-	enum {
-		NOTIFICATION_POST_POPUP=80,
-		NOTIFICATION_POPUP_HIDE=81
-	};
-
-	void set_exclusive(bool p_exclusive);
-	bool is_exclusive() const;
-
-	void popup_centered_ratio(float p_screen_ratio=0.75);
-	void popup_centered(const Size2& p_size=Size2());
-	void popup_centered_minsize(const Size2& p_minsize=Size2());
-	void set_as_minsize();
-	virtual void popup(const Rect2& p_bounds=Rect2());
-
-	virtual String get_configuration_warning() const;
-
-	Popup();
-	~Popup();
-
+	PowerState get_power_state();
+	int get_power_seconds_left();
+	int get_power_percent_left();
 };
 
-class PopupPanel : public Popup {
-
-	GDCLASS(PopupPanel,Popup);
-
-
-protected:
-
-	void _notification(int p_what);
-public:
-
-	void set_child_rect(Control *p_child);
-	PopupPanel();
-
-};
-
-
-#endif
+#endif /* PLATFORM_WINDOWS_POWER_WINDOWS_H_ */
