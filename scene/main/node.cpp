@@ -1719,6 +1719,9 @@ void Node::get_owned_by(Node *p_by, List<Node *> *p_owned) {
 
 void Node::_set_owner_nocheck(Node *p_owner) {
 
+	if (data.owner == p_owner)
+		return;
+
 	ERR_FAIL_COND(data.owner);
 	data.owner = p_owner;
 	data.owner->data.owned.push_back(this);
@@ -2020,12 +2023,13 @@ void Node::remove_and_skip() {
 
 		bool clear = true;
 		for (int i = 0; i < data.children.size(); i++) {
-			if (!data.children[i]->get_owner())
+			Node *c_node = data.children[i];
+			if (!c_node->get_owner())
 				continue;
 
-			remove_child(data.children[i]);
-			data.children[i]->_propagate_replace_owner(this, NULL);
-			children.push_back(data.children[i]);
+			remove_child(c_node);
+			c_node->_propagate_replace_owner(this, NULL);
+			children.push_back(c_node);
 			clear = false;
 			break;
 		}
@@ -2036,9 +2040,9 @@ void Node::remove_and_skip() {
 
 	while (!children.empty()) {
 
-		Node *c = children.front()->get();
-		data.parent->add_child(c);
-		c->_propagate_replace_owner(NULL, new_owner);
+		Node *c_node = children.front()->get();
+		data.parent->add_child(c_node);
+		c_node->_propagate_replace_owner(NULL, new_owner);
 		children.pop_front();
 	}
 

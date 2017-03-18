@@ -692,7 +692,7 @@ Size2 Control::get_minimum_size() const {
 	if (si) {
 
 		Variant::CallError ce;
-		Variant s = si->call(SceneStringNames::get_singleton()->get_minimum_size, NULL, 0, ce);
+		Variant s = si->call(SceneStringNames::get_singleton()->_get_minimum_size, NULL, 0, ce);
 		if (ce.error == Variant::CallError::CALL_OK)
 			return s;
 	}
@@ -2419,7 +2419,7 @@ void Control::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_font_changed"), &Control::_font_changed);
 
 	BIND_VMETHOD(MethodInfo("_gui_input", PropertyInfo(Variant::INPUT_EVENT, "event")));
-	BIND_VMETHOD(MethodInfo(Variant::VECTOR2, "get_minimum_size"));
+	BIND_VMETHOD(MethodInfo(Variant::VECTOR2, "_get_minimum_size"));
 	BIND_VMETHOD(MethodInfo(Variant::OBJECT, "get_drag_data", PropertyInfo(Variant::VECTOR2, "pos")));
 	BIND_VMETHOD(MethodInfo(Variant::BOOL, "can_drop_data", PropertyInfo(Variant::VECTOR2, "pos"), PropertyInfo(Variant::NIL, "data")));
 	BIND_VMETHOD(MethodInfo("drop_data", PropertyInfo(Variant::VECTOR2, "pos"), PropertyInfo(Variant::NIL, "data")));
@@ -2514,6 +2514,8 @@ void Control::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("size_flags_changed"));
 	ADD_SIGNAL(MethodInfo("minimum_size_changed"));
 	ADD_SIGNAL(MethodInfo("modal_closed"));
+
+	BIND_VMETHOD(MethodInfo("has_point", PropertyInfo(Variant::VECTOR2, "point")));
 }
 Control::Control() {
 
