@@ -51,7 +51,7 @@ static int _get_pad(int p_alignment, int p_n) {
 	};
 
 	return pad;
-};
+}
 
 #define PCK_PADDING 16
 
@@ -315,17 +315,20 @@ Error EditorExportPlatform::_save_zip_file(void *p_userdata, const String &p_pat
 	return OK;
 }
 
-String EditorExportPlatform::find_export_template(String template_file_name, String *err) const {
+String EditorExportPlatform::find_export_template(String template_file_name) const {
 
-	String user_file = EditorSettings::get_singleton()->get_settings_path() + "/templates/" + itos(VERSION_MAJOR) + "." + itos(VERSION_MINOR) + "." + _MKSTR(VERSION_STATUS) + "/" + template_file_name;
+	String base_name = itos(VERSION_MAJOR) + "." + itos(VERSION_MINOR) + "-" + _MKSTR(VERSION_STATUS) + "/" + template_file_name;
+	String user_file = EditorSettings::get_singleton()->get_settings_path() + "/templates/" + base_name;
 	String system_file = OS::get_singleton()->get_installed_templates_path();
 	bool has_system_path = (system_file != "");
-	system_file += template_file_name;
+	system_file = system_file.plus_file(base_name);
 
+	print_line("test user file: " + user_file);
 	// Prefer user file
 	if (FileAccess::exists(user_file)) {
 		return user_file;
 	}
+	print_line("test system file: " + system_file);
 
 	// Now check system file
 	if (has_system_path) {
@@ -333,16 +336,9 @@ String EditorExportPlatform::find_export_template(String template_file_name, Str
 			return system_file;
 		}
 	}
+	print_line("none,sorry");
 
-	// Not found
-	if (err) {
-		*err += "No export template found at \"" + user_file + "\"";
-		if (has_system_path)
-			*err += "\n or \"" + system_file + "\".";
-		else
-			*err += ".";
-	}
-	return "";
+	return String(); //not found
 }
 
 Ref<EditorExportPreset> EditorExportPlatform::create_preset() {
@@ -605,6 +601,58 @@ Error EditorExportPlatform::save_zip(const Ref<EditorExportPreset> &p_preset, co
 	return OK;
 }
 
+void EditorExportPlatform::gen_export_flags(Vector<String> &r_flags, int p_flags) {
+
+	String host = EditorSettings::get_singleton()->get("network/debug_host");
+
+	if (p_flags & DEBUG_FLAG_REMOTE_DEBUG_LOCALHOST)
+		host = "localhost";
+
+	if (p_flags & DEBUG_FLAG_DUMB_CLIENT) {
+		int port = EditorSettings::get_singleton()->get("filesystem/file_server/port");
+		String passwd = EditorSettings::get_singleton()->get("filesystem/file_server/password");
+		r_flags.push_back("-rfs");
+		r_flags.push_back(host + ":" + itos(port));
+		if (passwd != "") {
+			r_flags.push_back("-rfs_pass");
+			r_flags.push_back(passwd);
+		}
+	}
+
+	if (p_flags & DEBUG_FLAG_REMOTE_DEBUG) {
+
+		r_flags.push_back("-rdebug");
+
+		r_flags.push_back(host + ":" + String::num(GLOBAL_DEF("network/debug/remote_port", 6007)));
+
+		List<String> breakpoints;
+		ScriptEditor::get_singleton()->get_breakpoints(&breakpoints);
+
+		if (breakpoints.size()) {
+
+			r_flags.push_back("-bp");
+			String bpoints;
+			for (const List<String>::Element *E = breakpoints.front(); E; E = E->next()) {
+
+				bpoints += E->get().replace(" ", "%20");
+				if (E->next())
+					bpoints += ",";
+			}
+
+			r_flags.push_back(bpoints);
+		}
+	}
+
+	if (p_flags & DEBUG_FLAG_VIEW_COLLISONS) {
+
+		r_flags.push_back("-debugcol");
+	}
+
+	if (p_flags & DEBUG_FLAG_VIEW_NAVIGATION) {
+
+		r_flags.push_back("-debugnav");
+	}
+}
 EditorExportPlatform::EditorExportPlatform() {
 }
 
@@ -808,6 +856,18 @@ void EditorExport::load_config() {
 	block_save = false;
 }
 
+bool EditorExport::poll_export_platforms() {
+
+	bool changed = false;
+	for (int i = 0; i < export_platforms.size(); i++) {
+		if (export_platforms[i]->poll_devices()) {
+			changed = true;
+		}
+	}
+
+	return changed;
+}
+
 EditorExport::EditorExport() {
 
 	save_timer = memnew(Timer);
@@ -870,6 +930,7 @@ bool EditorExportPlatformPC::can_export(const Ref<EditorExportPreset> &p_preset,
 	} else if (find_export_template(debug_file_64) == String()) {
 		r_missing_templates = true;
 	}
+
 	return !r_missing_templates;
 }
 
@@ -879,7 +940,42 @@ String EditorExportPlatformPC::get_binary_extension() const {
 
 Error EditorExportPlatformPC::export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, int p_flags) {
 
-	return OK;
+	String custom_debug = p_preset->get("custom_template/debug");
+	String custom_release = p_preset->get("custom_template/release");
+
+	String template_path = p_debug ? custom_debug : custom_release;
+
+	template_path = template_path.strip_edges();
+
+	if (template_path == String()) {
+
+		if (p_preset->get("binary_format/64_bits")) {
+			if (p_debug) {
+				template_path = find_export_template(debug_file_64);
+			} else {
+				template_path = find_export_template(release_file_64);
+			}
+		} else {
+			if (p_debug) {
+				template_path = find_export_template(debug_file_32);
+			} else {
+				template_path = find_export_template(release_file_32);
+			}
+		}
+	}
+
+	if (template_path != String() && !FileAccess::exists(template_path)) {
+		EditorNode::get_singleton()->show_warning(TTR("Template file not found:\n") + template_path);
+		return ERR_FILE_NOT_FOUND;
+	}
+
+	DirAccess *da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
+	da->copy(template_path, p_path);
+	memdelete(da);
+
+	String pck_path = p_path.get_basename() + ".pck";
+
+	return save_pack(p_preset, pck_path);
 }
 
 void EditorExportPlatformPC::set_extension(const String &p_extension) {

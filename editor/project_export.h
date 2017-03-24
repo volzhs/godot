@@ -37,6 +37,7 @@
 #include "scene/gui/dialogs.h"
 #include "scene/gui/file_dialog.h"
 #include "scene/gui/label.h"
+#include "scene/gui/link_button.h"
 #include "scene/gui/option_button.h"
 #include "scene/gui/tab_container.h"
 #include "scene/gui/tree.h"
@@ -63,8 +64,8 @@ private:
 	PropertyEditor *parameters;
 	CheckButton *runnable;
 
-	EditorFileDialog *pck_export;
-	EditorFileDialog *file_export;
+	//EditorFileDialog *pck_export;
+	//EditorFileDialog *file_export;
 
 	Button *button_export;
 	bool updating;
@@ -88,6 +89,9 @@ private:
 	ConfirmationDialog *patch_erase;
 
 	Button *export_button;
+
+	Label *export_error;
+	HBoxContainer *export_templates_error;
 
 	void _patch_selected(const String &p_path);
 	void _patch_deleted();
@@ -115,9 +119,16 @@ private:
 	void drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from);
 
 	FileDialog *export_pck_zip;
+	FileDialog *export_project;
+	CheckButton *export_debug;
+
+	void _open_export_template_manager();
 
 	void _export_pck_zip();
 	void _export_pck_zip_selected(const String &p_path);
+
+	void _export_project();
+	void _export_project_to_path(const String &p_path);
 
 protected:
 	void _notification(int p_what);

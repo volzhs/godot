@@ -350,7 +350,7 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 
 		jobjectArray arr = (jobjectArray)obj;
 		int objCount = env->GetArrayLength(arr);
-		Array varr(true);
+		Array varr;
 
 		for (int i = 0; i < objCount; i++) {
 			jobject jobj = env->GetObjectArrayElement(arr, i);
@@ -364,7 +364,7 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 
 	if (name == "java.util.HashMap" || name == "org.godotengine.godot.Dictionary") {
 
-		Dictionary ret(true);
+		Dictionary ret;
 		jclass oclass = c;
 		jmethodID get_keys = env->GetMethodID(oclass, "get_keys", "()[Ljava/lang/String;");
 		jobjectArray arr = (jobjectArray)env->CallObjectMethod(obj, get_keys);
@@ -929,7 +929,16 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_back(JNIEnv *env, job
 
 static void _initialize_java_modules() {
 
+	if (!GlobalConfig::get_singleton()->has("android/modules")) {
+		print_line("ANDROID MODULES: Nothing to load, aborting");
+		return;
+	}
+
 	String modules = GlobalConfig::get_singleton()->get("android/modules");
+	modules = modules.strip_edges();
+	if (modules == String()) {
+		return;
+	}
 	Vector<String> mods = modules.split(",", false);
 	print_line("ANDROID MODULES : " + modules);
 	__android_log_print(ANDROID_LOG_INFO, "godot", "mod count: %i", mods.size());
