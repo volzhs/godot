@@ -229,7 +229,7 @@ Vector3 Basis::get_scale() const {
 	// FIXME: We eventually need a proper polar decomposition.
 	// As a cheap workaround until then, to ensure that R is a proper rotation matrix with determinant +1
 	// (such that it can be represented by a Quat or Euler angles), we absorb the sign flip into the scaling matrix.
-	// As such, it works in conjuction with get_rotation().
+	// As such, it works in conjunction with get_rotation().
 	real_t det_sign = determinant() > 0 ? 1 : -1;
 	return det_sign * Vector3(
 							  Vector3(elements[0][0], elements[1][0], elements[2][0]).length(),
@@ -574,6 +574,8 @@ Basis::Basis(const Quat &p_quat) {
 
 Basis::Basis(const Vector3 &p_axis, real_t p_phi) {
 	// Rotation matrix from axis and angle, see https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
+
+	ERR_FAIL_COND(p_axis.is_normalized() == false);
 
 	Vector3 axis_sq(p_axis.x * p_axis.x, p_axis.y * p_axis.y, p_axis.z * p_axis.z);
 

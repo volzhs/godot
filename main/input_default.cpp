@@ -336,6 +336,11 @@ void InputDefault::parse_input_event(const InputEvent &p_event) {
 				ev.screen_touch = touch_event;
 				main_loop->input_event(ev);
 			}
+
+			Point2 pos = Point2(p_event.mouse_button.global_x, p_event.mouse_button.global_y);
+			if (mouse_pos != pos) {
+				set_mouse_pos(pos);
+			}
 		} break;
 		case InputEvent::MOUSE_MOTION: {
 
@@ -476,6 +481,17 @@ int InputDefault::get_mouse_button_mask() const {
 void InputDefault::warp_mouse_pos(const Vector2 &p_to) {
 
 	OS::get_singleton()->warp_mouse_pos(p_to);
+}
+
+Point2i InputDefault::warp_mouse_motion(const InputEventMouseMotion &p_motion, const Rect2 &p_rect) {
+
+	const Point2i rel_warped(Math::fmod(p_motion.relative_x, p_rect.size.x), Math::fmod(p_motion.relative_y, p_rect.size.y));
+	const Point2i pos_local = Point2i(p_motion.global_x, p_motion.global_y) - p_rect.pos;
+	const Point2i pos_warped(Math::fposmod(pos_local.x, p_rect.size.x), Math::fposmod(pos_local.y, p_rect.size.y));
+	if (pos_warped != pos_local) {
+		OS::get_singleton()->warp_mouse_pos(pos_warped + p_rect.pos);
+	}
+	return rel_warped;
 }
 
 void InputDefault::iteration(float p_step) {

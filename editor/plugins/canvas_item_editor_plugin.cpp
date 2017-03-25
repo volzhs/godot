@@ -602,30 +602,7 @@ bool CanvasItemEditor::_select(CanvasItem *item, Point2 p_click_pos, bool p_appe
 		}
 
 		if (p_drag) {
-			//prepare to move!
-
-			List<Node *> &selection = editor_selection->get_selected_node_list();
-
-			for (List<Node *>::Element *E = selection.front(); E; E = E->next()) {
-
-				CanvasItem *canvas_item = E->get()->cast_to<CanvasItem>();
-				if (!canvas_item || !canvas_item->is_visible_in_tree())
-					continue;
-				if (canvas_item->get_viewport() != EditorNode::get_singleton()->get_scene_root())
-					continue;
-
-				CanvasItemEditorSelectedItem *se = editor_selection->get_node_editor_data<CanvasItemEditorSelectedItem>(canvas_item);
-				if (!se)
-					continue;
-
-				se->undo_state = canvas_item->edit_get_state();
-				if (canvas_item->cast_to<Node2D>())
-					se->undo_pivot = canvas_item->cast_to<Node2D>()->edit_get_pivot();
-			}
-
-			drag = DRAG_ALL;
-			drag_from = transform.affine_inverse().xform(p_click_pos);
-			drag_point_from = _find_topleftmost_point();
+			_prepare_drag(p_click_pos);
 		}
 
 		viewport->update();
@@ -841,6 +818,37 @@ CanvasItemEditor::DragType CanvasItemEditor::_find_drag_type(const Transform2D &
 	//try draggers
 
 	return DRAG_NONE;
+}
+
+void CanvasItemEditor::_prepare_drag(const Point2 &p_click_pos) {
+
+	List<Node *> &selection = editor_selection->get_selected_node_list();
+
+	for (List<Node *>::Element *E = selection.front(); E; E = E->next()) {
+
+		CanvasItem *canvas_item = E->get()->cast_to<CanvasItem>();
+		if (!canvas_item || !canvas_item->is_visible_in_tree())
+			continue;
+		if (canvas_item->get_viewport() != EditorNode::get_singleton()->get_scene_root())
+			continue;
+
+		CanvasItemEditorSelectedItem *se = editor_selection->get_node_editor_data<CanvasItemEditorSelectedItem>(canvas_item);
+		if (!se)
+			continue;
+
+		se->undo_state = canvas_item->edit_get_state();
+		if (canvas_item->cast_to<Node2D>())
+			se->undo_pivot = canvas_item->cast_to<Node2D>()->edit_get_pivot();
+	}
+
+	if (selection.size() == 1 && selection[0]->cast_to<Node2D>()) {
+		drag = DRAG_NODE_2D;
+		drag_point_from = selection[0]->cast_to<Node2D>()->get_global_position();
+	} else {
+		drag = DRAG_ALL;
+		drag_point_from = _find_topleftmost_point();
+	}
+	drag_from = transform.affine_inverse().xform(p_click_pos);
 }
 
 void CanvasItemEditor::incbeg(float &beg, float &end, float inc, float minsize, bool p_symmetric) {
@@ -1380,29 +1388,7 @@ void CanvasItemEditor::_viewport_gui_input(const InputEvent &p_event) {
 		Point2 click = Point2(b.x, b.y);
 
 		if ((b.mod.alt || tool == TOOL_MOVE) && get_item_count()) {
-
-			List<Node *> &selection = editor_selection->get_selected_node_list();
-
-			for (List<Node *>::Element *E = selection.front(); E; E = E->next()) {
-
-				CanvasItem *canvas_item = E->get()->cast_to<CanvasItem>();
-				if (!canvas_item || !canvas_item->is_visible_in_tree())
-					continue;
-				if (canvas_item->get_viewport() != EditorNode::get_singleton()->get_scene_root())
-					continue;
-
-				CanvasItemEditorSelectedItem *se = editor_selection->get_node_editor_data<CanvasItemEditorSelectedItem>(canvas_item);
-				if (!se)
-					continue;
-
-				se->undo_state = canvas_item->edit_get_state();
-				if (canvas_item->cast_to<Node2D>())
-					se->undo_pivot = canvas_item->cast_to<Node2D>()->edit_get_pivot();
-			}
-
-			drag = DRAG_ALL;
-			drag_from = transform.affine_inverse().xform(click);
-			drag_point_from = _find_topleftmost_point();
+			_prepare_drag(click);
 			viewport->update();
 			return;
 		}
@@ -1471,8 +1457,16 @@ void CanvasItemEditor::_viewport_gui_input(const InputEvent &p_event) {
 		if (drag == DRAG_NONE) {
 
 			if ((m.button_mask & BUTTON_MASK_LEFT && tool == TOOL_PAN) || m.button_mask & BUTTON_MASK_MIDDLE || (m.button_mask & BUTTON_MASK_LEFT && Input::get_singleton()->is_key_pressed(KEY_SPACE))) {
-				h_scroll->set_value(h_scroll->get_value() - m.relative_x / zoom);
-				v_scroll->set_value(v_scroll->get_value() - m.relative_y / zoom);
+
+				Point2i relative;
+				if (bool(EditorSettings::get_singleton()->get("editors/2d/warped_mouse_panning"))) {
+					relative = Input::get_singleton()->warp_mouse_motion(m, viewport->get_global_rect());
+				} else {
+					relative = Point2i(m.relative_x, m.relative_y);
+				}
+
+				h_scroll->set_value(h_scroll->get_value() - relative.x / zoom);
+				v_scroll->set_value(v_scroll->get_value() - relative.y / zoom);
 			}
 
 			return;
@@ -1538,7 +1532,7 @@ void CanvasItemEditor::_viewport_gui_input(const InputEvent &p_event) {
 			bool uniform = m.mod.shift;
 			bool symmetric = m.mod.alt;
 
-			dto = dto - (drag == DRAG_ALL ? drag_from - drag_point_from : Vector2(0, 0));
+			dto = dto - (drag == DRAG_ALL || drag == DRAG_NODE_2D ? drag_from - drag_point_from : Vector2(0, 0));
 
 			if (uniform && drag == DRAG_ALL) {
 				if (ABS(dto.x - drag_point_from.x) > ABS(dto.y - drag_point_from.y)) {
@@ -1635,6 +1629,12 @@ void CanvasItemEditor::_viewport_gui_input(const InputEvent &p_event) {
 						Node2D *n2d = canvas_item->cast_to<Node2D>();
 						n2d->edit_set_pivot(se->undo_pivot + drag_vector);
 					}
+					continue;
+				} break;
+				case DRAG_NODE_2D: {
+
+					ERR_FAIL_COND(!canvas_item->cast_to<Node2D>());
+					canvas_item->cast_to<Node2D>()->set_global_position(dto);
 					continue;
 				} break;
 
@@ -3583,6 +3583,8 @@ void CanvasItemEditorViewport::_create_nodes(Node *parent, Node *child, String &
 	if (default_type == "Polygon2D" || default_type == "TouchScreenButton" || default_type == "TextureRect" || default_type == "Patch9Rect") {
 		target_pos -= texture_size / 2;
 	}
+	// there's nothing to be used as source position so snapping will work as absolute if enabled
+	target_pos = canvas->snap_point(target_pos, Vector2());
 	editor_data->get_undo_redo().add_do_method(child, "set_position", target_pos);
 }
 
@@ -3627,7 +3629,11 @@ bool CanvasItemEditorViewport::_create_instance(Node *parent, String &path, cons
 		}
 	}
 	Transform2D trans = canvas->get_canvas_transform();
-	editor_data->get_undo_redo().add_do_method(instanced_scene, "set_pos", (p_point - trans.get_origin()) / trans.get_scale().x - pos);
+	Vector2 target_pos = (p_point - trans.get_origin()) / trans.get_scale().x - pos;
+	// in relative snapping it may be useful for the user to take the original node position into account
+	Vector2 start_pos = instanced_scene->cast_to<Node2D>() ? instanced_scene->cast_to<Node2D>()->get_position() : target_pos;
+	target_pos = canvas->snap_point(target_pos, start_pos);
+	editor_data->get_undo_redo().add_do_method(instanced_scene, "set_position", target_pos);
 
 	return true;
 }

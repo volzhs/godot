@@ -76,7 +76,7 @@ bool GDParser::_enter_indent_block(BlockNode *p_block) {
 
 		// be more python-like
 		int current = tab_level.back()->get();
-		tab_level.push_back(current + 1);
+		tab_level.push_back(current);
 		return true;
 		//_set_error("newline expected after ':'.");
 		//return false;
@@ -1021,7 +1021,7 @@ GDParser::Node *GDParser::_parse_expression(Node *p_parent, bool p_static, bool 
 		OperatorNode::Operator op;
 		bool valid = true;
 
-//assign, if allowed is only alowed on the first operator
+//assign, if allowed is only allowed on the first operator
 #define _VALIDATE_ASSIGN                  \
 	if (!p_allow_assign) {                \
 		_set_error("Unexpected assign."); \
@@ -1253,7 +1253,7 @@ GDParser::Node *GDParser::_parse_expression(Node *p_parent, bool p_static, bool 
 				// this is not invalid and can really appear
 				// but it becomes invalid anyway because no binary op
 				// can be followed by an unary op in a valid combination,
-				// due to how precedence works, unaries will always dissapear first
+				// due to how precedence works, unaries will always disappear first
 
 				_set_error("Unexpected two consecutive operators after ternary if.");
 				return NULL;
@@ -1263,7 +1263,7 @@ GDParser::Node *GDParser::_parse_expression(Node *p_parent, bool p_static, bool 
 				// this is not invalid and can really appear
 				// but it becomes invalid anyway because no binary op
 				// can be followed by an unary op in a valid combination,
-				// due to how precedence works, unaries will always dissapear first
+				// due to how precedence works, unaries will always disappear first
 
 				_set_error("Unexpected two consecutive operators after ternary else.");
 				return NULL;
@@ -1300,7 +1300,7 @@ GDParser::Node *GDParser::_parse_expression(Node *p_parent, bool p_static, bool 
 				// this is not invalid and can really appear
 				// but it becomes invalid anyway because no binary op
 				// can be followed by an unary op in a valid combination,
-				// due to how precedence works, unaries will always dissapear first
+				// due to how precedence works, unaries will always disappear first
 
 				_set_error("Unexpected two consecutive operators.");
 				return NULL;
@@ -2258,7 +2258,15 @@ void GDParser::_parse_block(BlockNode *p_block, bool p_static) {
 	p_block->statements.push_back(nl);
 #endif
 
+	bool is_first_line = true;
+
 	while (true) {
+		if (!is_first_line && tab_level.back()->prev() && tab_level.back()->prev()->get() == indent_level) {
+			// pythonic single-line expression, don't parse future lines
+			tab_level.pop_back();
+			return;
+		}
+		is_first_line = false;
 
 		GDTokenizer::Token token = tokenizer->get_token();
 		if (error_set)

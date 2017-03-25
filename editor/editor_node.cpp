@@ -2606,7 +2606,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 					current_option=-1;
 					//accept->get_cancel()->hide();
 					accept->get_ok()->set_text("I see..");
-					accept->set_text("Can't import if edited scene was not saved."); //i dont think this code will ever run
+					accept->set_text("Can't import if edited scene was not saved."); //i don't think this code will ever run
 					accept->popup_centered(Size2(300,70));
 					break;
 
@@ -4821,14 +4821,10 @@ EditorNode::EditorNode() {
 	if (!EditorSettings::get_singleton())
 		EditorSettings::create();
 
-	bool use_single_dock_column = false;
 	{
 		int dpi_mode = EditorSettings::get_singleton()->get("interface/hidpi_mode");
 		if (dpi_mode == 0) {
-			editor_set_scale(OS::get_singleton()->get_screen_dpi(0) > 150 && OS::get_singleton()->get_screen_size(OS::get_singleton()->get_current_screen()).x > 2000 ? 2.0 : 1.0);
-
-			use_single_dock_column = OS::get_singleton()->get_screen_size(OS::get_singleton()->get_current_screen()).x < 1200;
-
+			editor_set_scale(OS::get_singleton()->get_screen_dpi(0) >= 192 && OS::get_singleton()->get_screen_size(OS::get_singleton()->get_current_screen()).x > 2000 ? 2.0 : 1.0);
 		} else if (dpi_mode == 1) {
 			editor_set_scale(0.75);
 		} else if (dpi_mode == 2) {
@@ -4850,7 +4846,7 @@ EditorNode::EditorNode() {
 	ResourceLoader::set_timestamp_on_load(true);
 	ResourceSaver::set_timestamp_on_save(true);
 
-	{ //register importers at the begining, so dialogs are created with the right extensions
+	{ //register importers at the beginning, so dialogs are created with the right extensions
 		Ref<ResourceImporterTexture> import_texture;
 		import_texture.instance();
 		ResourceFormatImporter::get_singleton()->add_importer(import_texture);
@@ -5653,6 +5649,8 @@ EditorNode::EditorNode() {
 	import_dock = memnew(ImportDock);
 	dock_slot[DOCK_SLOT_RIGHT_UL]->add_child(import_dock);
 	import_dock->set_name(TTR("Import"));
+
+	bool use_single_dock_column = (OS::get_singleton()->get_screen_size(OS::get_singleton()->get_current_screen()).x < 1200);
 
 	node_dock = memnew(NodeDock);
 	//node_dock->set_undoredo(&editor_data.get_undo_redo());

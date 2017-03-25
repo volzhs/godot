@@ -75,6 +75,7 @@ struct Vector3 {
 
 	_FORCE_INLINE_ void normalize();
 	_FORCE_INLINE_ Vector3 normalized() const;
+	_FORCE_INLINE_ bool is_normalized() const;
 	_FORCE_INLINE_ Vector3 inverse() const;
 
 	_FORCE_INLINE_ void zero();
@@ -214,7 +215,7 @@ real_t Vector3::distance_squared_to(const Vector3 &p_b) const {
 
 real_t Vector3::angle_to(const Vector3 &p_b) const {
 
-	return Math::acos(this->dot(p_b) / Math::sqrt(this->length_squared() * p_b.length_squared()));
+	return Math::atan2(cross(p_b).length(), dot(p_b));
 }
 
 /* Operators */
@@ -383,6 +384,10 @@ Vector3 Vector3::normalized() const {
 	Vector3 v = *this;
 	v.normalize();
 	return v;
+}
+
+bool Vector3::is_normalized() const {
+	return Math::isequal_approx(length(), (real_t)1.0);
 }
 
 Vector3 Vector3::inverse() const {
