@@ -29,8 +29,8 @@ android {
 		disable 'MissingTranslation'
 	}
 
-	compileSdkVersion 23
-	buildToolsVersion "23.0.3"
+	compileSdkVersion 25
+	buildToolsVersion "25"
 	useLibrary 'org.apache.http.legacy'
 
 	packagingOptions {
@@ -39,7 +39,7 @@ android {
 	}
 	defaultConfig {
 		minSdkVersion 14
-		targetSdkVersion 23
+		targetSdkVersion 25
 		$$GRADLE_DEFAULT_CONFIG$$
 	}
 	// Both signing and zip-aligning will be done at export time
