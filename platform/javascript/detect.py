@@ -73,11 +73,11 @@ def configure(env):
         env.Append(LINKFLAGS=['-O3'])
     elif (env["target"] == "release_debug"):
         env.Append(CCFLAGS=['-O2', '-DDEBUG_ENABLED'])
-        env.Append(LINKFLAGS=['-O2'])
+        env.Append(LINKFLAGS=['-O2', '-s', 'ASSERTIONS=1'])
         # retain function names at the cost of file size, for backtraces and profiling
         env.Append(LINKFLAGS=['--profiling-funcs'])
     elif (env["target"] == "debug"):
-        env.Append(CCFLAGS=['-O1', '-D_DEBUG', '-Wall', '-g', '-DDEBUG_ENABLED'])
+        env.Append(CCFLAGS=['-O1', '-D_DEBUG', '-g', '-DDEBUG_ENABLED'])
         env.Append(LINKFLAGS=['-O1', '-g'])
 
     # TODO: Move that to opus module's config

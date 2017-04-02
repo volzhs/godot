@@ -58,7 +58,6 @@ private:
 	Vector<TouchPos> touch;
 	Point2 last_mouse;
 	int last_button_mask;
-	unsigned int last_id;
 	GFXInitFunc gfx_init_func;
 	void *gfx_init_ud;
 
@@ -177,7 +176,7 @@ public:
 	virtual int get_power_seconds_left();
 	virtual int get_power_percent_left();
 
-	OS_JavaScript(GFXInitFunc p_gfx_init_func, void *p_gfx_init_ud, GetDataDirFunc p_get_data_dir_func);
+	OS_JavaScript(const char *p_execpath, GFXInitFunc p_gfx_init_func, void *p_gfx_init_ud, GetDataDirFunc p_get_data_dir_func);
 	~OS_JavaScript();
 };
 
