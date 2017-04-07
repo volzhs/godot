@@ -374,6 +374,10 @@ void SceneTree::input_text(const String &p_text) {
 	root_lock--;
 }
 
+bool SceneTree::is_input_handled() {
+	return input_handled;
+}
+
 void SceneTree::input_event(const InputEvent &p_event) {
 
 	if (is_editor_hint() && (p_event.type == InputEvent::JOYPAD_MOTION || p_event.type == InputEvent::JOYPAD_BUTTON))
@@ -761,12 +765,12 @@ Ref<Material> SceneTree::get_debug_navigation_material() {
 	if (navigation_material.is_valid())
 		return navigation_material;
 
-	Ref<FixedSpatialMaterial> line_material = Ref<FixedSpatialMaterial>(memnew(FixedSpatialMaterial));
+	Ref<SpatialMaterial> line_material = Ref<SpatialMaterial>(memnew(SpatialMaterial));
 	/*	line_material->set_flag(Material::FLAG_UNSHADED, true);
 	line_material->set_line_width(3.0);
-	line_material->set_fixed_flag(FixedSpatialMaterial::FLAG_USE_ALPHA, true);
-	line_material->set_fixed_flag(FixedSpatialMaterial::FLAG_USE_COLOR_ARRAY, true);
-	line_material->set_parameter(FixedSpatialMaterial::PARAM_DIFFUSE,get_debug_navigation_color());*/
+	line_material->set_fixed_flag(SpatialMaterial::FLAG_USE_ALPHA, true);
+	line_material->set_fixed_flag(SpatialMaterial::FLAG_USE_COLOR_ARRAY, true);
+	line_material->set_parameter(SpatialMaterial::PARAM_DIFFUSE,get_debug_navigation_color());*/
 
 	navigation_material = line_material;
 
@@ -778,12 +782,12 @@ Ref<Material> SceneTree::get_debug_navigation_disabled_material() {
 	if (navigation_disabled_material.is_valid())
 		return navigation_disabled_material;
 
-	Ref<FixedSpatialMaterial> line_material = Ref<FixedSpatialMaterial>(memnew(FixedSpatialMaterial));
+	Ref<SpatialMaterial> line_material = Ref<SpatialMaterial>(memnew(SpatialMaterial));
 	/*	line_material->set_flag(Material::FLAG_UNSHADED, true);
 	line_material->set_line_width(3.0);
-	line_material->set_fixed_flag(FixedSpatialMaterial::FLAG_USE_ALPHA, true);
-	line_material->set_fixed_flag(FixedSpatialMaterial::FLAG_USE_COLOR_ARRAY, true);
-	line_material->set_parameter(FixedSpatialMaterial::PARAM_DIFFUSE,get_debug_navigation_disabled_color());*/
+	line_material->set_fixed_flag(SpatialMaterial::FLAG_USE_ALPHA, true);
+	line_material->set_fixed_flag(SpatialMaterial::FLAG_USE_COLOR_ARRAY, true);
+	line_material->set_parameter(SpatialMaterial::PARAM_DIFFUSE,get_debug_navigation_disabled_color());*/
 
 	navigation_disabled_material = line_material;
 
@@ -794,12 +798,12 @@ Ref<Material> SceneTree::get_debug_collision_material() {
 	if (collision_material.is_valid())
 		return collision_material;
 
-	Ref<FixedSpatialMaterial> line_material = Ref<FixedSpatialMaterial>(memnew(FixedSpatialMaterial));
+	Ref<SpatialMaterial> line_material = Ref<SpatialMaterial>(memnew(SpatialMaterial));
 	/*line_material->set_flag(Material::FLAG_UNSHADED, true);
 	line_material->set_line_width(3.0);
-	line_material->set_fixed_flag(FixedSpatialMaterial::FLAG_USE_ALPHA, true);
-	line_material->set_fixed_flag(FixedSpatialMaterial::FLAG_USE_COLOR_ARRAY, true);
-	line_material->set_parameter(FixedSpatialMaterial::PARAM_DIFFUSE,get_debug_collisions_color());*/
+	line_material->set_fixed_flag(SpatialMaterial::FLAG_USE_ALPHA, true);
+	line_material->set_fixed_flag(SpatialMaterial::FLAG_USE_COLOR_ARRAY, true);
+	line_material->set_parameter(SpatialMaterial::PARAM_DIFFUSE,get_debug_collisions_color());*/
 
 	collision_material = line_material;
 
@@ -813,11 +817,11 @@ Ref<Mesh> SceneTree::get_debug_contact_mesh() {
 
 	debug_contact_mesh = Ref<Mesh>(memnew(Mesh));
 
-	Ref<FixedSpatialMaterial> mat = memnew(FixedSpatialMaterial);
+	Ref<SpatialMaterial> mat = memnew(SpatialMaterial);
 	/*mat->set_flag(Material::FLAG_UNSHADED,true);
 	mat->set_flag(Material::FLAG_DOUBLE_SIDED,true);
-	mat->set_fixed_flag(FixedSpatialMaterial::FLAG_USE_ALPHA,true);
-	mat->set_parameter(FixedSpatialMaterial::PARAM_DIFFUSE,get_debug_collision_contact_color());*/
+	mat->set_fixed_flag(SpatialMaterial::FLAG_USE_ALPHA,true);
+	mat->set_parameter(SpatialMaterial::PARAM_DIFFUSE,get_debug_collision_contact_color());*/
 
 	Vector3 diamond[6] = {
 		Vector3(-1, 0, 0),
@@ -2153,6 +2157,7 @@ void SceneTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_pause", "enable"), &SceneTree::set_pause);
 	ClassDB::bind_method(D_METHOD("is_paused"), &SceneTree::is_paused);
 	ClassDB::bind_method(D_METHOD("set_input_as_handled"), &SceneTree::set_input_as_handled);
+	ClassDB::bind_method(D_METHOD("is_input_handled"), &SceneTree::is_input_handled);
 
 	ClassDB::bind_method(D_METHOD("create_timer:SceneTreeTimer", "time_sec", "pause_mode_process"), &SceneTree::create_timer, DEFVAL(true));
 

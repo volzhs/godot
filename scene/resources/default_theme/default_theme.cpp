@@ -120,7 +120,7 @@ static Ref<Texture> make_icon(T p_src) {
 }
 
 static Ref<Shader> make_shader(const char *vertex_code, const char *fragment_code, const char *lighting_code) {
-	Ref<Shader> shader = (memnew(Shader(Shader::MODE_CANVAS_ITEM)));
+	Ref<Shader> shader = (memnew(Shader()));
 	//shader->set_code(vertex_code, fragment_code, lighting_code);
 
 	return shader;
@@ -544,7 +544,7 @@ void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<
 
 	t->set_font("title_font", "WindowDialog", large_font);
 	t->set_color("title_color", "WindowDialog", Color(0, 0, 0));
-	t->set_constant("title_height", "WindowDialog", 18 * scale);
+	t->set_constant("title_height", "WindowDialog", 20 * scale);
 
 	t->set_icon("close", "WindowDialog", make_icon(close_png));
 	t->set_icon("close_hilite", "WindowDialog", make_icon(close_hl_png));

@@ -220,9 +220,10 @@ void Spatial::set_transform(const Transform &p_transform) {
 
 	data.local_transform = p_transform;
 	data.dirty |= DIRTY_VECTORS;
-	_change_notify("transform/translation");
-	_change_notify("transform/rotation");
-	_change_notify("transform/scale");
+	_change_notify("translation");
+	_change_notify("rotation");
+	_change_notify("rotation_deg");
+	_change_notify("scale");
 	_propagate_transform_changed(this);
 	if (data.notify_local_transform) {
 		notification(NOTIFICATION_LOCAL_TRANSFORM_CHANGED);
@@ -510,22 +511,11 @@ Ref<World> Spatial::get_world() const {
 	return data.viewport->find_world();
 }
 
-#ifdef TOOLS_ENABLED
-void Spatial::set_import_transform(const Transform &p_transform) {
-	data.import_transform = p_transform;
-}
-
-Transform Spatial::get_import_transform() const {
-
-	return data.import_transform;
-}
-#endif
-
 void Spatial::_propagate_visibility_changed() {
 
 	notification(NOTIFICATION_VISIBILITY_CHANGED);
 	emit_signal(SceneStringNames::get_singleton()->visibility_changed);
-	_change_notify("visibility/visible");
+	_change_notify("visible");
 #ifdef TOOLS_ENABLED
 	if (data.gizmo.is_valid())
 		_update_gizmo();
@@ -728,9 +718,6 @@ void Spatial::_bind_methods() {
 
 #ifdef TOOLS_ENABLED
 	ClassDB::bind_method(D_METHOD("_update_gizmo"), &Spatial::_update_gizmo);
-	ClassDB::bind_method(D_METHOD("_set_import_transform"), &Spatial::set_import_transform);
-	ClassDB::bind_method(D_METHOD("_get_import_transform"), &Spatial::get_import_transform);
-	ADD_PROPERTY(PropertyInfo(Variant::TRANSFORM, "_import_transform", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "_set_import_transform", "_get_import_transform");
 #endif
 
 	ClassDB::bind_method(D_METHOD("update_gizmo"), &Spatial::update_gizmo);
