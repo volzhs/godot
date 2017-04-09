@@ -6,6 +6,7 @@
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -380,10 +381,6 @@ void Area2D::_notification(int p_what) {
 
 	switch (p_what) {
 
-		case NOTIFICATION_READY: {
-
-			is_ready = true;
-		} break;
 		case NOTIFICATION_EXIT_TREE: {
 
 			monitoring_stored = monitoring;
@@ -391,16 +388,25 @@ void Area2D::_notification(int p_what) {
 			_clear_monitoring();
 		} break;
 		case NOTIFICATION_ENTER_TREE: {
-			if (is_ready)
-				set_enable_monitoring(monitoring_stored);
+
+			if (monitoring_stored) {
+				set_enable_monitoring(true);
+				monitoring_stored = false;
+			}
 		} break;
 	}
 }
 
 void Area2D::set_enable_monitoring(bool p_enable) {
 
+	if (!is_inside_tree()) {
+		monitoring_stored = p_enable;
+		return;
+	}
+
 	if (p_enable == monitoring)
 		return;
+
 	if (locked) {
 		ERR_EXPLAIN("Function blocked during in/out signal. Use call_deferred(\"set_enable_monitoring\",true/false)");
 	}
@@ -422,7 +428,7 @@ void Area2D::set_enable_monitoring(bool p_enable) {
 
 bool Area2D::is_monitoring_enabled() const {
 
-	return monitoring;
+	return monitoring || monitoring_stored;
 }
 
 void Area2D::set_monitorable(bool p_enable) {
@@ -651,7 +657,6 @@ Area2D::Area2D()
 	collision_mask = 1;
 	layer_mask = 1;
 	monitoring_stored = false;
-	is_ready = false;
 	set_enable_monitoring(true);
 	set_monitorable(true);
 }

@@ -6,6 +6,7 @@
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -121,7 +122,7 @@ public:
 	virtual float source_get_param(RID p_source, SourceParam p_param) const = 0;
 
 	virtual void source_set_audio_stream(RID p_source, AudioServer::AudioStream *p_stream) = 0; //null to unset
-	virtual SourceVoiceID source_play_sample(RID p_source, RID p_sample, int p_mix_rate, int p_voice = SOURCE_NEXT_VOICE) = 0;
+	virtual SourceVoiceID source_play_sample(RID p_source, RID p_sample, int p_mix_rate, int p_voice = SOURCE_NEXT_VOICE, int p_priority = 0) = 0;
 	//voices
 	virtual void source_voice_set_pitch_scale(RID p_source, SourceVoiceID p_voice, float p_pitch_scale) = 0;
 	virtual void source_voice_set_volume_scale_db(RID p_source, SourceVoiceID p_voice, float p_volume_db) = 0;
