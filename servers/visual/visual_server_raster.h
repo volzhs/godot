@@ -6,6 +6,7 @@
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -851,7 +852,7 @@ public:
 	BIND2(particles_set_explosiveness_ratio, RID, float)
 	BIND2(particles_set_randomness_ratio, RID, float)
 	BIND2(particles_set_custom_aabb, RID, const Rect3 &)
-	BIND2(particles_set_gravity, RID, const Vector3 &)
+	BIND2(particles_set_speed_scale, RID, float)
 	BIND2(particles_set_use_local_coordinates, RID, bool)
 	BIND2(particles_set_process_material, RID, RID)
 	BIND2(particles_set_fixed_fps, RID, int)

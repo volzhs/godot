@@ -6,6 +6,7 @@
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -994,7 +995,6 @@ public:
 		float explosiveness;
 		float randomness;
 		Rect3 custom_aabb;
-		Vector3 gravity;
 		bool use_local_coords;
 		RID process_material;
 
@@ -1002,10 +1002,13 @@ public:
 
 		Vector<RID> draw_passes;
 
-		Rect3 computed_aabb;
-
 		GLuint particle_buffers[2];
 		GLuint particle_vaos[2];
+
+		GLuint particle_buffer_histories[2];
+		GLuint particle_vao_histories[2];
+		bool particle_valid_histories[2];
+		bool histories_enabled;
 
 		SelfList<Particles> particle_element;
 
@@ -1015,7 +1018,9 @@ public:
 
 		uint32_t cycle_number;
 
-		int fixed_fps = 0;
+		float speed_scale;
+
+		int fixed_fps;
 		bool fractional_delta;
 		float frame_remainder;
 
@@ -1036,6 +1041,10 @@ public:
 			fixed_fps = 0;
 			fractional_delta = false;
 			frame_remainder = 0;
+			histories_enabled = false;
+			speed_scale = 1.0;
+
+			custom_aabb = Rect3(Vector3(-4, -4, -4), Vector3(8, 8, 8));
 
 			draw_order = VS::PARTICLES_DRAW_ORDER_INDEX;
 			particle_buffers[0] = 0;
@@ -1053,6 +1062,10 @@ public:
 
 			glDeleteBuffers(2, particle_buffers);
 			glDeleteVertexArrays(2, particle_vaos);
+			if (histories_enabled) {
+				glDeleteBuffers(2, particle_buffer_histories);
+				glDeleteVertexArrays(2, particle_vao_histories);
+			}
 		}
 	};
 
@@ -1071,7 +1084,7 @@ public:
 	virtual void particles_set_explosiveness_ratio(RID p_particles, float p_ratio);
 	virtual void particles_set_randomness_ratio(RID p_particles, float p_ratio);
 	virtual void particles_set_custom_aabb(RID p_particles, const Rect3 &p_aabb);
-	virtual void particles_set_gravity(RID p_particles, const Vector3 &p_gravity);
+	virtual void particles_set_speed_scale(RID p_particles, float p_scale);
 	virtual void particles_set_use_local_coordinates(RID p_particles, bool p_enable);
 	virtual void particles_set_process_material(RID p_particles, RID p_material);
 	virtual void particles_set_fixed_fps(RID p_particles, int p_fps);
@@ -1085,6 +1098,8 @@ public:
 	virtual void particles_request_process(RID p_particles);
 	virtual Rect3 particles_get_current_aabb(RID p_particles);
 	virtual Rect3 particles_get_aabb(RID p_particles) const;
+
+	virtual void _particles_update_histories(Particles *particles);
 
 	virtual void particles_set_emission_transform(RID p_particles, const Transform &p_transform);
 	void _particles_process(Particles *p_particles, float p_delta);

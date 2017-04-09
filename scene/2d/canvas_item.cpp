@@ -6,6 +6,7 @@
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -682,9 +683,7 @@ Vector2 CanvasItem::make_canvas_pos_local(const Vector2 &screen_point) const {
 
 	ERR_FAIL_COND_V(!is_inside_tree(), screen_point);
 
-	Transform2D local_matrix = (get_canvas_transform() *
-									   get_global_transform())
-									   .affine_inverse();
+	Transform2D local_matrix = (get_canvas_transform() * get_global_transform()).affine_inverse();
 
 	return local_matrix.xform(screen_point);
 }
