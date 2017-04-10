@@ -5533,7 +5533,7 @@ void RasterizerStorageGLES3::_render_target_allocate(RenderTarget *rt) {
 
 		glGenTextures(1, &rt->depth);
 		glBindTexture(GL_TEXTURE_2D, rt->depth);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, rt->width, rt->height, 0,
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, rt->width, rt->height, 0,
 				GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -6500,6 +6500,7 @@ void RasterizerStorageGLES3::initialize() {
 	frame.count = 0;
 	frame.prev_tick = 0;
 	frame.delta = 0;
+	frame.current_rt=NULL;
 	config.keep_original_textures = false;
 }
 
