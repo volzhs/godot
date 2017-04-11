@@ -317,7 +317,7 @@ typedef struct godot_instance_create_func {
 	void *(*create_func)(godot_object *, void *);
 	void *method_data;
 	void (*free_func)(void *);
-} godot_script_instance_func;
+} godot_instance_create_func;
 
 typedef struct godot_instance_destroy_func {
 	// instance pointer, method data, user data
@@ -375,6 +375,10 @@ typedef struct godot_signal {
 void GDAPI godot_script_register_signal(const char *p_name, const godot_signal *p_signal);
 
 void GDAPI *godot_native_get_userdata(godot_object *p_instance);
+
+typedef godot_object *(*godot_class_constructor)();
+
+godot_class_constructor GDAPI godot_get_class_constructor(const char *p_classname);
 
 godot_dictionary GDAPI godot_get_global_constants();
 
