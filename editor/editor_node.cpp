@@ -447,18 +447,6 @@ void EditorNode::_sources_changed(bool p_exist) {
 void EditorNode::_vp_resized() {
 }
 
-void EditorNode::_rebuild_import_menu() {
-	PopupMenu *p = import_menu->get_popup();
-	p->clear();
-//p->add_item(TTR("Node From Scene"), FILE_IMPORT_SUBSCENE);
-//p->add_separator();
-#if 0
-	for (int i = 0; i < editor_import_export->get_import_plugin_count(); i++) {
-		p->add_item(editor_import_export->get_import_plugin(i)->get_visible_name(), IMPORT_PLUGIN_BASE + i);
-	}
-#endif
-}
-
 void EditorNode::_node_renamed() {
 
 	if (property_editor)
@@ -4862,9 +4850,9 @@ EditorNode::EditorNode() {
 		import_wav.instance();
 		ResourceFormatImporter::get_singleton()->add_importer(import_wav);
 
-		//Ref<ResourceImporterOBJ> import_obj;
-		//import_obj.instance();
-		//ResourceFormatImporter::get_singleton()->add_importer(import_obj);
+		Ref<ResourceImporterOBJ> import_obj;
+		import_obj.instance();
+		ResourceFormatImporter::get_singleton()->add_importer(import_obj);
 
 		Ref<ResourceImporterScene> import_scene;
 		import_scene.instance();
@@ -5256,15 +5244,6 @@ EditorNode::EditorNode() {
 	resource_menu->set_position( Point2( 90,0) );
 	menu_panel->add_child( resource_menu );
 #endif
-
-	import_menu = memnew(MenuButton);
-	import_menu->set_tooltip(TTR("Import assets to the project."));
-	import_menu->set_text(TTR("Import"));
-	//import_menu->set_icon(gui_base->get_icon("Save","EditorIcons"));
-	left_menu_hb->add_child(import_menu);
-
-	p = import_menu->get_popup();
-	p->connect("id_pressed", this, "_menu_option");
 
 	tool_menu = memnew(MenuButton);
 	tool_menu->set_tooltip(TTR("Miscellaneous project or scene-wide tools."));
@@ -5959,8 +5938,6 @@ EditorNode::EditorNode() {
 	circle_step_msec = OS::get_singleton()->get_ticks_msec();
 	circle_step_frame = Engine::get_singleton()->get_frames_drawn();
 	circle_step = 0;
-
-	_rebuild_import_menu();
 
 	editor_plugin_screen = NULL;
 	editor_plugins_over = memnew(EditorPluginList);
