@@ -358,12 +358,213 @@ msgstr "배열 값 타입 변경"
 msgid "Change Array Value"
 msgstr "배열 값 변경"
 
+#: editor/asset_library_editor_plugin.cpp
+msgid "Free"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp editor/editor_plugin_settings.cpp
+msgid "Version:"
+msgstr "버전:"
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Contents:"
+msgstr "상수:"
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "View Files"
+msgstr "파일"
+
+#: editor/asset_library_editor_plugin.cpp editor/create_dialog.cpp
+#: editor/editor_help.cpp editor/property_selector.cpp
+#: editor/script_editor_debugger.cpp
+msgid "Description:"
+msgstr "설명:"
+
+#: editor/asset_library_editor_plugin.cpp editor/project_manager.cpp
+msgid "Install"
+msgstr "설치"
+
+#: editor/asset_library_editor_plugin.cpp editor/call_dialog.cpp
+#: editor/connections_dialog.cpp editor/export_template_manager.cpp
+#: editor/plugins/animation_player_editor_plugin.cpp
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#: editor/plugins/resource_preloader_editor_plugin.cpp
+#: editor/plugins/sample_library_editor_plugin.cpp
+#: editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/sprite_frames_editor_plugin.cpp editor/project_settings.cpp
+#: editor/property_editor.cpp editor/run_settings_dialog.cpp
+#: editor/settings_config_dialog.cpp
+#: modules/visual_script/visual_script_editor.cpp
+msgid "Close"
+msgstr "닫기"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Can't resolve hostname:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Can't resolve."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Connection error, please try again."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Can't connect."
+msgstr "연결하기.."
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Can't connect to host:"
+msgstr "연결할 노드:"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "No response from host:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "No response."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Request failed, return code:"
+msgstr "요청한 파일 형식을 알 수 없음:"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Req. Failed."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Request failed, too many redirects"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Redirect Loop."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Failed:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Bad download hash, assuming file has been tampered with."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Expected:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Got:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Failed sha256 hash check"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Asset Download Error:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Success!"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Fetching:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Resolving.."
+msgstr "저장 중.."
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Connecting.."
+msgstr "연결하기.."
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Requesting.."
+msgstr "테스팅"
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Error making request"
+msgstr "리소스 저장 중 에러!"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Idle"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Retry"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Download Error"
+msgstr "아래"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Download for this asset is already in progress!"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "first"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "prev"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "next"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "last"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "All"
+msgstr "모두"
+
 #: editor/asset_library_editor_plugin.cpp editor/create_dialog.cpp
 #: editor/editor_help.cpp editor/editor_node.cpp
 #: editor/plugins/script_editor_plugin.cpp editor/property_selector.cpp
 #: editor/quick_open.cpp editor/settings_config_dialog.cpp
 msgid "Search:"
 msgstr "검색:"
+
+#: editor/asset_library_editor_plugin.cpp editor/code_editor.cpp
+#: editor/editor_help.cpp editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/script_text_editor.cpp
+#: editor/plugins/shader_editor_plugin.cpp editor/project_settings.cpp
+msgid "Search"
+msgstr "검색"
+
+#: editor/asset_library_editor_plugin.cpp editor/editor_node.cpp
+#: editor/io_plugins/editor_bitmask_import_plugin.cpp
+#: editor/io_plugins/editor_font_import_plugin.cpp
+#: editor/io_plugins/editor_mesh_import_plugin.cpp
+#: editor/io_plugins/editor_sample_import_plugin.cpp
+#: editor/io_plugins/editor_scene_import_plugin.cpp
+#: editor/io_plugins/editor_texture_import_plugin.cpp
+#: editor/io_plugins/editor_translation_import_plugin.cpp
+#: editor/project_manager.cpp
+msgid "Import"
+msgstr "가져오기"
+
+#: editor/asset_library_editor_plugin.cpp editor/project_settings.cpp
+msgid "Plugins"
+msgstr "플러그인"
 
 #: editor/asset_library_editor_plugin.cpp
 msgid "Sort:"
@@ -376,10 +577,6 @@ msgstr "뒤집기"
 #: editor/asset_library_editor_plugin.cpp editor/project_settings.cpp
 msgid "Category:"
 msgstr "카테고리:"
-
-#: editor/asset_library_editor_plugin.cpp
-msgid "All"
-msgstr "모두"
 
 #: editor/asset_library_editor_plugin.cpp
 msgid "Site:"
@@ -412,20 +609,6 @@ msgstr "'%s' 함수 목록:"
 #: editor/call_dialog.cpp modules/visual_script/visual_script_editor.cpp
 msgid "Call"
 msgstr "호출"
-
-#: editor/call_dialog.cpp editor/connections_dialog.cpp
-#: editor/export_template_manager.cpp
-#: editor/plugins/animation_player_editor_plugin.cpp
-#: editor/plugins/canvas_item_editor_plugin.cpp
-#: editor/plugins/resource_preloader_editor_plugin.cpp
-#: editor/plugins/sample_library_editor_plugin.cpp
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/sprite_frames_editor_plugin.cpp editor/project_settings.cpp
-#: editor/property_editor.cpp editor/run_settings_dialog.cpp
-#: editor/settings_config_dialog.cpp
-#: modules/visual_script/visual_script_editor.cpp
-msgid "Close"
-msgstr "닫기"
 
 #: editor/call_dialog.cpp
 msgid "Method List:"
@@ -475,13 +658,6 @@ msgstr "전체 단어"
 #: editor/code_editor.cpp
 msgid "Selection Only"
 msgstr "선택영역만"
-
-#: editor/code_editor.cpp editor/editor_help.cpp
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/script_text_editor.cpp
-#: editor/plugins/shader_editor_plugin.cpp editor/project_settings.cpp
-msgid "Search"
-msgstr "검색"
 
 #: editor/code_editor.cpp editor/editor_help.cpp
 msgid "Find"
@@ -634,11 +810,6 @@ msgstr "최근:"
 #: editor/quick_open.cpp
 msgid "Matches:"
 msgstr "일치:"
-
-#: editor/create_dialog.cpp editor/editor_help.cpp editor/property_selector.cpp
-#: editor/script_editor_debugger.cpp
-msgid "Description:"
-msgstr "설명:"
 
 #: editor/dependency_editor.cpp
 msgid "Search Replacement For:"
@@ -1123,10 +1294,6 @@ msgstr " 출력:"
 msgid "Clear"
 msgstr "지우기"
 
-#: editor/editor_node.cpp
-msgid "Node From Scene"
-msgstr "씬으로부터 노드 가져오기"
-
 #: editor/editor_node.cpp editor/plugins/animation_player_editor_plugin.cpp
 #: editor/resources_dock.cpp
 msgid "Error saving resource!"
@@ -1503,21 +1670,6 @@ msgid "Distraction Free Mode"
 msgstr "초집중 모드"
 
 #: editor/editor_node.cpp
-msgid "Import assets to the project."
-msgstr "프로젝트로 에셋 가져오기."
-
-#: editor/editor_node.cpp editor/io_plugins/editor_bitmask_import_plugin.cpp
-#: editor/io_plugins/editor_font_import_plugin.cpp
-#: editor/io_plugins/editor_mesh_import_plugin.cpp
-#: editor/io_plugins/editor_sample_import_plugin.cpp
-#: editor/io_plugins/editor_scene_import_plugin.cpp
-#: editor/io_plugins/editor_texture_import_plugin.cpp
-#: editor/io_plugins/editor_translation_import_plugin.cpp
-#: editor/project_manager.cpp
-msgid "Import"
-msgstr "가져오기"
-
-#: editor/editor_node.cpp
 msgid "Miscellaneous project or scene-wide tools."
 msgstr "프로젝트 또는 씬 관련 여러가지 도구들."
 
@@ -1805,10 +1957,6 @@ msgstr "로드 에러"
 #: editor/editor_plugin_settings.cpp
 msgid "Installed Plugins:"
 msgstr "설치된 플러그인:"
-
-#: editor/editor_plugin_settings.cpp
-msgid "Version:"
-msgstr "버전:"
 
 #: editor/editor_plugin_settings.cpp
 msgid "Author:"
@@ -3815,6 +3963,11 @@ msgid "A processor material of type 'ParticlesMaterial' is required."
 msgstr ""
 
 #: editor/plugins/particles_editor_plugin.cpp
+#, fuzzy
+msgid "Generating AABB"
+msgstr "AABB 생성"
+
+#: editor/plugins/particles_editor_plugin.cpp
 msgid "Faces contain no area!"
 msgstr "페이스가 영역을 가지고 있지 않습니다!"
 
@@ -3866,6 +4019,16 @@ msgstr "배출량"
 #, fuzzy
 msgid "Emission Source: "
 msgstr "에미션 채움:"
+
+#: editor/plugins/particles_editor_plugin.cpp
+#, fuzzy
+msgid "Generate Visibility AABB"
+msgstr "AABB 생성"
+
+#: editor/plugins/particles_editor_plugin.cpp
+#, fuzzy
+msgid "Generation Time (sec):"
+msgstr "평균 시간 (초)"
 
 #: editor/plugins/path_2d_editor_plugin.cpp
 msgid "Remove Point from Curve"
@@ -4317,6 +4480,14 @@ msgstr "자동 완성"
 #: editor/plugins/script_text_editor.cpp
 msgid "Trim Trailing Whitespace"
 msgstr "후행 공백 문자 제거"
+
+#: editor/plugins/script_text_editor.cpp
+msgid "Convert Indent To Spaces"
+msgstr ""
+
+#: editor/plugins/script_text_editor.cpp
+msgid "Convert Indent To Tabs"
+msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
 msgid "Auto Indent"
@@ -5189,12 +5360,12 @@ msgstr "프로젝트 경로가 유효하지 않습니다. 경로가 반드시 �
 
 #: editor/project_manager.cpp
 #, fuzzy
-msgid "Invalid project path, godot.cfg must not exist."
+msgid "Invalid project path, *.godot must not exist."
 msgstr "프로젝트 경로가 유효하지 않습니다. engine.cfg가 있으면 안됩니다."
 
 #: editor/project_manager.cpp
 #, fuzzy
-msgid "Invalid project path, godot.cfg must exist."
+msgid "Invalid project path, *.godot must exist."
 msgstr "프로젝트 경로가 유효하지 않습니다. engine.cfg가 존재해야합니다."
 
 #: editor/project_manager.cpp
@@ -5207,7 +5378,7 @@ msgstr "유효하지 않은 프로젝트 경로 (뭔가 변경하신 거라도?)
 
 #: editor/project_manager.cpp
 #, fuzzy
-msgid "Couldn't create godot.cfg in project path."
+msgid "Couldn't create *.godot project file in project path."
 msgstr "프로젝트 경로에 engine.cfg를 생성할 수 없습니다."
 
 #: editor/project_manager.cpp
@@ -5241,10 +5412,6 @@ msgstr "프로젝트 경로:"
 #: editor/project_manager.cpp
 msgid "Install Project:"
 msgstr "프로젝트 설치:"
-
-#: editor/project_manager.cpp
-msgid "Install"
-msgstr "설치"
 
 #: editor/project_manager.cpp
 msgid "Browse"
@@ -5304,6 +5471,11 @@ msgstr "스캔할 폴더를 선택하세요"
 #: editor/project_manager.cpp
 msgid "New Project"
 msgstr "새 프로젝트"
+
+#: editor/project_manager.cpp
+#, fuzzy
+msgid "Templates"
+msgstr "아이템 삭제"
 
 #: editor/project_manager.cpp
 msgid "Exit"
@@ -5492,8 +5664,8 @@ msgstr "리소스 리맵핑 옵션 제거"
 
 #: editor/project_settings.cpp
 #, fuzzy
-msgid "Project Settings (godot.cfg)"
-msgstr "프로젝트 설정 (engine.cfg)"
+msgid "Project Settings "
+msgstr "프로젝트 설정"
 
 #: editor/project_settings.cpp editor/settings_config_dialog.cpp
 msgid "General"
@@ -5558,10 +5730,6 @@ msgstr "지역"
 #: editor/project_settings.cpp
 msgid "AutoLoad"
 msgstr "자동 로드"
-
-#: editor/project_settings.cpp
-msgid "Plugins"
-msgstr "플러그인"
 
 #: editor/property_editor.cpp
 #, fuzzy
@@ -6168,6 +6336,10 @@ msgid "Change Notifier Extents"
 msgstr "Notifier 범위 변경"
 
 #: editor/spatial_editor_gizmos.cpp
+msgid "Change Particles AABB"
+msgstr ""
+
+#: editor/spatial_editor_gizmos.cpp
 msgid "Change Probe Extents"
 msgstr "프로브 범위 변경"
 
@@ -6755,6 +6927,17 @@ msgstr ""
 "NavigationMeshInstance은 Navigation 노드의 하위에 있어야 합니다. 이것은 네비"
 "게이션 데이타만을 제공합니다."
 
+#: scene/3d/particles.cpp
+msgid ""
+"Nothing is visible because meshes have not been assigned to draw passes."
+msgstr ""
+
+#: scene/3d/particles.cpp
+msgid ""
+"A material to process the particles is not assigned, so no behavior is "
+"imprinted."
+msgstr ""
+
 #: scene/3d/remote_transform.cpp
 msgid "Path property must point to a valid Spatial node to work."
 msgstr "Path 속성은 유효한 Spatial 노드를 가리켜야 합니다."
@@ -6827,6 +7010,16 @@ msgstr ""
 "직접 표시하고자 할 경우, 사이즈를 얻기 위해서 Control의 자식 노드로 만들어야"
 "합니다. 그렇지 않을 경우, 화면에 표시하기 위해서는 Render target으로 설정하"
 "고 내부적인 텍스쳐를 다른 노드에 할당해야 합니다."
+
+#~ msgid "Node From Scene"
+#~ msgstr "씬으로부터 노드 가져오기"
+
+#~ msgid "Import assets to the project."
+#~ msgstr "프로젝트로 에셋 가져오기."
+
+#, fuzzy
+#~ msgid "Project Settings (godot.cfg)"
+#~ msgstr "프로젝트 설정 (engine.cfg)"
 
 #~ msgid "Surface"
 #~ msgstr "출사면"

@@ -407,7 +407,7 @@ void EditorSettings::setup_network() {
 	IP::get_singleton()->get_local_addresses(&local_ip);
 	String lip;
 	String hint;
-	String current = get("network/debug_host");
+	String current = has("network/debug_host") ? get("network/debug_host") : "";
 
 	for (List<IP_Address>::Element *E = local_ip.front(); E; E = E->next()) {
 
@@ -557,6 +557,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	hints["text_editor/theme/font"] = PropertyInfo(Variant::STRING, "text_editor/theme/font", PROPERTY_HINT_GLOBAL_FILE, "*.fnt");
 	set("text_editor/completion/auto_brace_complete", false);
 	set("text_editor/files/restore_scripts_on_load", true);
+	set("text_editor/completion/complete_file_paths", true);
 
 	//set("docks/scene_tree/display_old_action_buttons",false);
 	set("docks/scene_tree/start_create_dialog_fully_expanded", false);
@@ -591,9 +592,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("editors/2d/bone_color2", Color(0.75, 0.75, 0.75, 0.9));
 	set("editors/2d/bone_selected_color", Color(0.9, 0.45, 0.45, 0.9));
 	set("editors/2d/bone_ik_color", Color(0.9, 0.9, 0.45, 0.9));
-
 	set("editors/2d/keep_margins_when_changing_anchors", false);
-
 	set("editors/2d/warped_mouse_panning", true);
 
 	set("run/window_placement/rect", 0);
