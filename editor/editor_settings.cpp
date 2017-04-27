@@ -530,7 +530,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("text_editor/cursor/scroll_past_end_of_file", false);
 
 	set("text_editor/indent/type", 0);
-	hints["text_editor/indent/type"] = PropertyInfo(Variant::STRING, "text_editor/indent/type", PROPERTY_HINT_ENUM, "Tabs,Spaces");
+	hints["text_editor/indent/type"] = PropertyInfo(Variant::INT, "text_editor/indent/type", PROPERTY_HINT_ENUM, "Tabs,Spaces");
 	set("text_editor/indent/size", 4);
 	hints["text_editor/indent/size"] = PropertyInfo(Variant::INT, "text_editor/indent/size", PROPERTY_HINT_RANGE, "1, 64, 1"); // size of 0 crashes.
 	set("text_editor/indent/convert_indent_on_save", false);
@@ -566,7 +566,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 
 	set("editors/grid_map/pick_distance", 5000.0);
 
-	set("editors/3d/grid_color", Color(0, 1, 0, 0.2));
+	set("editors/3d/grid_color", Color(1, 1, 1, 0.2));
 	hints["editors/3d/grid_color"] = PropertyInfo(Variant::COLOR, "editors/3d/grid_color", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 
 	set("editors/3d/default_fov", 45.0);

@@ -1296,7 +1296,8 @@ void ScriptEditor::_update_script_colors() {
 			int non_zero_hist_size = (hist_size == 0) ? 1 : hist_size;
 			float v = Math::ease((edit_pass - pass) / float(non_zero_hist_size), 0.4);
 
-			script_list->set_item_custom_bg_color(i, hot_color.linear_interpolate(cold_color, v));
+			//script_list->set_item_custom_bg_color(i, hot_color.linear_interpolate(cold_color, v));
+			script_list->set_item_custom_font_color(i, hot_color.linear_interpolate(cold_color, v));
 		}
 	}
 }
@@ -1649,7 +1650,7 @@ void ScriptEditor::_editor_settings_changed() {
 
 	trim_trailing_whitespace_on_save = EditorSettings::get_singleton()->get("text_editor/files/trim_trailing_whitespace_on_save");
 	convert_indent_on_save = EditorSettings::get_singleton()->get("text_editor/indent/convert_indent_on_save");
-	use_space_indentation = EditorSettings::get_singleton()->get("text_editor/indent/type") == "Tabs" ? 0 : 1;
+	use_space_indentation = EditorSettings::get_singleton()->get("text_editor/indent/type");
 
 	float autosave_time = EditorSettings::get_singleton()->get("text_editor/files/autosave_interval_secs");
 	if (autosave_time > 0) {
@@ -2342,8 +2343,8 @@ ScriptEditorPlugin::ScriptEditorPlugin(EditorNode *p_node) {
 	EDITOR_DEF("text_editor/open_scripts/script_temperature_enabled", true);
 	EDITOR_DEF("text_editor/open_scripts/highlight_current_script", true);
 	EDITOR_DEF("text_editor/open_scripts/script_temperature_history_size", 15);
-	EDITOR_DEF("text_editor/open_scripts/script_temperature_hot_color", Color(1, 0, 0, 0.3));
-	EDITOR_DEF("text_editor/open_scripts/script_temperature_cold_color", Color(0, 0, 1, 0.3));
+	EDITOR_DEF("text_editor/open_scripts/script_temperature_hot_color", Color::html("ff5446"));
+	EDITOR_DEF("text_editor/open_scripts/script_temperature_cold_color", Color::html("647b93"));
 	EDITOR_DEF("text_editor/open_scripts/current_script_background_color", Color(0.81, 0.81, 0.14, 0.63));
 	EDITOR_DEF("text_editor/open_scripts/group_help_pages", true);
 	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::INT, "text_editor/open_scripts/sort_scripts_by", PROPERTY_HINT_ENUM, "Name,Path"));
