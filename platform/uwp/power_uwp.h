@@ -1,12 +1,11 @@
 /*************************************************************************/
-/*  export_template_manager.cpp                                          */
+/*  power_uwp.h                                                          */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,43 +26,30 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef EXPORT_TEMPLATE_MANAGER_H
-#define EXPORT_TEMPLATE_MANAGER_H
 
-#include "editor/editor_settings.h"
-#include "scene/gui/dialogs.h"
-#include "scene/gui/file_dialog.h"
-#include "scene/gui/scroll_container.h"
+#ifndef PLATFORM_UWP_POWER_UWP_H_
+#define PLATFORM_UWP_POWER_UWP_H_
 
-class ExportTemplateVersion;
+#include "os/dir_access.h"
+#include "os/file_access.h"
+#include "os/power.h"
 
-class ExportTemplateManager : public ConfirmationDialog {
-	GDCLASS(ExportTemplateManager, ConfirmationDialog)
+class PowerUWP {
 
-	ScrollContainer *installed_scroll;
-	VBoxContainer *installed_vb;
-	HBoxContainer *current_hb;
-	FileDialog *template_open;
+private:
+	int nsecs_left;
+	int percent_left;
+	PowerState power_state;
 
-	ConfirmationDialog *remove_confirm;
-	String to_remove;
-
-	void _update_template_list();
-
-	void _download_template(const String &p_version);
-	void _uninstall_template(const String &p_version);
-	void _uninstall_template_confirm();
-
-	virtual void ok_pressed();
-	void _install_from_file(const String &p_file);
-
-protected:
-	static void _bind_methods();
+	bool UpdatePowerInfo();
 
 public:
-	void popup_manager();
+	PowerUWP();
+	virtual ~PowerUWP();
 
-	ExportTemplateManager();
+	PowerState get_power_state();
+	int get_power_seconds_left();
+	int get_power_percent_left();
 };
 
-#endif // EXPORT_TEMPLATE_MANAGER_H
+#endif /* PLATFORM_UWP_POWER_UWP_H_ */

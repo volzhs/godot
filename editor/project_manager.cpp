@@ -50,19 +50,6 @@
 #include "scene/gui/tool_button.h"
 #include "version.h"
 
-static String _find_project_file(DirAccess *p_da) {
-	p_da->list_dir_begin();
-	while (true) {
-		String f = p_da->get_next();
-		if (f == "")
-			break;
-		if (f.get_extension() == "godot")
-			return p_da->get_current_dir() + "/" + f;
-	}
-	p_da->list_dir_end();
-	return "";
-}
-
 class NewProjectDialog : public ConfirmationDialog {
 
 	GDCLASS(NewProjectDialog, ConfirmationDialog);
@@ -105,18 +92,18 @@ private:
 
 		if (mode != MODE_IMPORT) {
 
-			if (_find_project_file(d) != "") {
+			if (d->file_exists("project.godot")) {
 
-				error->set_text(TTR("Invalid project path, *.godot must not exist."));
+				error->set_text(TTR("Invalid project path, project.godot must not exist."));
 				memdelete(d);
 				return "";
 			}
 
 		} else {
 
-			if (valid_path != "" && _find_project_file(d) == "") {
+			if (valid_path != "" && !d->file_exists("project.godot")) {
 
-				error->set_text(TTR("Invalid project path, *.godot must exist."));
+				error->set_text(TTR("Invalid project path, project.godot must exist."));
 				memdelete(d);
 				return "";
 			}
@@ -149,7 +136,7 @@ private:
 
 		String p = p_path;
 		if (mode == MODE_IMPORT) {
-			if (p.get_extension() == "godot") {
+			if (p.ends_with("project.godot")) {
 
 				p = p.get_base_dir();
 			}
@@ -175,7 +162,7 @@ private:
 
 			fdialog->set_mode(FileDialog::MODE_OPEN_FILE);
 			fdialog->clear_filters();
-			fdialog->add_filter("*.godot ; " _MKSTR(VERSION_NAME) " Project");
+			fdialog->add_filter("project.godot ; " _MKSTR(VERSION_NAME) " Project");
 		} else {
 			fdialog->set_mode(FileDialog::MODE_OPEN_DIR);
 		}
@@ -199,9 +186,9 @@ private:
 		} else {
 			if (mode == MODE_NEW) {
 
-				FileAccess *f = FileAccess::open(dir.plus_file("/" + project_name->get_text().replace(" ", "_") + ".godot"), FileAccess::WRITE);
+				FileAccess *f = FileAccess::open(dir.plus_file("/project.godot"), FileAccess::WRITE);
 				if (!f) {
-					error->set_text(TTR("Couldn't create *.godot project file in project path."));
+					error->set_text(TTR("Couldn't create project.godot in project path."));
 				} else {
 
 					f->store_line("; Engine configuration file.");
@@ -754,17 +741,10 @@ void ProjectManager::_load_recent_projects() {
 			continue;
 
 		String project = _name.get_slice("/", 1);
-		DirAccess *dir_access = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
-		if (dir_access->change_dir(path) != OK) {
-			EditorSettings::get_singleton()->erase(_name);
-			continue;
-		}
-		String conf = _find_project_file(dir_access);
-		memdelete(dir_access);
+		String conf = path.plus_file("project.godot");
 		bool favorite = (_name.begins_with("favorite_projects/")) ? true : false;
 
 		uint64_t last_modified = 0;
-
 		if (FileAccess::exists(conf)) {
 			last_modified = FileAccess::get_modified_time(conf);
 
@@ -1026,7 +1006,7 @@ void ProjectManager::_scan_dir(DirAccess *da, float pos, float total, List<Strin
 	while (n != String()) {
 		if (da->current_is_dir() && !n.begins_with(".")) {
 			subdirs.push_front(n);
-		} else if (n.get_extension() == "godot") {
+		} else if (n == "project.godot") {
 			r_projects->push_back(da->get_current_dir());
 		}
 		n = da->get_next();
@@ -1137,7 +1117,7 @@ void ProjectManager::_files_dropped(PoolStringArray p_files, int p_screen) {
 				dir->list_dir_begin();
 				String file = dir->get_next();
 				while (confirm && file != String()) {
-					if (!dir->current_is_dir() && file.get_extension() == "godot") {
+					if (!dir->current_is_dir() && file.ends_with("project.godot")) {
 						confirm = false;
 					}
 					file = dir->get_next();

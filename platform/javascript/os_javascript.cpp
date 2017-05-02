@@ -390,14 +390,18 @@ void OS_JavaScript::initialize(const VideoMode &p_desired, int p_video_driver, i
 
 	print_line("Init OS");
 
-	if (gfx_init_func)
-		gfx_init_func(gfx_init_ud, use_gl2, p_desired.width, p_desired.height, p_desired.fullscreen);
+	EmscriptenWebGLContextAttributes attributes;
+	emscripten_webgl_init_context_attributes(&attributes);
+	attributes.alpha = false;
+	attributes.antialias = false;
+	attributes.majorVersion = 2;
+	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx = emscripten_webgl_create_context(NULL, &attributes);
+	ERR_FAIL_COND(emscripten_webgl_make_context_current(ctx) != EMSCRIPTEN_RESULT_SUCCESS);
 
-	// nothing to do here, can't fulfil fullscreen request due to
-	// browser security, window size is already set from HTML
 	video_mode = p_desired;
+	// can't fulfil fullscreen request due to browser security
 	video_mode.fullscreen = false;
-	_windowed_size = get_window_size();
+	set_window_size(Size2(p_desired.width, p_desired.height));
 
 	// find locale, emscripten only sets "C"
 	char locale_ptr[16];
@@ -513,20 +517,62 @@ void OS_JavaScript::alert(const String &p_alert, const String &p_title) {
 	/* clang-format on */
 }
 
-void OS_JavaScript::set_mouse_show(bool p_show) {
+void OS_JavaScript::set_css_cursor(const char *p_cursor) {
 
-	//javascript has no mouse...
+	/* clang-format off */
+	EM_ASM_({
+		Module.canvas.style.cursor = Module.UTF8ToString($0);
+	}, p_cursor);
+	/* clang-format on */
 }
 
-void OS_JavaScript::set_mouse_grab(bool p_grab) {
+const char *OS_JavaScript::get_css_cursor() const {
 
-	//it really has no mouse...!
+	char cursor[16];
+	/* clang-format off */
+	EM_ASM_INT({
+		Module.stringToUTF8(Module.canvas.style.cursor ? Module.canvas.style.cursor : 'auto', $0, 16);
+	}, cursor);
+	/* clang-format on */
+	return cursor;
 }
 
-bool OS_JavaScript::is_mouse_grab_enabled() const {
+void OS_JavaScript::set_mouse_mode(OS::MouseMode p_mode) {
 
-	//*sigh* technology has evolved so much since i was a kid..
-	return false;
+	ERR_FAIL_INDEX(p_mode, MOUSE_MODE_CONFINED + 1);
+	ERR_EXPLAIN("MOUSE_MODE_CONFINED is not supported for the HTML5 platform");
+	ERR_FAIL_COND(p_mode == MOUSE_MODE_CONFINED);
+	if (p_mode == get_mouse_mode())
+		return;
+
+	if (p_mode == MOUSE_MODE_VISIBLE) {
+
+		set_css_cursor("auto");
+		emscripten_exit_pointerlock();
+
+	} else if (p_mode == MOUSE_MODE_HIDDEN) {
+
+		set_css_cursor("none");
+		emscripten_exit_pointerlock();
+
+	} else if (p_mode == MOUSE_MODE_CAPTURED) {
+
+		EMSCRIPTEN_RESULT result = emscripten_request_pointerlock("canvas", false);
+		ERR_EXPLAIN("MOUSE_MODE_CAPTURED can only be entered from within an appropriate input callback");
+		ERR_FAIL_COND(result == EMSCRIPTEN_RESULT_FAILED_NOT_DEFERRED);
+		ERR_FAIL_COND(result != EMSCRIPTEN_RESULT_SUCCESS);
+		set_css_cursor("auto");
+	}
+}
+
+OS::MouseMode OS_JavaScript::get_mouse_mode() const {
+
+	if (!strcmp(get_css_cursor(), "none"))
+		return MOUSE_MODE_HIDDEN;
+
+	EmscriptenPointerlockChangeEvent ev;
+	emscripten_get_pointerlock_status(&ev);
+	return ev.isActive && (strcmp(ev.id, "canvas") == 0) ? MOUSE_MODE_CAPTURED : MOUSE_MODE_VISIBLE;
 }
 
 Point2 OS_JavaScript::get_mouse_position() const {
@@ -835,10 +881,8 @@ int OS_JavaScript::get_power_percent_left() {
 	return power_manager->get_power_percent_left();
 }
 
-OS_JavaScript::OS_JavaScript(const char *p_execpath, GFXInitFunc p_gfx_init_func, void *p_gfx_init_ud, GetDataDirFunc p_get_data_dir_func) {
+OS_JavaScript::OS_JavaScript(const char *p_execpath, GetDataDirFunc p_get_data_dir_func) {
 	set_cmdline(p_execpath, get_cmdline_args());
-	gfx_init_func = p_gfx_init_func;
-	gfx_init_ud = p_gfx_init_ud;
 	main_loop = NULL;
 	gl_extensions = NULL;
 	window_maximized = false;

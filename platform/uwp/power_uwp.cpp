@@ -1,12 +1,11 @@
 /*************************************************************************/
-/*  export_template_manager.cpp                                          */
+/*  power_uwp.cpp                                                        */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,43 +26,49 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef EXPORT_TEMPLATE_MANAGER_H
-#define EXPORT_TEMPLATE_MANAGER_H
 
-#include "editor/editor_settings.h"
-#include "scene/gui/dialogs.h"
-#include "scene/gui/file_dialog.h"
-#include "scene/gui/scroll_container.h"
+#include "power_uwp.h"
 
-class ExportTemplateVersion;
+PowerUWP::PowerUWP()
+	: nsecs_left(-1), percent_left(-1), power_state(POWERSTATE_UNKNOWN) {
+}
 
-class ExportTemplateManager : public ConfirmationDialog {
-	GDCLASS(ExportTemplateManager, ConfirmationDialog)
+PowerUWP::~PowerUWP() {
+}
 
-	ScrollContainer *installed_scroll;
-	VBoxContainer *installed_vb;
-	HBoxContainer *current_hb;
-	FileDialog *template_open;
+bool PowerUWP::UpdatePowerInfo() {
+	// TODO, WinRT: Battery info is available on at least one WinRT platform (Windows Phone 8).  Implement UpdatePowerInfo as appropriate. */
+	/* Notes from SDL:
+	         - the Win32 function, GetSystemPowerStatus, is not available for use on WinRT
+	         - Windows Phone 8 has a 'Battery' class, which is documented as available for C++
+	             - More info on WP8's Battery class can be found at http://msdn.microsoft.com/library/windowsphone/develop/jj207231
+	    */
+	return false;
+}
 
-	ConfirmationDialog *remove_confirm;
-	String to_remove;
+PowerState PowerUWP::get_power_state() {
+	if (UpdatePowerInfo()) {
+		return power_state;
+	} else {
+		WARN_PRINT("Power management is not implemented on this platform, defaulting to POWERSTATE_UNKNOWN");
+		return POWERSTATE_UNKNOWN;
+	}
+}
 
-	void _update_template_list();
+int PowerUWP::get_power_seconds_left() {
+	if (UpdatePowerInfo()) {
+		return nsecs_left;
+	} else {
+		WARN_PRINT("Power management is not implemented on this platform, defaulting to -1");
+		return -1;
+	}
+}
 
-	void _download_template(const String &p_version);
-	void _uninstall_template(const String &p_version);
-	void _uninstall_template_confirm();
-
-	virtual void ok_pressed();
-	void _install_from_file(const String &p_file);
-
-protected:
-	static void _bind_methods();
-
-public:
-	void popup_manager();
-
-	ExportTemplateManager();
-};
-
-#endif // EXPORT_TEMPLATE_MANAGER_H
+int PowerUWP::get_power_percent_left() {
+	if (UpdatePowerInfo()) {
+		return percent_left;
+	} else {
+		WARN_PRINT("Power management is not implemented on this platform, defaulting to -1");
+		return -1;
+	}
+}

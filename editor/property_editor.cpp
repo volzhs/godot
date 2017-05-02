@@ -2769,10 +2769,7 @@ TreeItem *PropertyEditor::get_parent_node(String p_path, HashMap<String, TreeIte
 		item = tree->create_item(parent);
 
 		String name = (p_path.find("/") != -1) ? p_path.right(p_path.find_last("/") + 1) : p_path;
-		if (capitalize_paths)
-			item->set_text(0, name.capitalize());
-		else
-			item->set_text(0, name);
+		item->set_text(0, capitalize_paths ? name.capitalize() : name);
 		item->set_tooltip(0, p_path);
 		if (item->get_parent() != root) {
 			item->set_icon(0, get_icon("Folder", "EditorIcons"));
@@ -3403,6 +3400,13 @@ void PropertyEditor::update_tree() {
 
 				if (show_type_icons)
 					item->set_icon(0, get_icon("ArrayData", "EditorIcons"));
+
+			} break;
+			case Variant::DICTIONARY: {
+
+				item->set_cell_mode(1, TreeItem::CELL_MODE_STRING);
+				item->set_editable(1, false);
+				item->set_text(1, obj->get(p.name).operator String());
 
 			} break;
 
@@ -4298,9 +4302,15 @@ String PropertyEditor::get_selected_path() const {
 		return "";
 }
 
-void PropertyEditor::set_capitalize_paths(bool p_capitalize) {
+bool PropertyEditor::is_capitalize_paths_enabled() const {
+
+	return capitalize_paths;
+}
+
+void PropertyEditor::set_enable_capitalize_paths(bool p_capitalize) {
 
 	capitalize_paths = p_capitalize;
+	update_tree_pending = true;
 }
 
 void PropertyEditor::set_autoclear(bool p_enable) {

@@ -28,13 +28,13 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "editor_export.h"
+
 #include "editor/editor_file_system.h"
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor_node.h"
 #include "editor_settings.h"
 #include "global_config.h"
 #include "io/config_file.h"
-#include "io/md5.h"
 #include "io/resource_loader.h"
 #include "io/resource_saver.h"
 #include "io/zip_io.h"
@@ -42,6 +42,8 @@
 #include "os/file_access.h"
 #include "script_language.h"
 #include "version.h"
+
+#include "thirdparty/misc/md5.h"
 
 static int _get_pad(int p_alignment, int p_n) {
 
@@ -1379,8 +1381,8 @@ Vector<StringName> EditorExportPlatform::get_dependencies(bool p_bundles) const 
 
 	Set<StringName> exported;
 
-	if (FileAccess::exists("res://godot.cfg"))
-		exported.insert("res://godot.cfg");
+	if (FileAccess::exists("res://project.godot"))
+		exported.insert("res://project.godot");
 
 	if (EditorImportExport::get_singleton()->get_export_filter()!=EditorImportExport::EXPORT_SELECTED) {
 
@@ -1976,7 +1978,7 @@ Error EditorExportPlatform::export_project_files(EditorExportSaveFunction p_func
 	}
 
 
-	StringName engine_cfg="res://godot.cfg";
+	StringName engine_cfg="res://project.godot";
 	StringName boot_splash;
 	{
 		String splash=GlobalConfig::get_singleton()->get("application/boot_splash"); //avoid splash from being converted
@@ -2030,7 +2032,7 @@ Error EditorExportPlatform::export_project_files(EditorExportSaveFunction p_func
 
 	{
 
-		//make binary godot.cfg config
+		//make binary project.godot config
 		Map<String,Variant> custom;
 
 
