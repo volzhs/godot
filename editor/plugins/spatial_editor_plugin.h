@@ -114,6 +114,8 @@ private:
 	bool orthogonal;
 	float gizmo_scale;
 
+	bool freelook_active;
+
 	struct _RayResult {
 
 		Spatial *item;
@@ -168,7 +170,8 @@ private:
 		NAVIGATION_NONE,
 		NAVIGATION_PAN,
 		NAVIGATION_ZOOM,
-		NAVIGATION_ORBIT
+		NAVIGATION_ORBIT,
+		NAVIGATION_LOOK
 	};
 	enum TransformMode {
 		TRANSFORM_NONE,
@@ -203,8 +206,6 @@ private:
 
 	struct Cursor {
 
-		Vector3 cursor_pos;
-
 		Vector3 pos;
 		float x_rot, y_rot, distance;
 		bool region_select;
@@ -217,6 +218,10 @@ private:
 		}
 	} cursor;
 
+	void scale_cursor_distance(real_t scale);
+
+	real_t zoom_indicator_delay;
+
 	RID move_gizmo_instance[3], rotate_gizmo_instance[3];
 
 	String last_message;
@@ -227,10 +232,12 @@ private:
 
 	//
 	void _update_camera();
+	Transform to_camera_transform(const Cursor &p_cursor) const;
 	void _draw();
 
 	void _smouseenter();
 	void _sinput(const InputEvent &p_ie);
+	void _update_freelook(real_t delta);
 	SpatialEditor *spatial_editor;
 
 	Camera *previewing;
@@ -243,6 +250,7 @@ private:
 	void _selection_result_pressed(int);
 	void _selection_menu_hide();
 	void _list_select(InputEventMouseButton b);
+	Point2i _get_warped_mouse_motion(const InputEventMouseMotion &p_ev_mouse_motion) const;
 
 protected:
 	void _notification(int p_what);
@@ -255,6 +263,7 @@ public:
 	void set_state(const Dictionary &p_state);
 	Dictionary get_state() const;
 	void reset();
+	bool is_freelook_active() const { return freelook_active; }
 
 	void focus_selection();
 
@@ -295,11 +304,13 @@ public:
 	};
 
 private:
+	static const unsigned int VIEWPORTS_COUNT = 4;
+
 	EditorNode *editor;
 	EditorSelection *editor_selection;
 
 	Control *viewport_base;
-	SpatialEditorViewport *viewports[4];
+	SpatialEditorViewport *viewports[VIEWPORTS_COUNT];
 	VSplitContainer *shader_split;
 	HSplitContainer *palette_split;
 
@@ -385,7 +396,6 @@ private:
 	};
 
 	Button *tool_button[TOOL_MAX];
-	Button *instance_button;
 
 	MenuButton *transform_menu;
 	MenuButton *view_menu;
@@ -455,6 +465,8 @@ private:
 	void _update_ambient_light_color(const Color &p_color);
 	void _update_default_light_angle();
 	void _default_light_angle_input(const InputEvent &p_event);
+
+	bool is_any_freelook_active() const;
 
 protected:
 	void _notification(int p_what);
