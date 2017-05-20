@@ -239,7 +239,6 @@ void ConnectDialog::_add_bind() {
 		case Variant::BASIS: value = Basis(); break;
 		case Variant::TRANSFORM: value = Transform(); break;
 		case Variant::COLOR: value = Color(); break;
-		case Variant::IMAGE: value = Image(); break;
 
 		default: { ERR_FAIL(); } break;
 	}
@@ -327,7 +326,6 @@ ConnectDialog::ConnectDialog() {
 	type_list->add_item("Transform", Variant::TRANSFORM);
 	//type_list->add_separator();
 	type_list->add_item("Color", Variant::COLOR);
-	type_list->add_item("Image", Variant::IMAGE);
 	type_list->select(0);
 
 	Button *add_bind = memnew(Button);
@@ -418,6 +416,10 @@ void ConnectionsDock::_notification(int p_what) {
 
 		//RID ci = get_canvas_item();
 		//get_stylebox("panel","PopupMenu")->draw(ci,Rect2(Point2(),get_size()));
+	}
+
+	if (p_what == EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED) {
+		update_tree();
 	}
 }
 

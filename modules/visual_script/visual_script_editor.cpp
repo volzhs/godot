@@ -346,7 +346,6 @@ static Color _color_from_type(Variant::Type p_type) {
 		case Variant::TRANSFORM: color = Color::html("f6a86e"); break;
 
 		case Variant::COLOR: color = Color::html("9dff70"); break;
-		case Variant::IMAGE: color = Color::html("93f1b9"); break;
 		case Variant::NODE_PATH: color = Color::html("6993ec"); break;
 		case Variant::_RID: color = Color::html("69ec9a"); break;
 		case Variant::OBJECT: color = Color::html("79f3e8"); break;
@@ -451,7 +450,6 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 		Control::get_icon("MiniBasis", "EditorIcons"),
 		Control::get_icon("MiniTransform", "EditorIcons"),
 		Control::get_icon("MiniColor", "EditorIcons"),
-		Control::get_icon("MiniImage", "EditorIcons"),
 		Control::get_icon("MiniPath", "EditorIcons"),
 		Control::get_icon("MiniRid", "EditorIcons"),
 		Control::get_icon("MiniObject", "EditorIcons"),
@@ -490,7 +488,7 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 		}
 
 		if (EditorSettings::get_singleton()->has("editors/visual_script/color_" + node->get_category())) {
-			gnode->set_self_modulate(EditorSettings::get_singleton()->get("editors/visual_script/color_" + node->get_category()));
+			gnode->set_modulate(EditorSettings::get_singleton()->get("editors/visual_script/color_" + node->get_category()));
 		}
 
 		gnode->set_meta("__vnode", node);
@@ -735,7 +733,6 @@ void VisualScriptEditor::_update_members() {
 		Control::get_icon("MiniMatrix3", "EditorIcons"),
 		Control::get_icon("MiniTransform", "EditorIcons"),
 		Control::get_icon("MiniColor", "EditorIcons"),
-		Control::get_icon("MiniImage", "EditorIcons"),
 		Control::get_icon("MiniPath", "EditorIcons"),
 		Control::get_icon("MiniRid", "EditorIcons"),
 		Control::get_icon("MiniObject", "EditorIcons"),
@@ -2833,7 +2830,7 @@ void VisualScriptEditor::_node_filter_changed(const String &p_text) {
 void VisualScriptEditor::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_READY) {
-		node_filter_icon->set_texture(Control::get_icon("Search", "EditorIcons"));
+		node_filter_icon->set_texture(Control::get_icon("Zoom", "EditorIcons"));
 	}
 }
 

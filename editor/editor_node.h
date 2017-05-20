@@ -205,8 +205,10 @@ private:
 	//Ref<ResourceImportMetadata> scene_import_metadata;
 
 	PanelContainer *scene_root_parent;
+	Control *theme_base;
 	Control *gui_base;
 	VBoxContainer *main_vbox;
+	PanelContainer *play_button_panel;
 
 	//split
 
@@ -440,6 +442,8 @@ private:
 	void _imported(Node *p_node);
 
 	void _node_renamed();
+	void _editor_select_next();
+	void _editor_select_prev();
 	void _editor_select(int p_which);
 	void _set_scene_metadata(const String &p_file, int p_idx = -1);
 	void _get_scene_metadata(const String &p_file);
@@ -607,6 +611,7 @@ private:
 
 	void _start_dimming(bool p_dimming);
 	void _dim_timeout();
+	void _check_gui_base_size();
 
 protected:
 	void _notification(int p_what);
@@ -618,7 +623,8 @@ public:
 	enum EditorTable {
 		EDITOR_2D = 0,
 		EDITOR_3D,
-		EDITOR_SCRIPT
+		EDITOR_SCRIPT,
+		EDITOR_ASSETLIB
 	};
 
 	void set_visible_editor(EditorTable p_table) { _editor_select(p_table); }
