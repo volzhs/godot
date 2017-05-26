@@ -57,7 +57,7 @@ bool InputEvent::is_pressed() const {
 
 bool InputEvent::is_action(const StringName &p_action) const {
 
-	return InputMap::get_singleton()->event_is_action(Ref<InputEvent>(this), p_action);
+	return InputMap::get_singleton()->event_is_action(Ref<InputEvent>((InputEvent *)this), p_action);
 }
 
 bool InputEvent::is_action_pressed(const StringName &p_action) const {
@@ -229,7 +229,7 @@ void InputEventKey::set_pressed(bool p_pressed) {
 	pressed = p_pressed;
 }
 
-bool InputEventKey::is_pressed() {
+bool InputEventKey::is_pressed() const {
 
 	return pressed;
 }
@@ -461,7 +461,7 @@ void InputEventMouseButton::_bind_methods() {
 
 InputEventMouseButton::InputEventMouseButton() {
 
-	factor = 0;
+	factor = 1;
 	button_index = 0;
 	pressed = false;
 	doubleclick = false;
@@ -816,7 +816,7 @@ void InputEventAction::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_pressed", "pressed"), &InputEventAction::set_pressed);
 	//ClassDB::bind_method(D_METHOD("is_pressed"), &InputEventAction::is_pressed);
 
-	ClassDB::bind_method(D_METHOD("is_action", "name"), &InputEventAction::is_action);
+	//	ClassDB::bind_method(D_METHOD("is_action", "name"), &InputEventAction::is_action);
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "action"), "set_action", "get_action");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "pressed"), "set_pressed", "is_pressed");
