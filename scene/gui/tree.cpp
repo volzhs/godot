@@ -450,7 +450,7 @@ void TreeItem::deselect(int p_column) {
 	_cell_deselected(p_column);
 }
 
-void TreeItem::add_button(int p_column, const Ref<Texture> &p_button, int p_id, bool p_disabled) {
+void TreeItem::add_button(int p_column, const Ref<Texture> &p_button, int p_id, bool p_disabled, const String &p_tooltip) {
 
 	ERR_FAIL_INDEX(p_column, cells.size());
 	ERR_FAIL_COND(!p_button.is_valid());
@@ -460,6 +460,7 @@ void TreeItem::add_button(int p_column, const Ref<Texture> &p_button, int p_id, 
 		p_id = cells[p_column].buttons.size();
 	button.id = p_id;
 	button.disabled = p_disabled;
+	button.tooltip = p_tooltip;
 	cells[p_column].buttons.push_back(button);
 	_changed_notify(p_column);
 }
@@ -655,7 +656,7 @@ void TreeItem::_bind_methods() {
 	ObjectTypeDB::bind_method(_MD("clear_custom_bg_color", "column"), &TreeItem::clear_custom_bg_color);
 	ObjectTypeDB::bind_method(_MD("get_custom_bg_color", "column"), &TreeItem::get_custom_bg_color);
 
-	ObjectTypeDB::bind_method(_MD("add_button", "column", "button:Texture", "button_idx", "disabled"), &TreeItem::add_button, DEFVAL(-1), DEFVAL(false));
+	ObjectTypeDB::bind_method(_MD("add_button", "column", "button:Texture", "button_idx", "disabled", "tooltip"), &TreeItem::add_button, DEFVAL(-1), DEFVAL(false), DEFVAL(""));
 	ObjectTypeDB::bind_method(_MD("get_button_count", "column"), &TreeItem::get_button_count);
 	ObjectTypeDB::bind_method(_MD("get_button:Texture", "column", "button_idx"), &TreeItem::get_button);
 	ObjectTypeDB::bind_method(_MD("set_button", "column", "button_idx", "button:Texture"), &TreeItem::set_button);
@@ -1488,6 +1489,7 @@ int Tree::propagate_mouse_event(const Point2i &p_pos, int x_ofs, int y_ofs, bool
 			if (p_doubleclick && (!c.editable || c.mode == TreeItem::CELL_MODE_CUSTOM || c.mode == TreeItem::CELL_MODE_ICON /*|| c.mode==TreeItem::CELL_MODE_CHECK*/)) { //it' s confusing for check
 
 				emit_signal("item_activated");
+				incr_search.clear();
 				return -1;
 			}
 
@@ -2036,6 +2038,7 @@ void Tree::_input_event(InputEvent p_event) {
 						//bring up editor if possible
 						if (!edit_selected()) {
 							emit_signal("item_activated");
+							incr_search.clear();
 						}
 					}
 					accept_event();
@@ -2176,6 +2179,26 @@ void Tree::_input_event(InputEvent p_event) {
 			if (!b.pressed) {
 
 				if (b.button_index == BUTTON_LEFT) {
+
+					Ref<StyleBox> bg = cache.bg;
+
+					Point2 pos = Point2(b.x, b.y) - bg->get_offset();
+					if (show_column_titles) {
+						pos.y -= _get_title_button_height();
+
+						if (pos.y < 0) {
+							pos.x += cache.offset.x;
+							int len = 0;
+							for (int i = 0; i < columns.size(); i++) {
+
+								len += get_column_width(i);
+								if (pos.x < len) {
+									emit_signal("column_title_pressed", i);
+									break;
+								}
+							}
+						}
+					}
 
 					if (single_select_defer) {
 						select_single_item(single_select_defer, root, single_select_defer_column);
@@ -3253,6 +3276,19 @@ String Tree::get_tooltip(const Point2 &p_pos) const {
 
 		if (it) {
 
+			TreeItem::Cell &c = it->cells[col];
+			int col_width = get_column_width(col);
+			for (int j = c.buttons.size() - 1; j >= 0; j--) {
+				Ref<Texture> b = c.buttons[j].texture;
+				Size2 size = b->get_size() + cache.button_pressed->get_minimum_size();
+				if (pos.x > col_width - size.width) {
+					String tooltip = c.buttons[j].tooltip;
+					if (tooltip != "") {
+						return tooltip;
+					}
+				}
+				col_width -= size.width;
+			}
 			String ret;
 			if (it->get_tooltip(col) == "")
 				ret = it->get_text(col);
@@ -3392,6 +3428,7 @@ void Tree::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("button_pressed", PropertyInfo(Variant::OBJECT, "item"), PropertyInfo(Variant::INT, "column"), PropertyInfo(Variant::INT, "id")));
 	ADD_SIGNAL(MethodInfo("custom_popup_edited", PropertyInfo(Variant::BOOL, "arrow_clicked")));
 	ADD_SIGNAL(MethodInfo("item_activated"));
+	ADD_SIGNAL(MethodInfo("column_title_pressed", PropertyInfo(Variant::INT, "column")));
 
 	BIND_CONSTANT(SELECT_SINGLE);
 	BIND_CONSTANT(SELECT_ROW);
