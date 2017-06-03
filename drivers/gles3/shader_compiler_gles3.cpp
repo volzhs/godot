@@ -723,6 +723,7 @@ ShaderCompilerGLES3::ShaderCompilerGLES3() {
 	actions[VS::SHADER_SPATIAL].renames["NORMALMAP_DEPTH"] = "normaldepth";
 	actions[VS::SHADER_SPATIAL].renames["ALBEDO"] = "albedo";
 	actions[VS::SHADER_SPATIAL].renames["ALPHA"] = "alpha";
+	actions[VS::SHADER_SPATIAL].renames["METALLIC"] = "metallic";
 	actions[VS::SHADER_SPATIAL].renames["SPECULAR"] = "specular";
 	actions[VS::SHADER_SPATIAL].renames["ROUGHNESS"] = "roughness";
 	actions[VS::SHADER_SPATIAL].renames["RIM"] = "rim";
@@ -761,6 +762,10 @@ ShaderCompilerGLES3::ShaderCompilerGLES3() {
 	actions[VS::SHADER_SPATIAL].renames["SSS_STRENGTH"] = "sss_strength";
 
 	actions[VS::SHADER_SPATIAL].render_mode_defines["skip_default_transform"] = "#define SKIP_TRANSFORM_USED\n";
+
+	actions[VS::SHADER_SPATIAL].render_mode_defines["diffuse_burley"] = "#define DIFFUSE_BURLEY\n";
+	actions[VS::SHADER_SPATIAL].render_mode_defines["diffuse_oren_nayar"] = "#define DIFFUSE_OREN_NAYAR\n";
+	actions[VS::SHADER_SPATIAL].render_mode_defines["diffuse_half_lambert"] = "#define DIFFUSE_HALF_LAMBERT\n";
 
 	/* PARTICLES SHADER */
 

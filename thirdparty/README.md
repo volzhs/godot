@@ -112,6 +112,10 @@ Files extracted from upstream source:
 - Version: 05cfdc2 (git)
 - License: MIT, BSD-3-Clause
 
+Files extracted from upstream source:
+
+TODO.
+
 
 ## libvorbis
 
@@ -131,6 +135,10 @@ Files extracted from upstream source:
 - Upstream: http://www.webmproject.org/code/
 - Version: 1.6.0
 - License: BSD-3-Clause
+
+Files extracted from upstream source:
+
+TODO.
 
 
 ## libwebp
@@ -242,13 +250,29 @@ Collection of single-file libraries used in Godot components.
 
 Files extracted from the upstream source:
 
-TODO.
+- Our `openssl/`: contains the headers installed in /usr/include/openssl;
+  gather them in the source tarball with `make links` and
+  `cp -f include/openssl/*.h ../openssl/openssl/`
+- Our `crypto/`: copy of upstream `crypto/`, with some cleanup (see below).
+- Our `ssl/`: copy of upstream `ssl/`, with some cleanup (see below).
+- Cleanup:
+  ```
+  find \( -name "Makefile" -o -name "*.S" -o -name "*.bat" -o -name "*.bc" \
+    -o -name "*.com" -o -name "*.cnf" -o -name "*.ec" -o -name "*.fre" \
+    -o -name "*.gcc" -o -name "*.in" -o -name "*.lnx" -o -name "*.m4" \
+    -o -name "*.pl" -o -name "*.pod" -o -name "*.s" -o -name "*.sh" \
+    -o -name "*.sol" -o -name "*test*" \) -delete
+  cd openssl; for file in *.h; do find ../{crypto,ssl} -name "$file" -delete; done
+  ```
+  For the rest check the `git status` and decide.
+- e_os.h
+- Apply the Godot-specific patches in the `patches/` folder.
 
 
 ## opus
 
 - Upstream: https://opus-codec.org
-- Version: 1.1.4 (opus) and 0.8 (opusfile)
+- Version: 1.1.5 (opus) and 0.8 (opusfile)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -316,6 +340,21 @@ Files extracted from upstream source:
 - all .c, .h in lib/
 - all .h files in include/theora/ as theora/
 - COPYING and LICENSE
+
+
+## tinyexr
+
+- Upstream: https://github.com/syoyo/tinyexr
+- Version: 0.9.5+ (git a145d69)
+- License: BSD-3-Clause
+
+Files extracted from upstream source:
+
+- `tinyexr.{cc,h}`
+
+Important: Some changes were made to get TinyEXR to build on the ancient
+MinGW-w64 toolchain of Travis CI.
+https://github.com/godotengine/godot/commit/37f5e1dcd94611dd5b670f013abf0323e8b47def
 
 
 ## zlib

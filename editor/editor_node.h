@@ -186,11 +186,18 @@ private:
 		SETTINGS_PICK_MAIN_SCENE,
 		SETTINGS_TOGGLE_FULLSCREN,
 		SETTINGS_HELP,
-		SETTINGS_ABOUT,
 		SOURCES_REIMPORT,
 		DEPENDENCY_LOAD_CHANGED_IMAGES,
 		DEPENDENCY_UPDATE_IMPORTED,
 		SCENE_TAB_CLOSE,
+
+		HELP_CLASSES,
+		HELP_SEARCH,
+		HELP_DOCS,
+		HELP_QA,
+		HELP_ISSUES,
+		HELP_COMMUNITY,
+		HELP_ABOUT,
 
 		IMPORT_PLUGIN_BASE = 100,
 
@@ -586,6 +593,7 @@ private:
 
 	static int plugin_init_callback_count;
 	static EditorPluginInitializeCallback plugin_init_callbacks[MAX_INIT_CALLBACKS];
+	void _save_default_environment();
 
 	void _call_build();
 	static int build_callback_count;

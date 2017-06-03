@@ -91,7 +91,8 @@ ShaderTypes::ShaderTypes() {
 	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["NORMAL"] = ShaderLanguage::TYPE_VEC3;
 	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["ALBEDO"] = ShaderLanguage::TYPE_VEC3;
 	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["ALPHA"] = ShaderLanguage::TYPE_FLOAT;
-	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["SPECULAR"] = ShaderLanguage::TYPE_VEC3;
+	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["METALLIC"] = ShaderLanguage::TYPE_FLOAT;
+	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["SPECULAR"] = ShaderLanguage::TYPE_FLOAT;
 	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["ROUGHNESS"] = ShaderLanguage::TYPE_FLOAT;
 	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["RIM"] = ShaderLanguage::TYPE_FLOAT;
 	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["RIM_TINT"] = ShaderLanguage::TYPE_FLOAT;
@@ -130,6 +131,11 @@ ShaderTypes::ShaderTypes() {
 	shader_modes[VS::SHADER_SPATIAL].modes.insert("unshaded");
 	shader_modes[VS::SHADER_SPATIAL].modes.insert("ontop");
 
+	shader_modes[VS::SHADER_SPATIAL].modes.insert("diffuse_lambert");
+	shader_modes[VS::SHADER_SPATIAL].modes.insert("diffuse_half_lambert");
+	shader_modes[VS::SHADER_SPATIAL].modes.insert("diffuse_oren_nayar");
+	shader_modes[VS::SHADER_SPATIAL].modes.insert("diffuse_burley");
+
 	shader_modes[VS::SHADER_SPATIAL].modes.insert("skip_default_transform");
 
 	/************ CANVAS ITEM **************************/
@@ -165,8 +171,6 @@ ShaderTypes::ShaderTypes() {
 	shader_modes[VS::SHADER_CANVAS_ITEM].functions["light"]["COLOR"] = ShaderLanguage::TYPE_VEC4;
 	shader_modes[VS::SHADER_CANVAS_ITEM].functions["light"]["TEXTURE"] = ShaderLanguage::TYPE_SAMPLER2D;
 	shader_modes[VS::SHADER_CANVAS_ITEM].functions["light"]["TEXTURE_PIXEL_SIZE"] = ShaderLanguage::TYPE_VEC2;
-	shader_modes[VS::SHADER_CANVAS_ITEM].functions["light"]["VAR1"] = ShaderLanguage::TYPE_VEC4;
-	shader_modes[VS::SHADER_CANVAS_ITEM].functions["light"]["VAR2"] = ShaderLanguage::TYPE_VEC4;
 	shader_modes[VS::SHADER_CANVAS_ITEM].functions["light"]["SCREEN_UV"] = ShaderLanguage::TYPE_VEC2;
 	shader_modes[VS::SHADER_CANVAS_ITEM].functions["light"]["LIGHT_VEC"] = ShaderLanguage::TYPE_VEC2;
 	shader_modes[VS::SHADER_CANVAS_ITEM].functions["light"]["LIGHT_HEIGHT"] = ShaderLanguage::TYPE_FLOAT;
