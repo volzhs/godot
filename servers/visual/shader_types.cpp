@@ -52,7 +52,6 @@ ShaderTypes::ShaderTypes() {
 
 	shader_modes[VS::SHADER_SPATIAL].functions["vertex"]["SRC_VERTEX"] = ShaderLanguage::TYPE_VEC3;
 	shader_modes[VS::SHADER_SPATIAL].functions["vertex"]["SRC_NORMAL"] = ShaderLanguage::TYPE_VEC3;
-	shader_modes[VS::SHADER_SPATIAL].functions["vertex"]["SRC_TANGENT"] = ShaderLanguage::TYPE_VEC4;
 	shader_modes[VS::SHADER_SPATIAL].functions["vertex"]["SRC_BONES"] = ShaderLanguage::TYPE_IVEC4;
 	shader_modes[VS::SHADER_SPATIAL].functions["vertex"]["SRC_WEIGHTS"] = ShaderLanguage::TYPE_VEC4;
 
@@ -105,8 +104,11 @@ ShaderTypes::ShaderTypes() {
 	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["EMISSION"] = ShaderLanguage::TYPE_VEC3;
 	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["SPECIAL"] = ShaderLanguage::TYPE_FLOAT;
 	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["DISCARD"] = ShaderLanguage::TYPE_BOOL;
+	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["SCREEN_TEXTURE"] = ShaderLanguage::TYPE_SAMPLER2D;
+	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["DEPTH_TEXTURE"] = ShaderLanguage::TYPE_SAMPLER2D;
 	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["SCREEN_UV"] = ShaderLanguage::TYPE_VEC2;
 	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["POINT_COORD"] = ShaderLanguage::TYPE_VEC2;
+	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["SIDE"] = ShaderLanguage::TYPE_FLOAT;
 
 	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["WORLD_MATRIX"] = ShaderLanguage::TYPE_MAT4;
 	shader_modes[VS::SHADER_SPATIAL].functions["fragment"]["INV_CAMERA_MATRIX"] = ShaderLanguage::TYPE_MAT4;

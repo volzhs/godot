@@ -61,8 +61,6 @@ public:
 
 	struct Config {
 
-		RenderArchitecture render_arch;
-
 		bool shrink_textures_x2;
 		bool use_fast_texture_filter;
 		bool use_anisotropic_filter;
@@ -411,6 +409,7 @@ public:
 			bool uses_vertex;
 			bool uses_discard;
 			bool uses_sss;
+			bool uses_screen_texture;
 			bool writes_modelview_or_projection;
 
 		} spatial;
@@ -1128,7 +1127,7 @@ public:
 			GLuint specular;
 			GLuint diffuse;
 			GLuint normal_rough;
-			GLuint motion_sss;
+			GLuint sss;
 
 			GLuint effect_fbo;
 			GLuint effect;
@@ -1208,9 +1207,10 @@ public:
 
 			flags[RENDER_TARGET_VFLIP] = false;
 			flags[RENDER_TARGET_TRANSPARENT] = false;
+			flags[RENDER_TARGET_NO_3D_EFFECTS] = false;
 			flags[RENDER_TARGET_NO_3D] = false;
-			flags[RENDER_TARGET_HDR] = true;
 			flags[RENDER_TARGET_NO_SAMPLING] = false;
+			flags[RENDER_TARGET_HDR] = true;
 
 			last_exposure_tick = 0;
 		}

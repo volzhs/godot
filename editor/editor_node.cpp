@@ -30,6 +30,7 @@
 #include "editor_node.h"
 
 #include "animation_editor.h"
+#include "authors.h"
 #include "bind/core_bind.h"
 #include "class_db.h"
 #include "core/io/resource_loader.h"
@@ -822,56 +823,54 @@ void EditorNode::_save_scene_with_preview(String p_file) {
 	}
 	save.step(TTR("Creating Thumbnail"), 1);
 	//current view?
-	int screen = -1;
-	for (int i = 0; i < editor_table.size(); i++) {
-		if (editor_plugin_screen == editor_table[i]) {
-			screen = i;
-			break;
+
+	Ref<Image> img;
+	if (is2d) {
+		img = scene_root->get_texture()->get_data();
+	} else {
+		img = SpatialEditor::get_singleton()->get_editor_viewport(0)->get_viewport_node()->get_texture()->get_data();
+	}
+
+	if (img.is_valid()) {
+		save.step(TTR("Creating Thumbnail"), 2);
+		save.step(TTR("Creating Thumbnail"), 3);
+
+		int preview_size = EditorSettings::get_singleton()->get("filesystem/file_dialog/thumbnail_size");
+		preview_size *= EDSCALE;
+		int width, height;
+		if (img->get_width() > preview_size && img->get_width() >= img->get_height()) {
+
+			width = preview_size;
+			height = img->get_height() * preview_size / img->get_width();
+		} else if (img->get_height() > preview_size && img->get_height() >= img->get_width()) {
+
+			height = preview_size;
+			width = img->get_width() * preview_size / img->get_height();
+		} else {
+
+			width = img->get_width();
+			height = img->get_height();
 		}
+
+		img->convert(Image::FORMAT_RGB8);
+		img->resize(width, height);
+		img->flip_y();
+
+		//save thumbnail directly, as thumbnailer may not update due to actual scene not changing md5
+		String temp_path = EditorSettings::get_singleton()->get_settings_path().plus_file("tmp");
+		String cache_base = GlobalConfig::get_singleton()->globalize_path(p_file).md5_text();
+		cache_base = temp_path.plus_file("resthumb-" + cache_base);
+
+		//does not have it, try to load a cached thumbnail
+
+		String file = cache_base + ".png";
+
+		img->save_png(file);
 	}
 
-	_editor_select(is2d ? EDITOR_2D : EDITOR_3D);
-
-	save.step(TTR("Creating Thumbnail"), 2);
-	save.step(TTR("Creating Thumbnail"), 3);
-#if 0
-	Image img = VS::get_singleton()->viewport_texture(scree_capture(viewport);
-	int preview_size = EditorSettings::get_singleton()->get("filesystem/file_dialog/thumbnail_size");
-	preview_size*=EDSCALE;
-	int width,height;
-	if (img.get_width() > preview_size && img.get_width() >= img.get_height()) {
-
-		width=preview_size;
-		height = img.get_height() * preview_size / img.get_width();
-	} else if (img.get_height() > preview_size &&  img.get_height() >= img.get_width()) {
-
-		height=preview_size;
-		width = img.get_width() * preview_size / img.get_height();
-	}  else {
-
-		width=img.get_width();
-		height=img.get_height();
-	}
-
-	img.convert(Image::FORMAT_RGB8);
-	img.resize(width,height);
-
-	String pfile = EditorSettings::get_singleton()->get_settings_path().plus_file("tmp/last_scene_preview.png");
-	img.save_png(pfile);
-	Vector<uint8_t> imgdata = FileAccess::get_file_as_array(pfile);
-
-	//print_line("img data is "+itos(imgdata.size()));
-
-	if (editor_data.get_edited_scene_import_metadata().is_null())
-		editor_data.set_edited_scene_import_metadata(Ref<ResourceImportMetadata>( memnew( ResourceImportMetadata ) ) );
-	editor_data.get_edited_scene_import_metadata()->set_option("thumbnail",imgdata);
-#endif
-	//tamanio tel thumbnail
-	if (screen != -1) {
-		_editor_select(screen);
-	}
 	save.step(TTR("Saving Scene"), 4);
 	_save_scene(p_file);
+	EditorResourcePreview::get_singleton()->check_for_invalidation(p_file);
 }
 
 void EditorNode::_save_scene(String p_file, int idx) {
@@ -1084,6 +1083,7 @@ void EditorNode::_dialog_action(String p_file) {
 			GlobalConfig::get_singleton()->set("application/main_scene", p_file);
 			GlobalConfig::get_singleton()->save();
 			//would be nice to show the project manager opened with the highlighted field..
+			_run(false, ""); // automatically run the project
 		} break;
 		case FILE_SAVE_OPTIMIZED: {
 
@@ -1982,7 +1982,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			}
 
 			_menu_option(FILE_SAVE_AS_SCENE);
-			_menu_option_confirm(FILE_SAVE_AND_RUN, true);
+			_menu_option_confirm(FILE_SAVE_AND_RUN, false);
 		} break;
 
 		case FILE_SAVE_OPTIMIZED: {
@@ -3736,7 +3736,7 @@ void EditorNode::_dock_select_input(const Ref<InputEvent> &p_input) {
 
 	if (me.is_valid()) {
 
-		Vector2 point = me->get_pos();
+		Vector2 point = me->get_position();
 
 		int nrect = -1;
 		for (int i = 0; i < DOCK_SLOT_MAX; i++) {
@@ -3846,7 +3846,7 @@ void EditorNode::_dock_select_draw() {
 	unusable.a = 0.1;
 
 	Rect2 unr(s.x * 2, 0, s.x * 2, s.y * 2);
-	unr.pos += Vector2(2, 5);
+	unr.position += Vector2(2, 5);
 	unr.size -= Vector2(4, 7);
 
 	dock_select->draw_rect(unr, unusable);
@@ -3899,7 +3899,7 @@ void EditorNode::_dock_select_draw() {
 
 		Rect2 r(ofs, s);
 		dock_select_rect[i] = r;
-		r.pos += Vector2(2, 5);
+		r.position += Vector2(2, 5);
 		r.size -= Vector2(4, 7);
 
 		if (i == dock_select_rect_over) {
@@ -5874,14 +5874,49 @@ EditorNode::EditorNode() {
 	about->get_ok()->set_text(TTR("Thanks!"));
 	about->set_hide_on_ok(true);
 	gui_base->add_child(about);
+	VBoxContainer *vbc = memnew(VBoxContainer);
 	HBoxContainer *hbc = memnew(HBoxContainer);
-	about->add_child(hbc);
+	hbc->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	hbc->set_alignment(BoxContainer::ALIGN_CENTER);
+	about->add_child(vbc);
+	vbc->add_child(hbc);
 	Label *about_text = memnew(Label);
-	about_text->set_text(VERSION_FULL_NAME "\n(c) 2008-2017 Juan Linietsky, Ariel Manzur.\n");
+	about_text->set_text(VERSION_FULL_NAME + String::utf8("\n\u00A9 2007-2017 Juan Linietsky, Ariel Manzur.\n\u00A9 2014-2017 ") + TTR("Godot Engine contributors") + "\n");
 	TextureRect *logo = memnew(TextureRect);
 	logo->set_texture(gui_base->get_icon("Logo", "EditorIcons"));
 	hbc->add_child(logo);
 	hbc->add_child(about_text);
+	TabContainer *tc = memnew(TabContainer);
+	tc->set_custom_minimum_size(Vector2(740, 300));
+	vbc->add_child(tc);
+	ScrollContainer *dev_base = memnew(ScrollContainer);
+	dev_base->set_name(TTR("Developers"));
+	tc->add_child(dev_base);
+	HBoxContainer *dev_hbc = memnew(HBoxContainer);
+	dev_hbc->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	dev_base->add_child(dev_hbc);
+	for (int i = 0; i < 3; i++) {
+		Label *dev_label = memnew(Label);
+		dev_label->set_h_size_flags(Control::SIZE_EXPAND);
+		dev_label->set_v_size_flags(Control::SIZE_FILL);
+		dev_hbc->add_child(dev_label);
+	}
+	int dev_name_index = 0;
+	int dev_name_column = 0;
+	const int dev_index_max = AUTHORS_COUNT / 3 + (AUTHORS_COUNT % 3 == 0 ? 0 : 1);
+	String dev_name = "";
+	const char **dev_names_ptr = dev_names;
+	while (*dev_names_ptr) {
+		dev_name += String::utf8(*dev_names_ptr++);
+		if (++dev_name_index == dev_index_max || !*dev_names_ptr) {
+			dev_hbc->get_child(dev_name_column)->cast_to<Label>()->set_text(dev_name);
+			dev_name_column++;
+			dev_name = "";
+			dev_name_index = 0;
+		} else {
+			dev_name += "\n";
+		}
+	}
 
 	warning = memnew(AcceptDialog);
 	gui_base->add_child(warning);
@@ -6020,14 +6055,13 @@ EditorNode::EditorNode() {
 		plugin_init_callbacks[i]();
 	}
 
-	/*resource_preview->add_preview_generator( Ref<EditorTexturePreviewPlugin>( memnew(EditorTexturePreviewPlugin )));
-	resource_preview->add_preview_generator( Ref<EditorPackedScenePreviewPlugin>( memnew(EditorPackedScenePreviewPlugin )));
-	resource_preview->add_preview_generator( Ref<EditorMaterialPreviewPlugin>( memnew(EditorMaterialPreviewPlugin )));
-	resource_preview->add_preview_generator( Ref<EditorScriptPreviewPlugin>( memnew(EditorScriptPreviewPlugin )));
-	resource_preview->add_preview_generator( Ref<EditorSamplePreviewPlugin>( memnew(EditorSamplePreviewPlugin )));
-	resource_preview->add_preview_generator( Ref<EditorMeshPreviewPlugin>( memnew(EditorMeshPreviewPlugin )));
-	resource_preview->add_preview_generator( Ref<EditorBitmapPreviewPlugin>( memnew(EditorBitmapPreviewPlugin )));
-*/
+	resource_preview->add_preview_generator(Ref<EditorTexturePreviewPlugin>(memnew(EditorTexturePreviewPlugin)));
+	resource_preview->add_preview_generator(Ref<EditorPackedScenePreviewPlugin>(memnew(EditorPackedScenePreviewPlugin)));
+	resource_preview->add_preview_generator(Ref<EditorMaterialPreviewPlugin>(memnew(EditorMaterialPreviewPlugin)));
+	resource_preview->add_preview_generator(Ref<EditorScriptPreviewPlugin>(memnew(EditorScriptPreviewPlugin)));
+	//resource_preview->add_preview_generator( Ref<EditorSamplePreviewPlugin>( memnew(EditorSamplePreviewPlugin )));
+	resource_preview->add_preview_generator(Ref<EditorMeshPreviewPlugin>(memnew(EditorMeshPreviewPlugin)));
+	resource_preview->add_preview_generator(Ref<EditorBitmapPreviewPlugin>(memnew(EditorBitmapPreviewPlugin)));
 
 	circle_step_msec = OS::get_singleton()->get_ticks_msec();
 	circle_step_frame = Engine::get_singleton()->get_frames_drawn();

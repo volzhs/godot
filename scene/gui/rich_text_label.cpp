@@ -264,7 +264,7 @@ void RichTextLabel::_process_line(ItemFrame *p_frame, const Vector2 &p_ofs, int 
 							cw = tab_size * font->get_char_size(' ').width;
 						}
 
-						if (end > 0 && w + cw + wofs > p_width) {
+						if (end > 0 && w + cw + begin > p_width) {
 							break; //don't allow lines longer than assigned width
 						}
 
@@ -751,7 +751,7 @@ void RichTextLabel::_gui_input(Ref<InputEvent> p_event) {
 					Item *item = NULL;
 
 					bool outside;
-					_find_click(main, b->get_pos(), &item, &line, &outside);
+					_find_click(main, b->get_position(), &item, &line, &outside);
 
 					if (item) {
 
@@ -852,7 +852,7 @@ void RichTextLabel::_gui_input(Ref<InputEvent> p_event) {
 
 			int line = 0;
 			Item *item = NULL;
-			_find_click(main, m->get_pos(), &item, &line);
+			_find_click(main, m->get_position(), &item, &line);
 			if (!item)
 				return; // do not update
 

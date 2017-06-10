@@ -71,6 +71,10 @@ public:
 
 	virtual void environment_set_adjustment(RID p_env, bool p_enable, float p_brightness, float p_contrast, float p_saturation, RID p_ramp) = 0;
 
+	virtual void environment_set_fog(RID p_env, bool p_enable, const Color &p_color, const Color &p_sun_color, float p_sun_amount) = 0;
+	virtual void environment_set_fog_depth(RID p_env, bool p_enable, float p_depth_begin, float p_depth_curve, bool p_transmit, float p_transmit_curve) = 0;
+	virtual void environment_set_fog_height(RID p_env, bool p_enable, float p_min_height, float p_max_height, float p_height_curve) = 0;
+
 	struct InstanceBase : RID_Data {
 
 		VS::InstanceType base_type;
@@ -464,6 +468,7 @@ public:
 	enum RenderTargetFlags {
 		RENDER_TARGET_VFLIP,
 		RENDER_TARGET_TRANSPARENT,
+		RENDER_TARGET_NO_3D_EFFECTS,
 		RENDER_TARGET_NO_3D,
 		RENDER_TARGET_NO_SAMPLING,
 		RENDER_TARGET_HDR,
@@ -769,7 +774,7 @@ public:
 					case Item::Command::TYPE_LINE: {
 
 						const Item::CommandLine *line = static_cast<const Item::CommandLine *>(c);
-						r.pos = line->from;
+						r.position = line->from;
 						r.expand_to(line->to);
 					} break;
 					case Item::Command::TYPE_RECT: {
@@ -786,7 +791,7 @@ public:
 					case Item::Command::TYPE_PRIMITIVE: {
 
 						const Item::CommandPrimitive *primitive = static_cast<const Item::CommandPrimitive *>(c);
-						r.pos = primitive->points[0];
+						r.position = primitive->points[0];
 						for (int i = 1; i < primitive->points.size(); i++) {
 
 							r.expand_to(primitive->points[i]);
@@ -797,7 +802,7 @@ public:
 						const Item::CommandPolygon *polygon = static_cast<const Item::CommandPolygon *>(c);
 						int l = polygon->points.size();
 						const Point2 *pp = &polygon->points[0];
-						r.pos = pp[0];
+						r.position = pp[0];
 						for (int i = 1; i < l; i++) {
 
 							r.expand_to(pp[i]);
@@ -808,7 +813,7 @@ public:
 						const Item::CommandMesh *mesh = static_cast<const Item::CommandMesh *>(c);
 						Rect3 aabb = RasterizerStorage::base_singleton->mesh_get_aabb(mesh->mesh, mesh->skeleton);
 
-						r = Rect2(aabb.pos.x, aabb.pos.y, aabb.size.x, aabb.size.y);
+						r = Rect2(aabb.position.x, aabb.position.y, aabb.size.x, aabb.size.y);
 
 					} break;
 					case Item::Command::TYPE_MULTIMESH: {
@@ -816,13 +821,13 @@ public:
 						const Item::CommandMultiMesh *multimesh = static_cast<const Item::CommandMultiMesh *>(c);
 						Rect3 aabb = RasterizerStorage::base_singleton->multimesh_get_aabb(multimesh->multimesh);
 
-						r = Rect2(aabb.pos.x, aabb.pos.y, aabb.size.x, aabb.size.y);
+						r = Rect2(aabb.position.x, aabb.position.y, aabb.size.x, aabb.size.y);
 
 					} break;
 					case Item::Command::TYPE_CIRCLE: {
 
 						const Item::CommandCircle *circle = static_cast<const Item::CommandCircle *>(c);
-						r.pos = Point2(-circle->radius, -circle->radius) + circle->pos;
+						r.position = Point2(-circle->radius, -circle->radius) + circle->pos;
 						r.size = Point2(circle->radius * 2.0, circle->radius * 2.0);
 					} break;
 					case Item::Command::TYPE_TRANSFORM: {

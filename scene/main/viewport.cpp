@@ -117,7 +117,11 @@ bool ViewportTexture::has_alpha() const {
 
 	return false;
 }
+Ref<Image> ViewportTexture::get_data() const {
 
+	ERR_FAIL_COND_V(!vp, Ref<Image>());
+	return VS::get_singleton()->texture_get_data(vp->texture_rid);
+}
 void ViewportTexture::set_flags(uint32_t p_flags) {
 
 	if (!vp)
@@ -512,7 +516,7 @@ void Viewport::_notification(int p_what) {
 
 					if (mm.is_valid()) {
 
-						pos = mm->get_pos();
+						pos = mm->get_position();
 						motion_tested = true;
 						physics_last_mousepos = pos;
 					}
@@ -520,19 +524,19 @@ void Viewport::_notification(int p_what) {
 					Ref<InputEventMouseButton> mb = ev;
 
 					if (mb.is_valid()) {
-						pos = mb->get_pos();
+						pos = mb->get_position();
 					}
 
 					Ref<InputEventScreenDrag> sd = ev;
 
 					if (sd.is_valid()) {
-						pos = sd->get_pos();
+						pos = sd->get_position();
 					}
 
 					Ref<InputEventScreenTouch> st = ev;
 
 					if (st.is_valid()) {
-						pos = st->get_pos();
+						pos = st->get_position();
 					}
 
 					if (ss2d) {
@@ -1310,7 +1314,7 @@ Transform2D Viewport::_get_input_pre_xform() const {
 
 	if (to_screen_rect != Rect2()) {
 
-		pre_xf.elements[2] = -to_screen_rect.pos;
+		pre_xf.elements[2] = -to_screen_rect.position;
 		pre_xf.scale(size / to_screen_rect.size);
 	}
 
@@ -1473,17 +1477,17 @@ void Viewport::_gui_show_tooltip() {
 	gui.tooltip_label->set_text(tooltip);
 	Rect2 r(gui.tooltip_pos + Point2(10, 10), gui.tooltip_label->get_combined_minimum_size() + ttp->get_minimum_size());
 	Rect2 vr = gui.tooltip_label->get_viewport_rect();
-	if (r.size.x + r.pos.x > vr.size.x)
-		r.pos.x = vr.size.x - r.size.x;
-	else if (r.pos.x < 0)
-		r.pos.x = 0;
+	if (r.size.x + r.position.x > vr.size.x)
+		r.position.x = vr.size.x - r.size.x;
+	else if (r.position.x < 0)
+		r.position.x = 0;
 
-	if (r.size.y + r.pos.y > vr.size.y)
-		r.pos.y = vr.size.y - r.size.y;
-	else if (r.pos.y < 0)
-		r.pos.y = 0;
+	if (r.size.y + r.position.y > vr.size.y)
+		r.position.y = vr.size.y - r.size.y;
+	else if (r.position.y < 0)
+		r.position.y = 0;
 
-	gui.tooltip_popup->set_global_position(r.pos);
+	gui.tooltip_popup->set_global_position(r.position);
 	gui.tooltip_popup->set_size(r.size);
 
 	gui.tooltip_popup->raise();
@@ -1685,7 +1689,7 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 
 		gui.key_event_accepted = false;
 
-		Point2 mpos = mb->get_pos();
+		Point2 mpos = mb->get_position();
 		if (mb->is_pressed()) {
 
 			Size2 pos = mpos;
@@ -1740,11 +1744,11 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 
 			mb = mb->xformed_by(Transform2D()); // make a copy of the event
 
-			mb->set_global_pos(pos);
+			mb->set_global_position(pos);
 
 			pos = gui.focus_inv_xform.xform(pos);
 
-			mb->set_pos(pos);
+			mb->set_position(pos);
 
 #ifdef DEBUG_ENABLED
 			if (ScriptDebugger::get_singleton()) {
@@ -1841,9 +1845,9 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 			Size2 pos = mpos;
 
 			mb = mb->xformed_by(Transform2D()); //make a copy
-			mb->set_global_pos(pos);
+			mb->set_global_position(pos);
 			pos = gui.focus_inv_xform.xform(pos);
-			mb->set_pos(pos);
+			mb->set_position(pos);
 
 			if (gui.mouse_focus->can_process()) {
 				_gui_call_input(gui.mouse_focus, mb);
@@ -1869,7 +1873,7 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 	if (mm.is_valid()) {
 
 		gui.key_event_accepted = false;
-		Point2 mpos = mm->get_pos();
+		Point2 mpos = mm->get_position();
 
 		gui.last_mouse_pos = mpos;
 
@@ -1961,7 +1965,7 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 
 		mm = mm->xformed_by(Transform2D()); //make a copy
 
-		mm->set_global_pos(mpos);
+		mm->set_global_position(mpos);
 		mm->set_speed(speed);
 		mm->set_relative(rel);
 
@@ -1999,7 +2003,7 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 
 		//pos = gui.focus_inv_xform.xform(pos);
 
-		mm->set_pos(pos);
+		mm->set_position(pos);
 
 		Control::CursorShape cursor_shape = over->get_cursor_shape(pos);
 		OS::get_singleton()->set_cursor_shape((OS::CursorShape)cursor_shape);
@@ -2318,7 +2322,7 @@ void Viewport::_gui_grab_click_focus(Control *p_control) {
 		//send unclic
 
 		Point2 click = gui.mouse_focus->get_global_transform_with_canvas().affine_inverse().xform(gui.last_mouse_pos);
-		mb->set_pos(click);
+		mb->set_position(click);
 		mb->set_button_index(gui.mouse_focus_button);
 		mb->set_pressed(false);
 		gui.mouse_focus->call_deferred(SceneStringNames::get_singleton()->_gui_input, mb);
@@ -2326,7 +2330,7 @@ void Viewport::_gui_grab_click_focus(Control *p_control) {
 		gui.mouse_focus = p_control;
 		gui.focus_inv_xform = gui.mouse_focus->get_global_transform_with_canvas().affine_inverse();
 		click = gui.mouse_focus->get_global_transform_with_canvas().affine_inverse().xform(gui.last_mouse_pos);
-		mb->set_pos(click);
+		mb->set_position(click);
 		mb->set_button_index(gui.mouse_focus_button);
 		mb->set_pressed(true);
 		gui.mouse_focus->call_deferred(SceneStringNames::get_singleton()->_gui_input, mb);
@@ -2516,6 +2520,16 @@ bool Viewport::get_hdr() const {
 	return hdr;
 }
 
+void Viewport::set_usage(Usage p_usage) {
+
+	usage = p_usage;
+	VS::get_singleton()->viewport_set_usage(viewport, VS::ViewportUsage(p_usage));
+}
+
+Viewport::Usage Viewport::get_usage() const {
+	return usage;
+}
+
 void Viewport::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_size", "size"), &Viewport::set_size);
@@ -2568,6 +2582,9 @@ void Viewport::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_hdr", "enable"), &Viewport::set_hdr);
 	ClassDB::bind_method(D_METHOD("get_hdr"), &Viewport::get_hdr);
+
+	ClassDB::bind_method(D_METHOD("set_usage", "usage"), &Viewport::set_usage);
+	ClassDB::bind_method(D_METHOD("get_usage"), &Viewport::get_usage);
 
 	ClassDB::bind_method(D_METHOD("get_texture:ViewportTexture"), &Viewport::get_texture);
 
@@ -2622,6 +2639,7 @@ void Viewport::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "msaa", PROPERTY_HINT_ENUM, "Disabled,2x,4x,8x,16x"), "set_msaa", "get_msaa");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "hdr"), "set_hdr", "get_hdr");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "disable_3d"), "set_disable_3d", "is_3d_disabled");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "usage", PROPERTY_HINT_ENUM, "2D,2D No-Sampling,3D,3D No-Effects"), "set_usage", "get_usage");
 	ADD_GROUP("Render Target", "render_target_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "render_target_v_flip"), "set_vflip", "get_vflip");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "render_target_clear_on_new_frame"), "set_clear_on_new_frame", "get_clear_on_new_frame");
@@ -2730,6 +2748,8 @@ Viewport::Viewport() {
 
 	msaa = MSAA_DISABLED;
 	hdr = false;
+
+	usage = USAGE_3D;
 }
 
 Viewport::~Viewport() {

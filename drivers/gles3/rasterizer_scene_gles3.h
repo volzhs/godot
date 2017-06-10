@@ -111,6 +111,9 @@ public:
 			float time[4];
 			float ambient_light_color[4];
 			float bg_color[4];
+			float fog_color_enabled[4];
+			float fog_sun_color_amount[4];
+
 			float ambient_energy;
 			float bg_energy;
 			float shadow_z_offset;
@@ -120,9 +123,21 @@ public:
 			float screen_pixel_size[2];
 			float shadow_atlas_pixel_size[2];
 			float shadow_directional_pixel_size[2];
+
+			float z_far;
 			float reflection_multiplier;
 			float subsurface_scatter_width;
 			float ambient_occlusion_affect_light;
+
+			bool fog_depth_enabled;
+			float fog_depth_begin;
+			float fog_depth_curve;
+			bool fog_transmit_enabled;
+			float fog_transmit_curve;
+			bool fog_height_enabled;
+			float fog_height_min;
+			float fog_height_max;
+			float fog_height_curve;
 
 		} ubo_data;
 
@@ -170,6 +185,7 @@ public:
 
 		bool cull_front;
 		bool used_sss;
+		bool used_screen_texture;
 
 	} state;
 
@@ -389,6 +405,27 @@ public:
 		float dof_blur_near_amount;
 		VS::EnvironmentDOFBlurQuality dof_blur_near_quality;
 
+		bool adjustments_enabled;
+		float adjustments_brightness;
+		float adjustments_contrast;
+		float adjustments_saturation;
+		RID color_correction;
+
+		bool fog_enabled;
+		Color fog_color;
+		Color fog_sun_color;
+		float fog_sun_amount;
+
+		bool fog_depth_enabled;
+		float fog_depth_begin;
+		float fog_depth_curve;
+		bool fog_transmit_enabled;
+		float fog_transmit_curve;
+		bool fog_height_enabled;
+		float fog_height_min;
+		float fog_height_max;
+		float fog_height_curve;
+
 		Environment() {
 			bg_mode = VS::ENV_BG_CLEAR_COLOR;
 			sky_scale = 1.0;
@@ -445,6 +482,29 @@ public:
 			dof_blur_near_transition = 1;
 			dof_blur_near_amount = 0.1;
 			dof_blur_near_quality = VS::ENV_DOF_BLUR_QUALITY_MEDIUM;
+
+			adjustments_enabled = false;
+			adjustments_brightness = 1.0;
+			adjustments_contrast = 1.0;
+			adjustments_saturation = 1.0;
+
+			fog_enabled = false;
+			fog_color = Color(0.5, 0.5, 0.5);
+			fog_sun_color = Color(0.8, 0.8, 0.0);
+			fog_sun_amount = 0;
+
+			fog_depth_enabled = true;
+
+			fog_depth_begin = 10;
+			fog_depth_curve = 1;
+
+			fog_transmit_enabled = true;
+			fog_transmit_curve = 1;
+
+			fog_height_enabled = false;
+			fog_height_min = 0;
+			fog_height_max = 100;
+			fog_height_curve = 1;
 		}
 	};
 
@@ -471,6 +531,10 @@ public:
 	virtual void environment_set_tonemap(RID p_env, VS::EnvironmentToneMapper p_tone_mapper, float p_exposure, float p_white, bool p_auto_exposure, float p_min_luminance, float p_max_luminance, float p_auto_exp_speed, float p_auto_exp_scale);
 
 	virtual void environment_set_adjustment(RID p_env, bool p_enable, float p_brightness, float p_contrast, float p_saturation, RID p_ramp);
+
+	virtual void environment_set_fog(RID p_env, bool p_enable, const Color &p_color, const Color &p_sun_color, float p_sun_amount);
+	virtual void environment_set_fog_depth(RID p_env, bool p_enable, float p_depth_begin, float p_depth_curve, bool p_transmit, float p_transmit_curve);
+	virtual void environment_set_fog_height(RID p_env, bool p_enable, float p_min_height, float p_max_height, float p_height_curve);
 
 	/* LIGHT INSTANCE */
 
@@ -711,6 +775,7 @@ public:
 
 	void _fill_render_list(InstanceBase **p_cull_result, int p_cull_count, bool p_shadow);
 
+	void _blur_effect_buffer();
 	void _render_mrts(Environment *env, const CameraMatrix &p_cam_projection);
 	void _post_process(Environment *env, const CameraMatrix &p_cam_projection);
 

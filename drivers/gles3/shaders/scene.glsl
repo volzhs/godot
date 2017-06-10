@@ -67,6 +67,10 @@ layout(std140) uniform SceneData { //ubo:0
 
 	highp vec4 ambient_light_color;
 	highp vec4 bg_color;
+
+	vec4 fog_color_enabled;
+	vec4 fog_sun_color_amount;
+
 	float ambient_energy;
 	float bg_energy;
 
@@ -79,9 +83,20 @@ layout(std140) uniform SceneData { //ubo:0
 	vec2 shadow_atlas_pixel_size;
 	vec2 directional_shadow_pixel_size;
 
+	float z_far;
 	float reflection_multiplier;
 	float subsurface_scatter_width;
 	float ambient_occlusion_affect_light;
+
+	bool fog_depth_enabled;
+	float fog_depth_begin;
+	float fog_depth_curve;
+	bool fog_transmit_enabled;
+	float fog_transmit_curve;
+	bool fog_height_enabled;
+	float fog_height_min;
+	float fog_height_max;
+	float fog_height_curve;
 
 };
 
@@ -153,7 +168,7 @@ out highp float dp_clip;
 #define SKELETON_TEXTURE_WIDTH 256
 
 #ifdef USE_SKELETON
-uniform highp sampler2D skeleton_texture; //texunit:-6
+uniform highp sampler2D skeleton_texture; //texunit:-1
 #endif
 
 out highp vec4 position_interp;
@@ -338,7 +353,20 @@ VERTEX_SHADER_CODE
 
 [fragment]
 
+/* texture unit usage, N is max_texture_unity-N
 
+1-skeleton
+2-radiance
+3-reflection_atlas
+4-directional_shadow
+5-shadow_atlas
+6-decal_atlas
+7-screen
+8-depth
+9-probe1
+10-probe2
+
+*/
 
 #define M_PI 3.14159265359
 
@@ -370,7 +398,6 @@ in vec3 normal_interp;
 //used on forward mainly
 uniform bool no_ambient_light;
 
-uniform sampler2D brdf_texture; //texunit:-1
 
 #ifdef USE_RADIANCE_MAP
 
@@ -413,6 +440,8 @@ layout(std140) uniform SceneData {
 	highp vec4 ambient_light_color;
 	highp vec4 bg_color;
 
+	vec4 fog_color_enabled;
+	vec4 fog_sun_color_amount;
 
 	float ambient_energy;
 	float bg_energy;
@@ -426,10 +455,20 @@ layout(std140) uniform SceneData {
 	vec2 shadow_atlas_pixel_size;
 	vec2 directional_shadow_pixel_size;
 
+	float z_far;
 	float reflection_multiplier;
 	float subsurface_scatter_width;
 	float ambient_occlusion_affect_light;
 
+	bool fog_depth_enabled;
+	float fog_depth_begin;
+	float fog_depth_curve;
+	bool fog_transmit_enabled;
+	float fog_transmit_curve;
+	bool fog_height_enabled;
+	float fog_height_min;
+	float fog_height_max;
+	float fog_height_curve;
 };
 
 //directional light data
@@ -482,7 +521,7 @@ layout(std140) uniform SpotLightData { //ubo:5
 };
 
 
-uniform highp sampler2DShadow shadow_atlas; //texunit:-3
+uniform highp sampler2DShadow shadow_atlas; //texunit:-5
 
 
 struct ReflectionData {
@@ -500,7 +539,7 @@ layout(std140) uniform ReflectionProbeData { //ubo:6
 
 	ReflectionData reflections[MAX_REFLECTION_DATA_STRUCTS];
 };
-uniform mediump sampler2D reflection_atlas; //texunit:-5
+uniform mediump sampler2D reflection_atlas; //texunit:-3
 
 
 #ifdef USE_FORWARD_LIGHTING
@@ -517,14 +556,19 @@ uniform int reflection_count;
 #endif
 
 
+#if defined(SCREEN_TEXTURE_USED)
+
+uniform highp sampler2D screen_texture; //texunit:-7
+
+#endif
 
 #ifdef USE_MULTIPLE_RENDER_TARGETS
 
 layout(location=0) out vec4 diffuse_buffer;
 layout(location=1) out vec4 specular_buffer;
 layout(location=2) out vec4 normal_mr_buffer;
-#if defined (ENABLE_SSS_MOTION)
-layout(location=3) out vec4 motion_ssr_buffer;
+#if defined(ENABLE_SSS)
+layout(location=3) out float sss_buffer;
 #endif
 
 #else
@@ -534,7 +578,7 @@ layout(location=0) out vec4 frag_color;
 #endif
 
 in highp vec4 position_interp;
-uniform highp sampler2D depth_buffer; //texunit:-9
+uniform highp sampler2D depth_buffer; //texunit:-8
 
 float contact_shadow_compute(vec3 pos, vec3 dir, float max_distance) {
 
@@ -1020,7 +1064,7 @@ void reflection_process(int idx, vec3 vertex, vec3 normal,vec3 binormal, vec3 ta
 
 #ifdef USE_GI_PROBES
 
-uniform mediump sampler3D gi_probe1; //texunit:-10
+uniform mediump sampler3D gi_probe1; //texunit:-9
 uniform highp mat4 gi_probe_xform1;
 uniform highp vec3 gi_probe_bounds1;
 uniform highp vec3 gi_probe_cell_size1;
@@ -1028,7 +1072,7 @@ uniform highp float gi_probe_multiplier1;
 uniform highp float gi_probe_bias1;
 uniform bool gi_probe_blend_ambient1;
 
-uniform mediump sampler3D gi_probe2; //texunit:-11
+uniform mediump sampler3D gi_probe2; //texunit:-10
 uniform highp mat4 gi_probe_xform2;
 uniform highp vec3 gi_probe_bounds2;
 uniform highp vec3 gi_probe_cell_size2;
@@ -1265,13 +1309,15 @@ void main() {
 
 	float normaldepth=1.0;
 
-
+#if defined(SCREEN_UV_USED)
+	vec2 screen_uv = gl_FragCoord.xy*screen_pixel_size;
+#endif
 
 #if defined(ENABLE_DISCARD)
 	bool discard_=false;
 #endif
 
-#if defined (ENABLE_SSS_MOTION)
+#if defined (ENABLE_SSS)
 	float sss_strength=0.0;
 #endif
 
@@ -1596,6 +1642,49 @@ FRAGMENT_SHADER_CODE
 		specular_light *= min(1.0,50.0 * f0.g) * brdf.y + brdf.x * f0;
 	}
 
+	if (fog_color_enabled.a > 0.5) {
+
+		float fog_amount=0;
+
+
+
+#ifdef USE_LIGHT_DIRECTIONAL
+
+		vec3 fog_color = mix( fog_color_enabled.rgb, fog_sun_color_amount.rgb,fog_sun_color_amount.a * pow(max( dot(normalize(vertex),-light_direction_attenuation.xyz), 0.0),8.0) );
+#else
+
+		vec3 fog_color = fog_color_enabled.rgb;
+#endif
+
+		//apply fog
+
+		if (fog_depth_enabled) {
+
+			float fog_z = smoothstep(fog_depth_begin,z_far,-vertex.z);
+
+			fog_amount = pow(fog_z,fog_depth_curve);
+			if (fog_transmit_enabled) {
+				vec3 total_light = emission + ambient_light + specular_light + diffuse_light;
+				float transmit = pow(fog_z,fog_transmit_curve);
+				fog_color = mix(max(total_light,fog_color),fog_color,transmit);
+			}
+		}
+
+		if (fog_height_enabled) {
+			float y = (camera_matrix * vec4(vertex,1.0)).y;
+			fog_amount = max(fog_amount,pow(1.0-smoothstep(fog_height_min,fog_height_max,y),fog_height_curve));
+		}
+
+		float rev_amount = 1.0 - fog_amount;
+
+
+		emission = emission * rev_amount + fog_color * fog_amount;
+		ambient_light*=rev_amount;
+		specular_light*rev_amount;
+		diffuse_light*=rev_amount;
+
+	}
+
 #ifdef USE_MULTIPLE_RENDER_TARGETS
 
 #if defined(ENABLE_AO)
@@ -1616,11 +1705,11 @@ FRAGMENT_SHADER_CODE
 
 	normal_mr_buffer=vec4(normalize(normal)*0.5+0.5,roughness);
 
-#if defined (ENABLE_SSS_MOTION)
-	motion_ssr_buffer = vec4(vec3(0.0),sss_strength);
+#if defined (ENABLE_SSS)
+	sss_buffer = sss_strength;
 #endif
 
-#else
+#else //USE_MULTIPLE_RENDER_TARGETS
 
 
 #ifdef SHADELESS

@@ -81,21 +81,21 @@ const char *Image::format_names[Image::FORMAT_MAX] = {
 
 SavePNGFunc Image::save_png_func = NULL;
 
-void Image::_put_pixelb(int p_x, int p_y, uint32_t p_pixelsize, uint8_t *p_dst, const uint8_t *p_src) {
+void Image::_put_pixelb(int p_x, int p_y, uint32_t p_pixelsize, uint8_t *p_data, const uint8_t *p_pixel) {
 
 	uint32_t ofs = (p_y * width + p_x) * p_pixelsize;
 
 	for (uint32_t i = 0; i < p_pixelsize; i++) {
-		p_dst[ofs + i] = p_src[i];
+		p_data[ofs + i] = p_pixel[i];
 	}
 }
 
-void Image::_get_pixelb(int p_x, int p_y, uint32_t p_pixelsize, const uint8_t *p_src, uint8_t *p_dst) {
+void Image::_get_pixelb(int p_x, int p_y, uint32_t p_pixelsize, const uint8_t *p_data, uint8_t *p_pixel) {
 
 	uint32_t ofs = (p_y * width + p_x) * p_pixelsize;
 
 	for (uint32_t i = 0; i < p_pixelsize; i++) {
-		p_dst[i] = p_src[ofs + i];
+		p_pixel[i] = p_data[ofs + i];
 	}
 }
 
@@ -818,7 +818,7 @@ void Image::flip_y() {
 		uint8_t down[16];
 		uint32_t pixel_size = get_format_pixel_size(format);
 
-		for (int y = 0; y < height; y++) {
+		for (int y = 0; y < height / 2; y++) {
 
 			for (int x = 0; x < width; x++) {
 
@@ -854,7 +854,7 @@ void Image::flip_x() {
 
 		for (int y = 0; y < height; y++) {
 
-			for (int x = 0; x < width; x++) {
+			for (int x = 0; x < width / 2; x++) {
 
 				_get_pixelb(x, y, pixel_size, w.ptr(), up);
 				_get_pixelb(width - x - 1, y, pixel_size, w.ptr(), down);
@@ -1457,7 +1457,7 @@ Error Image::save_png(const String &p_path) const {
 	if (save_png_func == NULL)
 		return ERR_UNAVAILABLE;
 
-	return save_png_func(p_path, Ref<Image>(this));
+	return save_png_func(p_path, Ref<Image>((Image *)this));
 }
 
 int Image::get_image_data_size(int p_width, int p_height, Format p_format, int p_mipmaps) {
@@ -1599,7 +1599,7 @@ Rect2 Image::get_used_rect() const {
 Ref<Image> Image::get_rect(const Rect2 &p_area) const {
 
 	Ref<Image> img = memnew(Image(p_area.size.x, p_area.size.y, mipmaps, format));
-	img->blit_rect(Ref<Image>(this), p_area, Point2(0, 0));
+	img->blit_rect(Ref<Image>((Image *)this), p_area, Point2(0, 0));
 	return img;
 }
 
@@ -1612,11 +1612,11 @@ void Image::blit_rect(const Ref<Image> &p_src, const Rect2 &p_src_rect, const Po
 	ERR_FAIL_COND(srcdsize == 0);
 	ERR_FAIL_COND(format != p_src->format);
 
-	Rect2i local_src_rect = Rect2i(0, 0, width, height).clip(Rect2i(p_dest + p_src_rect.pos, p_src_rect.size));
+	Rect2i local_src_rect = Rect2i(0, 0, width, height).clip(Rect2i(p_dest + p_src_rect.position, p_src_rect.size));
 
 	if (local_src_rect.size.x <= 0 || local_src_rect.size.y <= 0)
 		return;
-	Rect2i src_rect(p_src_rect.pos + (local_src_rect.pos - p_dest), local_src_rect.size);
+	Rect2i src_rect(p_src_rect.position + (local_src_rect.position - p_dest), local_src_rect.size);
 
 	PoolVector<uint8_t>::Write wp = data.write();
 	uint8_t *dst_data_ptr = wp.ptr();
@@ -1630,11 +1630,11 @@ void Image::blit_rect(const Ref<Image> &p_src, const Rect2 &p_src_rect, const Po
 
 		for (int j = 0; j < src_rect.size.x; j++) {
 
-			int src_x = src_rect.pos.x + j;
-			int src_y = src_rect.pos.y + i;
+			int src_x = src_rect.position.x + j;
+			int src_y = src_rect.position.y + i;
 
-			int dst_x = local_src_rect.pos.x + j;
-			int dst_y = local_src_rect.pos.y + i;
+			int dst_x = local_src_rect.position.x + j;
+			int dst_y = local_src_rect.position.y + i;
 
 			const uint8_t *src = &src_data_ptr[(src_y * p_src->width + src_x) * pixel_size];
 			uint8_t *dst = &dst_data_ptr[(dst_y * width + dst_x) * pixel_size];
