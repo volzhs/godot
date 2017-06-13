@@ -1425,6 +1425,7 @@ void RasterizerStorageGLES3::_update_shader(Shader *p_shader) const {
 	_shader_dirty_list.remove(&p_shader->dirty_list);
 
 	p_shader->valid = false;
+	p_shader->ubo_size = 0;
 
 	p_shader->uniforms.clear();
 
@@ -2244,6 +2245,10 @@ void RasterizerStorageGLES3::_update_material(Material *material) {
 	if (material->shader && material->shader->dirty_list.in_list()) {
 		_update_shader(material->shader);
 	}
+
+	if (material->shader && !material->shader->valid)
+		return;
+
 	//update caches
 
 	{
@@ -2658,6 +2663,7 @@ void RasterizerStorageGLES3::mesh_add_surface(RID p_mesh, uint32_t p_format, VS:
 	surface->skeleton_bone_used.resize(surface->skeleton_bone_aabb.size());
 	surface->aabb = p_aabb;
 	surface->max_bone = p_bone_aabbs.size();
+	surface->total_data_size += surface->array_byte_size + surface->index_array_byte_size;
 
 	for (int i = 0; i < surface->skeleton_bone_used.size(); i++) {
 		if (surface->skeleton_bone_aabb[i].size.x < 0 || surface->skeleton_bone_aabb[i].size.y < 0 || surface->skeleton_bone_aabb[i].size.z < 0) {
@@ -2727,6 +2733,112 @@ void RasterizerStorageGLES3::mesh_add_surface(RID p_mesh, uint32_t p_format, VS:
 			glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
+
+#ifdef DEBUG_ENABLED
+
+		if (config.generate_wireframes && p_primitive == VS::PRIMITIVE_TRIANGLES) {
+			//generate wireframes, this is used mostly by editor
+			PoolVector<uint32_t> wf_indices;
+			int index_count;
+
+			if (p_format & VS::ARRAY_FORMAT_INDEX) {
+
+				index_count = p_index_count * 2;
+				wf_indices.resize(index_count);
+
+				PoolVector<uint8_t>::Read ir = p_index_array.read();
+				PoolVector<uint32_t>::Write wr = wf_indices.write();
+
+				if (p_vertex_count < (1 << 16)) {
+					//read 16 bit indices
+					const uint16_t *src_idx = (const uint16_t *)ir.ptr();
+					for (int i = 0; i < index_count; i += 6) {
+
+						wr[i + 0] = src_idx[i / 2];
+						wr[i + 1] = src_idx[i / 2 + 1];
+						wr[i + 2] = src_idx[i / 2 + 1];
+						wr[i + 3] = src_idx[i / 2 + 2];
+						wr[i + 4] = src_idx[i / 2 + 2];
+						wr[i + 5] = src_idx[i / 2];
+					}
+
+				} else {
+
+					//read 16 bit indices
+					const uint32_t *src_idx = (const uint32_t *)ir.ptr();
+					for (int i = 0; i < index_count; i += 6) {
+
+						wr[i + 0] = src_idx[i / 2];
+						wr[i + 1] = src_idx[i / 2 + 1];
+						wr[i + 2] = src_idx[i / 2 + 1];
+						wr[i + 3] = src_idx[i / 2 + 2];
+						wr[i + 4] = src_idx[i / 2 + 2];
+						wr[i + 5] = src_idx[i / 2];
+					}
+				}
+
+			} else {
+
+				index_count = p_vertex_count * 2;
+				wf_indices.resize(index_count);
+				PoolVector<uint32_t>::Write wr = wf_indices.write();
+				for (int i = 0; i < index_count; i += 6) {
+
+					wr[i + 0] = i / 2;
+					wr[i + 1] = i / 2 + 1;
+					wr[i + 2] = i / 2 + 1;
+					wr[i + 3] = i / 2 + 2;
+					wr[i + 4] = i / 2 + 2;
+					wr[i + 5] = i / 2;
+				}
+			}
+			{
+				PoolVector<uint32_t>::Read ir = wf_indices.read();
+
+				glGenBuffers(1, &surface->index_wireframe_id);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, surface->index_wireframe_id);
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint32_t), ir.ptr(), GL_STATIC_DRAW);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); //unbind
+
+				surface->index_wireframe_len = index_count;
+			}
+
+			for (int ai = 0; ai < 2; ai++) {
+
+				if (ai == 0) {
+					//for normal draw
+					glGenVertexArrays(1, &surface->array_wireframe_id);
+					glBindVertexArray(surface->array_wireframe_id);
+					glBindBuffer(GL_ARRAY_BUFFER, surface->vertex_id);
+				} else if (ai == 1) {
+					//for instancing draw (can be changed and no one cares)
+					glGenVertexArrays(1, &surface->instancing_array_wireframe_id);
+					glBindVertexArray(surface->instancing_array_wireframe_id);
+					glBindBuffer(GL_ARRAY_BUFFER, surface->vertex_id);
+				}
+
+				for (int i = 0; i < VS::ARRAY_MAX - 1; i++) {
+
+					if (!attribs[i].enabled)
+						continue;
+
+					if (attribs[i].integer) {
+						glVertexAttribIPointer(attribs[i].index, attribs[i].size, attribs[i].type, attribs[i].stride, ((uint8_t *)0) + attribs[i].offset);
+					} else {
+						glVertexAttribPointer(attribs[i].index, attribs[i].size, attribs[i].type, attribs[i].normalized, attribs[i].stride, ((uint8_t *)0) + attribs[i].offset);
+					}
+					glEnableVertexAttribArray(attribs[i].index);
+				}
+
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, surface->index_wireframe_id);
+
+				glBindVertexArray(0);
+				glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+			}
+		}
+
+#endif
 	}
 
 	{
@@ -2738,6 +2850,8 @@ void RasterizerStorageGLES3::mesh_add_surface(RID p_mesh, uint32_t p_format, VS:
 			Surface::BlendShape mt;
 
 			PoolVector<uint8_t>::Read vr = p_blend_shapes[i].read();
+
+			surface->total_data_size += array_size;
 
 			glGenBuffers(1, &mt.vertex_id);
 			glBindBuffer(GL_ARRAY_BUFFER, mt.vertex_id);
@@ -2770,6 +2884,8 @@ void RasterizerStorageGLES3::mesh_add_surface(RID p_mesh, uint32_t p_format, VS:
 
 	mesh->surfaces.push_back(surface);
 	mesh->instance_change_notify();
+
+	info.vertex_mem += surface->total_data_size;
 }
 
 void RasterizerStorageGLES3::mesh_set_blend_shape_count(RID p_mesh, int p_amount) {
@@ -2997,6 +3113,14 @@ void RasterizerStorageGLES3::mesh_remove_surface(RID p_mesh, int p_surface) {
 		glDeleteBuffers(1, &surface->blend_shapes[i].vertex_id);
 		glDeleteVertexArrays(1, &surface->blend_shapes[i].array_id);
 	}
+
+	if (surface->index_wireframe_id) {
+		glDeleteBuffers(1, &surface->index_wireframe_id);
+		glDeleteVertexArrays(1, &surface->array_wireframe_id);
+		glDeleteVertexArrays(1, &surface->instancing_array_wireframe_id);
+	}
+
+	info.vertex_mem -= surface->total_data_size;
 
 	mesh->instance_material_change_notify();
 
@@ -6345,6 +6469,97 @@ bool RasterizerStorageGLES3::has_os_feature(const String &p_feature) const {
 
 ////////////////////////////////////////////
 
+void RasterizerStorageGLES3::set_debug_generate_wireframes(bool p_generate) {
+
+	config.generate_wireframes = p_generate;
+}
+
+void RasterizerStorageGLES3::render_info_begin_capture() {
+
+	info.snap = info.render;
+}
+
+void RasterizerStorageGLES3::render_info_end_capture() {
+
+	info.snap.object_count = info.render.object_count - info.snap.object_count;
+	info.snap.draw_call_count = info.render.draw_call_count - info.snap.draw_call_count;
+	info.snap.material_switch_count = info.render.material_switch_count - info.snap.material_switch_count;
+	info.snap.surface_switch_count = info.render.surface_switch_count - info.snap.surface_switch_count;
+	info.snap.shader_rebind_count = info.render.shader_rebind_count - info.snap.shader_rebind_count;
+	info.snap.vertices_count = info.render.vertices_count - info.snap.vertices_count;
+}
+
+int RasterizerStorageGLES3::get_captured_render_info(VS::RenderInfo p_info) {
+
+	switch (p_info) {
+		case VS::INFO_OBJECTS_IN_FRAME: {
+
+			return info.snap.object_count;
+		} break;
+		case VS::INFO_VERTICES_IN_FRAME: {
+
+			return info.snap.vertices_count;
+		} break;
+		case VS::INFO_MATERIAL_CHANGES_IN_FRAME: {
+			return info.snap.material_switch_count;
+		} break;
+		case VS::INFO_SHADER_CHANGES_IN_FRAME: {
+			return info.snap.shader_rebind_count;
+		} break;
+		case VS::INFO_SURFACE_CHANGES_IN_FRAME: {
+			return info.snap.surface_switch_count;
+		} break;
+		case VS::INFO_DRAW_CALLS_IN_FRAME: {
+			return info.snap.draw_call_count;
+		} break;
+		default: {
+			return get_render_info(p_info);
+		}
+	}
+}
+
+int RasterizerStorageGLES3::get_render_info(VS::RenderInfo p_info) {
+
+	switch (p_info) {
+		case VS::INFO_OBJECTS_IN_FRAME: {
+
+			return info.render_final.object_count;
+		} break;
+		case VS::INFO_VERTICES_IN_FRAME: {
+
+			return info.render_final.vertices_count;
+		} break;
+		case VS::INFO_MATERIAL_CHANGES_IN_FRAME: {
+			return info.render_final.material_switch_count;
+		} break;
+		case VS::INFO_SHADER_CHANGES_IN_FRAME: {
+			return info.render_final.shader_rebind_count;
+		} break;
+		case VS::INFO_SURFACE_CHANGES_IN_FRAME: {
+			return info.render_final.surface_switch_count;
+		} break;
+		case VS::INFO_DRAW_CALLS_IN_FRAME: {
+			return info.render_final.draw_call_count;
+		} break;
+		case VS::INFO_USAGE_VIDEO_MEM_TOTAL: {
+
+			return 0; //no idea
+		} break;
+		case VS::INFO_VIDEO_MEM_USED: {
+
+			return info.vertex_mem + info.texture_mem;
+		} break;
+		case VS::INFO_TEXTURE_MEM_USED: {
+
+			return info.texture_mem;
+		} break;
+		case VS::INFO_VERTEX_MEM_USED: {
+
+			return info.vertex_mem;
+		} break;
+	}
+}
+
 void RasterizerStorageGLES3::initialize() {
 
 	RasterizerStorageGLES3::system_fbo = 0;
@@ -6526,6 +6741,7 @@ void RasterizerStorageGLES3::initialize() {
 	frame.delta = 0;
 	frame.current_rt = NULL;
 	config.keep_original_textures = false;
+	config.generate_wireframes = false;
 }
 
 void RasterizerStorageGLES3::finalize() {

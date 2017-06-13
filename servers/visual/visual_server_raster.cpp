@@ -145,7 +145,7 @@ void VisualServerRaster::finish() {
 
 int VisualServerRaster::get_render_info(RenderInfo p_info) {
 
-	return 0;
+	return VSG::storage->get_render_info(p_info);
 }
 
 /* TESTING */
@@ -173,6 +173,11 @@ RID VisualServerRaster::get_test_cube() {
 bool VisualServerRaster::has_os_feature(const String &p_feature) const {
 
 	return VSG::storage->has_os_feature(p_feature);
+}
+
+void VisualServerRaster::set_debug_generate_wireframes(bool p_generate) {
+
+	VSG::storage->set_debug_generate_wireframes(p_generate);
 }
 
 VisualServerRaster::VisualServerRaster() {

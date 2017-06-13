@@ -1724,6 +1724,33 @@ void SpatialEditorViewport::_notification(int p_what) {
 
 		bool hdr = GlobalConfig::get_singleton()->get("rendering/quality/hdr");
 		viewport->set_hdr(hdr);
+
+		bool show_info = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_INFORMATION));
+		if (show_info != info->is_visible()) {
+			if (show_info)
+				info->show();
+			else
+				info->hide();
+		}
+
+		if (show_info) {
+
+			String text;
+			text += TTR("Objects Drawn") + ": " + itos(viewport->get_render_info(Viewport::RENDER_INFO_OBJECTS_IN_FRAME)) + "\n";
+			text += TTR("Material Changes") + ": " + itos(viewport->get_render_info(Viewport::RENDER_INFO_MATERIAL_CHANGES_IN_FRAME)) + "\n";
+			text += TTR("Shader Changes") + ": " + itos(viewport->get_render_info(Viewport::RENDER_INFO_SHADER_CHANGES_IN_FRAME)) + "\n";
+			text += TTR("Surface Changes") + ": " + itos(viewport->get_render_info(Viewport::RENDER_INFO_SURFACE_CHANGES_IN_FRAME)) + "\n";
+			text += TTR("Draw Calls") + ": " + itos(viewport->get_render_info(Viewport::RENDER_INFO_DRAW_CALLS_IN_FRAME)) + "\n";
+			text += TTR("Vertices") + ": " + itos(viewport->get_render_info(Viewport::RENDER_INFO_VERTICES_IN_FRAME));
+
+			if (info_label->get_text() != text || surface->get_size() != prev_size) {
+				info_label->set_text(text);
+				Size2 ms = info->get_minimum_size();
+				info->set_position(surface->get_size() - ms - Vector2(20, 20) * EDSCALE);
+			}
+		}
+
+		prev_size = surface->get_size();
 	}
 
 	if (p_what == NOTIFICATION_ENTER_TREE) {
@@ -1731,6 +1758,7 @@ void SpatialEditorViewport::_notification(int p_what) {
 		surface->connect("draw", this, "_draw");
 		surface->connect("gui_input", this, "_sinput");
 		surface->connect("mouse_entered", this, "_smouseenter");
+		info->add_style_override("panel", get_stylebox("panel", "Panel"));
 		preview_camera->set_icon(get_icon("Camera", "EditorIcons"));
 		_init_gizmo_instance(index);
 	}
@@ -1995,6 +2023,52 @@ void SpatialEditorViewport::_menu_option(int p_option) {
 			else
 				camera->set_cull_mask(((1 << 20) - 1) | (1 << (GIZMO_BASE_LAYER + index)) | (1 << GIZMO_GRID_LAYER));
 			view_menu->get_popup()->set_item_checked(idx, current);
+
+		} break;
+		case VIEW_INFORMATION: {
+
+			int idx = view_menu->get_popup()->get_item_index(VIEW_INFORMATION);
+			bool current = view_menu->get_popup()->is_item_checked(idx);
+			view_menu->get_popup()->set_item_checked(idx, !current);
+
+		} break;
+		case VIEW_DISPLAY_NORMAL: {
+
+			viewport->set_debug_draw(Viewport::DEBUG_DRAW_DISABLED);
+
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_NORMAL), true);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_WIREFRAME), false);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_OVERDRAW), false);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_SHADELESS), false);
+
+		} break;
+		case VIEW_DISPLAY_WIREFRAME: {
+
+			viewport->set_debug_draw(Viewport::DEBUG_DRAW_WIREFRAME);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_NORMAL), false);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_WIREFRAME), true);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_OVERDRAW), false);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_SHADELESS), false);
+
+		} break;
+		case VIEW_DISPLAY_OVERDRAW: {
+
+			viewport->set_debug_draw(Viewport::DEBUG_DRAW_OVERDRAW);
+			VisualServer::get_singleton()->scenario_set_debug(get_tree()->get_root()->get_world()->get_scenario(), VisualServer::SCENARIO_DEBUG_OVERDRAW);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_NORMAL), false);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_WIREFRAME), false);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_OVERDRAW), true);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_SHADELESS), false);
+
+		} break;
+		case VIEW_DISPLAY_SHADELESS: {
+
+			viewport->set_debug_draw(Viewport::DEBUG_DRAW_UNSHADED);
+			VisualServer::get_singleton()->scenario_set_debug(get_tree()->get_root()->get_world()->get_scenario(), VisualServer::SCENARIO_DEBUG_SHADELESS);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_NORMAL), false);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_WIREFRAME), false);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_OVERDRAW), false);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_SHADELESS), true);
 
 		} break;
 	}
@@ -2273,6 +2347,7 @@ SpatialEditorViewport::SpatialEditorViewport(SpatialEditor *p_spatial_editor, Ed
 	surface = memnew(Control);
 	add_child(surface);
 	surface->set_area_as_parent_rect();
+	surface->set_clip_contents(true);
 	camera = memnew(Camera);
 	camera->set_disable_gizmo(true);
 	camera->set_cull_mask(((1 << 20) - 1) | (1 << (GIZMO_BASE_LAYER + p_index)) | (1 << GIZMO_EDIT_LAYER) | (1 << GIZMO_GRID_LAYER));
@@ -2296,12 +2371,18 @@ SpatialEditorViewport::SpatialEditorViewport(SpatialEditor *p_spatial_editor, Ed
 	view_menu->get_popup()->add_check_item(TTR("Orthogonal") + " (" + ED_GET_SHORTCUT("spatial_editor/switch_perspective_orthogonal")->get_as_text() + ")", VIEW_ORTHOGONAL);
 	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_PERSPECTIVE), true);
 	view_menu->get_popup()->add_separator();
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_environment", TTR("Environment")), VIEW_ENVIRONMENT);
+	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_normal", TTR("Display Normal")), VIEW_DISPLAY_NORMAL);
+	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_wireframe", TTR("Display Wireframe")), VIEW_DISPLAY_WIREFRAME);
+	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_overdraw", TTR("Display Overdraw")), VIEW_DISPLAY_OVERDRAW);
+	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_unshaded", TTR("Display Unshaded")), VIEW_DISPLAY_SHADELESS);
+	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_NORMAL), true);
+	view_menu->get_popup()->add_separator();
+	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_environment", TTR("View Environment")), VIEW_ENVIRONMENT);
+	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_gizmos", TTR("View Gizmos")), VIEW_GIZMOS);
+	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_information", TTR("View Information")), VIEW_INFORMATION);
 	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_ENVIRONMENT), true);
 	view_menu->get_popup()->add_separator();
 	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_audio_listener", TTR("Audio Listener")), VIEW_AUDIO_LISTENER);
-	view_menu->get_popup()->add_separator();
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_gizmos", TTR("Gizmos")), VIEW_GIZMOS);
 	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_GIZMOS), true);
 
 	view_menu->get_popup()->add_separator();
@@ -2322,6 +2403,13 @@ SpatialEditorViewport::SpatialEditorViewport(SpatialEditor *p_spatial_editor, Ed
 	preview = NULL;
 	gizmo_scale = 1.0;
 
+	info = memnew(PanelContainer);
+	info->set_self_modulate(Color(1, 1, 1, 0.4));
+	surface->add_child(info);
+	info_label = memnew(Label);
+	info->add_child(info_label);
+	info->hide();
+
 	freelook_active = false;
 
 	selection_menu = memnew(PopupMenu);
@@ -2340,6 +2428,305 @@ SpatialEditorViewport::SpatialEditorViewport(SpatialEditor *p_spatial_editor, Ed
 
 	EditorSettings::get_singleton()->connect("settings_changed", this, "update_transform_gizmo_view");
 }
+
+//////////////////////////////////////////////////////////////
+
+void SpatialEditorViewportContainer::_gui_input(const Ref<InputEvent> &p_event) {
+
+	Ref<InputEventMouseButton> mb = p_event;
+
+	if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == BUTTON_LEFT) {
+
+		Vector2 size = get_size();
+
+		int h_sep = get_constant("separation", "HSplitContainer");
+		int v_sep = get_constant("separation", "VSplitContainer");
+
+		int mid_w = size.width * ratio_h;
+		int mid_h = size.height * ratio_v;
+
+		dragging_h = mb->get_position().x > (mid_w - h_sep / 2) && mb->get_position().x < (mid_w + h_sep / 2);
+		dragging_v = mb->get_position().y > (mid_h - v_sep / 2) && mb->get_position().y < (mid_h + v_sep / 2);
+
+		drag_begin_pos = mb->get_position();
+		drag_begin_ratio.x = ratio_h;
+		drag_begin_ratio.y = ratio_v;
+
+		switch (view) {
+			case VIEW_USE_1_VIEWPORT: {
+
+				dragging_h = false;
+				dragging_v = false;
+
+			} break;
+			case VIEW_USE_2_VIEWPORTS: {
+
+				dragging_h = false;
+
+			} break;
+			case VIEW_USE_2_VIEWPORTS_ALT: {
+
+				dragging_v = false;
+
+			} break;
+			case VIEW_USE_3_VIEWPORTS: {
+
+				if (dragging_v)
+					dragging_h = false;
+				else
+					dragging_v = false;
+
+			} break;
+			case VIEW_USE_3_VIEWPORTS_ALT: {
+
+				if (dragging_h)
+					dragging_v = false;
+				else
+					dragging_h = false;
+			} break;
+			case VIEW_USE_4_VIEWPORTS: {
+
+			} break;
+		}
+	}
+
+	if (mb.is_valid() && !mb->is_pressed() && mb->get_button_index() == BUTTON_LEFT) {
+		dragging_h = false;
+		dragging_v = false;
+	}
+
+	Ref<InputEventMouseMotion> mm = p_event;
+
+	if (mm.is_valid() && (dragging_h || dragging_v)) {
+
+		if (dragging_h) {
+			float new_ratio = drag_begin_ratio.x + (mm->get_position().x - drag_begin_pos.x) / get_size().width;
+			new_ratio = CLAMP(new_ratio, 40 / get_size().width, (get_size().width - 40) / get_size().width);
+			ratio_h = new_ratio;
+			queue_sort();
+			update();
+		}
+		if (dragging_v) {
+			float new_ratio = drag_begin_ratio.y + (mm->get_position().y - drag_begin_pos.y) / get_size().height;
+			new_ratio = CLAMP(new_ratio, 40 / get_size().height, (get_size().height - 40) / get_size().height);
+			ratio_v = new_ratio;
+			queue_sort();
+			update();
+		}
+	}
+}
+
+void SpatialEditorViewportContainer::_notification(int p_what) {
+
+	if (p_what == NOTIFICATION_MOUSE_ENTER || p_what == NOTIFICATION_MOUSE_EXIT) {
+
+		mouseover = (p_what == NOTIFICATION_MOUSE_ENTER);
+		update();
+	}
+
+	if (p_what == NOTIFICATION_DRAW && mouseover) {
+
+		Ref<Texture> h_grabber = get_icon("grabber", "HSplitContainer");
+
+		Ref<Texture> v_grabber = get_icon("grabber", "VSplitContainer");
+
+		Vector2 size = get_size();
+
+		int h_sep = get_constant("separation", "HSplitContainer");
+
+		int v_sep = get_constant("separation", "VSplitContainer");
+
+		int mid_w = size.width * ratio_h;
+		int mid_h = size.height * ratio_v;
+
+		int size_left = mid_w - h_sep / 2;
+		int size_bottom = size.height - mid_h - v_sep / 2;
+
+		switch (view) {
+
+			case VIEW_USE_1_VIEWPORT: {
+
+				//nothing to show
+
+			} break;
+			case VIEW_USE_2_VIEWPORTS: {
+
+				draw_texture(v_grabber, Vector2((size.width - v_grabber->get_width()) / 2, mid_h - v_grabber->get_height() / 2));
+
+			} break;
+			case VIEW_USE_2_VIEWPORTS_ALT: {
+
+				draw_texture(h_grabber, Vector2(mid_w - h_grabber->get_width() / 2, (size.height - h_grabber->get_height()) / 2));
+
+			} break;
+			case VIEW_USE_3_VIEWPORTS: {
+
+				draw_texture(v_grabber, Vector2((size.width - v_grabber->get_width()) / 2, mid_h - v_grabber->get_height() / 2));
+				draw_texture(h_grabber, Vector2(mid_w - h_grabber->get_width() / 2, mid_h + v_grabber->get_height() / 2 + (size_bottom - h_grabber->get_height()) / 2));
+
+			} break;
+			case VIEW_USE_3_VIEWPORTS_ALT: {
+
+				draw_texture(v_grabber, Vector2((size_left - v_grabber->get_width()) / 2, mid_h - v_grabber->get_height() / 2));
+				draw_texture(h_grabber, Vector2(mid_w - h_grabber->get_width() / 2, (size.height - h_grabber->get_height()) / 2));
+			} break;
+			case VIEW_USE_4_VIEWPORTS: {
+
+				Vector2 half(mid_w, mid_h);
+				draw_texture(v_grabber, half - v_grabber->get_size() / 2.0);
+				draw_texture(h_grabber, half - h_grabber->get_size() / 2.0);
+
+			} break;
+		}
+	}
+
+	if (p_what == NOTIFICATION_SORT_CHILDREN) {
+
+		SpatialEditorViewport *viewports[4];
+		int vc = 0;
+		for (int i = 0; i < get_child_count(); i++) {
+			viewports[vc] = get_child(i)->cast_to<SpatialEditorViewport>();
+			if (viewports[vc]) {
+				vc++;
+			}
+		}
+
+		ERR_FAIL_COND(vc != 4);
+
+		Size2 size = get_size();
+
+		if (size.x < 10 || size.y < 10) {
+			for (int i = 0; i < 4; i++) {
+				viewports[i]->hide();
+			}
+			return;
+		}
+		int h_sep = get_constant("separation", "HSplitContainer");
+
+		int v_sep = get_constant("separation", "VSplitContainer");
+
+		int mid_w = size.width * ratio_h;
+		int mid_h = size.height * ratio_v;
+
+		int size_left = mid_w - h_sep / 2;
+		int size_right = size.width - mid_w - h_sep / 2;
+
+		int size_top = mid_h - v_sep / 2;
+		int size_bottom = size.height - mid_h - v_sep / 2;
+
+		switch (view) {
+
+			case VIEW_USE_1_VIEWPORT: {
+
+				for (int i = 1; i < 4; i++) {
+
+					viewports[i]->hide();
+				}
+
+				fit_child_in_rect(viewports[0], Rect2(Vector2(), size));
+
+			} break;
+			case VIEW_USE_2_VIEWPORTS: {
+
+				for (int i = 1; i < 4; i++) {
+
+					if (i == 1 || i == 3)
+						viewports[i]->hide();
+					else
+						viewports[i]->show();
+				}
+
+				fit_child_in_rect(viewports[0], Rect2(Vector2(), Vector2(size.width, size_top)));
+				fit_child_in_rect(viewports[2], Rect2(Vector2(0, mid_h + v_sep / 2), Vector2(size.width, size_bottom)));
+
+			} break;
+			case VIEW_USE_2_VIEWPORTS_ALT: {
+
+				for (int i = 1; i < 4; i++) {
+
+					if (i == 1 || i == 3)
+						viewports[i]->hide();
+					else
+						viewports[i]->show();
+				}
+				fit_child_in_rect(viewports[0], Rect2(Vector2(), Vector2(size_left, size.height)));
+				fit_child_in_rect(viewports[2], Rect2(Vector2(mid_w + h_sep / 2, 0), Vector2(size_right, size.height)));
+
+			} break;
+			case VIEW_USE_3_VIEWPORTS: {
+
+				for (int i = 1; i < 4; i++) {
+
+					if (i == 1)
+						viewports[i]->hide();
+					else
+						viewports[i]->show();
+				}
+
+				fit_child_in_rect(viewports[0], Rect2(Vector2(), Vector2(size.width, size_top)));
+				fit_child_in_rect(viewports[2], Rect2(Vector2(0, mid_h + v_sep / 2), Vector2(size_left, size_bottom)));
+				fit_child_in_rect(viewports[3], Rect2(Vector2(mid_w + h_sep / 2, mid_h + v_sep / 2), Vector2(size_right, size_bottom)));
+
+			} break;
+			case VIEW_USE_3_VIEWPORTS_ALT: {
+
+				for (int i = 1; i < 4; i++) {
+
+					if (i == 1)
+						viewports[i]->hide();
+					else
+						viewports[i]->show();
+				}
+
+				fit_child_in_rect(viewports[0], Rect2(Vector2(), Vector2(size_left, size_top)));
+				fit_child_in_rect(viewports[2], Rect2(Vector2(0, mid_h + v_sep / 2), Vector2(size_left, size_bottom)));
+				fit_child_in_rect(viewports[3], Rect2(Vector2(mid_w + h_sep / 2, 0), Vector2(size_right, size.height)));
+
+			} break;
+			case VIEW_USE_4_VIEWPORTS: {
+
+				for (int i = 1; i < 4; i++) {
+
+					viewports[i]->show();
+				}
+
+				fit_child_in_rect(viewports[0], Rect2(Vector2(), Vector2(size_left, size_top)));
+				fit_child_in_rect(viewports[1], Rect2(Vector2(mid_w + h_sep / 2, 0), Vector2(size_right, size_top)));
+				fit_child_in_rect(viewports[2], Rect2(Vector2(0, mid_h + v_sep / 2), Vector2(size_left, size_bottom)));
+				fit_child_in_rect(viewports[3], Rect2(Vector2(mid_w + h_sep / 2, mid_h + v_sep / 2), Vector2(size_right, size_bottom)));
+
+			} break;
+		}
+	}
+}
+
+void SpatialEditorViewportContainer::set_view(View p_view) {
+
+	view = p_view;
+	queue_sort();
+}
+
+SpatialEditorViewportContainer::View SpatialEditorViewportContainer::get_view() {
+
+	return view;
+}
+
+void SpatialEditorViewportContainer::_bind_methods() {
+
+	ClassDB::bind_method("_gui_input", &SpatialEditorViewportContainer::_gui_input);
+}
+
+SpatialEditorViewportContainer::SpatialEditorViewportContainer() {
+
+	view = VIEW_USE_1_VIEWPORT;
+	mouseover = false;
+	ratio_h = 0.5;
+	ratio_v = 0.5;
+	dragging_v = false;
+	dragging_h = false;
+}
+
+///////////////////////////////////////////////////////////////////
 
 SpatialEditor *SpatialEditor::singleton = NULL;
 
@@ -2719,12 +3106,7 @@ void SpatialEditor::_menu_item_pressed(int p_option) {
 		} break;
 		case MENU_VIEW_USE_1_VIEWPORT: {
 
-			for (int i = 1; i < 4; i++) {
-
-				viewports[i]->hide();
-			}
-
-			viewports[0]->set_area_as_parent_rect();
+			viewport_base->set_view(SpatialEditorViewportContainer::VIEW_USE_1_VIEWPORT);
 
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), true);
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
@@ -2736,17 +3118,7 @@ void SpatialEditor::_menu_item_pressed(int p_option) {
 		} break;
 		case MENU_VIEW_USE_2_VIEWPORTS: {
 
-			for (int i = 1; i < 4; i++) {
-
-				if (i == 1 || i == 3)
-					viewports[i]->hide();
-				else
-					viewports[i]->show();
-			}
-			viewports[0]->set_area_as_parent_rect();
-			//viewports[0]->set_anchor_and_margin(MARGIN_BOTTOM,ANCHOR_RATIO,0.5);
-			viewports[2]->set_area_as_parent_rect();
-			//viewports[2]->set_anchor_and_margin(MARGIN_TOP,ANCHOR_RATIO,0.5);
+			viewport_base->set_view(SpatialEditorViewportContainer::VIEW_USE_2_VIEWPORTS);
 
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), true);
@@ -2758,17 +3130,7 @@ void SpatialEditor::_menu_item_pressed(int p_option) {
 		} break;
 		case MENU_VIEW_USE_2_VIEWPORTS_ALT: {
 
-			for (int i = 1; i < 4; i++) {
-
-				if (i == 1 || i == 3)
-					viewports[i]->hide();
-				else
-					viewports[i]->show();
-			}
-			viewports[0]->set_area_as_parent_rect();
-			//viewports[0]->set_anchor_and_margin(MARGIN_RIGHT,ANCHOR_RATIO,0.5);
-			viewports[2]->set_area_as_parent_rect();
-			//viewports[2]->set_anchor_and_margin(MARGIN_LEFT,ANCHOR_RATIO,0.5);
+			viewport_base->set_view(SpatialEditorViewportContainer::VIEW_USE_2_VIEWPORTS_ALT);
 
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
@@ -2780,21 +3142,7 @@ void SpatialEditor::_menu_item_pressed(int p_option) {
 		} break;
 		case MENU_VIEW_USE_3_VIEWPORTS: {
 
-			for (int i = 1; i < VIEWPORTS_COUNT; i++) {
-
-				if (i == 1)
-					viewports[i]->hide();
-				else
-					viewports[i]->show();
-			}
-			viewports[0]->set_area_as_parent_rect();
-			//viewports[0]->set_anchor_and_margin(MARGIN_BOTTOM,ANCHOR_RATIO,0.5);
-			viewports[2]->set_area_as_parent_rect();
-			//viewports[2]->set_anchor_and_margin(MARGIN_RIGHT,ANCHOR_RATIO,0.5);
-			//viewports[2]->set_anchor_and_margin(MARGIN_TOP,ANCHOR_RATIO,0.5);
-			viewports[3]->set_area_as_parent_rect();
-			//viewports[3]->set_anchor_and_margin(MARGIN_LEFT,ANCHOR_RATIO,0.5);
-			//viewports[3]->set_anchor_and_margin(MARGIN_TOP,ANCHOR_RATIO,0.5);
+			viewport_base->set_view(SpatialEditorViewportContainer::VIEW_USE_3_VIEWPORTS);
 
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
@@ -2806,21 +3154,7 @@ void SpatialEditor::_menu_item_pressed(int p_option) {
 		} break;
 		case MENU_VIEW_USE_3_VIEWPORTS_ALT: {
 
-			for (int i = 1; i < VIEWPORTS_COUNT; i++) {
-
-				if (i == 1)
-					viewports[i]->hide();
-				else
-					viewports[i]->show();
-			}
-			viewports[0]->set_area_as_parent_rect();
-			//viewports[0]->set_anchor_and_margin(MARGIN_BOTTOM,ANCHOR_RATIO,0.5);
-			//viewports[0]->set_anchor_and_margin(MARGIN_RIGHT,ANCHOR_RATIO,0.5);
-			viewports[2]->set_area_as_parent_rect();
-			//viewports[2]->set_anchor_and_margin(MARGIN_TOP,ANCHOR_RATIO,0.5);
-			//viewports[2]->set_anchor_and_margin(MARGIN_RIGHT,ANCHOR_RATIO,0.5);
-			viewports[3]->set_area_as_parent_rect();
-			//viewports[3]->set_anchor_and_margin(MARGIN_LEFT,ANCHOR_RATIO,0.5);
+			viewport_base->set_view(SpatialEditorViewportContainer::VIEW_USE_3_VIEWPORTS_ALT);
 
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
@@ -2832,22 +3166,7 @@ void SpatialEditor::_menu_item_pressed(int p_option) {
 		} break;
 		case MENU_VIEW_USE_4_VIEWPORTS: {
 
-			for (int i = 1; i < VIEWPORTS_COUNT; i++) {
-
-				viewports[i]->show();
-			}
-			viewports[0]->set_area_as_parent_rect();
-			//viewports[0]->set_anchor_and_margin(MARGIN_RIGHT,ANCHOR_RATIO,0.5);
-			//viewports[0]->set_anchor_and_margin(MARGIN_BOTTOM,ANCHOR_RATIO,0.5);
-			viewports[1]->set_area_as_parent_rect();
-			//viewports[1]->set_anchor_and_margin(MARGIN_LEFT,ANCHOR_RATIO,0.5);
-			//viewports[1]->set_anchor_and_margin(MARGIN_BOTTOM,ANCHOR_RATIO,0.5);
-			viewports[2]->set_area_as_parent_rect();
-			//viewports[2]->set_anchor_and_margin(MARGIN_RIGHT,ANCHOR_RATIO,0.5);
-			//viewports[2]->set_anchor_and_margin(MARGIN_TOP,ANCHOR_RATIO,0.5);
-			viewports[3]->set_area_as_parent_rect();
-			//viewports[3]->set_anchor_and_margin(MARGIN_LEFT,ANCHOR_RATIO,0.5);
-			//viewports[3]->set_anchor_and_margin(MARGIN_TOP,ANCHOR_RATIO,0.5);
+			viewport_base->set_view(SpatialEditorViewportContainer::VIEW_USE_4_VIEWPORTS);
 
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
@@ -2855,43 +3174,6 @@ void SpatialEditor::_menu_item_pressed(int p_option) {
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), true);
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), false);
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), false);
-
-		} break;
-		case MENU_VIEW_DISPLAY_NORMAL: {
-
-			VisualServer::get_singleton()->scenario_set_debug(get_tree()->get_root()->get_world()->get_scenario(), VisualServer::SCENARIO_DEBUG_DISABLED);
-
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_NORMAL), true);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_WIREFRAME), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_OVERDRAW), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_SHADELESS), false);
-
-		} break;
-		case MENU_VIEW_DISPLAY_WIREFRAME: {
-
-			VisualServer::get_singleton()->scenario_set_debug(get_tree()->get_root()->get_world()->get_scenario(), VisualServer::SCENARIO_DEBUG_WIREFRAME);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_NORMAL), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_WIREFRAME), true);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_OVERDRAW), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_SHADELESS), false);
-
-		} break;
-		case MENU_VIEW_DISPLAY_OVERDRAW: {
-
-			VisualServer::get_singleton()->scenario_set_debug(get_tree()->get_root()->get_world()->get_scenario(), VisualServer::SCENARIO_DEBUG_OVERDRAW);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_NORMAL), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_WIREFRAME), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_OVERDRAW), true);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_SHADELESS), false);
-
-		} break;
-		case MENU_VIEW_DISPLAY_SHADELESS: {
-
-			VisualServer::get_singleton()->scenario_set_debug(get_tree()->get_root()->get_world()->get_scenario(), VisualServer::SCENARIO_DEBUG_SHADELESS);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_NORMAL), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_WIREFRAME), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_OVERDRAW), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_SHADELESS), true);
 
 		} break;
 		case MENU_VIEW_ORIGIN: {
@@ -3242,17 +3524,6 @@ void SpatialEditor::_unhandled_key_input(Ref<InputEvent> p_event) {
 
 			else if (ED_IS_SHORTCUT("spatial_editor/tool_scale", p_event))
 				_menu_item_pressed(MENU_TOOL_SCALE);
-
-			else if (ED_IS_SHORTCUT("spatial_editor/display_wireframe", p_event)) {
-				if (k->get_shift() || k->get_control() || k->get_command())
-					return;
-
-				if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_DISPLAY_WIREFRAME))) {
-					_menu_item_pressed(MENU_VIEW_DISPLAY_NORMAL);
-				} else {
-					_menu_item_pressed(MENU_VIEW_DISPLAY_WIREFRAME);
-				}
-			}
 		}
 	}
 }
@@ -3419,9 +3690,6 @@ void SpatialEditor::clear() {
 		viewports[i]->reset();
 	}
 
-	_menu_item_pressed(MENU_VIEW_USE_1_VIEWPORT);
-	_menu_item_pressed(MENU_VIEW_DISPLAY_NORMAL);
-
 	VisualServer::get_singleton()->instance_set_visible(origin_instance, true);
 	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_ORIGIN), true);
 	for (int i = 0; i < 3; ++i) {
@@ -3566,17 +3834,11 @@ SpatialEditor::SpatialEditor(EditorNode *p_editor) {
 	p->add_check_shortcut(ED_SHORTCUT("spatial_editor/4_viewports", TTR("4 Viewports"), KEY_MASK_CMD + KEY_4), MENU_VIEW_USE_4_VIEWPORTS);
 	p->add_separator();
 
-	p->add_check_shortcut(ED_SHORTCUT("spatial_editor/display_normal", TTR("Display Normal")), MENU_VIEW_DISPLAY_NORMAL);
-	p->add_check_shortcut(ED_SHORTCUT("spatial_editor/display_wireframe", TTR("Display Wireframe")), MENU_VIEW_DISPLAY_WIREFRAME);
-	p->add_check_shortcut(ED_SHORTCUT("spatial_editor/display_overdraw", TTR("Display Overdraw")), MENU_VIEW_DISPLAY_OVERDRAW);
-	p->add_check_shortcut(ED_SHORTCUT("spatial_editor/display_shadeless", TTR("Display Shadeless")), MENU_VIEW_DISPLAY_SHADELESS);
-	p->add_separator();
 	p->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_origin", TTR("View Origin")), MENU_VIEW_ORIGIN);
 	p->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_grid", TTR("View Grid")), MENU_VIEW_GRID);
 	p->add_separator();
 	p->add_shortcut(ED_SHORTCUT("spatial_editor/settings", TTR("Settings")), MENU_VIEW_CAMERA_SETTINGS);
 
-	p->set_item_checked(p->get_item_index(MENU_VIEW_DISPLAY_NORMAL), true);
 	p->set_item_checked(p->get_item_index(MENU_VIEW_ORIGIN), true);
 	p->set_item_checked(p->get_item_index(MENU_VIEW_GRID), true);
 
@@ -3591,7 +3853,7 @@ SpatialEditor::SpatialEditor(EditorNode *p_editor) {
 	shader_split = memnew(VSplitContainer);
 	shader_split->set_h_size_flags(SIZE_EXPAND_FILL);
 	palette_split->add_child(shader_split);
-	viewport_base = memnew(Control);
+	viewport_base = memnew(SpatialEditorViewportContainer);
 	shader_split->add_child(viewport_base);
 	viewport_base->set_v_size_flags(SIZE_EXPAND_FILL);
 	for (int i = 0; i < VIEWPORTS_COUNT; i++) {

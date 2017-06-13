@@ -272,6 +272,8 @@ void EditorNode::_notification(int p_what) {
 		}
 		editor_selection->update();
 
+		scene_root->set_size_override(true, Size2(GlobalConfig::get_singleton()->get("display/window/width"), GlobalConfig::get_singleton()->get("display/window/height")));
+
 		ResourceImporterTexture::get_singleton()->update_imports();
 	}
 	if (p_what == NOTIFICATION_ENTER_TREE) {
@@ -4878,6 +4880,7 @@ EditorNode::EditorNode() {
 	Resource::_get_local_scene_func = _resource_get_edited_scene;
 
 	VisualServer::get_singleton()->textures_keep_original(true);
+	VisualServer::get_singleton()->set_debug_generate_wireframes(true);
 
 	EditorHelp::generate_doc(); //before any editor classes are crated
 	SceneState::set_disable_placeholders(true);
