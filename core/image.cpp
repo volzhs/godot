@@ -1483,16 +1483,16 @@ Error Image::decompress() {
 		_image_decompress_bc(this);
 	else if (format >= FORMAT_PVRTC2 && format <= FORMAT_PVRTC4A && _image_decompress_pvrtc)
 		_image_decompress_pvrtc(this);
-	else if (format == FORMAT_ETC && _image_decompress_etc)
-		_image_decompress_etc(this);
-	else if (format >= FORMAT_ETC2_R11 && format <= FORMAT_ETC2_RGB8A1 && _image_decompress_etc)
+	else if (format == FORMAT_ETC && _image_decompress_etc1)
+		_image_decompress_etc1(this);
+	else if (format >= FORMAT_ETC2_R11 && format <= FORMAT_ETC2_RGB8A1 && _image_decompress_etc1)
 		_image_decompress_etc2(this);
 	else
 		return ERR_UNAVAILABLE;
 	return OK;
 }
 
-Error Image::compress(CompressMode p_mode, bool p_for_srgb) {
+Error Image::compress(CompressMode p_mode, bool p_for_srgb, float p_lossy_quality) {
 
 	switch (p_mode) {
 
@@ -1513,13 +1513,13 @@ Error Image::compress(CompressMode p_mode, bool p_for_srgb) {
 		} break;
 		case COMPRESS_ETC: {
 
-			ERR_FAIL_COND_V(!_image_compress_etc_func, ERR_UNAVAILABLE);
-			_image_compress_etc_func(this);
+			ERR_FAIL_COND_V(!_image_compress_etc1_func, ERR_UNAVAILABLE);
+			_image_compress_etc1_func(this, p_lossy_quality);
 		} break;
 		case COMPRESS_ETC2: {
 
-			ERR_FAIL_COND_V(!_image_compress_etc_func, ERR_UNAVAILABLE);
-			_image_compress_etc_func(this);
+			ERR_FAIL_COND_V(!_image_compress_etc2_func, ERR_UNAVAILABLE);
+			_image_compress_etc2_func(this, p_lossy_quality);
 		} break;
 	}
 
@@ -1612,11 +1612,11 @@ void Image::blit_rect(const Ref<Image> &p_src, const Rect2 &p_src_rect, const Po
 	ERR_FAIL_COND(srcdsize == 0);
 	ERR_FAIL_COND(format != p_src->format);
 
-	Rect2i local_src_rect = Rect2i(0, 0, width, height).clip(Rect2i(p_dest + p_src_rect.position, p_src_rect.size));
-
-	if (local_src_rect.size.x <= 0 || local_src_rect.size.y <= 0)
+	Rect2i clipped_src_rect = Rect2i(0, 0, p_src->width, p_src->height).clip(p_src_rect);
+	if (clipped_src_rect.size.x <= 0 || clipped_src_rect.size.y <= 0)
 		return;
-	Rect2i src_rect(p_src_rect.position + (local_src_rect.position - p_dest), local_src_rect.size);
+
+	Rect2i dest_rect = Rect2i(0, 0, width, height).clip(Rect2i(p_dest, clipped_src_rect.size));
 
 	PoolVector<uint8_t>::Write wp = data.write();
 	uint8_t *dst_data_ptr = wp.ptr();
@@ -1626,15 +1626,15 @@ void Image::blit_rect(const Ref<Image> &p_src, const Rect2 &p_src_rect, const Po
 
 	int pixel_size = get_format_pixel_size(format);
 
-	for (int i = 0; i < src_rect.size.y; i++) {
+	for (int i = 0; i < dest_rect.size.y; i++) {
 
-		for (int j = 0; j < src_rect.size.x; j++) {
+		for (int j = 0; j < dest_rect.size.x; j++) {
 
-			int src_x = src_rect.position.x + j;
-			int src_y = src_rect.position.y + i;
+			int src_x = clipped_src_rect.position.x + j;
+			int src_y = clipped_src_rect.position.y + i;
 
-			int dst_x = local_src_rect.position.x + j;
-			int dst_y = local_src_rect.position.y + i;
+			int dst_x = dest_rect.position.x + j;
+			int dst_y = dest_rect.position.y + i;
 
 			const uint8_t *src = &src_data_ptr[(src_y * p_src->width + src_x) * pixel_size];
 			uint8_t *dst = &dst_data_ptr[(dst_y * width + dst_x) * pixel_size];
@@ -1652,11 +1652,11 @@ Ref<Image> (*Image::_jpg_mem_loader_func)(const uint8_t *, int) = NULL;
 void (*Image::_image_compress_bc_func)(Image *, bool) = NULL;
 void (*Image::_image_compress_pvrtc2_func)(Image *) = NULL;
 void (*Image::_image_compress_pvrtc4_func)(Image *) = NULL;
-void (*Image::_image_compress_etc_func)(Image *) = NULL;
-void (*Image::_image_compress_etc2_func)(Image *) = NULL;
+void (*Image::_image_compress_etc1_func)(Image *, float) = NULL;
+void (*Image::_image_compress_etc2_func)(Image *, float) = NULL;
 void (*Image::_image_decompress_pvrtc)(Image *) = NULL;
 void (*Image::_image_decompress_bc)(Image *) = NULL;
-void (*Image::_image_decompress_etc)(Image *) = NULL;
+void (*Image::_image_decompress_etc1)(Image *) = NULL;
 void (*Image::_image_decompress_etc2)(Image *) = NULL;
 
 PoolVector<uint8_t> (*Image::lossy_packer)(const Ref<Image> &, float) = NULL;

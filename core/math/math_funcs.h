@@ -110,6 +110,15 @@ public:
 	static _ALWAYS_INLINE_ bool is_inf(double p_val) {
 #ifdef _MSC_VER
 		return !_finite(p_val);
+// use an inline implementation of isinf as a workaround for problematic libstdc++ versions from gcc 5.x era
+#elif defined(__GNUC__) && __GNUC__ < 6
+		union {
+			uint64_t u;
+			double f;
+		} ieee754;
+		ieee754.f = p_val;
+		return ((unsigned)(ieee754.u >> 32) & 0x7fffffff) == 0x7ff00000 &&
+			   ((unsigned)ieee754.u == 0);
 #else
 		return isinf(p_val);
 #endif
@@ -118,6 +127,14 @@ public:
 	static _ALWAYS_INLINE_ bool is_inf(float p_val) {
 #ifdef _MSC_VER
 		return !_finite(p_val);
+// use an inline implementation of isinf as a workaround for problematic libstdc++ versions from gcc 5.x era
+#elif defined(__GNUC__) && __GNUC__ < 6
+		union {
+			uint32_t u;
+			float f;
+		} ieee754;
+		ieee754.f = p_val;
+		return (ieee754.u & 0x7fffffff) == 0x7f800000;
 #else
 		return isinf(p_val);
 #endif

@@ -3107,6 +3107,7 @@ void RasterizerStorageGLES3::mesh_remove_surface(RID p_mesh, int p_surface) {
 	}
 
 	glDeleteVertexArrays(1, &surface->array_id);
+	glDeleteVertexArrays(1, &surface->instancing_array_id);
 
 	for (int i = 0; i < surface->blend_shapes.size(); i++) {
 
@@ -4273,7 +4274,6 @@ RID RasterizerStorageGLES3::light_create(VS::LightType p_type) {
 	light->param[VS::LIGHT_PARAM_SHADOW_SPLIT_2_OFFSET] = 0.3;
 	light->param[VS::LIGHT_PARAM_SHADOW_SPLIT_3_OFFSET] = 0.6;
 	light->param[VS::LIGHT_PARAM_SHADOW_NORMAL_BIAS] = 0.1;
-	light->param[VS::LIGHT_PARAM_SHADOW_BIAS_SPLIT_SCALE] = 0.1;
 
 	light->color = Color(1, 1, 1, 1);
 	light->shadow = false;
@@ -4310,8 +4310,7 @@ void RasterizerStorageGLES3::light_set_param(RID p_light, VS::LightParam p_param
 		case VS::LIGHT_PARAM_SHADOW_SPLIT_2_OFFSET:
 		case VS::LIGHT_PARAM_SHADOW_SPLIT_3_OFFSET:
 		case VS::LIGHT_PARAM_SHADOW_NORMAL_BIAS:
-		case VS::LIGHT_PARAM_SHADOW_BIAS:
-		case VS::LIGHT_PARAM_SHADOW_BIAS_SPLIT_SCALE: {
+		case VS::LIGHT_PARAM_SHADOW_BIAS: {
 
 			light->version++;
 			light->instance_change_notify();
@@ -5449,9 +5448,7 @@ void RasterizerStorageGLES3::update_particles() {
 
 	glDisable(GL_RASTERIZER_DISCARD);
 
-	for (int i = 0; i < 6; i++) {
-		glDisableVertexAttribArray(i);
-	}
+
 }
 
 ////////
@@ -6110,6 +6107,7 @@ RID RasterizerStorageGLES3::canvas_light_occluder_create() {
 	co->index_id = 0;
 	co->vertex_id = 0;
 	co->len = 0;
+	glGenVertexArrays(1, &co->array_id);
 
 	return canvas_occluder_owner.make_rid(co);
 }
@@ -6181,7 +6179,7 @@ void RasterizerStorageGLES3::canvas_light_occluder_set_polylines(RID p_occluder,
 		if (!co->vertex_id) {
 			glGenBuffers(1, &co->vertex_id);
 			glBindBuffer(GL_ARRAY_BUFFER, co->vertex_id);
-			glBufferData(GL_ARRAY_BUFFER, lc * 6 * sizeof(real_t), vw.ptr(), GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, lc * 6 * sizeof(real_t), vw.ptr(), GL_DYNAMIC_DRAW);
 		} else {
 
 			glBindBuffer(GL_ARRAY_BUFFER, co->vertex_id);
@@ -6194,7 +6192,7 @@ void RasterizerStorageGLES3::canvas_light_occluder_set_polylines(RID p_occluder,
 
 			glGenBuffers(1, &co->index_id);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, co->index_id);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, lc * 3 * sizeof(uint16_t), iw.ptr(), GL_STATIC_DRAW);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, lc * 3 * sizeof(uint16_t), iw.ptr(), GL_DYNAMIC_DRAW);
 		} else {
 
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, co->index_id);
@@ -6204,6 +6202,12 @@ void RasterizerStorageGLES3::canvas_light_occluder_set_polylines(RID p_occluder,
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); //unbind
 
 		co->len = lc;
+		glBindVertexArray(co->array_id);
+		glBindBuffer(GL_ARRAY_BUFFER, co->vertex_id);
+		glEnableVertexAttribArray(VS::ARRAY_VERTEX);
+		glVertexAttribPointer(VS::ARRAY_VERTEX, 3, GL_FLOAT, false, 0, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, co->index_id);
+		glBindVertexArray(0);
 	}
 }
 
@@ -6431,6 +6435,8 @@ bool RasterizerStorageGLES3::free(RID p_rid) {
 			glDeleteBuffers(1, &co->index_id);
 		if (co->vertex_id)
 			glDeleteBuffers(1, &co->vertex_id);
+
+		glDeleteVertexArrays(1, &co->array_id);
 
 		canvas_occluder_owner.free(p_rid);
 		memdelete(co);

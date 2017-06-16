@@ -37,6 +37,18 @@ Check the diff of enet.h, protocol.c, and host.c with the 1.3.13
 tarball before the next update.
 
 
+## etc2comp
+
+- Upstream: https://github.com/google/etc2comp
+- Version: 9cd0f9c (git)
+- License: Apache
+
+Files extracted from upstream source:
+
+- all .cpp and .h files in EtcLib/
+- README.md, LICENSE, AUTHORS
+
+
 ## fonts
 
 - Upstream: ?
@@ -60,7 +72,7 @@ Files extracted from upstream source:
 ## glad
 
 - Upstream: https://github.com/Dav1dde/glad
-- Version: 0.1.13a0
+- Version: 0.1.14a0
 - License: MIT
 
 The files we package are automatically generated.
@@ -294,17 +306,6 @@ Files extracted from upstream source:
 
 - all .cpp and .h files apart from `main.cpp`
 - LICENSE.TXT
-
-
-## rg-etc1
-
-- Upstream: https://github.com/richgel999/rg-etc1
-- Version: 1.04
-- License: zlib
-
-Files extracted from upstream source:
-
-- `rg_etc1.{cpp,h}`
 
 
 ## rtaudio

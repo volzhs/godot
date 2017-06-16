@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  image_etc.h                                                          */
+/*  register_types.cpp                                                   */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -27,9 +27,22 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef IMAGE_ETC1_H
-#define IMAGE_ETC1_H
+#include "register_types.h"
 
-void _register_etc1_compress_func();
+#include "image_etc.h"
+#include "texture_loader_pkm.h"
 
-#endif // IMAGE_ETC_H
+static ResourceFormatPKM *resource_loader_pkm = NULL;
+
+void register_etc_types() {
+
+	resource_loader_pkm = memnew(ResourceFormatPKM);
+	ResourceLoader::add_resource_format_loader(resource_loader_pkm);
+
+	_register_etc_compress_func();
+}
+
+void unregister_etc_types() {
+
+	memdelete(resource_loader_pkm);
+}

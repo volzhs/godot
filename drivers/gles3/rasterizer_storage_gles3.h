@@ -448,6 +448,7 @@ public:
 			: dirty_list(this) {
 
 			shader = NULL;
+			ubo_size = 0;
 			valid = false;
 			custom_code_id = 0;
 			version = 1;
@@ -1285,6 +1286,7 @@ public:
 
 	struct CanvasOccluder : public RID_Data {
 
+		GLuint array_id; // 0 means, unconfigured
 		GLuint vertex_id; // 0 means, unconfigured
 		GLuint index_id; // 0 means, unconfigured
 		PoolVector<Vector2> lines;
