@@ -140,7 +140,7 @@ public:
 class ArrayMesh : public Mesh {
 
 	GDCLASS(ArrayMesh, Mesh);
-	RES_BASE_EXTENSION("msh");
+	RES_BASE_EXTENSION("mesh");
 
 private:
 	struct Surface {
@@ -213,23 +213,6 @@ public:
 
 	~ArrayMesh();
 };
-
-#if 0
-class QuadMesh : public Mesh {
-
-	GDCLASS(QuadMesh, Mesh)
-
-protected:
-	virtual bool _is_generated() const { return true; }
-	static void _bind_methods();
-
-public:
-	void set_material(const Ref<Material> &p_material);
-	Ref<Material> get_material() const;
-	QuadMesh();
-};
-
-#endif
 
 VARIANT_ENUM_CAST(Mesh::ArrayType);
 VARIANT_ENUM_CAST(Mesh::PrimitiveType);
