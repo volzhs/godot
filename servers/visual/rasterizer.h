@@ -189,6 +189,7 @@ public:
 
 	virtual void texture_set_detect_3d_callback(RID p_texture, VisualServer::TextureDetectCallback p_callback, void *p_userdata) = 0;
 	virtual void texture_set_detect_srgb_callback(RID p_texture, VisualServer::TextureDetectCallback p_callback, void *p_userdata) = 0;
+	virtual void texture_set_detect_normal_callback(RID p_texture, VisualServer::TextureDetectCallback p_callback, void *p_userdata) = 0;
 
 	virtual void textures_keep_original(bool p_enable) = 0;
 
@@ -464,6 +465,9 @@ public:
 
 	virtual void particles_set_emission_transform(RID p_particles, const Transform &p_transform) = 0;
 
+	virtual int particles_get_draw_passes(RID p_particles) const = 0;
+	virtual RID particles_get_draw_pass_mesh(RID p_particles, int p_pass) const = 0;
+
 	/* RENDER TARGET */
 
 	enum RenderTargetFlags {
@@ -480,7 +484,8 @@ public:
 	virtual void render_target_set_size(RID p_render_target, int p_width, int p_height) = 0;
 	virtual RID render_target_get_texture(RID p_render_target) const = 0;
 	virtual void render_target_set_flag(RID p_render_target, RenderTargetFlags p_flag, bool p_value) = 0;
-	virtual bool render_target_renedered_in_frame(RID p_render_target) = 0;
+	virtual bool render_target_was_used(RID p_render_target) = 0;
+	virtual void render_target_clear_used(RID p_render_target) = 0;
 	virtual void render_target_set_msaa(RID p_render_target, VS::ViewportMSAA p_msaa) = 0;
 
 	/* CANVAS SHADOW */
@@ -520,7 +525,8 @@ public:
 		CANVAS_RECT_TILE = 2,
 		CANVAS_RECT_FLIP_H = 4,
 		CANVAS_RECT_FLIP_V = 8,
-		CANVAS_RECT_TRANSPOSE = 16
+		CANVAS_RECT_TRANSPOSE = 16,
+		CANVAS_RECT_CLIP_UV = 32
 	};
 
 	struct Light : public RID_Data {
@@ -628,6 +634,7 @@ public:
 
 			Rect2 rect;
 			RID texture;
+			RID normal_map;
 			Color modulate;
 			Rect2 source;
 			uint8_t flags;
@@ -643,6 +650,7 @@ public:
 			Rect2 rect;
 			Rect2 source;
 			RID texture;
+			RID normal_map;
 			float margin[4];
 			bool draw_center;
 			Color color;
@@ -660,6 +668,7 @@ public:
 			Vector<Point2> uvs;
 			Vector<Color> colors;
 			RID texture;
+			RID normal_map;
 			float width;
 
 			CommandPrimitive() {
@@ -675,6 +684,7 @@ public:
 			Vector<Point2> uvs;
 			Vector<Color> colors;
 			RID texture;
+			RID normal_map;
 			int count;
 
 			CommandPolygon() {

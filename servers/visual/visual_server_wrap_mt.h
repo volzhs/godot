@@ -92,6 +92,7 @@ public:
 
 	FUNC3(texture_set_detect_3d_callback, RID, TextureDetectCallback, void *)
 	FUNC3(texture_set_detect_srgb_callback, RID, TextureDetectCallback, void *)
+	FUNC3(texture_set_detect_normal_callback, RID, TextureDetectCallback, void *)
 
 	FUNC2(texture_set_path, RID, const String &)
 	FUNC1RC(String, texture_get_path, RID)
@@ -112,7 +113,7 @@ public:
 	FUNC2(shader_set_code, RID, const String &)
 	FUNC1RC(String, shader_get_code, RID)
 
-	FUNC2C(shader_get_param_list, RID, List<PropertyInfo> *)
+	FUNC2SC(shader_get_param_list, RID, List<PropertyInfo> *)
 
 	FUNC3(shader_set_default_texture_param, RID, const StringName &, RID)
 	FUNC2RC(RID, shader_get_default_texture_param, RID, const StringName &)
@@ -467,12 +468,12 @@ public:
 	FUNC6(canvas_item_add_line, RID, const Point2 &, const Point2 &, const Color &, float, bool)
 	FUNC3(canvas_item_add_rect, RID, const Rect2 &, const Color &)
 	FUNC4(canvas_item_add_circle, RID, const Point2 &, float, const Color &)
-	FUNC6(canvas_item_add_texture_rect, RID, const Rect2 &, RID, bool, const Color &, bool)
-	FUNC6(canvas_item_add_texture_rect_region, RID, const Rect2 &, RID, const Rect2 &, const Color &, bool)
-	FUNC10(canvas_item_add_nine_patch, RID, const Rect2 &, const Rect2 &, RID, const Vector2 &, const Vector2 &, NinePatchAxisMode, NinePatchAxisMode, bool, const Color &)
-	FUNC6(canvas_item_add_primitive, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, float)
-	FUNC5(canvas_item_add_polygon, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID)
-	FUNC7(canvas_item_add_triangle_array, RID, const Vector<int> &, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, int)
+	FUNC7(canvas_item_add_texture_rect, RID, const Rect2 &, RID, bool, const Color &, bool, RID)
+	FUNC8(canvas_item_add_texture_rect_region, RID, const Rect2 &, RID, const Rect2 &, const Color &, bool, RID, bool)
+	FUNC11(canvas_item_add_nine_patch, RID, const Rect2 &, const Rect2 &, RID, const Vector2 &, const Vector2 &, NinePatchAxisMode, NinePatchAxisMode, bool, const Color &, RID)
+	FUNC7(canvas_item_add_primitive, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, float, RID)
+	FUNC6(canvas_item_add_polygon, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, RID)
+	FUNC8(canvas_item_add_triangle_array, RID, const Vector<int> &, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, int, RID)
 	FUNC3(canvas_item_add_mesh, RID, const RID &, RID)
 	FUNC3(canvas_item_add_multimesh, RID, RID, RID)
 	FUNC2(canvas_item_add_set_transform, RID, const Transform2D &)

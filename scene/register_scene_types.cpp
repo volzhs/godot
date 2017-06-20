@@ -111,6 +111,7 @@
 #include "scene/2d/ray_cast_2d.h"
 //#include "scene/2d/sound_player_2d.h"
 //#include "scene/2d/sample_player_2d.h"
+#include "scene/2d/audio_stream_player_2d.h"
 #include "scene/2d/canvas_modulate.h"
 #include "scene/2d/navigation2d.h"
 #include "scene/2d/remote_transform_2d.h"
@@ -274,7 +275,7 @@ void register_scene_types() {
 	String theme_path = GLOBAL_DEF("gui/theme/custom", "");
 	GlobalConfig::get_singleton()->set_custom_property_info("gui/theme/custom", PropertyInfo(Variant::STRING, "gui/theme/custom", PROPERTY_HINT_FILE, "*.tres,*.res", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED));
 	String font_path = GLOBAL_DEF("gui/theme/custom_font", "");
-	GlobalConfig::get_singleton()->set_custom_property_info("gui/theme/custom_font", PropertyInfo(Variant::STRING, "gui/theme/custom_font", PROPERTY_HINT_FILE, "*.tres,*.res,*.fnt", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED));
+	GlobalConfig::get_singleton()->set_custom_property_info("gui/theme/custom_font", PropertyInfo(Variant::STRING, "gui/theme/custom_font", PROPERTY_HINT_FILE, "*.tres,*.res,*.font", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED));
 
 	if (theme_path != String()) {
 		Ref<Theme> theme = ResourceLoader::load(theme_path);
@@ -591,7 +592,8 @@ void register_scene_types() {
 
 	OS::get_singleton()->yield(); //may take time to init
 
-	ClassDB::register_class<AudioPlayer>();
+	ClassDB::register_class<AudioStreamPlayer>();
+	ClassDB::register_class<AudioStreamPlayer2D>();
 	ClassDB::register_virtual_class<VideoStream>();
 	ClassDB::register_class<AudioStreamSample>();
 

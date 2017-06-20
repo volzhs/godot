@@ -1072,6 +1072,14 @@ void RasterizerStorageGLES3::texture_set_detect_srgb_callback(RID p_texture, Vis
 	texture->detect_srgb_ud = p_userdata;
 }
 
+void RasterizerStorageGLES3::texture_set_detect_normal_callback(RID p_texture, VisualServer::TextureDetectCallback p_callback, void *p_userdata) {
+	Texture *texture = texture_owner.get(p_texture);
+	ERR_FAIL_COND(!texture);
+
+	texture->detect_normal = p_callback;
+	texture->detect_normal_ud = p_userdata;
+}
+
 RID RasterizerStorageGLES3::texture_create_radiance_cubemap(RID p_source, int p_resolution) const {
 
 	Texture *texture = texture_owner.get(p_source);
@@ -1548,7 +1556,11 @@ void RasterizerStorageGLES3::shader_get_param_list(RID p_shader, List<PropertyIn
 
 	for (Map<StringName, ShaderLanguage::ShaderNode::Uniform>::Element *E = shader->uniforms.front(); E; E = E->next()) {
 
-		order[E->get().order] = E->key();
+		if (E->get().texture_order >= 0) {
+			order[E->get().texture_order + 100000] = E->key();
+		} else {
+			order[E->get().order] = E->key();
+		}
 	}
 
 	for (Map<int, StringName>::Element *E = order.front(); E; E = E->next()) {
@@ -5250,6 +5262,23 @@ void RasterizerStorageGLES3::particles_set_emission_transform(RID p_particles, c
 	particles->emission_transform = p_transform;
 }
 
+int RasterizerStorageGLES3::particles_get_draw_passes(RID p_particles) const {
+
+	const Particles *particles = particles_owner.getornull(p_particles);
+	ERR_FAIL_COND_V(!particles, 0);
+
+	return particles->draw_passes.size();
+}
+
+RID RasterizerStorageGLES3::particles_get_draw_pass_mesh(RID p_particles, int p_pass) const {
+
+	const Particles *particles = particles_owner.getornull(p_particles);
+	ERR_FAIL_COND_V(!particles, RID());
+	ERR_FAIL_INDEX_V(p_pass, particles->draw_passes.size(), RID());
+
+	return particles->draw_passes[p_pass];
+}
+
 void RasterizerStorageGLES3::_particles_process(Particles *particles, float p_delta) {
 
 	float new_phase = Math::fmod((float)particles->phase + (p_delta / particles->lifetime) * particles->speed_scale, (float)1.0);
@@ -5444,6 +5473,8 @@ void RasterizerStorageGLES3::update_particles() {
 
 			particles->particle_valid_histories[0] = true;
 		}
+
+		particles->instance_change_notify(); //make sure shadows are updated
 	}
 
 	glDisable(GL_RASTERIZER_DISCARD);
@@ -6033,10 +6064,20 @@ void RasterizerStorageGLES3::render_target_set_flag(RID p_render_target, RenderT
 		default: {}
 	}
 }
+bool RasterizerStorageGLES3::render_target_was_used(RID p_render_target) {
 
-bool RasterizerStorageGLES3::render_target_renedered_in_frame(RID p_render_target) {
+	RenderTarget *rt = render_target_owner.getornull(p_render_target);
+	ERR_FAIL_COND_V(!rt, false);
 
-	return false;
+	return rt->used_in_frame;
+}
+
+void RasterizerStorageGLES3::render_target_clear_used(RID p_render_target) {
+
+	RenderTarget *rt = render_target_owner.getornull(p_render_target);
+	ERR_FAIL_COND(!rt);
+
+	rt->used_in_frame = false;
 }
 
 void RasterizerStorageGLES3::render_target_set_msaa(RID p_render_target, VS::ViewportMSAA p_msaa) {

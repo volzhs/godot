@@ -1207,6 +1207,7 @@ bool RasterizerSceneGLES3::_setup_material(RasterizerStorageGLES3::Material *p_m
 				} break;
 				case ShaderLanguage::ShaderNode::Uniform::HINT_NORMAL: {
 					tex = storage->resources.normal_tex;
+
 				} break;
 				default: {
 					tex = storage->resources.white_tex;
@@ -1220,6 +1221,15 @@ bool RasterizerSceneGLES3::_setup_material(RasterizerStorageGLES3::Material *p_m
 				t->detect_3d(t->detect_3d_ud);
 			}
 #endif
+
+#ifdef TOOLS_ENABLED
+			if (t->detect_normal && texture_hints[i] == ShaderLanguage::ShaderNode::Uniform::HINT_NORMAL) {
+				t->detect_normal(t->detect_normal_ud);
+			}
+#endif
+			if (t->render_target)
+				t->render_target->used_in_frame = true;
+
 			if (storage->config.srgb_decode_supported) {
 				//if SRGB decode extension is present, simply switch the texture to whathever is needed
 				bool must_srgb = false;
@@ -4000,6 +4010,8 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 		storage->frame.clear_request = false;
 	} else if (!probe && storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_TRANSPARENT]) {
 		clear_color = Color(0, 0, 0, 0);
+		storage->frame.clear_request = false;
+
 	} else if (!env || env->bg_mode == VS::ENV_BG_CLEAR_COLOR) {
 
 		if (storage->frame.clear_request) {

@@ -270,6 +270,9 @@ public:
 		VisualServer::TextureDetectCallback detect_srgb;
 		void *detect_srgb_ud;
 
+		VisualServer::TextureDetectCallback detect_normal;
+		void *detect_normal_ud;
+
 		Texture() {
 
 			using_srgb = false;
@@ -289,6 +292,8 @@ public:
 			detect_3d_ud = NULL;
 			detect_srgb = NULL;
 			detect_srgb_ud = NULL;
+			detect_normal = NULL;
+			detect_normal_ud = NULL;
 		}
 
 		~Texture() {
@@ -329,6 +334,7 @@ public:
 
 	virtual void texture_set_detect_3d_callback(RID p_texture, VisualServer::TextureDetectCallback p_callback, void *p_userdata);
 	virtual void texture_set_detect_srgb_callback(RID p_texture, VisualServer::TextureDetectCallback p_callback, void *p_userdata);
+	virtual void texture_set_detect_normal_callback(RID p_texture, VisualServer::TextureDetectCallback p_callback, void *p_userdata);
 
 	/* SKY API */
 
@@ -1143,6 +1149,9 @@ public:
 	virtual void particles_set_emission_transform(RID p_particles, const Transform &p_transform);
 	void _particles_process(Particles *p_particles, float p_delta);
 
+	virtual int particles_get_draw_passes(RID p_particles) const;
+	virtual RID particles_get_draw_pass_mesh(RID p_particles, int p_pass) const;
+
 	/* INSTANCE */
 
 	virtual void instance_add_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance);
@@ -1264,7 +1273,8 @@ public:
 	virtual RID render_target_get_texture(RID p_render_target) const;
 
 	virtual void render_target_set_flag(RID p_render_target, RenderTargetFlags p_flag, bool p_value);
-	virtual bool render_target_renedered_in_frame(RID p_render_target);
+	virtual bool render_target_was_used(RID p_render_target);
+	virtual void render_target_clear_used(RID p_render_target);
 	virtual void render_target_set_msaa(RID p_render_target, VS::ViewportMSAA p_msaa);
 
 	/* CANVAS SHADOW */

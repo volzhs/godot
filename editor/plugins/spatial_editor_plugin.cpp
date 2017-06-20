@@ -696,12 +696,19 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 		return; //do NONE
 
 	{
-
+		EditorNode *en = editor;
+		EditorPluginList *force_input_forwarding_list = en->get_editor_plugins_force_input_forwarding();
+		if (!force_input_forwarding_list->empty()) {
+			bool discard = force_input_forwarding_list->forward_spatial_gui_input(camera, p_event, true);
+			if (discard)
+				return;
+		}
+	}
+	{
 		EditorNode *en = editor;
 		EditorPluginList *over_plugin_list = en->get_editor_plugins_over();
-
 		if (!over_plugin_list->empty()) {
-			bool discard = over_plugin_list->forward_spatial_gui_input(camera, p_event);
+			bool discard = over_plugin_list->forward_spatial_gui_input(camera, p_event, false);
 			if (discard)
 				return;
 		}
@@ -3682,7 +3689,7 @@ void SpatialEditor::_bind_methods() {
 
 void SpatialEditor::clear() {
 
-	settings_fov->set_value(EDITOR_DEF("editors/3d/default_fov", 60.0));
+	settings_fov->set_value(EDITOR_DEF("editors/3d/default_fov", 55.0));
 	settings_znear->set_value(EDITOR_DEF("editors/3d/default_z_near", 0.1));
 	settings_zfar->set_value(EDITOR_DEF("editors/3d/default_z_far", 1500.0));
 
@@ -3900,7 +3907,7 @@ SpatialEditor::SpatialEditor(EditorNode *p_editor) {
 	settings_fov->set_max(179);
 	settings_fov->set_min(1);
 	settings_fov->set_step(0.01);
-	settings_fov->set_value(EDITOR_DEF("editors/3d/default_fov", 60.0));
+	settings_fov->set_value(EDITOR_DEF("editors/3d/default_fov", 55.0));
 	settings_vbc->add_margin_child(TTR("Perspective FOV (deg.):"), settings_fov);
 
 	settings_znear = memnew(SpinBox);

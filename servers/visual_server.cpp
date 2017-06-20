@@ -137,7 +137,7 @@ void VisualServer::_free_internal_rids() {
 	if (test_material.is_valid())
 		free(test_material);
 
-	for (int i = 0; i < 16; i++) {
+	for (int i = 0; i < 32; i++) {
 		if (material_2d[i].is_valid())
 			free(material_2d[i]);
 	}
@@ -284,7 +284,7 @@ RID VisualServer::make_sphere_mesh(int p_lats, int p_lons, float p_radius) {
 	return mesh;
 }
 
-RID VisualServer::material_2d_get(bool p_shaded, bool p_transparent, bool p_cut_alpha, bool p_opaque_prepass) {
+RID VisualServer::material_2d_get(bool p_shaded, bool p_transparent, bool p_double_sided, bool p_cut_alpha, bool p_opaque_prepass) {
 
 	int version = 0;
 	if (p_shaded)
@@ -295,6 +295,8 @@ RID VisualServer::material_2d_get(bool p_shaded, bool p_transparent, bool p_cut_
 		version |= 4;
 	if (p_opaque_prepass)
 		version |= 8;
+	if (p_double_sided)
+		version |= 16;
 	if (material_2d[version].is_valid())
 		return material_2d[version];
 
@@ -305,7 +307,7 @@ RID VisualServer::material_2d_get(bool p_shaded, bool p_transparent, bool p_cut_
 	fixed_material_set_flag(material_2d[version],FIXED_MATERIAL_FLAG_USE_COLOR_ARRAY,true);
 	fixed_material_set_flag(material_2d[version],FIXED_MATERIAL_FLAG_DISCARD_ALPHA,p_cut_alpha);
 	material_set_flag(material_2d[version],MATERIAL_FLAG_UNSHADED,!p_shaded);
-	material_set_flag(material_2d[version],MATERIAL_FLAG_DOUBLE_SIDED,true);
+	material_set_flag(material_2d[version], MATERIAL_FLAG_DOUBLE_SIDED, p_double_sided);
 	material_set_depth_draw_mode(material_2d[version],p_opaque_prepass?MATERIAL_DEPTH_DRAW_OPAQUE_PRE_PASS_ALPHA:MATERIAL_DEPTH_DRAW_OPAQUE_ONLY);
 	fixed_material_set_texture(material_2d[version],FIXED_MATERIAL_PARAM_DIFFUSE,get_white_texture());
 	//material cut alpha?*/
@@ -463,7 +465,7 @@ Error VisualServer::_surface_set_data(Array p_arrays, uint32_t p_format, uint32_
 
 					for (int i = 0; i < p_vertex_array_len; i++) {
 
-						uint8_t vector[4] = {
+						int8_t vector[4] = {
 							CLAMP(src[i].x * 127, -128, 127),
 							CLAMP(src[i].y * 127, -128, 127),
 							CLAMP(src[i].z * 127, -128, 127),
@@ -1231,11 +1233,12 @@ Array VisualServer::_get_array_from_surface(uint32_t p_format, PoolVector<uint8_
 				if (p_format & ARRAY_COMPRESS_NORMAL) {
 
 					PoolVector<Vector3>::Write w = arr.write();
+					const float multiplier = 1.f / 127.f;
 
 					for (int j = 0; j < p_vertex_len; j++) {
 
-						const uint8_t *v = (const uint8_t *)&r[j * total_elem_size + offsets[i]];
-						w[j] = Vector3(float(v[0] / 255.0) * 2.0 - 1.0, float(v[1] / 255.0) * 2.0 - 1.0, float(v[2] / 255.0) * 2.0 - 1.0);
+						const int8_t *v = (const int8_t *)&r[j * total_elem_size + offsets[i]];
+						w[j] = Vector3(float(v[0]) * multiplier, float(v[1]) * multiplier, float(v[2]) * multiplier);
 					}
 				} else {
 					PoolVector<Vector3>::Write w = arr.write();
@@ -1291,7 +1294,7 @@ Array VisualServer::_get_array_from_surface(uint32_t p_format, PoolVector<uint8_
 					for (int j = 0; j < p_vertex_len; j++) {
 
 						const uint8_t *v = (const uint8_t *)&r[j * total_elem_size + offsets[i]];
-						w[j] = Color(float(v[0] / 255.0) * 2.0 - 1.0, float(v[1] / 255.0) * 2.0 - 1.0, float(v[2] / 255.0) * 2.0 - 1.0, float(v[3] / 255.0) * 2.0 - 1.0);
+						w[j] = Color(float(v[0] / 255.0), float(v[1] / 255.0), float(v[2] / 255.0), float(v[3] / 255.0));
 					}
 				} else {
 					PoolVector<Color>::Write w = arr.write();
@@ -1564,6 +1567,10 @@ VisualServer::VisualServer() {
 
 	//ERR_FAIL_COND(singleton);
 	singleton = this;
+	GLOBAL_DEF("rendering/vram_formats/use_s3tc", true);
+	GLOBAL_DEF("rendering/vram_formats/use_etc", false);
+	GLOBAL_DEF("rendering/vram_formats/use_etc2", true);
+	GLOBAL_DEF("rendering/vram_formats/use_pvrtc", false);
 }
 
 VisualServer::~VisualServer() {
