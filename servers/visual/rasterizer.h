@@ -75,6 +75,10 @@ public:
 	virtual void environment_set_fog_depth(RID p_env, bool p_enable, float p_depth_begin, float p_depth_curve, bool p_transmit, float p_transmit_curve) = 0;
 	virtual void environment_set_fog_height(RID p_env, bool p_enable, float p_min_height, float p_max_height, float p_height_curve) = 0;
 
+	virtual bool is_environment(RID p_env) = 0;
+	virtual VS::EnvironmentBG environment_get_background(RID p_env) = 0;
+	virtual int environment_get_canvas_max_layer(RID p_env) = 0;
+
 	struct InstanceBase : RID_Data {
 
 		VS::InstanceType base_type;
@@ -612,6 +616,7 @@ public:
 				TYPE_POLYGON,
 				TYPE_MESH,
 				TYPE_MULTIMESH,
+				TYPE_PARTICLES,
 				TYPE_CIRCLE,
 				TYPE_TRANSFORM,
 				TYPE_CLIP_IGNORE,
@@ -705,6 +710,16 @@ public:
 			RID multimesh;
 			RID skeleton;
 			CommandMultiMesh() { type = TYPE_MULTIMESH; }
+		};
+
+		struct CommandParticles : public Command {
+
+			RID particles;
+			RID texture;
+			RID normal_map;
+			int h_frames;
+			int v_frames;
+			CommandParticles() { type = TYPE_PARTICLES; }
 		};
 
 		struct CommandCircle : public Command {
@@ -843,6 +858,15 @@ public:
 						Rect3 aabb = RasterizerStorage::base_singleton->multimesh_get_aabb(multimesh->multimesh);
 
 						r = Rect2(aabb.position.x, aabb.position.y, aabb.size.x, aabb.size.y);
+
+					} break;
+					case Item::Command::TYPE_PARTICLES: {
+
+						const Item::CommandParticles *particles_cmd = static_cast<const Item::CommandParticles *>(c);
+						if (particles_cmd->particles.is_valid()) {
+							Rect3 aabb = RasterizerStorage::base_singleton->particles_get_aabb(particles_cmd->particles);
+							r = Rect2(aabb.position.x, aabb.position.y, aabb.size.x, aabb.size.y);
+						}
 
 					} break;
 					case Item::Command::TYPE_CIRCLE: {

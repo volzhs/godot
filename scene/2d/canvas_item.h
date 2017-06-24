@@ -42,6 +42,92 @@ class Font;
 
 class StyleBox;
 
+class CanvasItemMaterial : public Material {
+
+	GDCLASS(CanvasItemMaterial, Material)
+
+public:
+	enum BlendMode {
+		BLEND_MODE_MIX,
+		BLEND_MODE_ADD,
+		BLEND_MODE_SUB,
+		BLEND_MODE_MUL,
+		BLEND_MODE_PREMULT_ALPHA
+	};
+
+	enum LightMode {
+		LIGHT_MODE_NORMAL,
+		LIGHT_MODE_UNSHADED,
+		LIGHT_MODE_LIGHT_ONLY
+	};
+
+private:
+	union MaterialKey {
+
+		struct {
+			uint32_t blend_mode : 4;
+			uint32_t light_mode : 4;
+			uint32_t invalid_key : 1;
+		};
+
+		uint32_t key;
+
+		bool operator<(const MaterialKey &p_key) const {
+			return key < p_key.key;
+		}
+	};
+
+	struct ShaderData {
+		RID shader;
+		int users;
+	};
+
+	static Map<MaterialKey, ShaderData> shader_map;
+
+	MaterialKey current_key;
+
+	_FORCE_INLINE_ MaterialKey _compute_key() const {
+
+		MaterialKey mk;
+		mk.key = 0;
+		mk.blend_mode = blend_mode;
+		mk.light_mode = light_mode;
+		return mk;
+	}
+
+	static Mutex *material_mutex;
+	static SelfList<CanvasItemMaterial>::List dirty_materials;
+	SelfList<CanvasItemMaterial> element;
+
+	void _update_shader();
+	_FORCE_INLINE_ void _queue_shader_change();
+	_FORCE_INLINE_ bool _is_shader_dirty() const;
+
+	BlendMode blend_mode;
+	LightMode light_mode;
+
+protected:
+	static void _bind_methods();
+	void _validate_property(PropertyInfo &property) const;
+
+public:
+	void set_blend_mode(BlendMode p_blend_mode);
+	BlendMode get_blend_mode() const;
+
+	void set_light_mode(LightMode p_light_mode);
+	LightMode get_light_mode() const;
+
+	static void init_shaders();
+	static void finish_shaders();
+	static void flush_changes();
+
+	CanvasItemMaterial();
+	virtual ~CanvasItemMaterial();
+};
+
+VARIANT_ENUM_CAST(CanvasItemMaterial::BlendMode)
+VARIANT_ENUM_CAST(CanvasItemMaterial::LightMode)
+
 class CanvasItem : public Node {
 
 	GDCLASS(CanvasItem, Node);
@@ -83,7 +169,7 @@ private:
 	bool notify_local_transform;
 	bool notify_transform;
 
-	Ref<ShaderMaterial> material;
+	Ref<Material> material;
 
 	mutable Transform2D global_transform;
 	mutable bool global_invalid;
@@ -156,7 +242,7 @@ public:
 	/* DRAWING API */
 
 	void draw_line(const Point2 &p_from, const Point2 &p_to, const Color &p_color, float p_width = 1.0, bool p_antialiased = false);
-	void draw_rect(const Rect2 &p_rect, const Color &p_color);
+	void draw_rect(const Rect2 &p_rect, const Color &p_color, bool p_filled = true);
 	void draw_circle(const Point2 &p_pos, float p_radius, const Color &p_color);
 	void draw_texture(const Ref<Texture> &p_texture, const Point2 &p_pos, const Color &p_modulate = Color(1, 1, 1, 1), const Ref<Texture> &p_normal_map = Ref<Texture>());
 	void draw_texture_rect(const Ref<Texture> &p_texture, const Rect2 &p_rect, bool p_tile = false, const Color &p_modulate = Color(1, 1, 1), bool p_transpose = false, const Ref<Texture> &p_normal_map = Ref<Texture>());
@@ -203,8 +289,8 @@ public:
 	RID get_canvas() const;
 	Ref<World2D> get_world_2d() const;
 
-	void set_material(const Ref<ShaderMaterial> &p_material);
-	Ref<ShaderMaterial> get_material() const;
+	void set_material(const Ref<Material> &p_material);
+	Ref<Material> get_material() const;
 
 	void set_use_parent_material(bool p_use_parent_material);
 	bool get_use_parent_material() const;

@@ -469,9 +469,12 @@ void register_scene_types() {
 	ClassDB::register_class<Shader>();
 	ClassDB::register_class<ShaderMaterial>();
 	ClassDB::register_virtual_class<CanvasItem>();
+	ClassDB::register_class<CanvasItemMaterial>();
+	SceneTree::add_idle_callback(CanvasItemMaterial::flush_changes);
+	CanvasItemMaterial::init_shaders();
 	ClassDB::register_class<Node2D>();
 	ClassDB::register_class<Particles2D>();
-	ClassDB::register_class<ParticleAttractor2D>();
+	//ClassDB::register_class<ParticleAttractor2D>();
 	ClassDB::register_class<Sprite>();
 	//ClassDB::register_type<ViewportSprite>();
 	ClassDB::register_class<SpriteFrames>();
@@ -577,6 +580,7 @@ void register_scene_types() {
 	ClassDB::register_class<Animation>();
 	ClassDB::register_virtual_class<Font>();
 	ClassDB::register_class<BitmapFont>();
+	ClassDB::register_class<Curve>();
 
 	ClassDB::register_class<DynamicFontData>();
 	ClassDB::register_class<DynamicFont>();
@@ -663,5 +667,6 @@ void unregister_scene_types() {
 
 	SpatialMaterial::finish_shaders();
 	ParticlesMaterial::finish_shaders();
+	CanvasItemMaterial::finish_shaders();
 	SceneStringNames::free();
 }
