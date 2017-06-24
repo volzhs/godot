@@ -351,6 +351,11 @@ public:
 	void normalmap_to_xy();
 
 	void blit_rect(const Image &p_src, const Rect2 &p_src_rect, const Point2 &p_dest);
+	void blend_rect(const Image &p_src, const Rect2 &p_src_rect, const Point2 &p_dest);
+	void blend_rect_mask(const Image &p_src, const Image &p_mask, const Rect2 &p_src_rect, const Point2 &p_dest);
+
+	void fill(const Color &p_color);
+	
 	void brush_transfer(const Image &p_src, const Image &p_brush, const Point2 &p_dest);
 	Image brushed(const Image &p_src, const Image &p_brush, const Point2 &p_dest) const;
 

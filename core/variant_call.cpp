@@ -345,6 +345,8 @@ struct _VariantCall {
 	VCALL_LOCALMEM1R(Rect2, merge);
 	VCALL_LOCALMEM1R(Rect2, has_point);
 	VCALL_LOCALMEM1R(Rect2, grow);
+	VCALL_LOCALMEM2R(Rect2, grow_margin);
+	VCALL_LOCALMEM4R(Rect2, grow_individual);
 	VCALL_LOCALMEM1R(Rect2, expand);
 
 	VCALL_LOCALMEM0R(Vector3, min_axis);
@@ -619,6 +621,9 @@ struct _VariantCall {
 	VCALL_PTR3R(Image, resized);
 	VCALL_PTR0R(Image, get_data);
 	VCALL_PTR3(Image, blit_rect);
+	VCALL_PTR3(Image, blend_rect);
+	VCALL_PTR4(Image, blend_rect_mask);
+	VCALL_PTR1(Image, fill);
 	VCALL_PTR1R(Image, converted);
 	VCALL_PTR0(Image, fix_alpha_edges);
 
@@ -1397,6 +1402,8 @@ void register_variant_methods() {
 	ADDFUNC1(RECT2, RECT2, Rect2, merge, RECT2, "b", varray());
 	ADDFUNC1(RECT2, BOOL, Rect2, has_point, VECTOR2, "point", varray());
 	ADDFUNC1(RECT2, RECT2, Rect2, grow, REAL, "by", varray());
+	ADDFUNC2(RECT2, RECT2, Rect2, grow_margin, INT, "margin", REAL, "by", varray());
+	ADDFUNC4(RECT2, RECT2, Rect2, grow_individual, REAL, "left", REAL, "top", REAL, "right", REAL, " bottom", varray());
 	ADDFUNC1(RECT2, RECT2, Rect2, expand, VECTOR2, "to", varray());
 
 	ADDFUNC0(VECTOR3, INT, Vector3, min_axis, varray());
@@ -1467,6 +1474,9 @@ void register_variant_methods() {
 	ADDFUNC3(IMAGE, IMAGE, Image, resized, INT, "x", INT, "y", INT, "interpolation", varray(((int)Image::INTERPOLATE_BILINEAR)));
 	ADDFUNC0(IMAGE, RAW_ARRAY, Image, get_data, varray());
 	ADDFUNC3(IMAGE, NIL, Image, blit_rect, IMAGE, "src", RECT2, "src_rect", VECTOR2, "dest", varray(0));
+	ADDFUNC3(IMAGE, NIL, Image, blend_rect, IMAGE, "src", RECT2, "src_rect", VECTOR2, "dest", varray(0));
+	ADDFUNC4(IMAGE, NIL, Image, blend_rect_mask, IMAGE, "src", IMAGE, "mask", RECT2, "src_rect", VECTOR2, "dest", varray(0));
+	ADDFUNC1(IMAGE, NIL, Image, fill, COLOR, "color", varray(0));
 	ADDFUNC1(IMAGE, IMAGE, Image, converted, INT, "format", varray(0));
 	ADDFUNC0(IMAGE, NIL, Image, fix_alpha_edges, varray());
 

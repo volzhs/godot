@@ -569,7 +569,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("3d_editor/grid_color", Color(0, 1, 0, 0.2));
 	hints["3d_editor/grid_color"] = PropertyInfo(Variant::COLOR, "3d_editor/grid_color", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 
-	set("3d_editor/default_fov", 45.0);
+	set("3d_editor/default_fov", 55.0);
 	set("3d_editor/default_z_near", 0.1);
 	set("3d_editor/default_z_far", 500.0);
 
@@ -596,8 +596,10 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("2d_editor/keep_margins_when_changing_anchors", false);
 
 	set("2d_editor/warped_mouse_panning", true);
+	set("2d_editor/scroll_to_pan", false);
+	set("2d_editor/pan_speed", 20);
 
-	set("game_window_placement/rect", 0);
+	set("game_window_placement/rect", 1);
 	hints["game_window_placement/rect"] = PropertyInfo(Variant::INT, "game_window_placement/rect", PROPERTY_HINT_ENUM, "Default,Centered,Custom Position,Force Maximized,Force Full Screen");
 	String screen_hints = TTR("Default (Same as Editor)");
 	for (int i = 0; i < OS::get_singleton()->get_screen_count(); i++) {
