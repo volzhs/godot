@@ -1,6 +1,5 @@
 # Bengali translation of the Godot Engine editor
-# Copyright (C) 2007-2017 Juan Linietsky, Ariel Manzur
-# Copyright (C) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)
+# Copyright (C) 2016-2017 Juan Linietsky, Ariel Manzur and the Godot community
 # This file is distributed under the same license as the Godot source code.
 #
 # Abu Md. Maruf Sarker <maruf.webdev@gmail.com>, 2016-2017.
@@ -353,12 +352,210 @@ msgstr "শ্রেণীবিন্যাস/সারির মানের 
 msgid "Change Array Value"
 msgstr "শ্রেণীবিন্যাস/সারির মান পরিবর্তন করুন"
 
+#: editor/asset_library_editor_plugin.cpp
+msgid "Free"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp editor/editor_plugin_settings.cpp
+msgid "Version:"
+msgstr "সংস্করণ:"
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Contents:"
+msgstr "ধ্রুবকসমূহ:"
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "View Files"
+msgstr "ফাইল"
+
+#: editor/asset_library_editor_plugin.cpp editor/create_dialog.cpp
+#: editor/editor_help.cpp editor/script_editor_debugger.cpp
+msgid "Description:"
+msgstr "বর্ণনা:"
+
+#: editor/asset_library_editor_plugin.cpp editor/project_manager.cpp
+msgid "Install"
+msgstr "ইন্সটল"
+
+#: editor/asset_library_editor_plugin.cpp editor/call_dialog.cpp
+#: editor/connections_dialog.cpp
+#: editor/plugins/animation_player_editor_plugin.cpp
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#: editor/plugins/resource_preloader_editor_plugin.cpp
+#: editor/plugins/sample_library_editor_plugin.cpp
+#: editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/sprite_frames_editor_plugin.cpp editor/project_settings.cpp
+#: editor/property_editor.cpp editor/run_settings_dialog.cpp
+#: editor/settings_config_dialog.cpp
+msgid "Close"
+msgstr "বন্ধ করুন"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Can't resolve hostname:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Can't resolve."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Connection error, please try again."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Can't connect."
+msgstr "সংযোগ.."
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Can't connect to host:"
+msgstr "নোডের সাথে সংযুক্ত করুন:"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "No response from host:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "No response."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Request failed, return code:"
+msgstr "আবেদনকৃত ফাইল ফরম্যাট/ধরণ অজানা:"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Req. Failed."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Request failed, too many redirects"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Redirect Loop."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Failed:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Bad download hash, assuming file has been tampered with."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Expected:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Got:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Failed sha256 hash check"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Asset Download Error:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Success!"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Fetching:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Resolving.."
+msgstr "সংরক্ষিত হচ্ছে.."
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Connecting.."
+msgstr "সংযোগ.."
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Requesting.."
+msgstr "পরীক্ষামূলক উৎস"
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Error making request"
+msgstr "রিসোর্স সংরক্ষণে সমস্যা হয়েছে!"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Idle"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Retry"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Download Error"
+msgstr "নীচে"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Download for this asset is already in progress!"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "first"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "prev"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "next"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "last"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "All"
+msgstr "সকল"
+
 #: editor/asset_library_editor_plugin.cpp editor/create_dialog.cpp
 #: editor/editor_help.cpp editor/editor_node.cpp
 #: editor/plugins/script_editor_plugin.cpp editor/quick_open.cpp
 #: editor/settings_config_dialog.cpp
 msgid "Search:"
 msgstr "অনুসন্ধান করুন:"
+
+#: editor/asset_library_editor_plugin.cpp editor/code_editor.cpp
+#: editor/editor_help.cpp editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/shader_editor_plugin.cpp editor/project_settings.cpp
+msgid "Search"
+msgstr "অনুসন্ধান করুন"
+
+#: editor/asset_library_editor_plugin.cpp editor/editor_node.cpp
+#: editor/io_plugins/editor_bitmask_import_plugin.cpp
+#: editor/io_plugins/editor_font_import_plugin.cpp
+#: editor/io_plugins/editor_mesh_import_plugin.cpp
+#: editor/io_plugins/editor_sample_import_plugin.cpp
+#: editor/io_plugins/editor_scene_import_plugin.cpp
+#: editor/io_plugins/editor_texture_import_plugin.cpp
+#: editor/io_plugins/editor_translation_import_plugin.cpp
+#: editor/project_manager.cpp
+msgid "Import"
+msgstr "ইম্পোর্ট"
+
+#: editor/asset_library_editor_plugin.cpp editor/project_settings.cpp
+msgid "Plugins"
+msgstr "প্লাগইন-সমূহ"
 
 #: editor/asset_library_editor_plugin.cpp
 msgid "Sort:"
@@ -371,10 +568,6 @@ msgstr "উল্টান/বিপরীত দিকে ফিরান"
 #: editor/asset_library_editor_plugin.cpp editor/project_settings.cpp
 msgid "Category:"
 msgstr "বিভাগ:"
-
-#: editor/asset_library_editor_plugin.cpp
-msgid "All"
-msgstr "সকল"
 
 #: editor/asset_library_editor_plugin.cpp
 msgid "Site:"
@@ -407,18 +600,6 @@ msgstr "'%s' এর জন্য মেথডের তালিকা:"
 #: editor/call_dialog.cpp
 msgid "Call"
 msgstr "ডাকুন (Call)"
-
-#: editor/call_dialog.cpp editor/connections_dialog.cpp
-#: editor/plugins/animation_player_editor_plugin.cpp
-#: editor/plugins/canvas_item_editor_plugin.cpp
-#: editor/plugins/resource_preloader_editor_plugin.cpp
-#: editor/plugins/sample_library_editor_plugin.cpp
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/sprite_frames_editor_plugin.cpp editor/project_settings.cpp
-#: editor/property_editor.cpp editor/run_settings_dialog.cpp
-#: editor/settings_config_dialog.cpp
-msgid "Close"
-msgstr "বন্ধ করুন"
 
 #: editor/call_dialog.cpp
 msgid "Method List:"
@@ -469,12 +650,6 @@ msgid "Selection Only"
 msgstr "শুধুমাত্র নির্বাচিতসমূহ"
 
 #: editor/code_editor.cpp editor/editor_help.cpp
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/shader_editor_plugin.cpp editor/project_settings.cpp
-msgid "Search"
-msgstr "অনুসন্ধান করুন"
-
-#: editor/code_editor.cpp editor/editor_help.cpp
 msgid "Find"
 msgstr "সন্ধান করুন"
 
@@ -483,6 +658,7 @@ msgid "Next"
 msgstr "পরবর্তী"
 
 #: editor/code_editor.cpp
+#, fuzzy
 msgid "Replaced %d ocurrence(s)."
 msgstr "%d টি সংঘটন প্রতিস্থাপিত হয়েছে।"
 
@@ -555,6 +731,7 @@ msgstr "সংযোজন করুন"
 #: editor/connections_dialog.cpp editor/dependency_editor.cpp
 #: editor/plugins/animation_tree_editor_plugin.cpp
 #: editor/plugins/theme_editor_plugin.cpp editor/project_manager.cpp
+#: editor/project_settings.cpp
 msgid "Remove"
 msgstr "অপসারণ করুন"
 
@@ -628,11 +805,6 @@ msgstr "সাম্প্রতিক:"
 #: editor/plugins/script_editor_plugin.cpp editor/quick_open.cpp
 msgid "Matches:"
 msgstr "মিলসমূহ:"
-
-#: editor/create_dialog.cpp editor/editor_help.cpp
-#: editor/script_editor_debugger.cpp
-msgid "Description:"
-msgstr "বর্ণনা:"
 
 #: editor/dependency_editor.cpp
 msgid "Search Replacement For:"
@@ -978,7 +1150,8 @@ msgstr "একটি কার্যকর এক্সটেনশন ব্য
 msgid "ScanSources"
 msgstr "উৎসসমূহ স্ক্যান করুন"
 
-#: editor/editor_help.cpp editor/plugins/script_editor_plugin.cpp
+#: editor/editor_help.cpp editor/editor_node.cpp
+#: editor/plugins/script_editor_plugin.cpp
 msgid "Search Help"
 msgstr "সাহায্য অনুসন্ধান করুন"
 
@@ -1281,6 +1454,11 @@ msgid "Save Scene As.."
 msgstr "দৃশ্য এইরূপে সংরক্ষণ করুন.."
 
 #: editor/editor_node.cpp
+#, fuzzy
+msgid "No"
+msgstr "নোড"
+
+#: editor/editor_node.cpp
 msgid "This scene has never been saved. Save before running?"
 msgstr "এই দৃশ্যটি কখনোই সংরক্ষণ করা হয় নি। চালানোর পূর্বে সংরক্ষণ করবেন?"
 
@@ -1497,17 +1675,6 @@ msgstr "প্রকল্পের তালিকায় প্রস্থা�
 #: editor/editor_node.cpp
 msgid "Import assets to the project."
 msgstr "উপাদানসমূহ প্রকল্পে ইম্পোর্ট করুন।"
-
-#: editor/editor_node.cpp editor/io_plugins/editor_bitmask_import_plugin.cpp
-#: editor/io_plugins/editor_font_import_plugin.cpp
-#: editor/io_plugins/editor_mesh_import_plugin.cpp
-#: editor/io_plugins/editor_sample_import_plugin.cpp
-#: editor/io_plugins/editor_scene_import_plugin.cpp
-#: editor/io_plugins/editor_texture_import_plugin.cpp
-#: editor/io_plugins/editor_translation_import_plugin.cpp
-#: editor/project_manager.cpp
-msgid "Import"
-msgstr "ইম্পোর্ট"
 
 #: editor/editor_node.cpp
 msgid "Miscellaneous project or scene-wide tools."
@@ -1766,6 +1933,14 @@ msgid "Thanks!"
 msgstr "ধন্যবাদ!"
 
 #: editor/editor_node.cpp
+msgid "Godot Engine contributors"
+msgstr ""
+
+#: editor/editor_node.cpp
+msgid "Developers"
+msgstr ""
+
+#: editor/editor_node.cpp
 msgid "Import Templates From ZIP File"
 msgstr "ZIP ফাইল হতে টেমপ্লেট-সমূহ ইম্পোর্ট করুন"
 
@@ -1793,13 +1968,39 @@ msgstr "একটি স্ক্রিপ্ট খুলুন এবং চ�
 msgid "Load Errors"
 msgstr "ভুল/সমস্যা-সমূহ লোড করুন"
 
+#: editor/editor_node.cpp
+#, fuzzy
+msgid "Open 2D Editor"
+msgstr "এডিটরে খুলুন"
+
+#: editor/editor_node.cpp
+#, fuzzy
+msgid "Open 3D Editor"
+msgstr "এডিটরে খুলুন"
+
+#: editor/editor_node.cpp
+#, fuzzy
+msgid "Open Script Editor"
+msgstr "এডিটরে খুলুন"
+
+#: editor/editor_node.cpp
+#, fuzzy
+msgid "Open Asset Library"
+msgstr "লাইব্রেরি এক্সপোর্ট করুন"
+
+#: editor/editor_node.cpp
+#, fuzzy
+msgid "Open the next Editor"
+msgstr "এডিটরে খুলুন"
+
+#: editor/editor_node.cpp
+#, fuzzy
+msgid "Open the previous Editor"
+msgstr "এডিটরে খুলুন"
+
 #: editor/editor_plugin_settings.cpp
 msgid "Installed Plugins:"
 msgstr "ইন্সটল-কৃত প্লাগইন-সমূহ:"
-
-#: editor/editor_plugin_settings.cpp
-msgid "Version:"
-msgstr "সংস্করণ:"
 
 #: editor/editor_plugin_settings.cpp
 msgid "Author:"
@@ -2610,6 +2811,7 @@ msgid "Compress"
 msgstr "সঙ্কোচন করুন"
 
 #: editor/io_plugins/editor_translation_import_plugin.cpp
+#, fuzzy
 msgid "Add to Project (engine.cfg)"
 msgstr "প্রকল্পে সংযুক্ত করুন (engine.cfg)"
 
@@ -3624,10 +3826,12 @@ msgid "Generate AABB"
 msgstr "AABB উৎপন্ন করুন"
 
 #: editor/plugins/particles_editor_plugin.cpp
+#, fuzzy
 msgid "Create Emitter From Mesh"
 msgstr "Mesh হতে Emitter তৈরি করুন"
 
 #: editor/plugins/particles_editor_plugin.cpp
+#, fuzzy
 msgid "Create Emitter From Node"
 msgstr "Node হতে Emitter তৈরি করুন"
 
@@ -3640,12 +3844,14 @@ msgid "Create Emitter"
 msgstr "Emitter তৈরি করুন"
 
 #: editor/plugins/particles_editor_plugin.cpp
+#, fuzzy
 msgid "Emission Positions:"
 msgstr "Emission-এর স্থানসমূহ:"
 
 #: editor/plugins/particles_editor_plugin.cpp
+#, fuzzy
 msgid "Emission Fill:"
-msgstr "Emission পূরণ:"
+msgstr "Emission-এর স্থানসমূহ:"
 
 #: editor/plugins/particles_editor_plugin.cpp
 msgid "Surface"
@@ -5048,10 +5254,12 @@ msgid "Resources"
 msgstr "রিসোর্সসমূহ"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Export selected resources (including dependencies)."
 msgstr "নির্বাচিত রিসোর্সসমূহ এক্সপোর্ট করুন (ডিপেন্ডেন্সী সহ)।"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Export all resources in the project."
 msgstr "প্রকল্পের সকল রিসোর্স এক্সপোর্ট করুন।"
 
@@ -5064,6 +5272,7 @@ msgid "Export Mode:"
 msgstr "এক্সপোর্ট মোড:"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Resources to Export:"
 msgstr "এক্সপোর্টের জন্য রিসোর্স:"
 
@@ -5072,12 +5281,14 @@ msgid "Action"
 msgstr "প্রক্রিয়া/অ্যাকশন"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid ""
 "Filters to export non-resource files (comma-separated, e.g.: *.json, *.txt):"
 msgstr ""
 "রিসোর্স-নয় এমন ফাইল এক্সপোর্ট করার ফিল্টারসমূহ (কমা-বিভক্ত, যেমন: *.json, *.txt):"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Filters to exclude from export (comma-separated, e.g.: *.json, *.txt):"
 msgstr ""
 "এক্সপোর্ট (export) হতে বর্জনকৃত ফিল্টারসমূহ (filter) (কমা-বিভক্ত, যেমন: *.json, *."
@@ -5248,10 +5459,12 @@ msgid "Invalid project path, the path must exist!"
 msgstr "অকার্যকর প্রকল্পের পথ, পথটি অবশ্যই বিদ্যমান হতে হবে!"
 
 #: editor/project_manager.cpp
+#, fuzzy
 msgid "Invalid project path, engine.cfg must not exist."
 msgstr "অকার্যকর প্রকল্পের পথ, engine.cfg অবশ্যই অনুপস্থিত হতে হবে।"
 
 #: editor/project_manager.cpp
+#, fuzzy
 msgid "Invalid project path, engine.cfg must exist."
 msgstr "অকার্যকর প্রকল্পের পথ, engine.cfg অবশ্যই উপস্থিত হতে হবে।"
 
@@ -5264,6 +5477,7 @@ msgid "Invalid project path (changed anything?)."
 msgstr "অকার্যকর প্রকল্পের পথ (কোনোকিছু পরিবর্তন করেছেন?)।"
 
 #: editor/project_manager.cpp
+#, fuzzy
 msgid "Couldn't create engine.cfg in project path."
 msgstr "প্রকল্পের পথে engine.cfg তৈরি করা সম্ভব হয়নি।"
 
@@ -5298,10 +5512,6 @@ msgstr "প্রকল্পের পথ:"
 #: editor/project_manager.cpp
 msgid "Install Project:"
 msgstr "প্রকল্প ইন্সটল করুন:"
-
-#: editor/project_manager.cpp
-msgid "Install"
-msgstr "ইন্সটল"
 
 #: editor/project_manager.cpp
 msgid "Browse"
@@ -5362,6 +5572,11 @@ msgstr "স্ক্যান করার জন্য ফোল্ডার �
 #: editor/project_manager.cpp
 msgid "New Project"
 msgstr "নতুন প্রকল্প"
+
+#: editor/project_manager.cpp
+#, fuzzy
+msgid "Templates"
+msgstr "বস্তু অপসারণ করুন"
 
 #: editor/project_manager.cpp
 msgid "Exit"
@@ -5463,6 +5678,7 @@ msgid "Button 9"
 msgstr "বোতাম ৯"
 
 #: editor/project_settings.cpp
+#, fuzzy
 msgid "Joystick Axis Index:"
 msgstr "জয়স্টিক অক্ষ ইন্ডেক্স:"
 
@@ -5471,6 +5687,7 @@ msgid "Axis"
 msgstr "অক্ষ"
 
 #: editor/project_settings.cpp
+#, fuzzy
 msgid "Joystick Button Index:"
 msgstr "জয়স্টিক বোতাম ইন্ডেক্স:"
 
@@ -5481,6 +5698,11 @@ msgstr "ইনপুট অ্যাকশন যোগ করুন"
 #: editor/project_settings.cpp
 msgid "Erase Input Action Event"
 msgstr "ইনপুট অ্যাকশন ইভেন্ট মুছে ফেলুন"
+
+#: editor/project_settings.cpp
+#, fuzzy
+msgid "Add Event"
+msgstr "খালি বস্তু যোগ করুন"
 
 #: editor/project_settings.cpp scene/gui/input_action.cpp
 msgid "Device"
@@ -5551,6 +5773,7 @@ msgid "Remove Resource Remap Option"
 msgstr "রিসোর্সের পুনঃ-নকশার সিদ্ধান্ত অপসারণ করুন"
 
 #: editor/project_settings.cpp
+#, fuzzy
 msgid "Project Settings (engine.cfg)"
 msgstr "প্রকল্পের সেটিংস (engine.cfg)"
 
@@ -5621,10 +5844,6 @@ msgstr "ঘটনাস্থল"
 #: editor/project_settings.cpp
 msgid "AutoLoad"
 msgstr "স্বয়ংক্রিয়-লোড"
-
-#: editor/project_settings.cpp
-msgid "Plugins"
-msgstr "প্লাগইন-সমূহ"
 
 #: editor/property_editor.cpp
 msgid "Preset.."
@@ -5936,8 +6155,57 @@ msgid "Toggle CanvasItem Visible"
 msgstr "CanvasItem দৃশ্যমানতা টগল করুন"
 
 #: editor/scene_tree_editor.cpp
+msgid "Node configuration warning:"
+msgstr ""
+
+#: editor/scene_tree_editor.cpp
+msgid ""
+"Node has connection(s) and group(s)\n"
+"Click to show signals dock."
+msgstr ""
+
+#: editor/scene_tree_editor.cpp
+msgid ""
+"Node has connections.\n"
+"Click to show signals dock."
+msgstr ""
+
+#: editor/scene_tree_editor.cpp
+msgid ""
+"Node is in group(s).\n"
+"Click to show groups dock."
+msgstr ""
+
+#: editor/scene_tree_editor.cpp
+#, fuzzy
+msgid "Subscene options"
+msgstr "ডিবাগের সিদ্ধান্তসমূহ"
+
+#: editor/scene_tree_editor.cpp
 msgid "Instance:"
 msgstr "ইন্সট্যান্স:"
+
+#: editor/scene_tree_editor.cpp
+#, fuzzy
+msgid "Open script"
+msgstr "পরবর্তী স্ক্রিপ্ট"
+
+#: editor/scene_tree_editor.cpp
+msgid ""
+"Node is locked.\n"
+"Click to unlock"
+msgstr ""
+
+#: editor/scene_tree_editor.cpp
+msgid ""
+"Children are not selectable.\n"
+"Click to make selectable"
+msgstr ""
+
+#: editor/scene_tree_editor.cpp
+#, fuzzy
+msgid "Toggle Visibility"
+msgstr "Spatial দৃশ্যমানতা টগল করুন"
 
 #: editor/scene_tree_editor.cpp
 msgid "Invalid node name, the following characters are not allowed:"
@@ -6263,6 +6531,82 @@ msgstr "ভুল dictionary ফরম্যাট (@path-এ ভুল স্�
 msgid "Invalid instance dictionary (invalid subclasses)"
 msgstr "ভুল dictionary ফরম্যাট (ভুল subclasses)"
 
+#: platform/winrt/export/export.cpp
+#, fuzzy
+msgid ""
+"Couldn't read the certficate file. Are the path and password both correct?"
+msgstr ""
+"সার্টিফিকেট ফাইলটি পড়া সম্ভব হচ্ছে না। ফাইলের পথ এবং পাসওয়ার্ড দুটোই কি সঠিক দেয়া "
+"হয়েছে?"
+
+#: platform/winrt/export/export.cpp
+msgid "Error creating the signature object."
+msgstr "স্বাক্ষরিত বস্তু (signature object) তৈরিতে সমস্যা হয়েছে।"
+
+#: platform/winrt/export/export.cpp
+msgid "Error creating the package signature."
+msgstr "প্যাকেজের স্বাক্ষর (package signature) তৈরিতে সমস্যা হয়েছে।"
+
+#: platform/winrt/export/export.cpp
+msgid ""
+"No export templates found.\n"
+"Download and install export templates."
+msgstr ""
+"এক্সপোর্ট এর জন্য প্রয়োজণীয় টেমপ্লেট পাওয়া যায়নি।\n"
+"এক্সপোর্ট টেমপ্লেট-সমূহ ডাউনলোড করে ইন্সটল করুন।"
+
+#: platform/winrt/export/export.cpp
+msgid "Custom debug package not found."
+msgstr "স্বনির্মিত ডিবাগ (debug) প্যাকেজ খুঁজে পাওয়া যায়নি।"
+
+#: platform/winrt/export/export.cpp
+msgid "Custom release package not found."
+msgstr "স্বনির্মিত রিলিস (release) প্যাকেজ খুঁজে পাওয়া যায়নি।"
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid unique name."
+msgstr "একক (অনন্য) নামটি অগ্রহনযোগ্য।"
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid product GUID."
+msgstr "পণ্যের অগ্রহনযোগ্য GUID।"
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid publisher GUID."
+msgstr "প্রকাশকের অগ্রহনযোগ্য GUID।"
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid background color."
+msgstr "পটভূমির (background) অগ্রহনযোগ্য রঙ।"
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid Store Logo image dimensions (should be 50x50)."
+msgstr "স্টোর লোগোর (Store Logo) ছবির অগ্রহনযোগ্য মাত্রা (৫০x৫০ হতে হবে)।"
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid square 44x44 logo image dimensions (should be 44x44)."
+msgstr "৪৪x৪৪ বর্গ লোগোর (logo) ছবির অগ্রহনযোগ্য মাত্রা (৪৪x৪৪ হতে হবে)।"
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid square 71x71 logo image dimensions (should be 71x71)."
+msgstr "৭১x৭১ বর্গ লোগোর (logo) ছবির অগ্রহনযোগ্য মাত্রা (৭১x৭১ হতে হবে)।"
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid square 150x150 logo image dimensions (should be 150x150)."
+msgstr "১৫০x১৫০ বর্গ লোগোর (logo) ছবির অগ্রহনযোগ্য মাত্রা (১৫০x১৫০ হতে হবে)।"
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid square 310x310 logo image dimensions (should be 310x310)."
+msgstr "৩১০x৩১০ বর্গ লোগোর (logo) ছবির অগ্রহনযোগ্য মাত্রা (৩১০x৩১০ হতে হবে)।"
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid wide 310x150 logo image dimensions (should be 310x150)."
+msgstr "৩১০x১৫০ প্রশস্ত লোগোর (logo) ছবির অগ্রহনযোগ্য মাত্রা (৩১০x১৫০ হতে হবে)।"
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid splash screen image dimensions (should be 620x300)."
+msgstr "স্প্ল্যাশ পর্দার (splash screen) ছবির অগ্রহনযোগ্য মাত্রা (৬২০x৩০০ হতে হবে)।"
+
 #: scene/2d/animated_sprite.cpp
 msgid ""
 "A SpriteFrames resource must be created or set in the 'Frames' property in "
@@ -6517,6 +6861,184 @@ msgstr ""
 "আকার ধারণ করতে পারে। অন্যথায়, এটিকে একটি RenderTarget করুন এবং এর অভ্যন্তরীণ "
 "দৃশ্যাবলিকে (texture) দৃশ্যমান করতে কোনো নোডে হস্তান্তর করুন।"
 
+#, fuzzy
+#~ msgid "Anim Track Change Wrap Mode"
+#~ msgstr "অ্যানিমেশন (Anim) ট্র্যাক/পথ-এর মানের ধরন/প্রকার পরিবর্তন করুন"
+
+#, fuzzy
+#~ msgid "Add Bus"
+#~ msgstr "%s সংযুক্ত করুন"
+
+#, fuzzy
+#~ msgid "(Re)Importing Assets"
+#~ msgstr "পুনরায় ইম্পোর্ট হচ্ছে"
+
+#~ msgid "Property Description:"
+#~ msgstr "মান/প্রোপার্টির বর্ণনা:"
+
+#, fuzzy
+#~ msgid "Manage Export Templates"
+#~ msgstr "এক্সপোর্ট টেমপ্লেটসমূহ লোড হচ্ছে"
+
+#, fuzzy
+#~ msgid "Re-Download"
+#~ msgstr "রিলোড"
+
+#, fuzzy
+#~ msgid "Uninstall"
+#~ msgstr "ইন্সটল"
+
+#, fuzzy
+#~ msgid "(Installed)"
+#~ msgstr "ইন্সটল"
+
+#, fuzzy
+#~ msgid "(Current)"
+#~ msgstr "বর্তমান:"
+
+#, fuzzy
+#~ msgid "Error creating path for templates:\n"
+#~ msgstr "এটলাস/মানচিত্রাবলী সংরক্ষণে সমস্যা হয়েছে:"
+
+#, fuzzy
+#~ msgid "Extracting Export Templates"
+#~ msgstr "এক্সপোর্ট টেমপ্লেটসমূহ লোড হচ্ছে"
+
+#, fuzzy
+#~ msgid "Current Version:"
+#~ msgstr "বর্তমান দৃশ্য"
+
+#, fuzzy
+#~ msgid "Installed Versions:"
+#~ msgstr "ইন্সটল-কৃত প্লাগইন-সমূহ:"
+
+#, fuzzy
+#~ msgid "Install From File"
+#~ msgstr "প্রকল্প ইন্সটল করুন:"
+
+#, fuzzy
+#~ msgid "Select template file"
+#~ msgstr "নির্বাচিত ফাইলসমূহ অপসারণ করবেন?"
+
+#, fuzzy
+#~ msgid "Export Template Manager"
+#~ msgstr "এক্সপোর্ট টেমপ্লেটসমূহ লোড হচ্ছে"
+
+#, fuzzy
+#~ msgid "Expand all"
+#~ msgstr "ধারক/বাহক পর্যন্ত বিস্তৃত করুন"
+
+#, fuzzy
+#~ msgid "Import As:"
+#~ msgstr "ইম্পোর্ট"
+
+#, fuzzy
+#~ msgid "Reimport"
+#~ msgstr "পুন-ইম্পোর্ট"
+
+#~ msgid "Same as Target Scene"
+#~ msgstr "উদ্দেশ্যিত দৃশ্যের ন্যায়"
+
+#~ msgid "Shared"
+#~ msgstr "শেয়ারকৃত"
+
+#~ msgid "Show Bones"
+#~ msgstr "বোন্‌/হাড় দেখান"
+
+#, fuzzy
+#~ msgid "Modify Curve"
+#~ msgstr "Curve Map পরিবর্তন করুন"
+
+#, fuzzy
+#~ msgid "Remove Point from Line2D"
+#~ msgstr "বক্ররেখা হতে বিন্দু অপসারণ করুন"
+
+#, fuzzy
+#~ msgid "Add Point to Line2D"
+#~ msgstr "বক্ররেখায় বিন্দু যোগ করুন"
+
+#, fuzzy
+#~ msgid "Move Point in Line2D"
+#~ msgstr "বক্ররেখায় বিন্দু সরান"
+
+#, fuzzy
+#~ msgid "Split Segment (in line)"
+#~ msgstr "অংশ বিভক্ত করুন (বক্ররেখায়)"
+
+#, fuzzy
+#~ msgid "Surface Points"
+#~ msgstr "পৃষ্ঠতল %d"
+
+#, fuzzy
+#~ msgid "Emission Source: "
+#~ msgstr "Emission পূরণ:"
+
+#~ msgid "Close All"
+#~ msgstr "সবগুলি বন্ধ করুন"
+
+#, fuzzy
+#~ msgid "Discard"
+#~ msgstr "স্বতন্ত্র/পৃথক্"
+
+#~ msgid "Pick Color"
+#~ msgstr "রঙ  পছন্দ করুন"
+
+#~ msgid "Theme"
+#~ msgstr "থিম"
+
+#, fuzzy
+#~ msgid "Runnable"
+#~ msgstr "সক্রিয় করুন"
+
+#, fuzzy
+#~ msgid "Delete patch '"
+#~ msgstr "ইনপুট অপসারণ করুন"
+
+#, fuzzy
+#~ msgid "Delete preset '%s'?"
+#~ msgstr "নির্বাচিত ফাইলসমূহ অপসারণ করবেন?"
+
+#, fuzzy
+#~ msgid "Presets"
+#~ msgstr "প্রিসেট.."
+
+#, fuzzy
+#~ msgid "Export selected scenes (and dependencies)"
+#~ msgstr "নির্বাচিত রিসোর্সসমূহ এক্সপোর্ট করুন (ডিপেন্ডেন্সী সহ)।"
+
+#, fuzzy
+#~ msgid "Patches"
+#~ msgstr "মিলসমূহ:"
+
+#, fuzzy
+#~ msgid "Make Patch"
+#~ msgstr "উদ্দেশ্যিত পথ:"
+
+#, fuzzy
+#~ msgid "Export With Debug"
+#~ msgstr "Tile Set এক্সপোর্ট করুন"
+
+#, fuzzy
+#~ msgid "Pick a Viewport"
+#~ msgstr "১ টি Viewport"
+
+#, fuzzy
+#~ msgid "Show in File System"
+#~ msgstr "ফাইলসিস্টেম"
+
+#, fuzzy
+#~ msgid "Pick a Node"
+#~ msgstr "একটি নোড নির্বাচন করুন"
+
+#~ msgid "Select Property"
+#~ msgstr "গুণাগুণ/বৈশিষ্ট্য বাছাই করুন"
+
+#~ msgid "Select Method"
+#~ msgstr "মেথড/পদ্ধতি বাছাই করুন"
+
+#~ msgid "Change Probe Extents"
+#~ msgstr "প্রোবের (Probe) পরিব্যাপ্তি পরিবর্তন করুন"
+
 #~ msgid ""
 #~ "A node yielded without working memory, please read the docs on how to "
 #~ "yield properly!"
@@ -6742,98 +7264,25 @@ msgstr ""
 #~ msgid "just released"
 #~ msgstr "এইমাত্র অব্যাহিত/মুক্ত"
 
-#~ msgid ""
-#~ "Couldn't read the certficate file. Are the path and password both correct?"
-#~ msgstr ""
-#~ "সার্টিফিকেট ফাইলটি পড়া সম্ভব হচ্ছে না। ফাইলের পথ এবং পাসওয়ার্ড দুটোই কি সঠিক "
-#~ "দেয়া হয়েছে?"
+#, fuzzy
+#~ msgid "Run in Browser"
+#~ msgstr "ব্রাউস"
 
-#~ msgid "Error creating the signature object."
-#~ msgstr "স্বাক্ষরিত বস্তু (signature object) তৈরিতে সমস্যা হয়েছে।"
+#, fuzzy
+#~ msgid "Could not write file:\n"
+#~ msgstr "টাইলটি খুঁজে পাওয়া যায়নি:"
 
-#~ msgid "Error creating the package signature."
-#~ msgstr "প্যাকেজের স্বাক্ষর (package signature) তৈরিতে সমস্যা হয়েছে।"
+#, fuzzy
+#~ msgid "Could not read file:\n"
+#~ msgstr "টাইলটি খুঁজে পাওয়া যায়নি:"
 
-#~ msgid ""
-#~ "No export templates found.\n"
-#~ "Download and install export templates."
-#~ msgstr ""
-#~ "এক্সপোর্ট এর জন্য প্রয়োজণীয় টেমপ্লেট পাওয়া যায়নি।\n"
-#~ "এক্সপোর্ট টেমপ্লেট-সমূহ ডাউনলোড করে ইন্সটল করুন।"
-
-#~ msgid "Custom debug package not found."
-#~ msgstr "স্বনির্মিত ডিবাগ (debug) প্যাকেজ খুঁজে পাওয়া যায়নি।"
-
-#~ msgid "Custom release package not found."
-#~ msgstr "স্বনির্মিত রিলিস (release) প্যাকেজ খুঁজে পাওয়া যায়নি।"
-
-#~ msgid "Invalid unique name."
-#~ msgstr "একক (অনন্য) নামটি অগ্রহনযোগ্য।"
-
-#~ msgid "Invalid product GUID."
-#~ msgstr "পণ্যের অগ্রহনযোগ্য GUID।"
-
-#~ msgid "Invalid publisher GUID."
-#~ msgstr "প্রকাশকের অগ্রহনযোগ্য GUID।"
-
-#~ msgid "Invalid background color."
-#~ msgstr "পটভূমির (background) অগ্রহনযোগ্য রঙ।"
-
-#~ msgid "Invalid Store Logo image dimensions (should be 50x50)."
-#~ msgstr "স্টোর লোগোর (Store Logo) ছবির অগ্রহনযোগ্য মাত্রা (৫০x৫০ হতে হবে)।"
-
-#~ msgid "Invalid square 44x44 logo image dimensions (should be 44x44)."
-#~ msgstr "৪৪x৪৪ বর্গ লোগোর (logo) ছবির অগ্রহনযোগ্য মাত্রা (৪৪x৪৪ হতে হবে)।"
-
-#~ msgid "Invalid square 71x71 logo image dimensions (should be 71x71)."
-#~ msgstr "৭১x৭১ বর্গ লোগোর (logo) ছবির অগ্রহনযোগ্য মাত্রা (৭১x৭১ হতে হবে)।"
-
-#~ msgid "Invalid square 150x150 logo image dimensions (should be 150x150)."
-#~ msgstr "১৫০x১৫০ বর্গ লোগোর (logo) ছবির অগ্রহনযোগ্য মাত্রা (১৫০x১৫০ হতে হবে)।"
-
-#~ msgid "Invalid square 310x310 logo image dimensions (should be 310x310)."
-#~ msgstr "৩১০x৩১০ বর্গ লোগোর (logo) ছবির অগ্রহনযোগ্য মাত্রা (৩১০x৩১০ হতে হবে)।"
-
-#~ msgid "Invalid wide 310x150 logo image dimensions (should be 310x150)."
-#~ msgstr "৩১০x১৫০ প্রশস্ত লোগোর (logo) ছবির অগ্রহনযোগ্য মাত্রা (৩১০x১৫০ হতে হবে)।"
-
-#~ msgid "Invalid splash screen image dimensions (should be 620x300)."
-#~ msgstr ""
-#~ "স্প্ল্যাশ পর্দার (splash screen) ছবির অগ্রহনযোগ্য মাত্রা (৬২০x৩০০ হতে হবে)।"
+#, fuzzy
+#~ msgid "Could not open template for export:\n"
+#~ msgstr "ফোল্ডার তৈরী করা সম্ভব হয়নি।"
 
 #~ msgid "Path property must point to a valid Spatial node to work."
 #~ msgstr ""
 #~ "Path এর দিক অবশ্যই একটি কার্যকর Spatial নোডের এর দিকে নির্দেশ করাতে হবে।"
-
-#~ msgid "Property Description:"
-#~ msgstr "মান/প্রোপার্টির বর্ণনা:"
-
-#~ msgid "Same as Target Scene"
-#~ msgstr "উদ্দেশ্যিত দৃশ্যের ন্যায়"
-
-#~ msgid "Shared"
-#~ msgstr "শেয়ারকৃত"
-
-#~ msgid "Show Bones"
-#~ msgstr "বোন্‌/হাড় দেখান"
-
-#~ msgid "Close All"
-#~ msgstr "সবগুলি বন্ধ করুন"
-
-#~ msgid "Pick Color"
-#~ msgstr "রঙ  পছন্দ করুন"
-
-#~ msgid "Theme"
-#~ msgstr "থিম"
-
-#~ msgid "Select Property"
-#~ msgstr "গুণাগুণ/বৈশিষ্ট্য বাছাই করুন"
-
-#~ msgid "Select Method"
-#~ msgstr "মেথড/পদ্ধতি বাছাই করুন"
-
-#~ msgid "Change Probe Extents"
-#~ msgstr "প্রোবের (Probe) পরিব্যাপ্তি পরিবর্তন করুন"
 
 #~ msgid ""
 #~ "This item cannot be made visible because the parent is hidden. Unhide the "

@@ -1,6 +1,5 @@
 # Catalan translation of the Godot Engine editor
-# Copyright (C) 2007-2017 Juan Linietsky, Ariel Manzur
-# Copyright (C) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)
+# Copyright (C) 2016-2017 Juan Linietsky, Ariel Manzur and the Godot community
 # This file is distributed under the same license as the Godot source code.
 #
 # Roger BR <drai_kin@hotmail.com>, 2016.
@@ -353,12 +352,210 @@ msgstr "Canvia Tipus de la Matriu"
 msgid "Change Array Value"
 msgstr "Canvia Valor de la Matriu"
 
+#: editor/asset_library_editor_plugin.cpp
+msgid "Free"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp editor/editor_plugin_settings.cpp
+msgid "Version:"
+msgstr "Versió:"
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Contents:"
+msgstr "Constants:"
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "View Files"
+msgstr "Fitxer:"
+
+#: editor/asset_library_editor_plugin.cpp editor/create_dialog.cpp
+#: editor/editor_help.cpp editor/script_editor_debugger.cpp
+msgid "Description:"
+msgstr "Descripció:"
+
+#: editor/asset_library_editor_plugin.cpp editor/project_manager.cpp
+msgid "Install"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp editor/call_dialog.cpp
+#: editor/connections_dialog.cpp
+#: editor/plugins/animation_player_editor_plugin.cpp
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#: editor/plugins/resource_preloader_editor_plugin.cpp
+#: editor/plugins/sample_library_editor_plugin.cpp
+#: editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/sprite_frames_editor_plugin.cpp editor/project_settings.cpp
+#: editor/property_editor.cpp editor/run_settings_dialog.cpp
+#: editor/settings_config_dialog.cpp
+msgid "Close"
+msgstr "Tanca"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Can't resolve hostname:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Can't resolve."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Connection error, please try again."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Can't connect."
+msgstr "Connecta.."
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Can't connect to host:"
+msgstr "Connecta al Node:"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "No response from host:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "No response."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Request failed, return code:"
+msgstr "Format de fitxer desconegut:"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Req. Failed."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Request failed, too many redirects"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Redirect Loop."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Failed:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Bad download hash, assuming file has been tampered with."
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Expected:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Got:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Failed sha256 hash check"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Asset Download Error:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Success!"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Fetching:"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Resolving.."
+msgstr "Desant..."
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Connecting.."
+msgstr "Connecta.."
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Requesting.."
+msgstr "Provant"
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Error making request"
+msgstr "Error en desar recurs!"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Idle"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Retry"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "Download Error"
+msgstr "Errors de Càrrega"
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "Download for this asset is already in progress!"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "first"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "prev"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "next"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "last"
+msgstr ""
+
+#: editor/asset_library_editor_plugin.cpp
+msgid "All"
+msgstr "Tot"
+
 #: editor/asset_library_editor_plugin.cpp editor/create_dialog.cpp
 #: editor/editor_help.cpp editor/editor_node.cpp
 #: editor/plugins/script_editor_plugin.cpp editor/quick_open.cpp
 #: editor/settings_config_dialog.cpp
 msgid "Search:"
 msgstr "Cerca:"
+
+#: editor/asset_library_editor_plugin.cpp editor/code_editor.cpp
+#: editor/editor_help.cpp editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/shader_editor_plugin.cpp editor/project_settings.cpp
+msgid "Search"
+msgstr "Cerca"
+
+#: editor/asset_library_editor_plugin.cpp editor/editor_node.cpp
+#: editor/io_plugins/editor_bitmask_import_plugin.cpp
+#: editor/io_plugins/editor_font_import_plugin.cpp
+#: editor/io_plugins/editor_mesh_import_plugin.cpp
+#: editor/io_plugins/editor_sample_import_plugin.cpp
+#: editor/io_plugins/editor_scene_import_plugin.cpp
+#: editor/io_plugins/editor_texture_import_plugin.cpp
+#: editor/io_plugins/editor_translation_import_plugin.cpp
+#: editor/project_manager.cpp
+msgid "Import"
+msgstr "Importa"
+
+#: editor/asset_library_editor_plugin.cpp editor/project_settings.cpp
+msgid "Plugins"
+msgstr ""
 
 #: editor/asset_library_editor_plugin.cpp
 msgid "Sort:"
@@ -371,10 +568,6 @@ msgstr "Inverteix"
 #: editor/asset_library_editor_plugin.cpp editor/project_settings.cpp
 msgid "Category:"
 msgstr "Categoria:"
-
-#: editor/asset_library_editor_plugin.cpp
-msgid "All"
-msgstr "Tot"
 
 #: editor/asset_library_editor_plugin.cpp
 msgid "Site:"
@@ -407,18 +600,6 @@ msgstr "Llista de mètodes de '%s':"
 #: editor/call_dialog.cpp
 msgid "Call"
 msgstr "Crida"
-
-#: editor/call_dialog.cpp editor/connections_dialog.cpp
-#: editor/plugins/animation_player_editor_plugin.cpp
-#: editor/plugins/canvas_item_editor_plugin.cpp
-#: editor/plugins/resource_preloader_editor_plugin.cpp
-#: editor/plugins/sample_library_editor_plugin.cpp
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/sprite_frames_editor_plugin.cpp editor/project_settings.cpp
-#: editor/property_editor.cpp editor/run_settings_dialog.cpp
-#: editor/settings_config_dialog.cpp
-msgid "Close"
-msgstr "Tanca"
 
 #: editor/call_dialog.cpp
 msgid "Method List:"
@@ -469,12 +650,6 @@ msgid "Selection Only"
 msgstr "Selecció Només"
 
 #: editor/code_editor.cpp editor/editor_help.cpp
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/shader_editor_plugin.cpp editor/project_settings.cpp
-msgid "Search"
-msgstr "Cerca"
-
-#: editor/code_editor.cpp editor/editor_help.cpp
 msgid "Find"
 msgstr "Troba"
 
@@ -483,6 +658,7 @@ msgid "Next"
 msgstr "Següent"
 
 #: editor/code_editor.cpp
+#, fuzzy
 msgid "Replaced %d ocurrence(s)."
 msgstr "Reemplaçades %d ocurrència/es."
 
@@ -553,6 +729,7 @@ msgstr "Afegeix"
 #: editor/connections_dialog.cpp editor/dependency_editor.cpp
 #: editor/plugins/animation_tree_editor_plugin.cpp
 #: editor/plugins/theme_editor_plugin.cpp editor/project_manager.cpp
+#: editor/project_settings.cpp
 msgid "Remove"
 msgstr "Treu"
 
@@ -627,11 +804,6 @@ msgstr "Recents:"
 #: editor/plugins/script_editor_plugin.cpp editor/quick_open.cpp
 msgid "Matches:"
 msgstr "Coincidències:"
-
-#: editor/create_dialog.cpp editor/editor_help.cpp
-#: editor/script_editor_debugger.cpp
-msgid "Description:"
-msgstr "Descripció:"
 
 #: editor/dependency_editor.cpp
 msgid "Search Replacement For:"
@@ -973,7 +1145,8 @@ msgstr "Cal utilitzar una extensió vàlida."
 msgid "ScanSources"
 msgstr "Escaneja Fonts"
 
-#: editor/editor_help.cpp editor/plugins/script_editor_plugin.cpp
+#: editor/editor_help.cpp editor/editor_node.cpp
+#: editor/plugins/script_editor_plugin.cpp
 msgid "Search Help"
 msgstr "Cerca Ajuda"
 
@@ -1276,6 +1449,10 @@ msgid "Save Scene As.."
 msgstr "Desa Escena com..."
 
 #: editor/editor_node.cpp
+msgid "No"
+msgstr ""
+
+#: editor/editor_node.cpp
 msgid "This scene has never been saved. Save before running?"
 msgstr ""
 "Aquesta Escena no s'ha desat mai encara. Voleu desar-la abans d'executar-la?"
@@ -1493,17 +1670,6 @@ msgstr "Surt a la Llista de Projectes"
 #: editor/editor_node.cpp
 msgid "Import assets to the project."
 msgstr "Importa actius al projecte."
-
-#: editor/editor_node.cpp editor/io_plugins/editor_bitmask_import_plugin.cpp
-#: editor/io_plugins/editor_font_import_plugin.cpp
-#: editor/io_plugins/editor_mesh_import_plugin.cpp
-#: editor/io_plugins/editor_sample_import_plugin.cpp
-#: editor/io_plugins/editor_scene_import_plugin.cpp
-#: editor/io_plugins/editor_texture_import_plugin.cpp
-#: editor/io_plugins/editor_translation_import_plugin.cpp
-#: editor/project_manager.cpp
-msgid "Import"
-msgstr "Importa"
 
 #: editor/editor_node.cpp
 msgid "Miscellaneous project or scene-wide tools."
@@ -1762,6 +1928,14 @@ msgid "Thanks!"
 msgstr "Gràcies!"
 
 #: editor/editor_node.cpp
+msgid "Godot Engine contributors"
+msgstr ""
+
+#: editor/editor_node.cpp
+msgid "Developers"
+msgstr ""
+
+#: editor/editor_node.cpp
 msgid "Import Templates From ZIP File"
 msgstr "Importa Plantilles des d'un Fitxer ZIP"
 
@@ -1789,13 +1963,38 @@ msgstr "Obre i Executa un Script"
 msgid "Load Errors"
 msgstr "Errors de Càrrega"
 
+#: editor/editor_node.cpp
+#, fuzzy
+msgid "Open 2D Editor"
+msgstr "Obre un Directori"
+
+#: editor/editor_node.cpp
+#, fuzzy
+msgid "Open 3D Editor"
+msgstr "Obre un Directori"
+
+#: editor/editor_node.cpp
+#, fuzzy
+msgid "Open Script Editor"
+msgstr "Editor de Dependències"
+
+#: editor/editor_node.cpp
+#, fuzzy
+msgid "Open Asset Library"
+msgstr "Exporta Biblioteca"
+
+#: editor/editor_node.cpp
+#, fuzzy
+msgid "Open the next Editor"
+msgstr "Editor de Dependències"
+
+#: editor/editor_node.cpp
+msgid "Open the previous Editor"
+msgstr ""
+
 #: editor/editor_plugin_settings.cpp
 msgid "Installed Plugins:"
 msgstr "Connectors Instal·lats:"
-
-#: editor/editor_plugin_settings.cpp
-msgid "Version:"
-msgstr "Versió:"
 
 #: editor/editor_plugin_settings.cpp
 msgid "Author:"
@@ -3643,8 +3842,9 @@ msgid "Emission Fill:"
 msgstr ""
 
 #: editor/plugins/particles_editor_plugin.cpp
+#, fuzzy
 msgid "Surface"
-msgstr ""
+msgstr "Superfície %d"
 
 #: editor/plugins/particles_editor_plugin.cpp
 msgid "Volume"
@@ -4913,20 +5113,23 @@ msgid "Error"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Edit Script Options"
-msgstr ""
+msgstr "Configuració de l'Editor"
 
 #: editor/project_export.cpp
 msgid "Please export outside the project folder!"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Error exporting project!"
-msgstr ""
+msgstr "Exporta Projecte"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Error writing the project PCK!"
-msgstr ""
+msgstr "No s'ha pogut l'objecte signatura."
 
 #: editor/project_export.cpp
 msgid "No exporter for platform '%s' yet."
@@ -4942,8 +5145,9 @@ msgid "Full name"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Organizational unit"
-msgstr ""
+msgstr "Transició"
 
 #: editor/project_export.cpp
 #, fuzzy
@@ -4996,76 +5200,90 @@ msgid "Fill Keystore/Release User and Release Password"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Include"
-msgstr ""
+msgstr "Inclusiu"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Change Image Group"
-msgstr ""
+msgstr "Canvia bucle"
 
 #: editor/project_export.cpp
 msgid "Group name can't be empty!"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Invalid character in group name!"
-msgstr ""
+msgstr "El Nom de la propietat index és invàlid."
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Group name already exists!"
-msgstr ""
+msgstr "l'AutoCàrrega '%s' ja existeix!"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Add Image Group"
-msgstr ""
+msgstr "Afegeix al Grup"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Delete Image Group"
-msgstr ""
+msgstr "Elimina Disposició (Layout)"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Atlas Preview"
-msgstr ""
+msgstr "Previsualització:"
 
 #: editor/project_export.cpp
 msgid "Project Export Settings"
 msgstr "Configuració d'Exportació de Projectes"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Target"
-msgstr ""
+msgstr "Camí de Destinació:"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Export to Platform"
-msgstr ""
+msgstr "Exporta el projecte a diverses plataformes."
 
 #: editor/project_export.cpp
 msgid "Resources"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Export selected resources (including dependencies)."
-msgstr ""
+msgstr "Importa actius al projecte."
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Export all resources in the project."
-msgstr ""
+msgstr "Importa actius al projecte."
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Export all files in the project directory."
-msgstr ""
+msgstr "Importa actius al projecte."
 
 #: editor/project_export.cpp
 msgid "Export Mode:"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Resources to Export:"
-msgstr ""
+msgstr "Cap malla per importar!"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Action"
-msgstr ""
+msgstr "Afegeix Funció"
 
 #: editor/project_export.cpp
 msgid ""
@@ -5089,8 +5307,9 @@ msgid "Keep Original"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Compress for Disk (Lossy, WebP)"
-msgstr ""
+msgstr "Compressió amb Pèrdua (WebP)"
 
 #: editor/project_export.cpp
 msgid "Compress for RAM (BC/PVRTC/ETC)"
@@ -5121,16 +5340,19 @@ msgid "Groups:"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Compress Disk"
-msgstr ""
+msgstr "Compressió (VRAM)"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Compress RAM"
-msgstr ""
+msgstr "Compressió (VRAM)"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Compress Mode:"
-msgstr ""
+msgstr "Compressió (VRAM)"
 
 #: editor/project_export.cpp
 msgid "Lossy Quality:"
@@ -5145,28 +5367,33 @@ msgid "Shrink By:"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Preview Atlas"
-msgstr ""
+msgstr "Previsualització:"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Image Filter:"
-msgstr ""
+msgstr "Filtre:"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Images:"
-msgstr ""
+msgstr "Importa Imatge:"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Select None"
-msgstr ""
+msgstr "Afegeix Col.locador de Proprietat (Setter)"
 
 #: editor/project_export.cpp
 msgid "Group"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Samples"
-msgstr ""
+msgstr "Mostra d'Àudio"
 
 #: editor/project_export.cpp
 msgid "Sample Conversion Mode: (.wav files):"
@@ -5177,8 +5404,9 @@ msgid "Keep"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Compress (RAM - IMA-ADPCM)"
-msgstr ""
+msgstr "Compressió (VRAM)"
 
 #: editor/project_export.cpp
 msgid "Sampling Rate Limit (Hz):"
@@ -5189,12 +5417,14 @@ msgid "Trim"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Trailing Silence:"
-msgstr ""
+msgstr "Desant Escena"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Script"
-msgstr ""
+msgstr "Executa Script"
 
 #: editor/project_export.cpp
 msgid "Script Export Mode:"
@@ -5217,36 +5447,43 @@ msgid "Script Encryption Key (256-bits as hex):"
 msgstr ""
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Export PCK/Zip"
-msgstr ""
+msgstr "Exporta"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Export Project PCK"
-msgstr ""
+msgstr "Exporta Projecte"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Export.."
-msgstr ""
+msgstr "Exporta"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Project Export"
-msgstr ""
+msgstr "Configuració d'Exportació de Projectes"
 
 #: editor/project_export.cpp
+#, fuzzy
 msgid "Export Preset:"
-msgstr ""
+msgstr "Exporta Projecte"
 
 #: editor/project_manager.cpp
 msgid "Invalid project path, the path must exist!"
 msgstr ""
 
 #: editor/project_manager.cpp
+#, fuzzy
 msgid "Invalid project path, engine.cfg must not exist."
-msgstr ""
+msgstr "El camí de Destinació ha d'existir."
 
 #: editor/project_manager.cpp
+#, fuzzy
 msgid "Invalid project path, engine.cfg must exist."
-msgstr ""
+msgstr "El camí de Destinació ha d'existir."
 
 #: editor/project_manager.cpp
 msgid "Imported Project"
@@ -5290,10 +5527,6 @@ msgstr ""
 
 #: editor/project_manager.cpp
 msgid "Install Project:"
-msgstr ""
-
-#: editor/project_manager.cpp
-msgid "Install"
 msgstr ""
 
 #: editor/project_manager.cpp
@@ -5353,6 +5586,11 @@ msgstr ""
 #: editor/project_manager.cpp
 msgid "New Project"
 msgstr ""
+
+#: editor/project_manager.cpp
+#, fuzzy
+msgid "Templates"
+msgstr "Treu la Selecció"
 
 #: editor/project_manager.cpp
 msgid "Exit"
@@ -5473,6 +5711,10 @@ msgstr ""
 msgid "Erase Input Action Event"
 msgstr ""
 
+#: editor/project_settings.cpp
+msgid "Add Event"
+msgstr ""
+
 #: editor/project_settings.cpp scene/gui/input_action.cpp
 msgid "Device"
 msgstr "Dispositiu"
@@ -5543,6 +5785,7 @@ msgid "Remove Resource Remap Option"
 msgstr ""
 
 #: editor/project_settings.cpp
+#, fuzzy
 msgid "Project Settings (engine.cfg)"
 msgstr "Configuració del Projecte (engine.cfg)"
 
@@ -5612,10 +5855,6 @@ msgstr ""
 
 #: editor/project_settings.cpp
 msgid "AutoLoad"
-msgstr ""
-
-#: editor/project_settings.cpp
-msgid "Plugins"
 msgstr ""
 
 #: editor/property_editor.cpp
@@ -5925,7 +6164,55 @@ msgid "Toggle CanvasItem Visible"
 msgstr ""
 
 #: editor/scene_tree_editor.cpp
+msgid "Node configuration warning:"
+msgstr ""
+
+#: editor/scene_tree_editor.cpp
+msgid ""
+"Node has connection(s) and group(s)\n"
+"Click to show signals dock."
+msgstr ""
+
+#: editor/scene_tree_editor.cpp
+msgid ""
+"Node has connections.\n"
+"Click to show signals dock."
+msgstr ""
+
+#: editor/scene_tree_editor.cpp
+msgid ""
+"Node is in group(s).\n"
+"Click to show groups dock."
+msgstr ""
+
+#: editor/scene_tree_editor.cpp
+#, fuzzy
+msgid "Subscene options"
+msgstr "Opcions de Depuració (Debug)"
+
+#: editor/scene_tree_editor.cpp
 msgid "Instance:"
+msgstr ""
+
+#: editor/scene_tree_editor.cpp
+#, fuzzy
+msgid "Open script"
+msgstr "Obertura Ràpida d'Scripts..."
+
+#: editor/scene_tree_editor.cpp
+msgid ""
+"Node is locked.\n"
+"Click to unlock"
+msgstr ""
+
+#: editor/scene_tree_editor.cpp
+msgid ""
+"Children are not selectable.\n"
+"Click to make selectable"
+msgstr ""
+
+#: editor/scene_tree_editor.cpp
+msgid "Toggle Visibility"
 msgstr ""
 
 #: editor/scene_tree_editor.cpp
@@ -6260,6 +6547,87 @@ msgstr "Format del diccionari d'instàncies invàlid (script invàlid a @path)"
 msgid "Invalid instance dictionary (invalid subclasses)"
 msgstr "Diccionari d'instàncies invàlid (subclasses invàlides)"
 
+#: platform/winrt/export/export.cpp
+#, fuzzy
+msgid ""
+"Couldn't read the certficate file. Are the path and password both correct?"
+msgstr ""
+"No s'ha pogut llegir el certificat. Comproveu que tant el camí com la "
+"contrasenya són correctes"
+
+#: platform/winrt/export/export.cpp
+msgid "Error creating the signature object."
+msgstr "No s'ha pogut l'objecte signatura."
+
+#: platform/winrt/export/export.cpp
+msgid "Error creating the package signature."
+msgstr "No s'ha pogut crear el paquet signatura."
+
+#: platform/winrt/export/export.cpp
+msgid ""
+"No export templates found.\n"
+"Download and install export templates."
+msgstr ""
+"No s'ha trobat cap plantilla.\n"
+"Descarregueu i instal·leu alguna plantilla d'exportació."
+
+#: platform/winrt/export/export.cpp
+msgid "Custom debug package not found."
+msgstr "No s'ha trobat cap paquet de depuració personalitzat."
+
+#: platform/winrt/export/export.cpp
+msgid "Custom release package not found."
+msgstr "No s'ha trobat cap paquet de llançament personalitzat."
+
+#: platform/winrt/export/export.cpp
+#, fuzzy
+msgid "Invalid unique name."
+msgstr "Nom no vàlid."
+
+#: platform/winrt/export/export.cpp
+#, fuzzy
+msgid "Invalid product GUID."
+msgstr "La mida de la lletra no és vàlida."
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid publisher GUID."
+msgstr "GUID d'editor no vàlid."
+
+#: platform/winrt/export/export.cpp
+#, fuzzy
+msgid "Invalid background color."
+msgstr "Lletra personalitzada no vàlida."
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid Store Logo image dimensions (should be 50x50)."
+msgstr "Imatge Store Logo no vàlida. La mida hauria de ser 50x50 ."
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid square 44x44 logo image dimensions (should be 44x44)."
+msgstr "Imatge Logo quadrat 44x44 no vàlida. La mida hauria de ser 44x44."
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid square 71x71 logo image dimensions (should be 71x71)."
+msgstr "Imatge Logo quadrat 71x71 no vàlida. La mida hauria de ser 71x71 ."
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid square 150x150 logo image dimensions (should be 150x150)."
+msgstr "Imatge logo quadrat 150x150 no vàlida. La mida hauria de ser 150x150 ."
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid square 310x310 logo image dimensions (should be 310x310)."
+msgstr "Imatge logo quadrat 310x310 no vàlida. La mida hauria de ser 310x310."
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid wide 310x150 logo image dimensions (should be 310x150)."
+msgstr "Imatge logo quadrat 310x150 no vàlida. La mida hauria de ser 310x150."
+
+#: platform/winrt/export/export.cpp
+msgid "Invalid splash screen image dimensions (should be 620x300)."
+msgstr ""
+"Imatge de la pantalla de presentació no vàlida. La mida hauria de ser "
+"620x300."
+
 #: scene/2d/animated_sprite.cpp
 msgid ""
 "A SpriteFrames resource must be created or set in the 'Frames' property in "
@@ -6523,6 +6891,120 @@ msgstr ""
 "forma per tal d'obtenir-ne la mida. Altrament, establiu-la com a Destinació "
 "de Renderització i assigneu-ne la textura interna a algun node."
 
+#, fuzzy
+#~ msgid "Anim Track Change Wrap Mode"
+#~ msgstr "Canvia Valor del Mode de Pista"
+
+#, fuzzy
+#~ msgid "(Re)Importing Assets"
+#~ msgstr "Re-Importació"
+
+#, fuzzy
+#~ msgid "Property Description:"
+#~ msgstr "Descripció breu:"
+
+#, fuzzy
+#~ msgid "Manage Export Templates"
+#~ msgstr "Carregant Plantilles d'Exportació"
+
+#, fuzzy
+#~ msgid "(Installed)"
+#~ msgstr "Instància"
+
+#, fuzzy
+#~ msgid "Error creating path for templates:\n"
+#~ msgstr "Error en desar atles:"
+
+#, fuzzy
+#~ msgid "Extracting Export Templates"
+#~ msgstr "Carregant Plantilles d'Exportació"
+
+#, fuzzy
+#~ msgid "Current Version:"
+#~ msgstr "Versió:"
+
+#, fuzzy
+#~ msgid "Installed Versions:"
+#~ msgstr "Connectors Instal·lats:"
+
+#, fuzzy
+#~ msgid "Select template file"
+#~ msgstr "Esborra fitxers seleccionats?"
+
+#, fuzzy
+#~ msgid "Export Template Manager"
+#~ msgstr "Carregant Plantilles d'Exportació"
+
+#, fuzzy
+#~ msgid "Import As:"
+#~ msgstr "Importa"
+
+#, fuzzy
+#~ msgid "Reimport"
+#~ msgstr "ReImporta"
+
+#~ msgid "Same as Target Scene"
+#~ msgstr "Igual que l'Escena de Destinació"
+
+#~ msgid "Shared"
+#~ msgstr "Compartit"
+
+#, fuzzy
+#~ msgid "Add Point to Line2D"
+#~ msgstr "Vés a la Línia"
+
+#, fuzzy
+#~ msgid "Surface Points"
+#~ msgstr "Superfície %d"
+
+#, fuzzy
+#~ msgid "Close All"
+#~ msgstr "Tanca"
+
+#, fuzzy
+#~ msgid "Discard"
+#~ msgstr "Discret"
+
+#, fuzzy
+#~ msgid "Runnable"
+#~ msgstr "Activa"
+
+#, fuzzy
+#~ msgid "Delete patch '"
+#~ msgstr "Elimina Disposició (Layout)"
+
+#, fuzzy
+#~ msgid "Delete preset '%s'?"
+#~ msgstr "Esborra fitxers seleccionats?"
+
+#, fuzzy
+#~ msgid "Patches"
+#~ msgstr "Coincidències:"
+
+#, fuzzy
+#~ msgid "Make Patch"
+#~ msgstr "Camí de Destinació:"
+
+#, fuzzy
+#~ msgid "Export With Debug"
+#~ msgstr "Exporta el joc de Mosaics (Tiles)"
+
+#, fuzzy
+#~ msgid "Pick a Viewport"
+#~ msgstr "1 Vista"
+
+#, fuzzy
+#~ msgid "Show in File System"
+#~ msgstr "SistemaDeFitxers"
+
+#, fuzzy
+#~ msgid "Pick a Node"
+#~ msgstr "Camí al Node:"
+
+#, fuzzy
+#~ msgid "Select Method"
+#~ msgstr "Mètodes públics:"
+
 #~ msgid ""
 #~ "A node yielded without working memory, please read the docs on how to "
 #~ "yield properly!"
@@ -6575,9 +7057,6 @@ msgstr ""
 
 #~ msgid "Rename Signal"
 #~ msgstr "Reanomena Senyal"
-
-#~ msgid "Add Function"
-#~ msgstr "Afegeix Funció"
 
 #~ msgid "Add Variable"
 #~ msgstr "Afegeix Variable"
@@ -6708,9 +7187,6 @@ msgstr ""
 #~ msgid "Iterator became invalid: "
 #~ msgstr "L'Iterador ha esdevingut invàlid: "
 
-#~ msgid "Invalid index property name."
-#~ msgstr "El Nom de la propietat index és invàlid."
-
 #~ msgid "Base object is not a Node!"
 #~ msgstr "L'objecte de Base no és un Node!"
 
@@ -6750,99 +7226,23 @@ msgstr ""
 #~ msgid "just released"
 #~ msgstr "alliberat"
 
-#~ msgid ""
-#~ "Couldn't read the certficate file. Are the path and password both correct?"
-#~ msgstr ""
-#~ "No s'ha pogut llegir el certificat. Comproveu que tant el camí com la "
-#~ "contrasenya són correctes"
-
-#~ msgid "Error creating the signature object."
-#~ msgstr "No s'ha pogut l'objecte signatura."
-
-#~ msgid "Error creating the package signature."
-#~ msgstr "No s'ha pogut crear el paquet signatura."
-
-#~ msgid ""
-#~ "No export templates found.\n"
-#~ "Download and install export templates."
-#~ msgstr ""
-#~ "No s'ha trobat cap plantilla.\n"
-#~ "Descarregueu i instal·leu alguna plantilla d'exportació."
-
-#~ msgid "Custom debug package not found."
-#~ msgstr "No s'ha trobat cap paquet de depuració personalitzat."
-
-#~ msgid "Custom release package not found."
-#~ msgstr "No s'ha trobat cap paquet de llançament personalitzat."
+#, fuzzy
+#~ msgid "Could not write file:\n"
+#~ msgstr "No s'ha pogut crear la carpeta."
 
 #, fuzzy
-#~ msgid "Invalid unique name."
-#~ msgstr "Nom no vàlid."
+#~ msgid "Could not read file:\n"
+#~ msgstr "No s'ha pogut crear la carpeta."
 
 #, fuzzy
-#~ msgid "Invalid product GUID."
-#~ msgstr "La mida de la lletra no és vàlida."
-
-#~ msgid "Invalid publisher GUID."
-#~ msgstr "GUID d'editor no vàlid."
-
-#, fuzzy
-#~ msgid "Invalid background color."
-#~ msgstr "Lletra personalitzada no vàlida."
-
-#~ msgid "Invalid Store Logo image dimensions (should be 50x50)."
-#~ msgstr "Imatge Store Logo no vàlida. La mida hauria de ser 50x50 ."
-
-#~ msgid "Invalid square 44x44 logo image dimensions (should be 44x44)."
-#~ msgstr "Imatge Logo quadrat 44x44 no vàlida. La mida hauria de ser 44x44."
-
-#~ msgid "Invalid square 71x71 logo image dimensions (should be 71x71)."
-#~ msgstr "Imatge Logo quadrat 71x71 no vàlida. La mida hauria de ser 71x71 ."
-
-#~ msgid "Invalid square 150x150 logo image dimensions (should be 150x150)."
-#~ msgstr ""
-#~ "Imatge logo quadrat 150x150 no vàlida. La mida hauria de ser 150x150 ."
-
-#~ msgid "Invalid square 310x310 logo image dimensions (should be 310x310)."
-#~ msgstr ""
-#~ "Imatge logo quadrat 310x310 no vàlida. La mida hauria de ser 310x310."
-
-#~ msgid "Invalid wide 310x150 logo image dimensions (should be 310x150)."
-#~ msgstr ""
-#~ "Imatge logo quadrat 310x150 no vàlida. La mida hauria de ser 310x150."
-
-#~ msgid "Invalid splash screen image dimensions (should be 620x300)."
-#~ msgstr ""
-#~ "Imatge de la pantalla de presentació no vàlida. La mida hauria de ser "
-#~ "620x300."
+#~ msgid "Could not open template for export:\n"
+#~ msgstr "No s'ha pogut crear la carpeta."
 
 #, fuzzy
 #~ msgid "Path property must point to a valid Spatial node to work."
 #~ msgstr ""
 #~ "Cal que la propietat Camí (Path) assenyali cap a un node Particles2D "
 #~ "vàlid."
-
-#, fuzzy
-#~ msgid "Property Description:"
-#~ msgstr "Descripció breu:"
-
-#~ msgid "Same as Target Scene"
-#~ msgstr "Igual que l'Escena de Destinació"
-
-#~ msgid "Shared"
-#~ msgstr "Compartit"
-
-#, fuzzy
-#~ msgid "Close All"
-#~ msgstr "Tanca"
-
-#, fuzzy
-#~ msgid "Select Property"
-#~ msgstr "Afegeix Col.locador de Proprietat (Setter)"
-
-#, fuzzy
-#~ msgid "Select Method"
-#~ msgstr "Mètodes públics:"
 
 #~ msgid ""
 #~ "Paths cannot start with '/', absolute paths must start with 'res://', "
