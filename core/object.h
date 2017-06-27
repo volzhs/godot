@@ -430,6 +430,7 @@ private:
 #ifdef TOOLS_ENABLED
 	bool _edited;
 	uint32_t _edited_version;
+	Set<String> editor_section_folding;
 #endif
 	ScriptInstance *script_instance;
 	RefPtr script;
@@ -442,6 +443,7 @@ private:
 	Variant _emit_signal(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
 	Array _get_signal_list() const;
 	Array _get_signal_connection_list(const String &p_signal) const;
+	Array _get_incoming_connections() const;
 	void _set_bind(const String &p_set, const Variant &p_value);
 	Variant _get_bind(const String &p_name) const;
 
@@ -665,6 +667,11 @@ public:
 
 	_FORCE_INLINE_ void set_message_translation(bool p_enable) { _can_translate = p_enable; }
 	_FORCE_INLINE_ bool can_translate_messages() const { return _can_translate; }
+
+#ifdef TOOLS_ENABLED
+	void editor_set_section_unfold(const String &p_section, bool p_unfolded);
+	bool editor_is_section_unfolded(const String &p_section);
+#endif
 
 	void clear_internal_resource_paths();
 

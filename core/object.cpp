@@ -419,6 +419,16 @@ void Object::set(const StringName &p_name, const Variant &p_value, bool *r_valid
 		if (r_valid)
 			*r_valid = true;
 		return;
+#ifdef TOOLS_ENABLED
+	} else if (p_name == CoreStringNames::get_singleton()->_sections_unfolded) {
+		Array arr = p_value;
+		for (int i = 0; i < arr.size(); i++) {
+			editor_section_folding.insert(arr[i]);
+		}
+		if (r_valid)
+			*r_valid = true;
+		return;
+#endif
 	} else {
 		//something inside the object... :|
 		bool success = _setv(p_name, p_value);
@@ -464,6 +474,16 @@ Variant Object::get(const StringName &p_name, bool *r_valid) const {
 		if (r_valid)
 			*r_valid = true;
 		return ret;
+#ifdef TOOLS_ENABLED
+	} else if (p_name == CoreStringNames::get_singleton()->_sections_unfolded) {
+		Array array;
+		for (Set<String>::Element *E = editor_section_folding.front(); E; E = E->next()) {
+			array.push_back(E->get());
+		}
+		if (r_valid)
+			*r_valid = true;
+		return array;
+#endif
 	} else {
 		//something inside the object... :|
 		bool success = _getv(p_name, ret);
@@ -516,6 +536,11 @@ void Object::get_property_list(List<PropertyInfo> *p_list, bool p_reversed) cons
 
 	if (!is_class("Script")) // can still be set, but this is for userfriendlyness
 		p_list->push_back(PropertyInfo(Variant::OBJECT, "script", PROPERTY_HINT_RESOURCE_TYPE, "Script", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_STORE_IF_NONZERO));
+#ifdef TOOLS_ENABLED
+	if (editor_section_folding.size()) {
+		p_list->push_back(PropertyInfo(Variant::ARRAY, CoreStringNames::get_singleton()->_sections_unfolded, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR));
+	}
+#endif
 	if (!metadata.empty())
 		p_list->push_back(PropertyInfo(Variant::DICTIONARY, "__meta__", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_STORE_IF_NONZERO));
 	if (script_instance && !p_reversed) {
@@ -1332,6 +1357,21 @@ Array Object::_get_signal_connection_list(const String &p_signal) const {
 	return ret;
 }
 
+Array Object::_get_incoming_connections() const {
+
+	Array ret;
+	int connections_amount = connections.size();
+	for (int idx_conn = 0; idx_conn < connections_amount; idx_conn++) {
+		Dictionary conn_data;
+		conn_data["source"] = connections[idx_conn].source;
+		conn_data["signal_name"] = connections[idx_conn].signal;
+		conn_data["method_name"] = connections[idx_conn].method;
+		ret.push_back(conn_data);
+	}
+
+	return ret;
+}
+
 void Object::get_signal_list(List<MethodInfo> *p_signals) const {
 
 	if (!script.is_null()) {
@@ -1571,6 +1611,23 @@ void Object::_clear_internal_resource_paths(const Variant &p_var) {
 	}
 }
 
+#ifdef TOOLS_ENABLED
+void Object::editor_set_section_unfold(const String &p_section, bool p_unfolded) {
+
+	set_edited(true);
+	if (p_unfolded)
+		editor_section_folding.insert(p_section);
+	else
+		editor_section_folding.erase(p_section);
+}
+
+bool Object::editor_is_section_unfolded(const String &p_section) {
+
+	return editor_section_folding.has(p_section);
+}
+
+#endif
+
 void Object::clear_internal_resource_paths() {
 
 	List<PropertyInfo> pinfo;
@@ -1641,6 +1698,7 @@ void Object::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_signal_list"), &Object::_get_signal_list);
 	ClassDB::bind_method(D_METHOD("get_signal_connection_list", "signal"), &Object::_get_signal_connection_list);
+	ClassDB::bind_method(D_METHOD("get_incoming_connections"), &Object::_get_incoming_connections);
 
 	ClassDB::bind_method(D_METHOD("connect", "signal", "target:Object", "method", "binds", "flags"), &Object::connect, DEFVAL(Array()), DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("disconnect", "signal", "target:Object", "method"), &Object::disconnect);

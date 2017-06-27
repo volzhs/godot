@@ -590,6 +590,11 @@ struct RegExNodeGroup : public RegExNode {
 			memdelete(childset[i]);
 	}
 
+	virtual void test_success(RegExSearch &s, int pos) const {
+
+		return;
+	}
+
 	virtual int test(RegExSearch &s, int pos) const {
 
 		for (int i = 0; i < childset.size(); ++i) {
@@ -598,10 +603,8 @@ struct RegExNodeGroup : public RegExNode {
 
 			int res = childset[i]->test(s, pos);
 
-			if (s.complete)
-				return res;
-
 			if (inverse) {
+				s.complete = false;
 				if (res < 0)
 					res = pos + 1;
 				else
@@ -611,9 +614,13 @@ struct RegExNodeGroup : public RegExNode {
 					continue;
 			}
 
+			if (s.complete)
+				return res;
+
 			if (res >= 0) {
 				if (reset_pos)
 					res = pos;
+				this->test_success(s, res);
 				return next ? next->test(s, res) : res;
 			}
 		}
@@ -668,6 +675,12 @@ struct RegExNodeCapturing : public RegExNodeGroup {
 		id = p_id;
 	}
 
+	virtual void test_success(RegExSearch &s, int pos) const {
+
+		RegExMatch::Group &ref = s.match->captures[id];
+		ref.length = pos - ref.start;
+	}
+
 	virtual int test(RegExSearch &s, int pos) const {
 
 		RegExMatch::Group &ref = s.match->captures[id];
@@ -676,13 +689,8 @@ struct RegExNodeCapturing : public RegExNodeGroup {
 
 		int res = RegExNodeGroup::test(s, pos);
 
-		if (res >= 0) {
-			if (!s.complete)
-				ref.length = res - pos;
-		} else {
+		if (res < 0)
 			ref.start = old_start;
-		}
-
 		return res;
 	}
 
@@ -1488,7 +1496,7 @@ void RegEx::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("clear"), &RegEx::clear);
 	ClassDB::bind_method(D_METHOD("compile", "pattern"), &RegEx::compile);
-	ClassDB::bind_method(D_METHOD("search", "text", "start", "end"), &RegEx::search, DEFVAL(0), DEFVAL(-1));
+	ClassDB::bind_method(D_METHOD("search:RegExMatch", "text", "start", "end"), &RegEx::search, DEFVAL(0), DEFVAL(-1));
 	ClassDB::bind_method(D_METHOD("sub", "text", "replacement", "all", "start", "end"), &RegEx::sub, DEFVAL(false), DEFVAL(0), DEFVAL(-1));
 	ClassDB::bind_method(D_METHOD("is_valid"), &RegEx::is_valid);
 	ClassDB::bind_method(D_METHOD("get_pattern"), &RegEx::get_pattern);

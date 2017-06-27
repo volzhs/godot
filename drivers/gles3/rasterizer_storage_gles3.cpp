@@ -1445,6 +1445,8 @@ void RasterizerStorageGLES3::_update_shader(Shader *p_shader) const {
 
 			p_shader->canvas_item.light_mode = Shader::CanvasItem::LIGHT_MODE_NORMAL;
 			p_shader->canvas_item.blend_mode = Shader::CanvasItem::BLEND_MODE_MIX;
+			p_shader->canvas_item.uses_screen_texture = false;
+			p_shader->canvas_item.uses_screen_uv = false;
 
 			shaders.actions_canvas.render_mode_values["blend_add"] = Pair<int *, int>(&p_shader->canvas_item.blend_mode, Shader::CanvasItem::BLEND_MODE_ADD);
 			shaders.actions_canvas.render_mode_values["blend_mix"] = Pair<int *, int>(&p_shader->canvas_item.blend_mode, Shader::CanvasItem::BLEND_MODE_MIX);
@@ -1454,6 +1456,10 @@ void RasterizerStorageGLES3::_update_shader(Shader *p_shader) const {
 
 			shaders.actions_canvas.render_mode_values["unshaded"] = Pair<int *, int>(&p_shader->canvas_item.light_mode, Shader::CanvasItem::LIGHT_MODE_UNSHADED);
 			shaders.actions_canvas.render_mode_values["light_only"] = Pair<int *, int>(&p_shader->canvas_item.light_mode, Shader::CanvasItem::LIGHT_MODE_LIGHT_ONLY);
+
+			shaders.actions_canvas.usage_flag_pointers["SCREEN_UV"] = &p_shader->canvas_item.uses_screen_uv;
+			shaders.actions_canvas.usage_flag_pointers["SCREEN_PIXEL_SIZE"] = &p_shader->canvas_item.uses_screen_uv;
+			shaders.actions_canvas.usage_flag_pointers["SCREEN_TEXTURE"] = &p_shader->canvas_item.uses_screen_texture;
 
 			actions = &shaders.actions_canvas;
 			actions->uniforms = &p_shader->uniforms;
@@ -5068,6 +5074,14 @@ void RasterizerStorageGLES3::particles_set_lifetime(RID p_particles, float p_lif
 	ERR_FAIL_COND(!particles);
 	particles->lifetime = p_lifetime;
 }
+
+void RasterizerStorageGLES3::particles_set_one_shot(RID p_particles, bool p_one_shot) {
+
+	Particles *particles = particles_owner.getornull(p_particles);
+	ERR_FAIL_COND(!particles);
+	particles->one_shot = p_one_shot;
+}
+
 void RasterizerStorageGLES3::particles_set_pre_process_time(RID p_particles, float p_time) {
 
 	Particles *particles = particles_owner.getornull(p_particles);
@@ -5199,6 +5213,14 @@ void RasterizerStorageGLES3::particles_set_draw_pass_mesh(RID p_particles, int p
 	particles->draw_passes[p_pass] = p_mesh;
 }
 
+void RasterizerStorageGLES3::particles_restart(RID p_particles) {
+
+	Particles *particles = particles_owner.getornull(p_particles);
+	ERR_FAIL_COND(!particles);
+
+	particles->restart_request = true;
+}
+
 void RasterizerStorageGLES3::particles_request_process(RID p_particles) {
 
 	Particles *particles = particles_owner.getornull(p_particles);
@@ -5290,6 +5312,10 @@ void RasterizerStorageGLES3::_particles_process(Particles *particles, float p_de
 		particles->cycle_number = 0;
 		particles->random_seed = Math::rand();
 	} else if (new_phase < particles->phase) {
+		if (particles->one_shot) {
+			particles->emitting = false;
+			shaders.particles.set_uniform(ParticlesShaderGLES3::EMITTING, false);
+		}
 		particles->cycle_number++;
 	}
 
@@ -5355,6 +5381,17 @@ void RasterizerStorageGLES3::update_particles() {
 		//use transform feedback to process particles
 
 		Particles *particles = particle_update_list.first()->self();
+
+		if (particles->restart_request) {
+			particles->emitting = true; //restart from zero
+			particles->prev_ticks = 0;
+			particles->phase = 0;
+			particles->prev_phase = 0;
+			particles->clear = true;
+			particles->particle_valid_histories[0] = false;
+			particles->particle_valid_histories[1] = false;
+			particles->restart_request = false;
+		}
 
 		if (particles->inactive && !particles->emitting) {
 

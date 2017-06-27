@@ -401,6 +401,8 @@ public:
 			};
 
 			int light_mode;
+			bool uses_screen_texture;
+			bool uses_screen_uv;
 
 		} canvas_item;
 
@@ -1036,11 +1038,13 @@ public:
 		bool inactive;
 		float inactive_time;
 		bool emitting;
+		bool one_shot;
 		int amount;
 		float lifetime;
 		float pre_process_time;
 		float explosiveness;
 		float randomness;
+		bool restart_request;
 		Rect3 custom_aabb;
 		bool use_local_coords;
 		RID process_material;
@@ -1080,6 +1084,7 @@ public:
 			: particle_element(this) {
 			cycle_number = 0;
 			emitting = false;
+			one_shot = false;
 			amount = 0;
 			lifetime = 1.0;
 			pre_process_time = 0.0;
@@ -1092,6 +1097,8 @@ public:
 			histories_enabled = false;
 			speed_scale = 1.0;
 			random_seed = 0;
+
+			restart_request = false;
 
 			custom_aabb = Rect3(Vector3(-4, -4, -4), Vector3(8, 8, 8));
 
@@ -1131,6 +1138,7 @@ public:
 	virtual void particles_set_emitting(RID p_particles, bool p_emitting);
 	virtual void particles_set_amount(RID p_particles, int p_amount);
 	virtual void particles_set_lifetime(RID p_particles, float p_lifetime);
+	virtual void particles_set_one_shot(RID p_particles, bool p_one_shot);
 	virtual void particles_set_pre_process_time(RID p_particles, float p_time);
 	virtual void particles_set_explosiveness_ratio(RID p_particles, float p_ratio);
 	virtual void particles_set_randomness_ratio(RID p_particles, float p_ratio);
@@ -1140,6 +1148,7 @@ public:
 	virtual void particles_set_process_material(RID p_particles, RID p_material);
 	virtual void particles_set_fixed_fps(RID p_particles, int p_fps);
 	virtual void particles_set_fractional_delta(RID p_particles, bool p_enable);
+	virtual void particles_restart(RID p_particles);
 
 	virtual void particles_set_draw_order(RID p_particles, VS::ParticlesDrawOrder p_order);
 

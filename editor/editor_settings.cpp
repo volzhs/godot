@@ -42,7 +42,7 @@
 #include "os/keyboard.h"
 #include "os/os.h"
 #include "scene/main/node.h"
-#include "scene/main/scene_main_loop.h"
+#include "scene/main/scene_tree.h"
 #include "scene/main/viewport.h"
 #include "translations.gen.h"
 #include "version.h"
@@ -516,6 +516,9 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	hints["interface/dim_transition_time"] = PropertyInfo(Variant::REAL, "interface/dim_transition_time", PROPERTY_HINT_RANGE, "0,1,0.001", PROPERTY_USAGE_DEFAULT);
 
 	set("interface/separate_distraction_mode", false);
+
+	set("interface/save_each_scene_on_quit", true); // Regression
+	set("interface/quit_confirmation", true);
 
 	set("interface/theme/preset", 0);
 	hints["interface/theme/preset"] = PropertyInfo(Variant::INT, "interface/theme/preset", PROPERTY_HINT_ENUM, "Default,Grey,Godot 2,Arc,Custom", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
