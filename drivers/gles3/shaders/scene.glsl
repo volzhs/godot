@@ -405,7 +405,6 @@ uniform bool no_ambient_light;
 
 #ifdef USE_RADIANCE_MAP
 
-uniform sampler2D radiance_map; //texunit:-2
 
 
 layout(std140) uniform Radiance { //ubo:2
@@ -414,6 +413,53 @@ layout(std140) uniform Radiance { //ubo:2
 	float radiance_ambient_contribution;
 
 };
+
+#define RADIANCE_MAX_LOD 5.0
+
+#ifdef USE_RADIANCE_MAP_ARRAY
+
+uniform sampler2DArray radiance_map; //texunit:-2
+
+vec3 textureDualParaboloid(sampler2DArray p_tex, vec3 p_vec,float p_roughness) {
+
+	vec3 norm = normalize(p_vec);
+	norm.xy/=1.0+abs(norm.z);
+	norm.xy=norm.xy * vec2(0.5,0.25) + vec2(0.5,0.25);
+
+	// we need to lie the derivatives (normg) and assume that DP side is always the same
+	// to get proper texure filtering
+	vec2 normg=norm.xy;
+	if (norm.z>0) {
+		norm.y=0.5-norm.y+0.5;
+	}
+
+	// thanks to OpenGL spec using floor(layer + 0.5) for texture arrays,
+	// it's easy to have precision errors using fract() to interpolate layers
+	// as such, using fixed point to ensure it works.
+
+	float index = p_roughness * RADIANCE_MAX_LOD;
+	int indexi = int(index * 256.0);
+	vec3 base = textureGrad(p_tex, vec3(norm.xy, float(indexi/256)),dFdx(normg),dFdy(normg)).xyz;
+	vec3 next = textureGrad(p_tex, vec3(norm.xy, float(indexi/256+1)),dFdx(normg),dFdy(normg)).xyz;
+	return mix(base,next,float(indexi%256)/256.0);
+}
+
+#else
+
+uniform sampler2D radiance_map; //texunit:-2
+
+vec3 textureDualParaboloid(sampler2D p_tex, vec3 p_vec,float p_roughness) {
+
+	vec3 norm = normalize(p_vec);
+	norm.xy/=1.0+abs(norm.z);
+	norm.xy=norm.xy * vec2(0.5,0.25) + vec2(0.5,0.25);
+	if (norm.z>0) {
+		norm.y=0.5-norm.y+0.5;
+	}
+	return textureLod(p_tex, norm.xy, p_roughness * RADIANCE_MAX_LOD).xyz;
+}
+
+#endif
 
 #endif
 
@@ -922,12 +968,12 @@ void light_process_spot(int idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 bi
 	vec3 light_rel_vec = spot_lights[idx].light_pos_inv_radius.xyz-vertex;
 	float light_length = length( light_rel_vec );
 	float normalized_distance = light_length*spot_lights[idx].light_pos_inv_radius.w;
-	vec3 light_attenuation = vec3(pow( max(1.0 - normalized_distance, 0.0), spot_lights[idx].light_direction_attenuation.w ));
+	vec3 light_attenuation = vec3(pow( max(1.0 - normalized_distance, 0.001), spot_lights[idx].light_direction_attenuation.w ));
 	vec3 spot_dir = spot_lights[idx].light_direction_attenuation.xyz;
 	float spot_cutoff=spot_lights[idx].light_params.y;
 	float scos = max(dot(-normalize(light_rel_vec), spot_dir),spot_cutoff);
 	float spot_rim = (1.0 - scos) / (1.0 - spot_cutoff);
-	light_attenuation *= 1.0 - pow( spot_rim, spot_lights[idx].light_params.x);
+	light_attenuation *= 1.0 - pow( max(spot_rim,0.001), spot_lights[idx].light_params.x);
 
 	if (spot_lights[idx].light_params.w>0.5) {
 		//there is a shadowmap
@@ -1231,23 +1277,7 @@ void gi_probes_compute(vec3 pos, vec3 normal, float roughness, inout vec3 out_sp
 
 #endif
 
-vec3 textureDualParabolod(sampler2D p_tex, vec3 p_vec,float p_lod) {
 
-	vec3 norm = normalize(p_vec);
-	float y_ofs=0.0;
-	if (norm.z>=0.0) {
-
-		norm.z+=1.0;
-		y_ofs+=0.5;
-	} else {
-		norm.z=1.0 - norm.z;
-		norm.y=-norm.y;
-	}
-
-	norm.xy/=norm.z;
-	norm.xy=norm.xy * vec2(0.5,0.25) + vec2(0.5,0.25+y_ofs);
-	return textureLod(p_tex, norm.xy, p_lod).xyz;
-}
 
 void main() {
 
@@ -1387,15 +1417,11 @@ FRAGMENT_SHADER_CODE
 	} else {
 		{
 
-
-#define RADIANCE_MAX_LOD 5.0
-			float lod = roughness * RADIANCE_MAX_LOD;
-
 			{ //read radiance from dual paraboloid
 
 				vec3 ref_vec = reflect(-eye_vec,normal); //2.0 * ndotv * normal - view; // reflect(v, n);
 				ref_vec=normalize((radiance_inverse_xform * vec4(ref_vec,0.0)).xyz);
-				vec3 radiance = textureDualParabolod(radiance_map,ref_vec,lod) * bg_energy;
+				vec3 radiance = textureDualParaboloid(radiance_map,ref_vec,roughness) * bg_energy;
 				specular_light = radiance;
 
 			}
@@ -1407,7 +1433,7 @@ FRAGMENT_SHADER_CODE
 		{
 
 			vec3 ambient_dir=normalize((radiance_inverse_xform * vec4(normal,0.0)).xyz);
-			vec3 env_ambient=textureDualParabolod(radiance_map,ambient_dir,RADIANCE_MAX_LOD) * bg_energy;
+			vec3 env_ambient=textureDualParaboloid(radiance_map,ambient_dir,1.0) * bg_energy;
 
 			ambient_light=mix(ambient_light_color.rgb,env_ambient,radiance_ambient_contribution);
 			//ambient_light=vec3(0.0,0.0,0.0);

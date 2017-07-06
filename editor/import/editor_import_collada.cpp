@@ -867,7 +867,7 @@ Error ColladaImport::_create_mesh_surfaces(bool p_optimize, Ref<ArrayMesh> &p_me
 					int normal_pos = (normal_src->stride ? normal_src->stride : 3) * p.indices[src + normal_ofs];
 					ERR_FAIL_INDEX_V(normal_pos, normal_src->array.size(), ERR_INVALID_DATA);
 					vertex.normal = Vector3(normal_src->array[normal_pos + 0], normal_src->array[normal_pos + 1], normal_src->array[normal_pos + 2]);
-					vertex.normal = vertex.normal.snapped(0.001);
+					vertex.normal.snap(Vector3(0.001, 0.001, 0.001));
 
 					if (tangent_src && binormal_src) {
 
@@ -908,12 +908,18 @@ Error ColladaImport::_create_mesh_surfaces(bool p_optimize, Ref<ArrayMesh> &p_me
 #ifndef NO_UP_AXIS_SWAP
 				if (collada.state.up_axis == Vector3::AXIS_Z) {
 
+					Vector3 bn = vertex.normal.cross(vertex.tangent.normal) * vertex.tangent.d;
+
 					SWAP(vertex.vertex.z, vertex.vertex.y);
 					vertex.vertex.z = -vertex.vertex.z;
 					SWAP(vertex.normal.z, vertex.normal.y);
 					vertex.normal.z = -vertex.normal.z;
 					SWAP(vertex.tangent.normal.z, vertex.tangent.normal.y);
 					vertex.tangent.normal.z = -vertex.tangent.normal.z;
+					SWAP(bn.z, bn.y);
+					bn.z = -bn.z;
+
+					vertex.tangent.d = vertex.normal.cross(vertex.tangent.normal).dot(bn) > 0 ? 1 : -1;
 				}
 
 #endif
