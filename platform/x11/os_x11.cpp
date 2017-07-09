@@ -278,6 +278,13 @@ void OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_au
 		xev.xclient.data.l[2] = 0;
 
 		XSendEvent(x11_display, DefaultRootWindow(x11_display), False, SubstructureNotifyMask, &xev);
+	} else if (current_videomode.borderless_window) {
+		Hints hints;
+		Atom property;
+		hints.flags = 2;
+		hints.decorations = 0;
+		property = XInternAtom(x11_display, "_MOTIF_WM_HINTS", True);
+		XChangeProperty(x11_display, x11_window, property, property, 32, PropModeReplace, (unsigned char *)&hints, 5);
 	}
 
 	// disable resizable window
@@ -1018,6 +1025,25 @@ bool OS_X11::is_window_maximized() const {
 	return false;
 }
 
+void OS_X11::set_borderless_window(int p_borderless) {
+
+	if (current_videomode.borderless_window == p_borderless)
+		return;
+
+	current_videomode.borderless_window = p_borderless;
+
+	Hints hints;
+	Atom property;
+	hints.flags = 2;
+	hints.decorations = current_videomode.borderless_window ? 0 : 1;
+	property = XInternAtom(x11_display, "_MOTIF_WM_HINTS", True);
+	XChangeProperty(x11_display, x11_window, property, property, 32, PropModeReplace, (unsigned char *)&hints, 5);
+}
+
+bool OS_X11::get_borderless_window() {
+	return current_videomode.borderless_window;
+}
+
 void OS_X11::request_attention() {
 	// Using EWMH -- Extended Window Manager Hints
 	//
@@ -1234,7 +1260,7 @@ void OS_X11::handle_key_event(XKeyEvent *p_event, bool p_echo) {
 	// Echo characters in X11 are a keyrelease and a keypress
 	// one after the other with the (almot) same timestamp.
 	// To detect them, i use XPeekEvent and check that their
-	// difference in time is below a treshold.
+	// difference in time is below a threshold.
 
 	if (xkeyevent->type != KeyPress) {
 
@@ -1246,7 +1272,7 @@ void OS_X11::handle_key_event(XKeyEvent *p_event, bool p_echo) {
 			XEvent peek_event;
 			XPeekEvent(x11_display, &peek_event);
 
-			// I'm using a treshold of 5 msecs,
+			// I'm using a threshold of 5 msecs,
 			// since sometimes there seems to be a little
 			// jitter. I'm still not convinced that all this approach
 			// is correct, but the xorg developers are

@@ -57,6 +57,11 @@ public:
 		ANCHOR_CENTER,
 	};
 
+	enum GrowDirection {
+		GROW_DIRECTION_BEGIN,
+		GROW_DIRECTION_END
+	};
+
 	enum FocusMode {
 		FOCUS_NONE,
 		FOCUS_CLICK,
@@ -67,7 +72,9 @@ public:
 
 		SIZE_FILL = 1,
 		SIZE_EXPAND = 2,
-		SIZE_EXPAND_FILL = SIZE_EXPAND | SIZE_FILL
+		SIZE_EXPAND_FILL = SIZE_EXPAND | SIZE_FILL,
+		SIZE_SHRINK_CENTER = 4, //ignored by expand or fill
+		SIZE_SHRINK_END = 8, //ignored by expand or fil
 
 	};
 
@@ -117,9 +124,12 @@ private:
 		float margin[4];
 		AnchorType anchor[4];
 		FocusMode focus_mode;
+		GrowDirection h_grow;
+		GrowDirection v_grow;
 
 		float rotation;
 		Vector2 scale;
+		Vector2 pivot_offset;
 
 		bool pending_resize;
 
@@ -200,6 +210,8 @@ private:
 
 	void _update_canvas_item_transform();
 
+	Transform2D _get_internal_transform() const;
+
 	friend class Viewport;
 	void _modal_stack_remove();
 	void _modal_set_prev_focus_owner(ObjectID p_prev);
@@ -273,6 +285,12 @@ public:
 	void set_begin(const Point2 &p_point); // helper
 	void set_end(const Point2 &p_point); // helper
 
+	void set_h_grow_direction(GrowDirection p_direction);
+	GrowDirection get_h_grow_direction() const;
+
+	void set_v_grow_direction(GrowDirection p_direction);
+	GrowDirection get_v_grow_direction() const;
+
 	float get_margin(Margin p_margin) const;
 	Point2 get_begin() const;
 	Point2 get_end() const;
@@ -292,6 +310,9 @@ public:
 	void set_rotation_deg(float p_degrees);
 	float get_rotation() const;
 	float get_rotation_deg() const;
+
+	void set_pivot_offset(const Vector2 &p_pivot);
+	Vector2 get_pivot_offset() const;
 
 	void set_scale(const Vector2 &p_scale);
 	Vector2 get_scale() const;
@@ -409,5 +430,6 @@ VARIANT_ENUM_CAST(Control::FocusMode);
 VARIANT_ENUM_CAST(Control::SizeFlags);
 VARIANT_ENUM_CAST(Control::CursorShape);
 VARIANT_ENUM_CAST(Control::MouseFilter);
+VARIANT_ENUM_CAST(Control::GrowDirection);
 
 #endif

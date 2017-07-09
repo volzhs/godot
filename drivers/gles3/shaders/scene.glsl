@@ -275,6 +275,19 @@ void main() {
 	highp mat4 modelview = camera_inverse_matrix * world_matrix;
 	highp mat4 local_projection = projection_matrix;
 
+//using world coordinates
+#if !defined(SKIP_TRANSFORM_USED) && defined(VERTEX_WORLD_COORDS_USED)
+
+	vertex = world_matrix * vertex;
+	normal = normalize((world_matrix * vec4(normal,0.0)).xyz);
+
+#if defined(ENABLE_TANGENT_INTERP) || defined(ENABLE_NORMALMAP) || defined(LIGHT_USE_ANISOTROPY)
+
+	tangent = normalize((world_matrix * vec4(tangent,0.0)).xyz);
+	binormal = normalize((world_matrix * vec4(binormal,0.0)).xyz);
+#endif
+#endif
+
 //defines that make writing custom shaders easier
 #define projection_matrix local_projection
 #define world_transform world_matrix
@@ -286,28 +299,41 @@ VERTEX_SHADER_CODE
 
 
 
-
-#if !defined(SKIP_TRANSFORM_USED)
+//using local coordinates (default)
+#if !defined(SKIP_TRANSFORM_USED) && !defined(VERTEX_WORLD_COORDS_USED)
 
 	vertex = modelview * vertex;
 	normal = normalize((modelview * vec4(normal,0.0)).xyz);
+
+#if defined(ENABLE_TANGENT_INTERP) || defined(ENABLE_NORMALMAP) || defined(LIGHT_USE_ANISOTROPY)
+
+	tangent = normalize((modelview * vec4(tangent,0.0)).xyz);
+	binormal = normalize((modelview * vec4(binormal,0.0)).xyz);
+#endif
 #endif
 
+//using world coordinates
+#if !defined(SKIP_TRANSFORM_USED) && defined(VERTEX_WORLD_COORDS_USED)
+
+	vertex = camera_inverse_matrix * vertex;
+	normal = normalize((camera_inverse_matrix * vec4(normal,0.0)).xyz);
+
+#if defined(ENABLE_TANGENT_INTERP) || defined(ENABLE_NORMALMAP) || defined(LIGHT_USE_ANISOTROPY)
+
+	tangent = normalize((camera_inverse_matrix * vec4(tangent,0.0)).xyz);
+	binormal = normalize((camera_inverse_matrix * vec4(binormal,0.0)).xyz);
+#endif
+#endif
 
 	vertex_interp = vertex.xyz;
 	normal_interp = normal;
 
+
 #if defined(ENABLE_TANGENT_INTERP) || defined(ENABLE_NORMALMAP) || defined(LIGHT_USE_ANISOTROPY)
-
-#if !defined(SKIP_TRANSFORM_USED)
-
-	tangent = normalize((modelview * vec4(tangent,0.0)).xyz);
-	binormal = normalize((modelview * vec4(binormal,0.0)).xyz);
-
-#endif
 	tangent_interp = tangent;
 	binormal_interp = binormal;
 #endif
+
 
 #ifdef RENDER_DEPTH
 
@@ -749,6 +775,10 @@ LIGHT_SHADER_CODE
 		diffuse += diffuse_color * max(0.0, NdotL) * (A + vec3(B) * s / t) / M_PI;
 	}
 
+#elif defined(DIFFUSE_TOON)
+
+	diffuse += smoothstep(-roughness,max(roughness,0.01),dot(N,L)) * light_color * diffuse_color;
+
 #elif defined(DIFFUSE_BURLEY)
 
 	{
@@ -779,6 +809,37 @@ LIGHT_SHADER_CODE
 
 	if (roughness > 0.0) {
 
+
+		// D
+
+#if defined(SPECULAR_BLINN)
+
+		vec3 H = normalize(V + L);
+		float dotNH = max(dot(N,H), 0.0 );
+		float intensity = pow( dotNH, (1.0-roughness) * 256.0);
+		specular += light_color * intensity * specular_blob_intensity;
+
+#elif defined(SPECULAR_PHONG)
+
+		 vec3 R = normalize(-reflect(L,N));
+		 float dotNV = max(0.0,dot(R,V));
+		 float intensity = pow( dotNV, (1.0-roughness) * 256.0);
+		 specular += light_color * intensity * specular_blob_intensity;
+
+#elif defined(SPECULAR_TOON)
+
+		vec3 R = normalize(-reflect(L,N));
+		float dotNV = dot(R,V);
+		float mid = 1.0-roughness;
+		mid*=mid;
+		float intensity = smoothstep(mid-roughness*0.5,mid+roughness*0.5,dotNV) * mid;
+		diffuse += light_color * intensity * specular_blob_intensity; //write to diffuse, as in toon shading you generally want no reflection
+
+#elif defined(SPECULAR_DISABLED)
+		//none..
+
+#else
+		// shlick+ggx as default
 		float alpha = roughness * roughness;
 
 		vec3 H = normalize(V + L);
@@ -786,7 +847,6 @@ LIGHT_SHADER_CODE
 		float dotNH = max(dot(N,H), 0.0 );
 		float dotLH = max(dot(L,H), 0.0 );
 
-		// D
 #if defined(LIGHT_USE_ANISOTROPY)
 
 		float aspect = sqrt(1.0-anisotropy*0.9);
@@ -818,6 +878,7 @@ LIGHT_SHADER_CODE
 		float speci = dotNL * D * F * vis;
 
 		specular += speci * light_color * specular_blob_intensity;
+#endif
 
 #if defined(LIGHT_USE_CLEARCOAT)
 		float Dr = GTR1(dotNH, mix(.1,.001,clearcoat_gloss));
@@ -908,7 +969,7 @@ vec3 light_transmittance(float translucency,vec3 light_vec, vec3 normal, vec3 po
 }
 #endif
 
-void light_process_omni(int idx, vec3 vertex, vec3 eye_vec,vec3 normal,vec3 binormal, vec3 tangent, vec3 albedo, float roughness, float rim, float rim_tint, float clearcoat, float clearcoat_gloss,float anisotropy,inout vec3 diffuse_light, inout vec3 specular_light) {
+void light_process_omni(int idx, vec3 vertex, vec3 eye_vec,vec3 normal,vec3 binormal, vec3 tangent, vec3 albedo, float roughness, float rim, float rim_tint, float clearcoat, float clearcoat_gloss,float anisotropy,float p_blob_intensity,inout vec3 diffuse_light, inout vec3 specular_light) {
 
 	vec3 light_rel_vec = omni_lights[idx].light_pos_inv_radius.xyz-vertex;
 	float light_length = length( light_rel_vec );
@@ -959,11 +1020,11 @@ void light_process_omni(int idx, vec3 vertex, vec3 eye_vec,vec3 normal,vec3 bino
 		light_attenuation*=mix(omni_lights[idx].shadow_color_contact.rgb,vec3(1.0),shadow);
 	}
 
-	light_compute(normal,normalize(light_rel_vec),eye_vec,binormal,tangent,omni_lights[idx].light_color_energy.rgb*light_attenuation,albedo,omni_lights[idx].light_params.z,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
+	light_compute(normal,normalize(light_rel_vec),eye_vec,binormal,tangent,omni_lights[idx].light_color_energy.rgb*light_attenuation,albedo,omni_lights[idx].light_params.z*p_blob_intensity,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
 
 }
 
-void light_process_spot(int idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 binormal, vec3 tangent,vec3 albedo, float roughness, float rim,float rim_tint, float clearcoat, float clearcoat_gloss,float anisotropy, inout vec3 diffuse_light, inout vec3 specular_light) {
+void light_process_spot(int idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 binormal, vec3 tangent,vec3 albedo, float roughness, float rim,float rim_tint, float clearcoat, float clearcoat_gloss,float anisotropy,float p_blob_intensity, inout vec3 diffuse_light, inout vec3 specular_light) {
 
 	vec3 light_rel_vec = spot_lights[idx].light_pos_inv_radius.xyz-vertex;
 	float light_length = length( light_rel_vec );
@@ -992,7 +1053,7 @@ void light_process_spot(int idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 bi
 		light_attenuation*=mix(spot_lights[idx].shadow_color_contact.rgb,vec3(1.0),shadow);
 	}
 
-	light_compute(normal,normalize(light_rel_vec),eye_vec,binormal,tangent,spot_lights[idx].light_color_energy.rgb*light_attenuation,albedo,spot_lights[idx].light_params.z,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
+	light_compute(normal,normalize(light_rel_vec),eye_vec,binormal,tangent,spot_lights[idx].light_color_energy.rgb*light_attenuation,albedo,spot_lights[idx].light_params.z*p_blob_intensity,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
 
 }
 
@@ -1451,6 +1512,11 @@ FRAGMENT_SHADER_CODE
 
 	ambient_light*=ambient_energy;
 
+	float specular_blob_intensity=1.0;
+#if defined(SPECULAR_TOON)
+	specular_blob_intensity*=specular * 2.0;
+#endif
+
 #ifdef USE_LIGHT_DIRECTIONAL
 
 	vec3 light_attenuation=vec3(1.0);
@@ -1590,7 +1656,7 @@ FRAGMENT_SHADER_CODE
 
 #endif //LIGHT_DIRECTIONAL_SHADOW
 
-	light_compute(normal,-light_direction_attenuation.xyz,eye_vec,binormal,tangent,light_color_energy.rgb*light_attenuation,albedo,light_params.z,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
+	light_compute(normal,-light_direction_attenuation.xyz,eye_vec,binormal,tangent,light_color_energy.rgb*light_attenuation,albedo,light_params.z*specular_blob_intensity,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
 
 
 #endif //#USE_LIGHT_DIRECTIONAL
@@ -1606,8 +1672,6 @@ FRAGMENT_SHADER_CODE
 	highp vec4 reflection_accum = vec4(0.0,0.0,0.0,0.0);
 	highp vec4 ambient_accum = vec4(0.0,0.0,0.0,0.0);
 
-
-
 	for(int i=0;i<reflection_count;i++) {
 		reflection_process(reflection_indices[i],vertex,normal,binormal,tangent,roughness,anisotropy,ambient_light,specular_light,reflection_accum,ambient_accum);
 	}
@@ -1620,11 +1684,11 @@ FRAGMENT_SHADER_CODE
 	}
 
 	for(int i=0;i<omni_light_count;i++) {
-		light_process_omni(omni_light_indices[i],vertex,eye_vec,normal,binormal,tangent,albedo,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
+		light_process_omni(omni_light_indices[i],vertex,eye_vec,normal,binormal,tangent,albedo,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,specular_blob_intensity,diffuse_light,specular_light);
 	}
 
 	for(int i=0;i<spot_light_count;i++) {
-		light_process_spot(spot_light_indices[i],vertex,eye_vec,normal,binormal,tangent,albedo,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
+		light_process_spot(spot_light_indices[i],vertex,eye_vec,normal,binormal,tangent,albedo,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,specular_blob_intensity,diffuse_light,specular_light);
 	}
 
 
@@ -1656,11 +1720,15 @@ FRAGMENT_SHADER_CODE
 	diffuse_light=mix(diffuse_light,vec3(0.0),metallic);
 	ambient_light=mix(ambient_light,vec3(0.0),metallic);
 	{
+
+#if defined(DIFFUSE_TOON)
+		//simplify for toon, as
+		specular_light *= specular * metallic * albedo * 2.0;
+#else
 		//brdf approximation (Lazarov 2013)
 		float ndotv = clamp(dot(normal,eye_vec),0.0,1.0);
-
+		vec3 dielectric = vec3(0.034) * specular * 2.0;
 		//energy conservation
-		vec3 dielectric = vec3(0.034) * 0.5 * 2.0;
 		vec3 f0 = mix(dielectric, albedo, metallic);
 		const vec4 c0 = vec4(-1.0, -0.0275, -0.572, 0.022);
 		const vec4 c1 = vec4( 1.0, 0.0425, 1.04, -0.04);
@@ -1669,6 +1737,8 @@ FRAGMENT_SHADER_CODE
 		vec2 brdf = vec2( -1.04, 1.04 ) * a004 + r.zw;
 
 		specular_light *= min(1.0,50.0 * f0.g) * brdf.y + brdf.x * f0;
+#endif
+
 	}
 
 	if (fog_color_enabled.a > 0.5) {

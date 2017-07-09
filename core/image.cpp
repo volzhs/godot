@@ -423,7 +423,7 @@ void Image::convert(Format p_new_format) {
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
 
-				new_img.put_pixel(i, j, get_pixel(i, j));
+				new_img.set_pixel(i, j, get_pixel(i, j));
 			}
 		}
 
@@ -1325,19 +1325,19 @@ void Image::create(const char **p_xpm) {
 		line++;
 	}
 }
-#define DETECT_ALPHA_MAX_TRESHOLD 254
-#define DETECT_ALPHA_MIN_TRESHOLD 2
+#define DETECT_ALPHA_MAX_THRESHOLD 254
+#define DETECT_ALPHA_MIN_THRESHOLD 2
 
-#define DETECT_ALPHA(m_value)                         \
-	{                                                 \
-		uint8_t value = m_value;                      \
-		if (value < DETECT_ALPHA_MIN_TRESHOLD)        \
-			bit = true;                               \
-		else if (value < DETECT_ALPHA_MAX_TRESHOLD) { \
-                                                      \
-			detected = true;                          \
-			break;                                    \
-		}                                             \
+#define DETECT_ALPHA(m_value)                          \
+	{                                                  \
+		uint8_t value = m_value;                       \
+		if (value < DETECT_ALPHA_MIN_THRESHOLD)        \
+			bit = true;                                \
+		else if (value < DETECT_ALPHA_MAX_THRESHOLD) { \
+                                                       \
+			detected = true;                           \
+			break;                                     \
+		}                                              \
 	}
 
 #define DETECT_NON_ALPHA(m_value) \
@@ -1673,7 +1673,7 @@ void Image::blit_rect_mask(const Ref<Image> &p_src, const Ref<Image> &p_mask, co
 	const uint8_t *src_data_ptr = rp.ptr();
 
 	int pixel_size = get_format_pixel_size(format);
-	
+
 	Ref<Image> msk = p_mask;
 	msk->lock();
 
@@ -1683,7 +1683,7 @@ void Image::blit_rect_mask(const Ref<Image> &p_src, const Ref<Image> &p_mask, co
 
 			int src_x = clipped_src_rect.position.x + j;
 			int src_y = clipped_src_rect.position.y + i;
-			
+
 			if (msk->get_pixel(src_x, src_y).a != 0) {
 
 				int dst_x = dest_rect.position.x + j;
@@ -1737,7 +1737,7 @@ void Image::blend_rect(const Ref<Image> &p_src, const Rect2 &p_src_rect, const P
 			dc.g = (double)(sc.a * sc.g + dc.a * (1.0 - sc.a) * dc.g);
 			dc.b = (double)(sc.a * sc.b + dc.a * (1.0 - sc.a) * dc.b);
 			dc.a = (double)(sc.a + dc.a * (1.0 - sc.a));
-			put_pixel(dst_x, dst_y, dc);
+			set_pixel(dst_x, dst_y, dc);
 		}
 	}
 
@@ -1792,7 +1792,7 @@ void Image::blend_rect_mask(const Ref<Image> &p_src, const Ref<Image> &p_mask, c
 				dc.g = (double)(sc.a * sc.g + dc.a * (1.0 - sc.a) * dc.g);
 				dc.b = (double)(sc.a * sc.b + dc.a * (1.0 - sc.a) * dc.b);
 				dc.a = (double)(sc.a + dc.a * (1.0 - sc.a));
-				put_pixel(dst_x, dst_y, dc);
+				set_pixel(dst_x, dst_y, dc);
 			}
 		}
 	}
@@ -1812,7 +1812,7 @@ void Image::fill(const Color &c) {
 	int pixel_size = get_format_pixel_size(format);
 
 	// put first pixel with the format-aware API
-	put_pixel(0, 0, c);
+	set_pixel(0, 0, c);
 
 	for (int y = 0; y < height; y++) {
 
@@ -2041,12 +2041,12 @@ Color Image::get_pixel(int p_x, int p_y) const {
 	return Color();
 }
 
-void Image::put_pixel(int p_x, int p_y, const Color &p_color) {
+void Image::set_pixel(int p_x, int p_y, const Color &p_color) {
 
 	uint8_t *ptr = write_lock.ptr();
 #ifdef DEBUG_ENABLED
 	if (!ptr) {
-		ERR_EXPLAIN("Image must be locked with 'lock()' before using put_pixel()");
+		ERR_EXPLAIN("Image must be locked with 'lock()' before using set_pixel()");
 		ERR_FAIL_COND(!ptr);
 	}
 
@@ -2160,7 +2160,7 @@ void Image::put_pixel(int p_x, int p_y, const Color &p_color) {
 
 		} break;
 		default: {
-			ERR_EXPLAIN("Can't put_pixel() on compressed image, sorry.");
+			ERR_EXPLAIN("Can't set_pixel() on compressed image, sorry.");
 			ERR_FAIL();
 		}
 	}
@@ -2270,7 +2270,7 @@ void Image::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("lock"), &Image::lock);
 	ClassDB::bind_method(D_METHOD("unlock"), &Image::unlock);
-	ClassDB::bind_method(D_METHOD("put_pixel", "x", "y", "color"), &Image::put_pixel);
+	ClassDB::bind_method(D_METHOD("set_pixel", "x", "y", "color"), &Image::set_pixel);
 	ClassDB::bind_method(D_METHOD("get_pixel", "x", "y"), &Image::get_pixel);
 
 	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "_set_data", "_get_data");
@@ -2434,7 +2434,7 @@ void Image::fix_alpha_edges() {
 	unsigned char *data_ptr = wp.ptr();
 
 	const int max_radius = 4;
-	const int alpha_treshold = 20;
+	const int alpha_threshold = 20;
 	const int max_dist = 0x7FFFFFFF;
 
 	for (int i = 0; i < height; i++) {
@@ -2443,7 +2443,7 @@ void Image::fix_alpha_edges() {
 			const uint8_t *rptr = &srcptr[(i * width + j) * 4];
 			uint8_t *wptr = &data_ptr[(i * width + j) * 4];
 
-			if (rptr[3] >= alpha_treshold)
+			if (rptr[3] >= alpha_threshold)
 				continue;
 
 			int closest_dist = max_dist;
@@ -2465,7 +2465,7 @@ void Image::fix_alpha_edges() {
 
 					const uint8_t *rp = &srcptr[(k * width + l) << 2];
 
-					if (rp[3] < alpha_treshold)
+					if (rp[3] < alpha_threshold)
 						continue;
 
 					closest_color[0] = rp[0];

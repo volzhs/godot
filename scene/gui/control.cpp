@@ -90,11 +90,22 @@ Size2 Control::edit_get_minimum_size() const {
 	return get_combined_minimum_size();
 }
 
+Transform2D Control::_get_internal_transform() const {
+
+	Transform2D rot_scale;
+	rot_scale.set_rotation_and_scale(data.rotation, data.scale);
+	Transform2D offset;
+	offset.set_origin(-data.pivot_offset);
+
+	return offset.affine_inverse() * (rot_scale * offset);
+}
 void Control::edit_set_rect(const Rect2 &p_edit_rect) {
 
-	Transform2D postxf;
-	postxf.set_rotation_and_scale(data.rotation, data.scale);
-	Vector2 new_pos = postxf.xform(p_edit_rect.position);
+	Transform2D xform = _get_internal_transform();
+
+	//	xform[2] += get_position();
+
+	Vector2 new_pos = xform.basis_xform(p_edit_rect.position);
 
 	Vector2 pos = get_position() + new_pos;
 
@@ -353,8 +364,9 @@ void Control::remove_child_notify(Node *p_child) {
 
 void Control::_update_canvas_item_transform() {
 
-	Transform2D xform = Transform2D(data.rotation, get_position());
-	xform.scale_basis(data.scale);
+	Transform2D xform = _get_internal_transform();
+	xform[2] += get_position();
+
 	VisualServer::get_singleton()->canvas_item_set_transform(get_canvas_item(), xform);
 }
 
@@ -1219,10 +1231,26 @@ void Control::_size_changed() {
 
 	Point2 new_pos_cache = Point2(margin_pos[0], margin_pos[1]).floor();
 	Size2 new_size_cache = Point2(margin_pos[2], margin_pos[3]).floor() - new_pos_cache;
+
 	Size2 minimum_size = get_combined_minimum_size();
 
-	new_size_cache.x = MAX(minimum_size.x, new_size_cache.x);
-	new_size_cache.y = MAX(minimum_size.y, new_size_cache.y);
+	if (data.h_grow == GROW_DIRECTION_BEGIN) {
+		if (minimum_size.width > new_size_cache.width) {
+			new_pos_cache.x = new_pos_cache.x + new_size_cache.width - minimum_size.width;
+			new_size_cache.width = minimum_size.width;
+		}
+	} else {
+		new_size_cache.width = MAX(minimum_size.width, new_size_cache.width);
+	}
+
+	if (data.v_grow == GROW_DIRECTION_BEGIN) {
+		if (minimum_size.height > new_size_cache.height) {
+			new_pos_cache.y = new_pos_cache.y + new_size_cache.height - minimum_size.height;
+			new_size_cache.height = minimum_size.height;
+		}
+	} else {
+		new_size_cache.height = MAX(minimum_size.height, new_size_cache.height);
+	}
 
 	bool pos_changed = new_pos_cache != data.pos_cache;
 	bool size_changed = new_size_cache != data.size_cache;
@@ -1887,8 +1915,8 @@ Control::CursorShape Control::get_cursor_shape(const Point2 &p_pos) const {
 
 Transform2D Control::get_transform() const {
 
-	Transform2D xform = Transform2D(data.rotation, get_position());
-	xform.scale_basis(data.scale);
+	Transform2D xform = _get_internal_transform();
+	xform[2] += get_position();
 	return xform;
 }
 
@@ -2214,6 +2242,19 @@ void Control::_font_changed() {
 	minimum_size_changed(); //fonts affect minimum size pretty much almost always
 }
 
+void Control::set_pivot_offset(const Vector2 &p_pivot) {
+
+	data.pivot_offset = p_pivot;
+	update();
+	_notify_transform();
+	_change_notify("rect_pivot_offset");
+}
+
+Vector2 Control::get_pivot_offset() const {
+
+	return data.pivot_offset;
+}
+
 void Control::set_scale(const Vector2 &p_scale) {
 
 	data.scale = p_scale;
@@ -2300,6 +2341,27 @@ bool Control::is_clipping_contents() {
 	return data.clip_contents;
 }
 
+void Control::set_h_grow_direction(GrowDirection p_direction) {
+
+	data.h_grow = p_direction;
+	_size_changed();
+}
+
+Control::GrowDirection Control::get_h_grow_direction() const {
+
+	return data.h_grow;
+}
+
+void Control::set_v_grow_direction(GrowDirection p_direction) {
+
+	data.v_grow = p_direction;
+	_size_changed();
+}
+Control::GrowDirection Control::get_v_grow_direction() const {
+
+	return data.v_grow;
+}
+
 void Control::_bind_methods() {
 
 	//ClassDB::bind_method(D_METHOD("_window_resize_event"),&Control::_window_resize_event);
@@ -2325,6 +2387,7 @@ void Control::_bind_methods() {
 	// TODO: Obsolete this method (old name) properly (GH-4397)
 	ClassDB::bind_method(D_METHOD("_set_rotation_deg", "degrees"), &Control::_set_rotation_deg);
 	ClassDB::bind_method(D_METHOD("set_scale", "scale"), &Control::set_scale);
+	ClassDB::bind_method(D_METHOD("set_pivot_offset", "pivot_offset"), &Control::set_pivot_offset);
 	ClassDB::bind_method(D_METHOD("get_margin", "margin"), &Control::get_margin);
 	ClassDB::bind_method(D_METHOD("get_begin"), &Control::get_begin);
 	ClassDB::bind_method(D_METHOD("get_end"), &Control::get_end);
@@ -2335,6 +2398,7 @@ void Control::_bind_methods() {
 	// TODO: Obsolete this method (old name) properly (GH-4397)
 	ClassDB::bind_method(D_METHOD("_get_rotation_deg"), &Control::_get_rotation_deg);
 	ClassDB::bind_method(D_METHOD("get_scale"), &Control::get_scale);
+	ClassDB::bind_method(D_METHOD("get_pivot_offset"), &Control::get_pivot_offset);
 	ClassDB::bind_method(D_METHOD("get_custom_minimum_size"), &Control::get_custom_minimum_size);
 	ClassDB::bind_method(D_METHOD("get_parent_area_size"), &Control::get_size);
 	ClassDB::bind_method(D_METHOD("get_global_position"), &Control::get_global_position);
@@ -2388,6 +2452,12 @@ void Control::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_parent_control:Control"), &Control::get_parent_control);
 
+	ClassDB::bind_method(D_METHOD("set_h_grow_direction", "direction"), &Control::set_h_grow_direction);
+	ClassDB::bind_method(D_METHOD("get_h_grow_direction"), &Control::get_h_grow_direction);
+
+	ClassDB::bind_method(D_METHOD("set_v_grow_direction", "direction"), &Control::set_v_grow_direction);
+	ClassDB::bind_method(D_METHOD("get_v_grow_direction"), &Control::get_v_grow_direction);
+
 	ClassDB::bind_method(D_METHOD("set_tooltip", "tooltip"), &Control::set_tooltip);
 	ClassDB::bind_method(D_METHOD("get_tooltip", "atpos"), &Control::get_tooltip, DEFVAL(Point2()));
 	ClassDB::bind_method(D_METHOD("_get_tooltip"), &Control::_get_tooltip);
@@ -2438,12 +2508,17 @@ void Control::_bind_methods() {
 	ADD_PROPERTYINZ(PropertyInfo(Variant::INT, "margin_right", PROPERTY_HINT_RANGE, "-4096,4096"), "set_margin", "get_margin", MARGIN_RIGHT);
 	ADD_PROPERTYINZ(PropertyInfo(Variant::INT, "margin_bottom", PROPERTY_HINT_RANGE, "-4096,4096"), "set_margin", "get_margin", MARGIN_BOTTOM);
 
+	ADD_GROUP("Grow Direction", "grow_");
+	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "grow_horizontal", PROPERTY_HINT_ENUM, "Begin,End"), "set_h_grow_direction", "get_h_grow_direction");
+	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "grow_vertical", PROPERTY_HINT_ENUM, "Begin,End"), "set_v_grow_direction", "get_v_grow_direction");
+
 	ADD_GROUP("Rect", "rect_");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::VECTOR2, "rect_position", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR), "set_position", "get_position");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::VECTOR2, "rect_size", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR), "set_size", "get_size");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::VECTOR2, "rect_min_size"), "set_custom_minimum_size", "get_custom_minimum_size");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::REAL, "rect_rotation", PROPERTY_HINT_RANGE, "-1080,1080,0.01"), "set_rotation_deg", "get_rotation_deg");
 	ADD_PROPERTYNO(PropertyInfo(Variant::VECTOR2, "rect_scale"), "set_scale", "get_scale");
+	ADD_PROPERTYNO(PropertyInfo(Variant::VECTOR2, "rect_pivot_offset"), "set_pivot_offset", "get_pivot_offset");
 	ADD_PROPERTYNO(PropertyInfo(Variant::BOOL, "rect_clip_content"), "set_clip_contents", "is_clipping_contents");
 
 	ADD_GROUP("Hint", "hint_");
@@ -2459,8 +2534,8 @@ void Control::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "mouse_filter", PROPERTY_HINT_ENUM, "Stop,Pass,Ignore"), "set_mouse_filter", "get_mouse_filter");
 
 	ADD_GROUP("Size Flags", "size_flags_");
-	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "size_flags_horizontal", PROPERTY_HINT_FLAGS, "Fill,Expand"), "set_h_size_flags", "get_h_size_flags");
-	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "size_flags_vertical", PROPERTY_HINT_FLAGS, "Fill,Expand"), "set_v_size_flags", "get_v_size_flags");
+	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "size_flags_horizontal", PROPERTY_HINT_FLAGS, "Fill,Expand,Shrink Center,Shrink End"), "set_h_size_flags", "get_h_size_flags");
+	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "size_flags_vertical", PROPERTY_HINT_FLAGS, "Fill,Expand,Shrink Center,Shrink End"), "set_v_size_flags", "get_v_size_flags");
 	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "size_flags_stretch_ratio", PROPERTY_HINT_RANGE, "1,128,0.01"), "set_stretch_ratio", "get_stretch_ratio");
 	ADD_GROUP("Theme", "");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::OBJECT, "theme", PROPERTY_HINT_RESOURCE_TYPE, "Theme"), "set_theme", "get_theme");
@@ -2502,10 +2577,15 @@ void Control::_bind_methods() {
 	BIND_CONSTANT(SIZE_EXPAND);
 	BIND_CONSTANT(SIZE_FILL);
 	BIND_CONSTANT(SIZE_EXPAND_FILL);
+	BIND_CONSTANT(SIZE_SHRINK_CENTER);
+	BIND_CONSTANT(SIZE_SHRINK_END);
 
 	BIND_CONSTANT(MOUSE_FILTER_STOP);
 	BIND_CONSTANT(MOUSE_FILTER_PASS);
 	BIND_CONSTANT(MOUSE_FILTER_IGNORE);
+
+	BIND_CONSTANT(GROW_DIRECTION_BEGIN);
+	BIND_CONSTANT(GROW_DIRECTION_END);
 
 	ADD_SIGNAL(MethodInfo("resized"));
 	ADD_SIGNAL(MethodInfo("gui_input", PropertyInfo(Variant::OBJECT, "ev", PROPERTY_HINT_RESOURCE_TYPE, "InputEvent")));
@@ -2543,6 +2623,8 @@ Control::Control() {
 	data.modal_frame = 0;
 	data.block_minimum_size_adjust = false;
 	data.disable_visibility_clip = false;
+	data.h_grow = GROW_DIRECTION_END;
+	data.v_grow = GROW_DIRECTION_END;
 
 	data.clip_contents = false;
 	for (int i = 0; i < 4; i++) {
