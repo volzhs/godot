@@ -285,6 +285,9 @@ platform/windows/godot_res.res
 /.vs
 /.vscode
 
+# Scons progress indicator
+.scons_node_count
+
 # personal
 compile_*
 make_*
@@ -297,3 +300,4 @@ modules/GooglePlayGameService/
 modules/UnityAds/
 templates/
 tools/dist/uwp_template/
+
