@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "visual_server_viewport.h"
-#include "global_config.h"
+#include "project_settings.h"
 #include "visual_server_canvas.h"
 #include "visual_server_global.h"
 #include "visual_server_scene.h"
@@ -265,7 +265,7 @@ void VisualServerViewport::draw_viewports() {
 
 	//draw viewports
 
-	clear_color = GLOBAL_GET("rendering/viewport/default_clear_color");
+	clear_color = GLOBAL_GET("rendering/environment/default_clear_color");
 
 	active_viewports.sort_custom<ViewportSort>();
 

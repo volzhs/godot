@@ -36,7 +36,7 @@
 #include "core_string_names.h"
 #include "func_ref.h"
 #include "geometry.h"
-#include "global_config.h"
+#include "project_settings.h"
 #include "input_map.h"
 #include "io/config_file.h"
 #include "io/http_client.h"
@@ -172,23 +172,23 @@ void register_core_types() {
 
 void register_core_settings() {
 	//since in register core types, globals may not e present
-	GLOBAL_DEF("network/packets/packet_stream_peer_max_buffer_po2", (16));
+	GLOBAL_DEF("network/limits/packet_peer_stream/max_buffer_po2", (16));
 }
 
 void register_core_singletons() {
 
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("GlobalConfig", GlobalConfig::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("IP", IP::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("Geometry", _Geometry::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("ResourceLoader", _ResourceLoader::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("ResourceSaver", _ResourceSaver::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("OS", _OS::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("Engine", _Engine::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("ClassDB", _classdb));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("Marshalls", _Marshalls::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("TranslationServer", TranslationServer::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("Input", Input::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("InputMap", InputMap::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("ProjectSettings", ProjectSettings::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("IP", IP::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("Geometry", _Geometry::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("ResourceLoader", _ResourceLoader::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("ResourceSaver", _ResourceSaver::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("OS", _OS::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("Engine", _Engine::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("ClassDB", _classdb));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("Marshalls", _Marshalls::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("TranslationServer", TranslationServer::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("Input", Input::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("InputMap", InputMap::get_singleton()));
 }
 
 void unregister_core_types() {

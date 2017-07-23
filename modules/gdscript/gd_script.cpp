@@ -29,7 +29,7 @@
 /*************************************************************************/
 #include "gd_script.h"
 #include "gd_compiler.h"
-#include "global_config.h"
+#include "project_settings.h"
 #include "global_constants.h"
 #include "io/file_access_encrypted.h"
 #include "os/file_access.h"
@@ -1454,9 +1454,9 @@ void GDScriptLanguage::init() {
 
 	//populate singletons
 
-	List<GlobalConfig::Singleton> singletons;
-	GlobalConfig::get_singleton()->get_singletons(&singletons);
-	for (List<GlobalConfig::Singleton>::Element *E = singletons.front(); E; E = E->next()) {
+	List<ProjectSettings::Singleton> singletons;
+	ProjectSettings::get_singleton()->get_singletons(&singletons);
+	for (List<ProjectSettings::Singleton>::Element *E = singletons.front(); E; E = E->next()) {
 
 		_add_global(E->get().name, E->get().ptr);
 	}
@@ -1885,7 +1885,7 @@ GDScriptLanguage::GDScriptLanguage() {
 	script_frame_time = 0;
 
 	_debug_call_stack_pos = 0;
-	int dmcs = GLOBAL_DEF("debug/script/max_call_stack", 1024);
+	int dmcs = GLOBAL_DEF("debug/settings/gdscript/max_call_stack", 1024);
 	if (ScriptDebugger::get_singleton()) {
 		//debugging enabled!
 

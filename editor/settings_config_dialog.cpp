@@ -32,7 +32,7 @@
 #include "editor_file_system.h"
 #include "editor_node.h"
 #include "editor_settings.h"
-#include "global_config.h"
+#include "project_settings.h"
 #include "os/keyboard.h"
 #include "scene/gui/margin_container.h"
 
@@ -332,7 +332,7 @@ EditorSettingsDialog::EditorSettingsDialog() {
 	property_editor = memnew(SectionedPropertyEditor);
 	//property_editor->hide_top_label();
 	property_editor->get_property_editor()->set_use_filter(true);
-	property_editor->get_property_editor()->register_text_enter(search_box);
+	property_editor->register_search_box(search_box);
 	property_editor->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 	vbc->add_child(property_editor);
 	property_editor->get_property_editor()->connect("property_edited", this, "_settings_property_edited");

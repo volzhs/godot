@@ -28,8 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "item_list.h"
-#include "global_config.h"
 #include "os/os.h"
+#include "project_settings.h"
 
 void ItemList::add_item(const String &p_item, const Ref<Texture> &p_texture, bool p_selectable) {
 
@@ -534,7 +534,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 				uint64_t now = OS::get_singleton()->get_ticks_msec();
 				uint64_t diff = now - search_time_msec;
 
-				if (diff < int(GlobalConfig::get_singleton()->get("gui/timers/incremental_search_max_interval_msec")) * 2) {
+				if (diff < int(ProjectSettings::get_singleton()->get("gui/timers/incremental_search_max_interval_msec")) * 2) {
 
 					for (int i = current - 1; i >= 0; i--) {
 
@@ -569,7 +569,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 				uint64_t now = OS::get_singleton()->get_ticks_msec();
 				uint64_t diff = now - search_time_msec;
 
-				if (diff < int(GlobalConfig::get_singleton()->get("gui/timers/incremental_search_max_interval_msec")) * 2) {
+				if (diff < int(ProjectSettings::get_singleton()->get("gui/timers/incremental_search_max_interval_msec")) * 2) {
 
 					for (int i = current + 1; i < items.size(); i++) {
 
@@ -743,12 +743,10 @@ void ItemList::_notification(int p_what) {
 
 		Size2 size = get_size();
 
-		float page = size.height - bg->get_minimum_size().height;
 		int width = size.width - bg->get_minimum_size().width;
 		if (scroll_bar->is_visible()) {
 			width -= mw + bg->get_margin(MARGIN_RIGHT);
 		}
-		scroll_bar->set_page(page);
 
 		draw_style_box(bg, Rect2(Point2(), size));
 
@@ -883,8 +881,12 @@ void ItemList::_notification(int p_what) {
 				}
 
 				if (all_fit) {
+					float page = size.height - bg->get_minimum_size().height;
 					float max = MAX(page, ofs.y + max_h);
+					if (auto_height)
+						auto_height_value = ofs.y + max_h + bg->get_minimum_size().height;
 					scroll_bar->set_max(max);
+					scroll_bar->set_page(page);
 					//print_line("max: "+rtos(max)+" page "+rtos(page));
 					if (max <= page) {
 						scroll_bar->set_value(0);
@@ -1253,6 +1255,26 @@ Array ItemList::_get_items() const {
 	return items;
 }
 
+Size2 ItemList::get_minimum_size() const {
+
+	if (auto_height) {
+		return Size2(0, auto_height_value);
+	}
+	return Size2();
+}
+
+void ItemList::set_auto_height(bool p_enable) {
+
+	auto_height = p_enable;
+	shape_changed = true;
+	update();
+}
+
+bool ItemList::has_auto_height() const {
+
+	return auto_height;
+}
+
 void ItemList::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("add_item", "text", "icon:Texture", "selectable"), &ItemList::add_item, DEFVAL(Variant()), DEFVAL(true));
@@ -1323,11 +1345,14 @@ void ItemList::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_allow_rmb_select", "allow"), &ItemList::set_allow_rmb_select);
 	ClassDB::bind_method(D_METHOD("get_allow_rmb_select"), &ItemList::get_allow_rmb_select);
 
+	ClassDB::bind_method(D_METHOD("set_auto_height", "enable"), &ItemList::set_auto_height);
+	ClassDB::bind_method(D_METHOD("has_auto_height"), &ItemList::has_auto_height);
+
 	ClassDB::bind_method(D_METHOD("get_item_at_pos", "pos", "exact"), &ItemList::get_item_at_pos, DEFVAL(false));
 
 	ClassDB::bind_method(D_METHOD("ensure_current_is_visible"), &ItemList::ensure_current_is_visible);
 
-	ClassDB::bind_method(D_METHOD("get_v_scroll"), &ItemList::get_v_scroll);
+	ClassDB::bind_method(D_METHOD("get_v_scroll:VScrollBar"), &ItemList::get_v_scroll);
 
 	ClassDB::bind_method(D_METHOD("_scroll_changed"), &ItemList::_scroll_changed);
 	ClassDB::bind_method(D_METHOD("_gui_input"), &ItemList::_gui_input);
@@ -1340,6 +1365,7 @@ void ItemList::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "select_mode", PROPERTY_HINT_ENUM, "Single,Multi"), "set_select_mode", "get_select_mode");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "allow_rmb_select"), "set_allow_rmb_select", "get_allow_rmb_select");
 	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "max_text_lines"), "set_max_text_lines", "get_max_text_lines");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "auto_height"), "set_auto_height", "has_auto_height");
 	ADD_GROUP("Columns", "");
 	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "max_columns"), "set_max_columns", "get_max_columns");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "same_column_width"), "set_same_column_width", "is_same_column_width");
@@ -1372,6 +1398,8 @@ ItemList::ItemList() {
 	same_column_width = false;
 	max_text_lines = 1;
 	max_columns = 1;
+	auto_height = false;
+	auto_height_value = 0.0f;
 
 	scroll_bar = memnew(VScrollBar);
 	add_child(scroll_bar);

@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "control.h"
-#include "global_config.h"
+#include "project_settings.h"
 #include "scene/main/canvas_layer.h"
 #include "scene/main/viewport.h"
 #include "servers/visual_server.h"
@@ -2469,7 +2469,7 @@ void Control::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_focus_neighbour", "margin", "neighbour"), &Control::set_focus_neighbour);
 	ClassDB::bind_method(D_METHOD("get_focus_neighbour", "margin"), &Control::get_focus_neighbour);
 
-	ClassDB::bind_method(D_METHOD("force_drag", "data", "preview"), &Control::force_drag);
+	ClassDB::bind_method(D_METHOD("force_drag", "data", "preview:Control"), &Control::force_drag);
 
 	ClassDB::bind_method(D_METHOD("set_mouse_filter", "filter"), &Control::set_mouse_filter);
 	ClassDB::bind_method(D_METHOD("get_mouse_filter"), &Control::get_mouse_filter);

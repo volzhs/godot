@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "label.h"
-#include "global_config.h"
+#include "project_settings.h"
 #include "print_string.h"
 #include "translation.h"
 
@@ -686,6 +686,7 @@ Label::Label(const String &p_text) {
 	max_lines_visible = -1;
 	set_text(p_text);
 	uppercase = false;
+	set_v_size_flags(SIZE_SHRINK_CENTER);
 }
 
 Label::~Label() {

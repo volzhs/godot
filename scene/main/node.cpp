@@ -1258,7 +1258,7 @@ String Node::_generate_serial_child_name(Node *p_child) {
 
 		name = p_child->get_class();
 		// Adjust casing according to project setting. The current type name is expected to be in PascalCase.
-		switch (GlobalConfig::get_singleton()->get("node/name_casing").operator int()) {
+		switch (ProjectSettings::get_singleton()->get("node/name_casing").operator int()) {
 			case NAME_CASING_PASCAL_CASE:
 				break;
 			case NAME_CASING_CAMEL_CASE:
@@ -2712,9 +2712,9 @@ void Node::request_ready() {
 void Node::_bind_methods() {
 
 	GLOBAL_DEF("node/name_num_separator", 0);
-	GlobalConfig::get_singleton()->set_custom_property_info("node/name_num_separator", PropertyInfo(Variant::INT, "node/name_num_separator", PROPERTY_HINT_ENUM, "None,Space,Underscore,Dash"));
+	ProjectSettings::get_singleton()->set_custom_property_info("node/name_num_separator", PropertyInfo(Variant::INT, "node/name_num_separator", PROPERTY_HINT_ENUM, "None,Space,Underscore,Dash"));
 	GLOBAL_DEF("node/name_casing", NAME_CASING_PASCAL_CASE);
-	GlobalConfig::get_singleton()->set_custom_property_info("node/name_casing", PropertyInfo(Variant::INT, "node/name_casing", PROPERTY_HINT_ENUM, "PascalCase,camelCase,snake_case"));
+	ProjectSettings::get_singleton()->set_custom_property_info("node/name_casing", PropertyInfo(Variant::INT, "node/name_casing", PROPERTY_HINT_ENUM, "PascalCase,camelCase,snake_case"));
 
 	ClassDB::bind_method(D_METHOD("_add_child_below_node", "node:Node", "child_node:Node", "legible_unique_name"), &Node::add_child_below_node, DEFVAL(false));
 
@@ -2786,7 +2786,7 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_scene_instance_load_placeholder", "load_placeholder"), &Node::set_scene_instance_load_placeholder);
 	ClassDB::bind_method(D_METHOD("get_scene_instance_load_placeholder"), &Node::get_scene_instance_load_placeholder);
 
-	ClassDB::bind_method(D_METHOD("get_viewport"), &Node::get_viewport);
+	ClassDB::bind_method(D_METHOD("get_viewport:Viewport"), &Node::get_viewport);
 
 	ClassDB::bind_method(D_METHOD("queue_free"), &Node::queue_delete);
 
@@ -2890,7 +2890,7 @@ void Node::_bind_methods() {
 }
 
 String Node::_get_name_num_separator() {
-	switch (GlobalConfig::get_singleton()->get("node/name_num_separator").operator int()) {
+	switch (ProjectSettings::get_singleton()->get("node/name_num_separator").operator int()) {
 		case 0: return "";
 		case 1: return " ";
 		case 2: return "_";

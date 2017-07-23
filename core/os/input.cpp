@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "input.h"
-#include "global_config.h"
+#include "project_settings.h"
 #include "input_map.h"
 #include "os/os.h"
 Input *Input::singleton = NULL;
@@ -84,7 +84,7 @@ void Input::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("action_press", "action"), &Input::action_press);
 	ClassDB::bind_method(D_METHOD("action_release", "action"), &Input::action_release);
 	ClassDB::bind_method(D_METHOD("set_custom_mouse_cursor", "image:Texture", "hotspot"), &Input::set_custom_mouse_cursor, DEFVAL(Vector2()));
-	ClassDB::bind_method(D_METHOD("parse_input_event", "event"), &Input::parse_input_event);
+	ClassDB::bind_method(D_METHOD("parse_input_event", "event:InputEvent"), &Input::parse_input_event);
 
 	BIND_CONSTANT(MOUSE_MODE_VISIBLE);
 	BIND_CONSTANT(MOUSE_MODE_HIDDEN);
@@ -101,7 +101,7 @@ void Input::get_argument_options(const StringName &p_function, int p_idx, List<S
 	if (p_idx == 0 && (pf == "is_action_pressed" || pf == "action_press" || pf == "action_release" || pf == "is_action_just_pressed" || pf == "is_action_just_released")) {
 
 		List<PropertyInfo> pinfo;
-		GlobalConfig::get_singleton()->get_property_list(&pinfo);
+		ProjectSettings::get_singleton()->get_property_list(&pinfo);
 
 		for (List<PropertyInfo>::Element *E = pinfo.front(); E; E = E->next()) {
 			const PropertyInfo &pi = E->get();

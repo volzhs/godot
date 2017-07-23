@@ -32,8 +32,8 @@
 #ifdef TOOLS_ENABLED
 
 #include "class_db.h"
-#include "core/global_config.h"
 #include "core/global_constants.h"
+#include "core/project_settings.h"
 #include "os/file_access.h"
 
 // helper stuff
@@ -150,7 +150,7 @@ List<ClassAPI> generate_c_api_classes() {
 			if (name.begins_with("_")) {
 				name.remove(0);
 			}
-			class_api.is_singleton = GlobalConfig::get_singleton()->has_singleton(name);
+			class_api.is_singleton = ProjectSettings::get_singleton()->has_singleton(name);
 		}
 		class_api.is_instanciable = !class_api.is_singleton && ClassDB::can_instance(class_name);
 
@@ -268,6 +268,8 @@ List<ClassAPI> generate_c_api_classes() {
 					method_api.method_name = method_api.method_name.get_slice(":", 0);
 				} else if (m->get().return_val.type != Variant::NIL) {
 					method_api.return_type = m->get().return_val.hint == PROPERTY_HINT_RESOURCE_TYPE ? m->get().return_val.hint_string : Variant::get_type_name(m->get().return_val.type);
+				} else if (m->get().return_val.name != "") {
+					method_api.return_type = m->get().return_val.name;
 				} else {
 					method_api.return_type = "void";
 				}

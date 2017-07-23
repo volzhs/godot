@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "environment.h"
-#include "global_config.h"
+#include "project_settings.h"
 #include "servers/visual_server.h"
 #include "texture.h"
 
@@ -1103,8 +1103,8 @@ void Environment::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_adjustment_saturation", "saturation"), &Environment::set_adjustment_saturation);
 	ClassDB::bind_method(D_METHOD("get_adjustment_saturation"), &Environment::get_adjustment_saturation);
 
-	ClassDB::bind_method(D_METHOD("set_adjustment_color_correction", "color_correction"), &Environment::set_adjustment_color_correction);
-	ClassDB::bind_method(D_METHOD("get_adjustment_color_correction"), &Environment::get_adjustment_color_correction);
+	ClassDB::bind_method(D_METHOD("set_adjustment_color_correction", "color_correction:Texture"), &Environment::set_adjustment_color_correction);
+	ClassDB::bind_method(D_METHOD("get_adjustment_color_correction:Texture"), &Environment::get_adjustment_color_correction);
 
 	ADD_GROUP("Adjustments", "adjustment_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "adjustment_enabled"), "set_adjustment_enable", "is_adjustment_enabled");
@@ -1112,8 +1112,6 @@ void Environment::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "adjustment_contrast", PROPERTY_HINT_RANGE, "0.01,8,0.01"), "set_adjustment_contrast", "get_adjustment_contrast");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "adjustment_saturation", PROPERTY_HINT_RANGE, "0.01,8,0.01"), "set_adjustment_saturation", "get_adjustment_saturation");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "adjustment_color_correction", PROPERTY_HINT_RESOURCE_TYPE, "Texture"), "set_adjustment_color_correction", "get_adjustment_color_correction");
-
-	GLOBAL_DEF("rendering/sky/irradiance_cube_resolution", 256);
 
 	BIND_CONSTANT(BG_KEEP);
 	BIND_CONSTANT(BG_CLEAR_COLOR);

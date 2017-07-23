@@ -35,7 +35,7 @@
 #include "editor/plugins/animation_player_editor_plugin.h"
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor/script_editor_debugger.h"
-#include "global_config.h"
+#include "project_settings.h"
 #include "os/input.h"
 #include "os/keyboard.h"
 #include "print_string.h"
@@ -1897,11 +1897,6 @@ void CanvasItemEditor::_viewport_draw() {
 
 	if (viewport->has_focus()) {
 		Size2 size = viewport->get_size();
-		if (v_scroll->is_visible_in_tree())
-			size.width -= v_scroll->get_size().width;
-		if (h_scroll->is_visible_in_tree())
-			size.height -= h_scroll->get_size().height;
-
 		get_stylebox("Focus", "EditorStyles")->draw(ci, Rect2(Point2(), size));
 	}
 
@@ -2012,7 +2007,7 @@ void CanvasItemEditor::_viewport_draw() {
 		VisualServer::get_singleton()->canvas_item_add_line(ci, transform.xform(display_rotate_from), transform.xform(display_rotate_to), rotate_color);
 	}
 
-	Size2 screen_size = Size2(GlobalConfig::get_singleton()->get("display/window/width"), GlobalConfig::get_singleton()->get("display/window/height"));
+	Size2 screen_size = Size2(ProjectSettings::get_singleton()->get("display/window/size/width"), ProjectSettings::get_singleton()->get("display/window/size/height"));
 
 	Vector2 screen_endpoints[4] = {
 		transform.xform(Vector2(0, 0)),
@@ -2239,6 +2234,7 @@ void CanvasItemEditor::_notification(int p_what) {
 		p->add_icon_item(get_icon("ControlHcenterWide", "EditorIcons"), "HCenter Wide ", ANCHOR_ALIGN_HCENTER_WIDE);
 		p->add_separator();
 		p->add_icon_item(get_icon("ControlAlignWide", "EditorIcons"), "Full Rect", ANCHOR_ALIGN_WIDE);
+		p->add_icon_item(get_icon("ControlAlignWide", "EditorIcons"), "Full Rect and Fit Parent", ANCHOR_ALIGN_WIDE_FIT);
 
 		AnimationPlayerEditor::singleton->get_key_editor()->connect("visibility_changed", this, "_keying_changed");
 		_keying_changed();
@@ -2327,7 +2323,7 @@ void CanvasItemEditor::_update_scrollbars() {
 	h_scroll->set_begin(Point2(0, size.height - hmin.height));
 	h_scroll->set_end(Point2(size.width - vmin.width, size.height));
 
-	Size2 screen_rect = Size2(GlobalConfig::get_singleton()->get("display/window/width"), GlobalConfig::get_singleton()->get("display/window/height"));
+	Size2 screen_rect = Size2(ProjectSettings::get_singleton()->get("display/window/size/width"), ProjectSettings::get_singleton()->get("display/window/size/height"));
 
 	Rect2 local_rect = Rect2(Point2(), viewport->get_size() - Size2(vmin.width, hmin.height));
 
@@ -2439,6 +2435,35 @@ void CanvasItemEditor::_set_anchor(Control::AnchorType p_left, Control::AnchorTy
 		undo_redo->add_undo_method(c, "set_anchor", MARGIN_TOP, c->get_anchor(MARGIN_TOP));
 		undo_redo->add_undo_method(c, "set_anchor", MARGIN_RIGHT, c->get_anchor(MARGIN_RIGHT));
 		undo_redo->add_undo_method(c, "set_anchor", MARGIN_BOTTOM, c->get_anchor(MARGIN_BOTTOM));
+	}
+
+	undo_redo->commit_action();
+}
+
+void CanvasItemEditor::_set_full_rect() {
+	List<Node *> &selection = editor_selection->get_selected_node_list();
+
+	undo_redo->create_action(TTR("Change Anchors"));
+	for (List<Node *>::Element *E = selection.front(); E; E = E->next()) {
+
+		Control *c = E->get()->cast_to<Control>();
+
+		undo_redo->add_do_method(c, "set_anchor", MARGIN_LEFT, ANCHOR_BEGIN);
+		undo_redo->add_do_method(c, "set_anchor", MARGIN_TOP, ANCHOR_BEGIN);
+		undo_redo->add_do_method(c, "set_anchor", MARGIN_RIGHT, ANCHOR_END);
+		undo_redo->add_do_method(c, "set_anchor", MARGIN_BOTTOM, ANCHOR_END);
+		undo_redo->add_do_method(c, "set_margin", MARGIN_LEFT, 0);
+		undo_redo->add_do_method(c, "set_margin", MARGIN_TOP, 0);
+		undo_redo->add_do_method(c, "set_margin", MARGIN_RIGHT, 0);
+		undo_redo->add_do_method(c, "set_margin", MARGIN_BOTTOM, 0);
+		undo_redo->add_undo_method(c, "set_anchor", MARGIN_LEFT, c->get_anchor(MARGIN_LEFT));
+		undo_redo->add_undo_method(c, "set_anchor", MARGIN_TOP, c->get_anchor(MARGIN_TOP));
+		undo_redo->add_undo_method(c, "set_anchor", MARGIN_RIGHT, c->get_anchor(MARGIN_RIGHT));
+		undo_redo->add_undo_method(c, "set_anchor", MARGIN_BOTTOM, c->get_anchor(MARGIN_BOTTOM));
+		undo_redo->add_undo_method(c, "set_margin", MARGIN_LEFT, c->get_margin(MARGIN_LEFT));
+		undo_redo->add_undo_method(c, "set_margin", MARGIN_TOP, c->get_margin(MARGIN_TOP));
+		undo_redo->add_undo_method(c, "set_margin", MARGIN_RIGHT, c->get_margin(MARGIN_RIGHT));
+		undo_redo->add_undo_method(c, "set_margin", MARGIN_BOTTOM, c->get_margin(MARGIN_BOTTOM));
 	}
 
 	undo_redo->commit_action();
@@ -2601,29 +2626,6 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 
 		} break;
 
-		case EXPAND_TO_PARENT: {
-
-			List<Node *> &selection = editor_selection->get_selected_node_list();
-
-			for (List<Node *>::Element *E = selection.front(); E; E = E->next()) {
-
-				CanvasItem *canvas_item = E->get()->cast_to<CanvasItem>();
-				if (!canvas_item || !canvas_item->is_visible_in_tree())
-					continue;
-
-				if (canvas_item->get_viewport() != EditorNode::get_singleton()->get_scene_root())
-					continue;
-
-				Control *c = canvas_item->cast_to<Control>();
-				if (!c)
-					continue;
-				c->set_area_as_parent_rect();
-			}
-
-			viewport->update();
-
-		} break;
-
 		case ALIGN_VERTICAL: {
 #if 0
 			if ( ref_item && canvas_items.size() > 1 ) {
@@ -2715,6 +2717,9 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 		} break;
 		case ANCHOR_ALIGN_WIDE: {
 			_set_anchor(ANCHOR_BEGIN, ANCHOR_BEGIN, ANCHOR_END, ANCHOR_END);
+		} break;
+		case ANCHOR_ALIGN_WIDE_FIT: {
+			_set_full_rect();
 		} break;
 
 		case ANIM_INSERT_KEY:
@@ -3331,8 +3336,6 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	p->add_separator();
 	p->add_check_shortcut(ED_SHORTCUT("canvas_item_editor/use_pixel_snap", TTR("Use Pixel Snap")), SNAP_USE_PIXEL);
 	p->add_separator();
-	p->add_shortcut(ED_SHORTCUT("canvas_item_editor/expand_to_parent", TTR("Expand to Parent"), KEY_MASK_CMD | KEY_P), EXPAND_TO_PARENT);
-	p->add_separator();
 	p->add_submenu_item(TTR("Skeleton.."), "skeleton");
 	skeleton_menu = memnew(PopupMenu);
 	p->add_child(skeleton_menu);
@@ -3383,6 +3386,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 
 	key_loc_button = memnew(Button("loc"));
 	key_loc_button->set_toggle_mode(true);
+	key_loc_button->set_flat(true);
 	key_loc_button->set_pressed(true);
 	key_loc_button->set_focus_mode(FOCUS_NONE);
 	key_loc_button->add_color_override("font_color", Color(1, 0.6, 0.6));
@@ -3391,6 +3395,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	animation_hb->add_child(key_loc_button);
 	key_rot_button = memnew(Button("rot"));
 	key_rot_button->set_toggle_mode(true);
+	key_rot_button->set_flat(true);
 	key_rot_button->set_pressed(true);
 	key_rot_button->set_focus_mode(FOCUS_NONE);
 	key_rot_button->add_color_override("font_color", Color(1, 0.6, 0.6));
@@ -3399,12 +3404,14 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	animation_hb->add_child(key_rot_button);
 	key_scale_button = memnew(Button("scl"));
 	key_scale_button->set_toggle_mode(true);
+	key_scale_button->set_flat(true);
 	key_scale_button->set_focus_mode(FOCUS_NONE);
 	key_scale_button->add_color_override("font_color", Color(1, 0.6, 0.6));
 	key_scale_button->add_color_override("font_color_pressed", Color(0.6, 1, 0.6));
 	key_scale_button->connect("pressed", this, "_popup_callback", varray(ANIM_INSERT_SCALE));
 	animation_hb->add_child(key_scale_button);
 	key_insert_button = memnew(Button);
+	key_insert_button->set_flat(true);
 	key_insert_button->set_focus_mode(FOCUS_NONE);
 	key_insert_button->connect("pressed", this, "_popup_callback", varray(ANIM_INSERT_KEY));
 	key_insert_button->set_tooltip(TTR("Insert Keys"));
@@ -3690,7 +3697,7 @@ bool CanvasItemEditorViewport::_create_instance(Node *parent, String &path, cons
 		}
 	}
 
-	instanced_scene->set_filename(GlobalConfig::get_singleton()->localize_path(path));
+	instanced_scene->set_filename(ProjectSettings::get_singleton()->localize_path(path));
 
 	editor_data->get_undo_redo().add_do_method(parent, "add_child", instanced_scene);
 	editor_data->get_undo_redo().add_do_method(instanced_scene, "set_owner", editor->get_edited_scene());

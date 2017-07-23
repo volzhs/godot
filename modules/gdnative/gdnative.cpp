@@ -29,11 +29,11 @@
 /*************************************************************************/
 #include "gdnative.h"
 
-#include "global_config.h"
 #include "global_constants.h"
 #include "io/file_access_encrypted.h"
 #include "os/file_access.h"
 #include "os/os.h"
+#include "project_settings.h"
 
 #include "scene/main/scene_tree.h"
 #include "scene/resources/scene_format_text.h"
@@ -481,8 +481,8 @@ void GDNativeScript::set_script_name(StringName p_script_name) {
 }
 
 void GDNativeScript::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("get_library"), &GDNativeScript::get_library);
-	ClassDB::bind_method(D_METHOD("set_library", "library"), &GDNativeScript::set_library);
+	ClassDB::bind_method(D_METHOD("get_library:GDNativeLibrary"), &GDNativeScript::get_library);
+	ClassDB::bind_method(D_METHOD("set_library", "library:GDNativeLibrary"), &GDNativeScript::set_library);
 	ClassDB::bind_method(D_METHOD("get_script_name"), &GDNativeScript::get_script_name);
 	ClassDB::bind_method(D_METHOD("set_script_name", "script_name"), &GDNativeScript::set_script_name);
 
@@ -573,7 +573,7 @@ Error GDNativeLibrary::_initialize() {
 	}
 	ERR_FAIL_COND_V(platform_file == "", ERR_DOES_NOT_EXIST);
 
-	StringName path = GlobalConfig::get_singleton()->globalize_path(platform_file);
+	StringName path = ProjectSettings::get_singleton()->globalize_path(platform_file);
 
 	GDNativeLibrary::currently_initialized_library = this;
 
@@ -847,6 +847,16 @@ bool GDNativeInstance::set(const StringName &p_name, const Variant &p_value) {
 		script->script_data->properties[p_name].setter.set_func((godot_object *)owner, script->script_data->properties[p_name].setter.method_data, userdata, *(godot_variant *)&p_value);
 		return true;
 	}
+
+	Map<StringName, GDNativeScriptData::Method>::Element *E = script->script_data->methods.find("_set");
+	if (E) {
+		Variant name = p_name;
+		const Variant *args[2] = { &name, &p_value };
+
+		E->get().method.method((godot_object *)owner, E->get().method.method_data, userdata, 2, (godot_variant **)args);
+		return true;
+	}
+
 	return false;
 }
 
@@ -856,14 +866,69 @@ bool GDNativeInstance::get(const StringName &p_name, Variant &r_ret) const {
 	if (script->script_data->properties.has(p_name)) {
 		godot_variant value = script->script_data->properties[p_name].getter.get_func((godot_object *)owner, script->script_data->properties[p_name].getter.method_data, userdata);
 		r_ret = *(Variant *)&value;
+		godot_variant_destroy(&value);
 		return true;
 	}
+
+	Map<StringName, GDNativeScriptData::Method>::Element *E = script->script_data->methods.find("_get");
+	if (E) {
+		Variant name = p_name;
+		const Variant *args[1] = { &name };
+
+		godot_variant result = E->get().method.method((godot_object *)owner, E->get().method.method_data, userdata, 1, (godot_variant **)args);
+		if (((Variant *)&result)->get_type() != Variant::NIL) {
+			r_ret = *(Variant *)&result;
+			godot_variant_destroy(&result);
+			return true;
+		}
+		godot_variant_destroy(&result);
+	}
+
 	return false;
 }
 
 void GDNativeInstance::get_property_list(List<PropertyInfo> *p_properties) const {
 	script->get_script_property_list(p_properties);
 	// TODO: dynamic properties
+
+	Map<StringName, GDNativeScriptData::Method>::Element *E = script->script_data->methods.find("_get_property_list");
+	if (E) {
+		godot_variant result = E->get().method.method((godot_object *)owner, E->get().method.method_data, userdata, 0, NULL);
+		Variant ret = *(Variant *)&result;
+		godot_variant_destroy(&result);
+
+		if (ret.get_type() != Variant::ARRAY) {
+			ERR_EXPLAIN("Wrong type for _get_property_list, must be an array of dictionaries.");
+			ERR_FAIL();
+		}
+
+		Array arr = ret;
+		for (int i = 0; i < arr.size(); i++) {
+			Dictionary d = arr[i];
+			ERR_CONTINUE(!d.has("name"))
+			ERR_CONTINUE(!d.has("type"))
+
+			PropertyInfo pinfo;
+
+			pinfo.type = Variant::Type(d["type"].operator int());
+			ERR_CONTINUE(pinfo.type < 0 || pinfo.type >= Variant::VARIANT_MAX);
+
+			pinfo.name = d["name"];
+			ERR_CONTINUE(pinfo.name == "");
+
+			if (d.has("hint")) {
+				pinfo.hint = PropertyHint(d["hint"].operator int());
+			}
+			if (d.has("hint_string")) {
+				pinfo.hint_string = d["hint_string"];
+			}
+			if (d.has("usage")) {
+				pinfo.usage = d["usage"];
+			}
+
+			p_properties->push_back(pinfo);
+		}
+	}
 }
 
 Variant::Type GDNativeInstance::get_property_type(const StringName &p_name, bool *r_is_valid) const {
@@ -1021,7 +1086,7 @@ void GDNativeScriptLanguage::init() {
 	// TODO: Expose globals
 	GLOBAL_DEF("gdnative/default_gdnativelibrary", "");
 	PropertyInfo prop_info(Variant::STRING, "gdnative/default_gdnativelibrary", PROPERTY_HINT_FILE, "tres,res,dllib");
-	GlobalConfig::get_singleton()->set_custom_property_info("gdnative/default_gdnativelibrary", prop_info);
+	ProjectSettings::get_singleton()->set_custom_property_info("gdnative/default_gdnativelibrary", prop_info);
 
 // generate bindings
 #if defined(TOOLS_ENABLED) && defined(DEBUG_METHODS_ENABLED)

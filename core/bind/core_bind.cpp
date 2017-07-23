@@ -29,7 +29,7 @@
 /*************************************************************************/
 #include "core_bind.h"
 
-#include "core/global_config.h"
+#include "core/project_settings.h"
 #include "geometry.h"
 #include "io/file_access_compressed.h"
 #include "io/file_access_encrypted.h"
@@ -106,7 +106,7 @@ PoolStringArray _ResourceLoader::get_dependencies(const String &p_path) {
 
 bool _ResourceLoader::has(const String &p_path) {
 
-	String local_path = GlobalConfig::get_singleton()->localize_path(p_path);
+	String local_path = ProjectSettings::get_singleton()->localize_path(p_path);
 	return ResourceCache::has(local_path);
 };
 
@@ -1038,7 +1038,7 @@ void _OS::_bind_methods() {
 			&_OS::get_unix_time_from_datetime);
 	ClassDB::bind_method(D_METHOD("get_system_time_secs"), &_OS::get_system_time_secs);
 
-	ClassDB::bind_method(D_METHOD("set_icon", "icon"), &_OS::set_icon);
+	ClassDB::bind_method(D_METHOD("set_icon", "icon:Image"), &_OS::set_icon);
 
 	ClassDB::bind_method(D_METHOD("get_exit_code"), &_OS::get_exit_code);
 	ClassDB::bind_method(D_METHOD("set_exit_code", "code"), &_OS::set_exit_code);
@@ -1780,6 +1780,7 @@ void _File::_bind_methods() {
 	BIND_CONSTANT(COMPRESSION_FASTLZ);
 	BIND_CONSTANT(COMPRESSION_DEFLATE);
 	BIND_CONSTANT(COMPRESSION_ZSTD);
+	BIND_CONSTANT(COMPRESSION_GZIP);
 }
 
 _File::_File() {

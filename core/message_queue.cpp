@@ -29,7 +29,7 @@
 /*************************************************************************/
 #include "message_queue.h"
 
-#include "global_config.h"
+#include "project_settings.h"
 #include "script_language.h"
 
 MessageQueue *MessageQueue::singleton = NULL;
@@ -382,7 +382,7 @@ MessageQueue::MessageQueue() {
 
 	buffer_end = 0;
 	buffer_max_used = 0;
-	buffer_size = GLOBAL_DEF("memory/buffers/message_queue_max_size_kb", DEFAULT_QUEUE_SIZE_KB);
+	buffer_size = GLOBAL_DEF("memory/limits/message_queue/max_size_kb", DEFAULT_QUEUE_SIZE_KB);
 	buffer_size *= 1024;
 	buffer = memnew_arr(uint8_t, buffer_size);
 }

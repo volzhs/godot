@@ -27,7 +27,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "visual_server_wrap_mt.h"
-#include "global_config.h"
+#include "project_settings.h"
 #include "os/os.h"
 
 void VisualServerWrapMT::thread_exit() {
@@ -176,7 +176,7 @@ VisualServerWrapMT::VisualServerWrapMT(VisualServer *p_contained, bool p_create_
 	draw_pending = 0;
 	draw_thread_up = false;
 	alloc_mutex = Mutex::create();
-	pool_max_size = GLOBAL_DEF("memory/servers/thread_rid_prealloc_amount", 20);
+	pool_max_size = GLOBAL_GET("memory/limits/multithreaded_server/rid_pool_prealloc");
 
 	if (!p_create_thread) {
 		server_thread = Thread::get_caller_ID();

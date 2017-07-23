@@ -35,12 +35,12 @@
 #include "drivers/windows/mutex_windows.h"
 #include "drivers/windows/rw_lock_windows.h"
 #include "drivers/windows/semaphore_windows.h"
-#include "global_config.h"
 #include "io/marshalls.h"
 #include "main/main.h"
 #include "platform/windows/packet_peer_udp_winsock.h"
 #include "platform/windows/stream_peer_winsock.h"
 #include "platform/windows/tcp_server_winsock.h"
+#include "project_settings.h"
 #include "servers/audio_server.h"
 #include "servers/visual/visual_server_raster.h"
 #include "thread_uwp.h"
@@ -310,7 +310,7 @@ void OSUWP::initialize(const VideoMode &p_desired, int p_video_driver, int p_aud
 	if (is_keep_screen_on())
 		display_request->RequestActive();
 
-	set_keep_screen_on(GLOBAL_DEF("display/keep_screen_on", true));
+	set_keep_screen_on(GLOBAL_DEF("display/window/keep_screen_on", true));
 }
 
 void OSUWP::set_clipboard(const String &p_text) {
@@ -851,9 +851,8 @@ String OSUWP::get_data_dir() const {
 	return String(data_folder->Path->Data()).replace("\\", "/");
 }
 
-bool OSUWP::check_feature_support(const String &p_feature) {
-
-	return VisualServer::get_singleton()->has_os_feature(p_feature);
+bool OSUWP::_check_internal_feature_support(const String &p_feature) {
+	return p_feature == "pc" || p_feature == "s3tc";
 }
 
 PowerState OSUWP::get_power_state() {

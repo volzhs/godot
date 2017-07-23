@@ -32,13 +32,13 @@
 #include "editor/editor_export.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
-#include "global_config.h"
 #include "io/marshalls.h"
 #include "io/resource_saver.h"
 #include "io/zip_io.h"
 #include "os/file_access.h"
 #include "os/os.h"
 #include "platform/osx/logo.gen.h"
+#include "project_settings.h"
 #include "string.h"
 #include "version.h"
 #include <sys/stat.h>
@@ -64,6 +64,7 @@ protected:
 
 public:
 	virtual String get_name() const { return "Mac OSX"; }
+	virtual String get_os_name() const { return "OSX"; }
 	virtual Ref<Texture> get_logo() const { return logo; }
 
 #ifdef OSX_ENABLED
@@ -74,6 +75,13 @@ public:
 	virtual Error export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, int p_flags = 0);
 
 	virtual bool can_export(const Ref<EditorExportPreset> &p_preset, String &r_error, bool &r_missing_templates) const;
+
+	virtual void get_platform_features(List<String> *r_features) {
+
+		r_features->push_back("pc");
+		r_features->push_back("s3tc");
+		r_features->push_back("OSX");
+	}
 
 	EditorExportPlatformOSX();
 	~EditorExportPlatformOSX();
@@ -275,8 +283,8 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 	String pkg_name;
 	if (p_preset->get("application/name") != "")
 		pkg_name = p_preset->get("application/name"); // app_name
-	else if (String(GlobalConfig::get_singleton()->get("application/name")) != "")
-		pkg_name = String(GlobalConfig::get_singleton()->get("application/name"));
+	else if (String(ProjectSettings::get_singleton()->get("application/config/name")) != "")
+		pkg_name = String(ProjectSettings::get_singleton()->get("application/config/name"));
 	else
 		pkg_name = "Unnamed";
 
@@ -345,7 +353,7 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 			if (p_preset->get("application/icon") != "")
 				iconpath = p_preset->get("application/icon");
 			else
-				iconpath = GlobalConfig::get_singleton()->get("application/icon");
+				iconpath = ProjectSettings::get_singleton()->get("application/config/icon");
 			print_line("icon? " + iconpath);
 			if (iconpath != "") {
 				Ref<Image> icon;
@@ -438,7 +446,7 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 /**
 	When exporting for OSX from any other platform we don't have access to code signing or creating DMGs so we'll wrap the bundle into a zip file.
 
-	Should probably find a nicer way to have just one export method instead of duplicating the method like this but I would the code got very 
+	Should probably find a nicer way to have just one export method instead of duplicating the method like this but I would the code got very
 	messy with switches inside of it.
 **/
 Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, int p_flags) {
@@ -484,8 +492,8 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 	String pkg_name;
 	if (p_preset->get("application/name") != "")
 		pkg_name = p_preset->get("application/name"); // app_name
-	else if (String(GlobalConfig::get_singleton()->get("application/name")) != "")
-		pkg_name = String(GlobalConfig::get_singleton()->get("application/name"));
+	else if (String(ProjectSettings::get_singleton()->get("application/config/name")) != "")
+		pkg_name = String(ProjectSettings::get_singleton()->get("application/config/name"));
 	else
 		pkg_name = "Unnamed";
 
@@ -539,7 +547,7 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 			if (p_preset->get("application/icon") != "")
 				iconpath = p_preset->get("application/icon");
 			else
-				iconpath = GlobalConfig::get_singleton()->get("application/icon");
+				iconpath = ProjectSettings::get_singleton()->get("application/config/icon");
 			print_line("icon? " + iconpath);
 			if (iconpath != "") {
 				Ref<Image> icon;

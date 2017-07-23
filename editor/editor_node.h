@@ -64,7 +64,7 @@
 #include "editor/editor_log.h"
 #include "editor/editor_run_script.h"
 #include "editor/project_export.h"
-#include "editor/project_settings.h"
+#include "editor/project_settings_editor.h"
 #include "editor/resources_dock.h"
 #include "editor/run_settings_dialog.h"
 #include "editor/scene_tree_dock.h"
@@ -247,10 +247,7 @@ private:
 	Control *vp_base;
 	PaneDrag *pd;
 	//PaneDrag *pd_anim;
-	Panel *menu_panel;
 
-	//HSplitContainer *editor_hsplit;
-	//VSplitContainer *editor_vsplit;
 	CenterContainer *play_cc;
 	HBoxContainer *menu_hb;
 	Control *viewport;
@@ -300,7 +297,6 @@ private:
 	ConfirmationDialog *confirmation;
 	ConfirmationDialog *save_confirmation;
 	ConfirmationDialog *import_confirmation;
-	ConfirmationDialog *open_recent_confirmation;
 	ConfirmationDialog *pick_main_scene;
 	AcceptDialog *accept;
 	AcceptDialog *about;
@@ -314,7 +310,7 @@ private:
 	//OptimizedPresetsDialog *optimized_presets;
 	EditorSettingsDialog *settings_config_dialog;
 	RunSettingsDialog *run_settings_dialog;
-	ProjectSettings *project_settings;
+	ProjectSettingsEditor *project_settings;
 	EditorFileDialog *file;
 	ExportTemplateManager *export_template_manager;
 	FileDialog *file_templates;
@@ -326,8 +322,6 @@ private:
 	String current_path;
 	MenuButton *update_menu;
 
-	//TabContainer *prop_pallete;
-	//TabContainer *top_pallete;
 	String defer_load_scene;
 	String defer_export;
 	String defer_export_platform;
@@ -363,7 +357,7 @@ private:
 	TabContainer *dock_slot[DOCK_SLOT_MAX];
 	Rect2 dock_select_rect[DOCK_SLOT_MAX];
 	int dock_select_rect_over;
-	PopupPanel *dock_select_popoup;
+	PopupPanel *dock_select_popup;
 	Control *dock_select;
 	ToolButton *dock_tab_move_left;
 	ToolButton *dock_tab_move_right;

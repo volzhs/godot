@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "rasterizer_canvas_gles3.h"
-#include "global_config.h"
+#include "project_settings.h"
 #include "os/os.h"
 #include "rasterizer_scene_gles3.h"
 #include "servers/visual/visual_server_raster.h"
@@ -1658,7 +1658,7 @@ void RasterizerCanvasGLES3::initialize() {
 	}
 	{
 
-		uint32_t poly_size = GLOBAL_DEF("rendering/buffers/canvas_polygon_buffer_size_kb", 128);
+		uint32_t poly_size = GLOBAL_DEF("rendering/limits/buffers/canvas_polygon_buffer_size_kb", 128);
 		poly_size *= 1024; //kb
 		poly_size = MAX(poly_size, (2 + 2 + 4) * 4 * sizeof(float));
 		glGenBuffers(1, &data.polygon_buffer);
@@ -1704,7 +1704,7 @@ void RasterizerCanvasGLES3::initialize() {
 
 		glGenVertexArrays(1, &data.polygon_buffer_pointer_array);
 
-		uint32_t index_size = GLOBAL_DEF("rendering/buffers/canvas_polygon_index_buffer_size_kb", 128);
+		uint32_t index_size = GLOBAL_DEF("rendering/limits/buffers/canvas_polygon_index_buffer_size_kb", 128);
 		index_size *= 1024; //kb
 		glGenBuffers(1, &data.polygon_index_buffer);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.polygon_index_buffer);
