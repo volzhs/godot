@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  audio_driver_dummy.cpp                                               */
+/*  editor_about.h                                                       */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -27,112 +27,44 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "audio_driver_dummy.h"
+#ifndef EDITOR_ABOUT_H
+#define EDITOR_ABOUT_H
 
-#include "os/os.h"
-#include "project_settings.h"
+#include "scene/gui/control.h"
+#include "scene/gui/dialogs.h"
+#include "scene/gui/item_list.h"
+#include "scene/gui/scroll_container.h"
+#include "scene/gui/separator.h"
+#include "scene/gui/split_container.h"
+#include "scene/gui/tab_container.h"
+#include "scene/gui/text_edit.h"
+#include "scene/gui/texture_rect.h"
+#include "scene/gui/tree.h"
 
-Error AudioDriverDummy::init() {
+#include "editor_scale.h"
+/**
+	@author Juan Linietsky <reduzio@gmail.com>
+*/
 
-	active = false;
-	thread_exited = false;
-	exit_thread = false;
-	pcm_open = false;
-	samples_in = NULL;
+class EditorAbout : public AcceptDialog {
 
-	mix_rate = 44100;
-	speaker_mode = SPEAKER_MODE_STEREO;
-	channels = 2;
+	GDCLASS(EditorAbout, AcceptDialog);
 
-	int latency = GLOBAL_DEF("audio/output_latency", 25);
-	buffer_size = nearest_power_of_2(latency * mix_rate / 1000);
+private:
+	void _license_tree_selected();
 
-	samples_in = memnew_arr(int32_t, buffer_size * channels);
+	Tree *_tpl_tree;
+	TextEdit *_tpl_text;
+	TextureRect *_logo;
 
-	mutex = Mutex::create();
-	thread = Thread::create(AudioDriverDummy::thread_func, this);
+protected:
+	static void _bind_methods();
 
-	return OK;
+public:
+	TextureRect *get_logo() const;
+
+	EditorAbout();
+	~EditorAbout();
 };
 
-void AudioDriverDummy::thread_func(void *p_udata) {
-
-	AudioDriverDummy *ad = (AudioDriverDummy *)p_udata;
-
-	uint64_t usdelay = (ad->buffer_size / float(ad->mix_rate)) * 1000000;
-
-	while (!ad->exit_thread) {
-
-		if (!ad->active) {
-
-		} else {
-
-			ad->lock();
-
-			ad->audio_server_process(ad->buffer_size, ad->samples_in);
-
-			ad->unlock();
-		};
-
-		OS::get_singleton()->delay_usec(usdelay);
-	};
-
-	ad->thread_exited = true;
-};
-
-void AudioDriverDummy::start() {
-
-	active = true;
-};
-
-int AudioDriverDummy::get_mix_rate() const {
-
-	return mix_rate;
-};
-
-AudioDriver::SpeakerMode AudioDriverDummy::get_speaker_mode() const {
-
-	return speaker_mode;
-};
-
-void AudioDriverDummy::lock() {
-
-	if (!thread || !mutex)
-		return;
-	mutex->lock();
-};
-
-void AudioDriverDummy::unlock() {
-
-	if (!thread || !mutex)
-		return;
-	mutex->unlock();
-};
-
-void AudioDriverDummy::finish() {
-
-	if (!thread)
-		return;
-
-	exit_thread = true;
-	Thread::wait_to_finish(thread);
-
-	if (samples_in) {
-		memdelete_arr(samples_in);
-	};
-
-	memdelete(thread);
-	if (mutex)
-		memdelete(mutex);
-	thread = NULL;
-};
-
-AudioDriverDummy::AudioDriverDummy() {
-
-	mutex = NULL;
-	thread = NULL;
-};
-
-AudioDriverDummy::~AudioDriverDummy(){
-
-};
+#endif
