@@ -107,11 +107,7 @@ public:
 	bool maximized;
 	bool zoomed;
 
-	Vector<Rect2> screens;
-	Vector<int> screen_dpi;
-
 	Size2 window_size;
-	int current_screen;
 	Rect2 restore_rect;
 
 	float _mouse_scale(float p_scale) {

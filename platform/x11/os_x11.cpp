@@ -610,6 +610,16 @@ void OS_X11::get_fullscreen_mode_list(List<VideoMode> *p_list, int p_screen) con
 }
 
 void OS_X11::set_wm_fullscreen(bool p_enabled) {
+	if (p_enabled && !is_window_resizable()) {
+		// Set the window as resizable to prevent window managers to ignore the fullscreen state flag.
+		XSizeHints *xsh;
+
+		xsh = XAllocSizeHints();
+		xsh->flags = 0L;
+		XSetWMNormalHints(x11_display, x11_window, xsh);
+		XFree(xsh);
+	}
+
 	// Using EWMH -- Extened Window Manager Hints
 	XEvent xev;
 	Atom wm_state = XInternAtom(x11_display, "_NET_WM_STATE", False);
@@ -625,6 +635,23 @@ void OS_X11::set_wm_fullscreen(bool p_enabled) {
 	xev.xclient.data.l[2] = 0;
 
 	XSendEvent(x11_display, DefaultRootWindow(x11_display), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+	XFlush(x11_display);
+
+	if (!p_enabled && !is_window_resizable()) {
+		// Reset the non-resizable flags if we un-set these before.
+		Size2 size = get_window_size();
+		XSizeHints *xsh;
+
+		xsh = XAllocSizeHints();
+		xsh->flags = PMinSize | PMaxSize;
+		xsh->min_width = size.x;
+		xsh->max_width = size.x;
+		xsh->min_height = size.y;
+		xsh->max_height = size.y;
+
+		XSetWMNormalHints(x11_display, x11_window, xsh);
+		XFree(xsh);
+	}
 }
 
 int OS_X11::get_screen_count() const {
@@ -1661,7 +1688,7 @@ void OS_X11::set_clipboard(const String &p_text) {
 	XSetSelectionOwner(x11_display, XInternAtom(x11_display, "CLIPBOARD", 0), x11_window, CurrentTime);
 };
 
-static String _get_clipboard(Atom p_source, Window x11_window, ::Display *x11_display, String p_internal_clipboard) {
+static String _get_clipboard_impl(Atom p_source, Window x11_window, ::Display *x11_display, String p_internal_clipboard, Atom target) {
 
 	String ret;
 
@@ -1678,7 +1705,7 @@ static String _get_clipboard(Atom p_source, Window x11_window, ::Display *x11_di
 	};
 
 	if (Sown != None) {
-		XConvertSelection(x11_display, p_source, XA_STRING, selection,
+		XConvertSelection(x11_display, p_source, target, selection,
 				x11_window, CurrentTime);
 		XFlush(x11_display);
 		while (true) {
@@ -1715,6 +1742,18 @@ static String _get_clipboard(Atom p_source, Window x11_window, ::Display *x11_di
 		}
 	}
 
+	return ret;
+}
+
+static String _get_clipboard(Atom p_source, Window x11_window, ::Display *x11_display, String p_internal_clipboard) {
+	String ret;
+	Atom utf8_atom = XInternAtom(x11_display, "UTF8_STRING", True);
+	if (utf8_atom != None) {
+		ret = _get_clipboard_impl(p_source, x11_window, x11_display, p_internal_clipboard, utf8_atom);
+	}
+	if (ret == "") {
+		ret = _get_clipboard_impl(p_source, x11_window, x11_display, p_internal_clipboard, XA_STRING);
+	}
 	return ret;
 }
 
