@@ -28,15 +28,14 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "label.h"
-#include "project_settings.h"
 #include "print_string.h"
+#include "project_settings.h"
 #include "translation.h"
 
 void Label::set_autowrap(bool p_autowrap) {
 
 	autowrap = p_autowrap;
 	word_cache_dirty = true;
-	minimum_size_changed();
 	update();
 }
 bool Label::has_autowrap() const {
@@ -48,7 +47,6 @@ void Label::set_uppercase(bool p_uppercase) {
 
 	uppercase = p_uppercase;
 	word_cache_dirty = true;
-	minimum_size_changed();
 	update();
 }
 bool Label::is_uppercase() const {
@@ -71,7 +69,6 @@ void Label::_notification(int p_what) {
 		xl_text = new_text;
 
 		regenerate_word_cache();
-		minimum_size_changed();
 		update();
 	}
 
@@ -292,7 +289,7 @@ void Label::_notification(int p_what) {
 Size2 Label::get_minimum_size() const {
 
 	if (autowrap)
-		return Size2(1, 1);
+		return Size2(1, clip ? 1 : minsize.height);
 	else {
 
 		// don't want to mutable everything
@@ -487,15 +484,16 @@ void Label::regenerate_word_cache() {
 		}
 	}
 
-	if (!autowrap) {
+	if (!autowrap)
 		minsize.width = width;
-		if (max_lines_visible > 0 && line_count > max_lines_visible) {
-			minsize.height = (font->get_height() * max_lines_visible) + (line_spacing * (max_lines_visible - 1));
-		} else {
-			minsize.height = (font->get_height() * line_count) + (line_spacing * (line_count - 1));
-		}
+
+	if (max_lines_visible > 0 && line_count > max_lines_visible) {
+		minsize.height = (font->get_height() * max_lines_visible) + (line_spacing * (max_lines_visible - 1));
+	} else {
+		minsize.height = (font->get_height() * line_count) + (line_spacing * (line_count - 1));
 	}
 
+	minimum_size_changed();
 	word_cache_dirty = false;
 }
 
@@ -533,9 +531,6 @@ void Label::set_text(const String &p_string) {
 	if (percent_visible < 1)
 		visible_chars = get_total_character_count() * percent_visible;
 	update();
-	if (!autowrap) {
-		minimum_size_changed();
-	}
 }
 
 void Label::set_clip_text(bool p_clip) {

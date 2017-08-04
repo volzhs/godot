@@ -1243,35 +1243,35 @@ bool RasterizerSceneGLES3::_setup_material(RasterizerStorageGLES3::Material *p_m
 			if (t->render_target)
 				t->render_target->used_in_frame = true;
 
-			if (storage->config.srgb_decode_supported) {
-				//if SRGB decode extension is present, simply switch the texture to whathever is needed
-				bool must_srgb = false;
-
-				if (t->srgb && (texture_hints[i] == ShaderLanguage::ShaderNode::Uniform::HINT_ALBEDO || texture_hints[i] == ShaderLanguage::ShaderNode::Uniform::HINT_BLACK_ALBEDO)) {
-					must_srgb = true;
-				}
-
-				if (t->using_srgb != must_srgb) {
-					if (must_srgb) {
-						glTexParameteri(t->target, _TEXTURE_SRGB_DECODE_EXT, _DECODE_EXT);
-#ifdef TOOLS_ENABLED
-						if (t->detect_srgb) {
-							t->detect_srgb(t->detect_srgb_ud);
-						}
-#endif
-
-					} else {
-						glTexParameteri(t->target, _TEXTURE_SRGB_DECODE_EXT, _SKIP_DECODE_EXT);
-					}
-					t->using_srgb = must_srgb;
-				}
-			}
-
 			target = t->target;
 			tex = t->tex_id;
 		}
 
 		glBindTexture(target, tex);
+
+		if (t && storage->config.srgb_decode_supported) {
+			//if SRGB decode extension is present, simply switch the texture to whathever is needed
+			bool must_srgb = false;
+
+			if (t->srgb && (texture_hints[i] == ShaderLanguage::ShaderNode::Uniform::HINT_ALBEDO || texture_hints[i] == ShaderLanguage::ShaderNode::Uniform::HINT_BLACK_ALBEDO)) {
+				must_srgb = true;
+			}
+
+			if (t->using_srgb != must_srgb) {
+				if (must_srgb) {
+					glTexParameteri(t->target, _TEXTURE_SRGB_DECODE_EXT, _DECODE_EXT);
+#ifdef TOOLS_ENABLED
+					if (t->detect_srgb) {
+						t->detect_srgb(t->detect_srgb_ud);
+					}
+#endif
+
+				} else {
+					glTexParameteri(t->target, _TEXTURE_SRGB_DECODE_EXT, _SKIP_DECODE_EXT);
+				}
+				t->using_srgb = must_srgb;
+			}
+		}
 
 		if (i == 0) {
 			state.current_main_tex = tex;
@@ -3516,7 +3516,6 @@ void RasterizerSceneGLES3::_post_process(Environment *env, const CameraMatrix &p
 		_copy_screen();
 
 		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES3::DOF_FAR_BLUR, false);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES3::DOF_FAR_BLUR, false);
 		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES3::DOF_QUALITY_LOW, false);
 		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES3::DOF_QUALITY_MEDIUM, false);
 		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES3::DOF_QUALITY_HIGH, false);
@@ -3609,6 +3608,16 @@ void RasterizerSceneGLES3::_post_process(Environment *env, const CameraMatrix &p
 		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES3::DOF_QUALITY_HIGH, false);
 
 		composite_from = storage->frame.current_rt->effects.mip_maps[0].color;
+	}
+
+	if (env->dof_blur_near_enabled || env->dof_blur_far_enabled) {
+		//these needed to disable filtering, reenamble
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->effects.mip_maps[0].color);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
 	if (env->auto_exposure) {

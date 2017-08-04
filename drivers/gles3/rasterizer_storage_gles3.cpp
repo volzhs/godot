@@ -5999,6 +5999,13 @@ void RasterizerStorageGLES3::_render_target_allocate(RenderTarget *rt) {
 		static const int msaa_value[] = { 0, 2, 4, 8, 16 };
 		int msaa = msaa_value[rt->msaa];
 
+		int max_samples = 0;
+		glGetIntegerv(GL_MAX_SAMPLES, &max_samples);
+		if (msaa > max_samples) {
+			WARN_PRINTS("MSAA must be <= GL_MAX_SAMPLES, falling-back to GL_MAX_SAMPLES = " + itos(max_samples));
+			msaa = max_samples;
+		}
+
 		//regular fbo
 		glGenFramebuffers(1, &rt->buffers.fbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, rt->buffers.fbo);
@@ -6082,15 +6089,11 @@ void RasterizerStorageGLES3::_render_target_allocate(RenderTarget *rt) {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 					GL_TEXTURE_2D, rt->buffers.effect, 0);
 
-			if (status != GL_FRAMEBUFFER_COMPLETE) {
-				printf("err status: %x\n", status);
-				_render_target_clear(rt);
-				ERR_FAIL_COND(status != GL_FRAMEBUFFER_COMPLETE);
-			}
-
+			status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 			glBindFramebuffer(GL_FRAMEBUFFER, RasterizerStorageGLES3::system_fbo);
 
 			if (status != GL_FRAMEBUFFER_COMPLETE) {
+				printf("err status: %x\n", status);
 				_render_target_clear(rt);
 				ERR_FAIL_COND(status != GL_FRAMEBUFFER_COMPLETE);
 			}
@@ -6193,6 +6196,8 @@ void RasterizerStorageGLES3::_render_target_allocate(RenderTarget *rt) {
 			glBindTexture(GL_TEXTURE_2D, rt->effects.mip_maps[i].color);
 
 			int level = 0;
+			int fb_w = w;
+			int fb_h = h;
 
 			while (true) {
 
@@ -6210,13 +6215,15 @@ void RasterizerStorageGLES3::_render_target_allocate(RenderTarget *rt) {
 				level++;
 			}
 
-			glTexStorage2DCustom(GL_TEXTURE_2D, level + 1, color_internal_format, rt->width, rt->height, color_format, color_type);
+			glTexStorage2DCustom(GL_TEXTURE_2D, level + 1, color_internal_format, fb_w, fb_h, color_format, color_type);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level);
 			glDisable(GL_SCISSOR_TEST);
 			glColorMask(1, 1, 1, 1);
-			glDepthMask(GL_TRUE);
+			if (rt->buffers.active == false) {
+				glDepthMask(GL_TRUE);
+			}
 
 			for (int j = 0; j < rt->effects.mip_maps[i].sizes.size(); j++) {
 
@@ -6239,7 +6246,6 @@ void RasterizerStorageGLES3::_render_target_allocate(RenderTarget *rt) {
 
 				float zero[4] = { 1, 0, 1, 0 };
 				glViewport(0, 0, rt->effects.mip_maps[i].sizes[j].width, rt->effects.mip_maps[i].sizes[j].height);
-
 				glClearBufferfv(GL_COLOR, 0, zero);
 				if (used_depth) {
 					glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0, 0);
@@ -6916,7 +6922,7 @@ void RasterizerStorageGLES3::initialize() {
 	config.use_anisotropic_filter = config.extensions.has("GL_EXT_texture_filter_anisotropic");
 	if (config.use_anisotropic_filter) {
 		glGetFloatv(_GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &config.anisotropic_level);
-		config.anisotropic_level = MIN(int(ProjectSettings::get_singleton()->get("rendering/quality/anisotropic_filter_level")), config.anisotropic_level);
+		config.anisotropic_level = MIN(int(ProjectSettings::get_singleton()->get("rendering/quality/filters/anisotropic_filter_level")), config.anisotropic_level);
 	}
 
 	frame.clear_request = false;

@@ -219,6 +219,7 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 	bool use_32_fb;
 	bool immersive;
 	bool export_arm;
+	bool export_arm64;
 	bool export_x86;
 	String apk_expansion_salt;
 	String apk_expansion_pkey;
@@ -319,6 +320,8 @@ bool EditorExportPlatformAndroid::_set(const StringName& p_name, const Variant& 
 		_signed=p_value;
 	else if (n=="architecture/arm")
 		export_arm=p_value;
+	else if (n=="architecture/arm64")
+		export_arm64=p_value;
 	else if (n=="architecture/x86")
 		export_x86=p_value;
 	else if (n=="screen/use_32_bits_view")
@@ -392,6 +395,8 @@ bool EditorExportPlatformAndroid::_get(const StringName& p_name,Variant &r_ret) 
 		r_ret=_signed;
 	else if (n=="architecture/arm")
 		r_ret=export_arm;
+	else if (n=="architecture/arm64")
+		r_ret=export_arm64;
 	else if (n=="architecture/x86")
 		r_ret=export_x86;
 	else if (n=="screen/use_32_bits_view")
@@ -1164,6 +1169,10 @@ Error EditorExportPlatformAndroid::export_project(const String& p_path, bool p_d
 			skip=true;
 		}
 
+		if (file.match("lib/arm64*/libgodot_android.so") && !export_arm64) {
+			skip = true;
+		}
+
 		if (file.begins_with("META-INF") && _signed) {
 			skip=true;
 		}
@@ -1801,6 +1810,7 @@ EditorExportPlatformAndroid::EditorExportPlatformAndroid() {
 	immersive=true;
 
 	export_arm=true;
+	export_arm64=false;
 	export_x86=false;
 
 
@@ -2050,6 +2060,7 @@ class EditorExportAndroid : public EditorExportPlatform {
 		String id;
 		String name;
 		String description;
+		int release;
 	};
 
 	struct APKExportData {
@@ -2123,6 +2134,7 @@ class EditorExportAndroid : public EditorExportPlatform {
 							if (ea->devices[j].id == ldevices[i]) {
 								d.description = ea->devices[j].description;
 								d.name = ea->devices[j].name;
+								d.release = ea->devices[j].release;
 							}
 						}
 
@@ -2143,6 +2155,7 @@ class EditorExportAndroid : public EditorExportPlatform {
 							String vendor;
 							String device;
 							d.description + "Device ID: " + d.id + "\n";
+							d.release = 0;
 							for (int j = 0; j < props.size(); j++) {
 
 								String p = props[j];
@@ -2153,7 +2166,9 @@ class EditorExportAndroid : public EditorExportPlatform {
 								} else if (p.begins_with("ro.build.display.id=")) {
 									d.description += "Build: " + p.get_slice("=", 1).strip_edges() + "\n";
 								} else if (p.begins_with("ro.build.version.release=")) {
-									d.description += "Release: " + p.get_slice("=", 1).strip_edges() + "\n";
+									const String release_str = p.get_slice("=", 1).strip_edges();
+									d.description += "Release: " + release_str + "\n";
+									d.release = release_str.to_int();
 								} else if (p.begins_with("ro.product.cpu.abi=")) {
 									d.description += "CPU: " + p.get_slice("=", 1).strip_edges() + "\n";
 								} else if (p.begins_with("ro.product.manufacturer=")) {
@@ -3005,15 +3020,19 @@ public:
 		if (use_adb_over_usb) {
 
 			args.clear();
+			args.push_back("-s");
+			args.push_back(devices[p_device].id);
 			args.push_back("reverse");
 			args.push_back("--remove-all");
 			err = OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
 
-			int port = (int)EditorSettings::get_singleton()->get("network/debug/remote_port");
+			int dbg_port = EditorSettings::get_singleton()->get("network/debug/remote_port");
 			args.clear();
+			args.push_back("-s");
+			args.push_back(devices[p_device].id);
 			args.push_back("reverse");
-			args.push_back("tcp:" + itos(port));
-			args.push_back("tcp:" + itos(port));
+			args.push_back("tcp:" + itos(dbg_port));
+			args.push_back("tcp:" + itos(dbg_port));
 
 			err = OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
 			print_line("Reverse result: " + itos(rv));
@@ -3021,6 +3040,8 @@ public:
 			int fs_port = EditorSettings::get_singleton()->get("filesystem/file_server/port");
 
 			args.clear();
+			args.push_back("-s");
+			args.push_back(devices[p_device].id);
 			args.push_back("reverse");
 			args.push_back("tcp:" + itos(fs_port));
 			args.push_back("tcp:" + itos(fs_port));
@@ -3036,7 +3057,10 @@ public:
 		args.push_back("shell");
 		args.push_back("am");
 		args.push_back("start");
-		args.push_back("--user 0");
+		if ((bool)EditorSettings::get_singleton()->get("export/android/force_system_user") && devices[p_device].release >= 17) { // Multi-user introduced in Android 17
+			args.push_back("--user");
+			args.push_back("0");
+		}
 		args.push_back("-a");
 		args.push_back("android.intent.action.MAIN");
 		args.push_back("-n");
@@ -3044,7 +3068,7 @@ public:
 
 		err = OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
 		if (err || rv != 0) {
-			EditorNode::add_io_error("Could not execute ondevice.");
+			EditorNode::add_io_error("Could not execute on device.");
 			device_lock->unlock();
 			return ERR_CANT_CREATE;
 		}
@@ -3162,6 +3186,7 @@ public:
 
 		bool export_x86 = p_preset->get("architecture/x86");
 		bool export_arm = p_preset->get("architecture/arm");
+		bool export_arm64 = p_preset->get("architecture/arm64");
 
 		bool use_32_fb = p_preset->get("screen/use_32_bits_view");
 		bool immersive = p_preset->get("screen/immersive_mode");
@@ -3250,6 +3275,10 @@ public:
 			}
 
 			if (file.match("lib/armeabi*/libgodot_android.so") && !export_arm) {
+				skip = true;
+			}
+
+			if (file.match("lib/arm64*/libgodot_android.so") && !export_arm64) {
 				skip = true;
 			}
 
@@ -3586,6 +3615,7 @@ void register_android_exporter() {
 	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "export/android/debug_keystore", PROPERTY_HINT_GLOBAL_FILE, "keystore"));
 	EDITOR_DEF("export/android/debug_keystore_user", "androiddebugkey");
 	EDITOR_DEF("export/android/debug_keystore_pass", "android");
+	EDITOR_DEF("export/android/force_system_user", false);
 
 	EDITOR_DEF("export/android/timestamping_authority_url", "");
 	EDITOR_DEF("export/android/use_remote_debug_over_adb", false);

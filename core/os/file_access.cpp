@@ -31,8 +31,8 @@
 
 #include "core/io/file_access_pack.h"
 #include "core/io/marshalls.h"
-#include "project_settings.h"
 #include "os/os.h"
+#include "project_settings.h"
 
 #include "thirdparty/misc/md5.h"
 #include "thirdparty/misc/sha256.h"
@@ -300,6 +300,8 @@ Vector<String> FileAccess::get_csv_line(String delim) const {
 	String l;
 	int qc = 0;
 	do {
+		ERR_FAIL_COND_V(eof_reached(), Vector<String>());
+
 		l += get_line() + "\n";
 		qc = 0;
 		for (int i = 0; i < l.length(); i++) {

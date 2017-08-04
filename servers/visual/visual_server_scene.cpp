@@ -1658,6 +1658,7 @@ void VisualServerScene::_light_instance_update_shadow(Instance *p_instance, cons
 }
 
 void VisualServerScene::render_camera(RID p_camera, RID p_scenario, Size2 p_viewport_size, RID p_shadow_atlas) {
+	// render to mono camera
 
 	Camera *camera = camera_owner.getornull(p_camera);
 	ERR_FAIL_COND(!camera);
@@ -1696,6 +1697,25 @@ void VisualServerScene::render_camera(RID p_camera, RID p_scenario, Size2 p_view
 
 	_render_scene(camera->transform, camera_matrix, ortho, camera->env, camera->visible_layers, p_scenario, p_shadow_atlas, RID(), -1);
 }
+
+void VisualServerScene::render_camera(Ref<ARVRInterface> &p_interface, ARVRInterface::Eyes p_eye, RID p_camera, RID p_scenario, Size2 p_viewport_size, RID p_shadow_atlas) {
+	// render for AR/VR interface
+
+	Camera *camera = camera_owner.getornull(p_camera);
+	ERR_FAIL_COND(!camera);
+
+	/* SETUP CAMERA, we are ignoring type and FOV here */
+	bool ortho = false;
+	float aspect = p_viewport_size.width / (float)p_viewport_size.height;
+	CameraMatrix camera_matrix = p_interface->get_projection_for_eye(p_eye, aspect, camera->znear, camera->zfar);
+
+	// We also ignore our camera position, it will have been positioned with a slightly old tracking position.
+	// Instead we take our origin point and have our ar/vr interface add fresh tracking data! Whoohoo!
+	Transform world_origin = ARVRServer::get_singleton()->get_world_origin();
+	Transform cam_transform = p_interface->get_transform_for_eye(p_eye, world_origin);
+
+	_render_scene(cam_transform, camera_matrix, ortho, camera->env, camera->visible_layers, p_scenario, p_shadow_atlas, RID(), -1);
+};
 
 void VisualServerScene::_render_scene(const Transform p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_orthogonal, RID p_force_environment, uint32_t p_visible_layers, RID p_scenario, RID p_shadow_atlas, RID p_reflection_probe, int p_reflection_probe_pass) {
 
@@ -2716,8 +2736,8 @@ void VisualServerScene::_bake_gi_probe_light(const GIProbeDataHeader *header, co
 					success_count++;
 				}
 			}
-			print_line("BAKE TIME: " + rtos((OS::get_singleton()->get_ticks_usec() - us) / 1000000.0));
-			print_line("valid cells: " + itos(success_count));
+			//print_line("BAKE TIME: " + rtos((OS::get_singleton()->get_ticks_usec() - us) / 1000000.0));
+			//print_line("valid cells: " + itos(success_count));
 
 		} break;
 		case VS::LIGHT_OMNI:
@@ -2822,7 +2842,7 @@ void VisualServerScene::_bake_gi_probe_light(const GIProbeDataHeader *header, co
 					light->energy[2] += int32_t(light_b * att * ((cell->albedo) & 0xFF) / 255.0);
 				}
 			}
-			print_line("BAKE TIME: " + rtos((OS::get_singleton()->get_ticks_usec() - us) / 1000000.0));
+			//print_line("BAKE TIME: " + rtos((OS::get_singleton()->get_ticks_usec() - us) / 1000000.0));
 
 		} break;
 	}
@@ -2921,7 +2941,7 @@ void VisualServerScene::_bake_gi_probe(Instance *p_gi_probe) {
 			if (stage >= probe_data->dynamic.mipmaps_3d.size())
 				continue; //no mipmap for this one
 
-			print_line("generating mipmap stage: " + itos(stage));
+			//print_line("generating mipmap stage: " + itos(stage));
 			int level_cell_count = probe_data->dynamic.level_cell_lists[i].size();
 			const uint32_t *level_cells = probe_data->dynamic.level_cell_lists[i].ptr();
 

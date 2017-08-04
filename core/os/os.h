@@ -60,6 +60,8 @@ class OS {
 
 	char *last_error;
 
+	void *_stack_bottom;
+
 public:
 	enum RenderThreadMode {
 
@@ -182,9 +184,9 @@ public:
 
 	virtual void set_ime_position(const Point2 &p_pos) {}
 
-	virtual Error open_dynamic_library(const String p_path, void *&p_library_handle) { return ERR_UNAVAILABLE; };
-	virtual Error close_dynamic_library(void *p_library_handle) { return ERR_UNAVAILABLE; };
-	virtual Error get_dynamic_library_symbol_handle(void *p_library_handle, const String p_name, void *&p_symbol_handle) { return ERR_UNAVAILABLE; };
+	virtual Error open_dynamic_library(const String p_path, void *&p_library_handle) { return ERR_UNAVAILABLE; }
+	virtual Error close_dynamic_library(void *p_library_handle) { return ERR_UNAVAILABLE; }
+	virtual Error get_dynamic_library_symbol_handle(void *p_library_handle, const String p_name, void *&p_symbol_handle, bool p_optional = false) { return ERR_UNAVAILABLE; }
 
 	virtual void set_keep_screen_on(bool p_enabled);
 	virtual bool is_keep_screen_on() const;
@@ -410,6 +412,13 @@ public:
 	virtual int get_power_percent_left();
 
 	bool check_feature_support(const String &p_feature);
+
+	/**
+	 * Returns the stack bottom of the main thread of the application.
+	 * This may be of use when integrating languages with garbage collectors that
+	 * need to check whether a pointer is on the stack.
+	 */
+	virtual void *get_stack_bottom() const;
 
 	bool is_hidpi_allowed() const { return _allow_hidpi; }
 	OS();

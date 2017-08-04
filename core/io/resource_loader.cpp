@@ -28,12 +28,12 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "resource_loader.h"
-#include "project_settings.h"
 #include "io/resource_import.h"
 #include "os/file_access.h"
 #include "os/os.h"
 #include "path_remap.h"
 #include "print_string.h"
+#include "project_settings.h"
 #include "translation.h"
 ResourceFormatLoader *ResourceLoader::loader[MAX_LOADERS];
 
@@ -84,7 +84,7 @@ void ResourceLoader::get_recognized_extensions_for_type(const String &p_type, Li
 
 void ResourceInteractiveLoader::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("get_resource"), &ResourceInteractiveLoader::get_resource);
+	ClassDB::bind_method(D_METHOD("get_resource:Resource"), &ResourceInteractiveLoader::get_resource);
 	ClassDB::bind_method(D_METHOD("poll"), &ResourceInteractiveLoader::poll);
 	ClassDB::bind_method(D_METHOD("wait"), &ResourceInteractiveLoader::wait);
 	ClassDB::bind_method(D_METHOD("get_stage"), &ResourceInteractiveLoader::get_stage);
@@ -429,6 +429,9 @@ void ResourceLoader::reload_translation_remaps() {
 }
 
 void ResourceLoader::load_translation_remaps() {
+
+	if (!ProjectSettings::get_singleton()->has("locale/translation_remaps"))
+		return;
 
 	Dictionary remaps = ProjectSettings::get_singleton()->get("locale/translation_remaps");
 	List<Variant> keys;

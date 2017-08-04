@@ -1563,13 +1563,13 @@ void SpatialEditorViewport::_update_freelook(real_t delta) {
 	Vector3 right = camera->get_transform().basis.xform(Vector3(1, 0, 0));
 	Vector3 up = camera->get_transform().basis.xform(Vector3(0, 1, 0));
 
-	int key_left = ED_SHORTCUT("spatial_editor/freelook_left", TTR("Freelook Left"), KEY_A)->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
-	int key_right = ED_SHORTCUT("spatial_editor/freelook_right", TTR("Freelook Right"), KEY_D)->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
-	int key_forward = ED_SHORTCUT("spatial_editor/freelook_forward", TTR("Freelook Forward"), KEY_W)->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
-	int key_backwards = ED_SHORTCUT("spatial_editor/freelook_backwards", TTR("Freelook Backwards"), KEY_S)->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
-	int key_up = ED_SHORTCUT("spatial_editor/freelook_up", TTR("Freelook Up"), KEY_Q)->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
-	int key_down = ED_SHORTCUT("spatial_editor/freelook_down", TTR("Freelook Down"), KEY_E)->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
-	int key_speed_modifier = ED_SHORTCUT("spatial_editor/freelook_speed_modifier", TTR("Freelook Speed Modifier"), KEY_SHIFT)->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
+	int key_left = ED_GET_SHORTCUT("spatial_editor/freelook_left")->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
+	int key_right = ED_GET_SHORTCUT("spatial_editor/freelook_right")->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
+	int key_forward = ED_GET_SHORTCUT("spatial_editor/freelook_forward")->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
+	int key_backwards = ED_GET_SHORTCUT("spatial_editor/freelook_backwards")->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
+	int key_up = ED_GET_SHORTCUT("spatial_editor/freelook_up")->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
+	int key_down = ED_GET_SHORTCUT("spatial_editor/freelook_down")->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
+	int key_speed_modifier = ED_GET_SHORTCUT("spatial_editor/freelook_speed_modifier")->get_shortcut()->cast_to<InputEventKey>()->get_scancode();
 
 	Vector3 velocity;
 	bool pressed = false;
@@ -2424,6 +2424,14 @@ SpatialEditorViewport::SpatialEditorViewport(SpatialEditor *p_spatial_editor, Ed
 	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/align_selection_with_view"), VIEW_ALIGN_SELECTION_WITH_VIEW);
 	view_menu->get_popup()->connect("id_pressed", this, "_menu_option");
 
+	ED_SHORTCUT("spatial_editor/freelook_left", TTR("Freelook Left"), KEY_A);
+	ED_SHORTCUT("spatial_editor/freelook_right", TTR("Freelook Right"), KEY_D);
+	ED_SHORTCUT("spatial_editor/freelook_forward", TTR("Freelook Forward"), KEY_W);
+	ED_SHORTCUT("spatial_editor/freelook_backwards", TTR("Freelook Backwards"), KEY_S);
+	ED_SHORTCUT("spatial_editor/freelook_up", TTR("Freelook Up"), KEY_Q);
+	ED_SHORTCUT("spatial_editor/freelook_down", TTR("Freelook Down"), KEY_E);
+	ED_SHORTCUT("spatial_editor/freelook_speed_modifier", TTR("Freelook Speed Modifier"), KEY_SHIFT);
+
 	preview_camera = memnew(Button);
 	preview_camera->set_toggle_mode(true);
 	preview_camera->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, 90);
@@ -3134,7 +3142,7 @@ void SpatialEditor::_menu_item_pressed(int p_option) {
 				xform_scale[i]->set_text("1");
 			}
 
-			xform_dialog->popup_centered(Size2(200, 200));
+			xform_dialog->popup_centered(Size2(320, 240) * EDSCALE);
 
 		} break;
 		case MENU_VIEW_USE_1_VIEWPORT: {
@@ -3956,55 +3964,59 @@ SpatialEditor::SpatialEditor(EditorNode *p_editor) {
 	xform_dialog = memnew(ConfirmationDialog);
 	xform_dialog->set_title(TTR("Transform Change"));
 	add_child(xform_dialog);
+
+	VBoxContainer *xform_vbc = memnew(VBoxContainer);
+	xform_dialog->add_child(xform_vbc);
+
 	Label *l = memnew(Label);
 	l->set_text(TTR("Translate:"));
-	l->set_position(Point2(5, 5));
-	xform_dialog->add_child(l);
+	xform_vbc->add_child(l);
+
+	HBoxContainer *xform_hbc = memnew(HBoxContainer);
+	xform_vbc->add_child(xform_hbc);
 
 	for (int i = 0; i < 3; i++) {
 
 		xform_translate[i] = memnew(LineEdit);
-		xform_translate[i]->set_position(Point2(15 + i * 60, 22));
-		xform_translate[i]->set_size(Size2(50, 12));
-		xform_dialog->add_child(xform_translate[i]);
+		xform_translate[i]->set_h_size_flags(SIZE_EXPAND_FILL);
+		xform_hbc->add_child(xform_translate[i]);
 	}
 
 	l = memnew(Label);
 	l->set_text(TTR("Rotate (deg.):"));
-	l->set_position(Point2(5, 45));
-	xform_dialog->add_child(l);
+	xform_vbc->add_child(l);
+
+	xform_hbc = memnew(HBoxContainer);
+	xform_vbc->add_child(xform_hbc);
 
 	for (int i = 0; i < 3; i++) {
 		xform_rotate[i] = memnew(LineEdit);
-		xform_rotate[i]->set_position(Point2(15 + i * 60, 62));
-		xform_rotate[i]->set_size(Size2(50, 22));
-		xform_dialog->add_child(xform_rotate[i]);
+		xform_rotate[i]->set_h_size_flags(SIZE_EXPAND_FILL);
+		xform_hbc->add_child(xform_rotate[i]);
 	}
 
 	l = memnew(Label);
 	l->set_text(TTR("Scale (ratio):"));
-	l->set_position(Point2(5, 85));
-	xform_dialog->add_child(l);
+	xform_vbc->add_child(l);
+
+	xform_hbc = memnew(HBoxContainer);
+	xform_vbc->add_child(xform_hbc);
 
 	for (int i = 0; i < 3; i++) {
 		xform_scale[i] = memnew(LineEdit);
-		xform_scale[i]->set_position(Point2(15 + i * 60, 102));
-		xform_scale[i]->set_size(Size2(50, 22));
-		xform_dialog->add_child(xform_scale[i]);
+		xform_scale[i]->set_h_size_flags(SIZE_EXPAND_FILL);
+		xform_hbc->add_child(xform_scale[i]);
 	}
 
 	l = memnew(Label);
 	l->set_text(TTR("Transform Type"));
-	l->set_position(Point2(5, 125));
-	xform_dialog->add_child(l);
+	xform_vbc->add_child(l);
 
 	xform_type = memnew(OptionButton);
-	xform_type->set_anchor(MARGIN_RIGHT, ANCHOR_END);
-	xform_type->set_begin(Point2(15, 142));
-	xform_type->set_end(Point2(15, 75));
+	xform_type->set_h_size_flags(SIZE_EXPAND_FILL);
 	xform_type->add_item(TTR("Pre"));
 	xform_type->add_item(TTR("Post"));
-	xform_dialog->add_child(xform_type);
+	xform_vbc->add_child(xform_type);
 
 	xform_dialog->connect("confirmed", this, "_xform_dialog_action");
 

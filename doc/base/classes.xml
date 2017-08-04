@@ -39,7 +39,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Remove sign (works for integer and float).
+				Returns the absolute value of parameter s  (i.e. unsigned value, works for integer and float).
 			</description>
 		</method>
 		<method name="acos">
@@ -48,7 +48,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Arc-cosine.
+				Returns the principal value of the arc cosine of s, expressed in radians. In trigonometrics, arc cosine is the inverse operation of cosine.
 			</description>
 		</method>
 		<method name="asin">
@@ -57,7 +57,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Arc-sine.
+				Returns the principal value of the arc sine of s, expressed in radians. In trigonometrics, arc sine is the inverse operation of sine.
 			</description>
 		</method>
 		<method name="assert">
@@ -75,7 +75,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Arc-tangent.
+				Returns the principal value of the arc tangent of s, expressed in radians. In trigonometrics, arc tangent is the inverse operation of tangent. Notice that because of the sign ambiguity, the function cannot determine with certainty in which quadrant the angle falls only by its tangent value. See [method atan2] for an alternative that takes a fractional argument instead.
 			</description>
 		</method>
 		<method name="atan2">
@@ -86,7 +86,7 @@
 			<argument index="1" name="y" type="float">
 			</argument>
 			<description>
-				Arc-tangent that takes a 2D vector as argument, returns the full -pi to +pi range.
+				Returns the principal value of the arc tangent of y/x, expressed in radians. To compute the value, the function takes into account the sign of both arguments in order to determine the quadrant.
 			</description>
 		</method>
 		<method name="bytes2var">
@@ -104,7 +104,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Ceiling (rounds up to nearest integer).
+				Rounds s upward, returning the smallest integral value that is not less than s.
 			</description>
 		</method>
 		<method name="char">
@@ -125,7 +125,7 @@
 			<argument index="2" name="max" type="float">
 			</argument>
 			<description>
-				Clamp both values to a range.
+				Clamps a value between a minimum and maximum value.
 			</description>
 		</method>
 		<method name="convert">
@@ -145,7 +145,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Standard cosine function.
+				Returns the cosine of an angle of s radians.
 			</description>
 		</method>
 		<method name="cosh">
@@ -154,7 +154,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Hyperbolic cosine.
+				Returns the hyperbolic cosine of s.
 			</description>
 		</method>
 		<method name="db2linear">
@@ -223,7 +223,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Exponential logarithm.
+				Returns the base-e exponential function of s, which is e raised to the power s: e^s.
 			</description>
 		</method>
 		<method name="floor">
@@ -232,7 +232,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Floor (rounds down to nearest integer).
+				Rounds s downward, returning the largest integral value that is not greater than s.
 			</description>
 		</method>
 		<method name="fmod">
@@ -243,7 +243,11 @@
 			<argument index="1" name="y" type="float">
 			</argument>
 			<description>
-				Module (remainder of x/y).
+				Returns the floating-point remainder of x/y (rounded towards zero):
+				[codeblock]
+				fmod = x - tquot * y
+				[/codeblock]
+				Where tquot is the truncated (i.e., rounded towards zero) result of: x/y.
 			</description>
 		</method>
 		<method name="fposmod">
@@ -301,6 +305,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
+				Returns whether s is an infinity value (either positive infinity or negative infinity).
 			</description>
 		</method>
 		<method name="is_nan">
@@ -309,6 +314,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
+				Returns whether s is a NaN (Not-A-Number) value.
 			</description>
 		</method>
 		<method name="lerp">
@@ -539,7 +545,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Round to nearest integer.
+				Returns the integral value that is nearest to s, with halfway cases rounded away from zero.
 			</description>
 		</method>
 		<method name="seed">
@@ -566,7 +572,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Standard sine function.
+				Returns the sine of an angle of s radians.
 			</description>
 		</method>
 		<method name="sinh">
@@ -575,7 +581,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Hyperbolic sine.
+				Returns the hyperbolic sine of s.
 			</description>
 		</method>
 		<method name="sqrt">
@@ -584,7 +590,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Square root.
+				Returns the square root of s.
 			</description>
 		</method>
 		<method name="stepify">
@@ -606,7 +612,7 @@
 			<argument index="1" name="..." type="Variant">
 			</argument>
 			<description>
-				Convert one or more arguments to strings in the best way possible.
+				Convert one or more arguments to string in the best way possible.
 			</description>
 		</method>
 		<method name="str2var">
@@ -624,7 +630,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Standard tangent function.
+				Returns the tangent of an angle of s radians.
 			</description>
 		</method>
 		<method name="tanh">
@@ -633,7 +639,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Hyperbolic tangent.
+				Returns the hyperbolic tangent of s.
 			</description>
 		</method>
 		<method name="to_json">
@@ -668,6 +674,7 @@
 			<argument index="0" name="json" type="String">
 			</argument>
 			<description>
+				This method is used to validate the structure and data types of a piece of JSON, similar to XML Schema for XML.
 			</description>
 		</method>
 		<method name="var2bytes">
@@ -695,6 +702,7 @@
 			</argument>
 			<description>
 				Return a weak reference to an object.
+				A weak reference to an object is not enough to keep the object alive: when the only remaining references to a referent are weak references, garbage collection is free to destroy the referent and reuse its memory for something else. However, until the object is actually destroyed the weak reference may return the object even if there are no strong references to it.
 			</description>
 		</method>
 		<method name="yield">
@@ -715,8 +723,11 @@
 			Constant that represents how many times the diameter of a circumference fits around its perimeter.
 		</constant>
 		<constant name="INF" value="inf">
+			A positive infinity. (For negative infinity, use -INF).
 		</constant>
 		<constant name="NAN" value="nan">
+			Macro constant that expands to an expression of type float that represents a NaN.
+			The NaN values are used to identify undefined or non-representable values for floating-point elements, such as the square root of negative numbers or the result of 0/0.
 		</constant>
 	</constants>
 </class>
@@ -735,13 +746,16 @@
 			[AudioServer] singleton
 		</member>
 		<member name="ClassDB" type="ClassDB" setter="" getter="" brief="">
+			[ClassDB] singleton
 		</member>
 		<member name="Engine" type="Engine" setter="" getter="" brief="">
+			[Engine] singleton
 		</member>
 		<member name="Geometry" type="Geometry" setter="" getter="" brief="">
 			[Geometry] singleton
 		</member>
 		<member name="ProjectSettings" type="ProjectSettings" setter="" getter="" brief="">
+			[ProjectSettings] singleton
 		</member>
 		<member name="IP" type="IP" setter="" getter="" brief="">
 			[IP] singleton
@@ -945,9 +959,6 @@
 		</constant>
 		<constant name="KEY_F16" value="16777259">
 			F16 Key
-		</constant>
-		<constant name="KEY_KP_ENTER" value="16777344">
-			Enter Key on Numpad
 		</constant>
 		<constant name="KEY_KP_MULTIPLY" value="16777345">
 			Multiply Key on Numpad
@@ -1960,8 +1971,11 @@
 </class>
 <class name="AStar" inherits="Reference" category="Core">
 	<brief_description>
+		AStar class representation that uses vectors as edges.
 	</brief_description>
 	<description>
+		A* (A star) is a computer algorithm that is widely used in pathfinding and graph traversal, the process of plotting an efficiently directed path between multiple points. It enjoys widespread use due to its performance and accuracy. Godot's A* implementation make use of vectors as points.
+		You must add points manually with [method AStar.add_point] and create segments manually with [method AStar.connect_points]. So you can test if there is a path between two points with the [method AStar.are_points_connected] function, get the list of existing ids in the found path with [method AStar.get_id_path], or the points list with [method AStar.get_point_path].
 	</description>
 	<methods>
 		<method name="_compute_cost" qualifiers="virtual">
@@ -1988,7 +2002,7 @@
 			<argument index="2" name="weight_scale" type="float" default="1">
 			</argument>
 			<description>
-				Add a new point at the given position. The [code]weight_scale[/code] has to be 1 or larger.
+				Add a new point at the given position [code]pos[/code] with the given identifier [code]id[/code]. The [code]weight_scale[/code] has to be 1 or larger.
 			</description>
 		</method>
 		<method name="are_points_connected" qualifiers="const">
@@ -1999,10 +2013,12 @@
 			<argument index="1" name="to_id" type="int">
 			</argument>
 			<description>
+				Returns if there is a connection/segment between points [code]id[/code] and [code]from_id[/code]
 			</description>
 		</method>
 		<method name="clear">
 			<description>
+				Clear all the points and segments from AStar instance.
 			</description>
 		</method>
 		<method name="connect_points">
@@ -2013,6 +2029,7 @@
 			<argument index="2" name="bidirectional" type="bool" default="true">
 			</argument>
 			<description>
+				Create a segment between points [code]id[/code] and [code]to_id[/code].
 			</description>
 		</method>
 		<method name="disconnect_points">
@@ -2021,6 +2038,7 @@
 			<argument index="1" name="to_id" type="int">
 			</argument>
 			<description>
+				Deletes a segment between points [code]id[/code] and [code]to_id[/code].
 			</description>
 		</method>
 		<method name="get_available_point_id" qualifiers="const">
@@ -2035,6 +2053,7 @@
 			<argument index="0" name="to_pos" type="Vector3">
 			</argument>
 			<description>
+				Returns the id of closest point of given point.  -1 is returned if there are no points on AStar.
 			</description>
 		</method>
 		<method name="get_closest_pos_in_segment" qualifiers="const">
@@ -2043,6 +2062,7 @@
 			<argument index="0" name="to_pos" type="Vector3">
 			</argument>
 			<description>
+				Returns the position of closest point that has segments.
 			</description>
 		</method>
 		<method name="get_id_path">
@@ -2053,6 +2073,7 @@
 			<argument index="1" name="to_id" type="int">
 			</argument>
 			<description>
+				Returns an array with the point ids of path found by AStar between two given points.
 			</description>
 		</method>
 		<method name="get_point_path">
@@ -2063,6 +2084,7 @@
 			<argument index="1" name="to_id" type="int">
 			</argument>
 			<description>
+				Returns an array with the points of path found by AStar between two given points.
 			</description>
 		</method>
 		<method name="get_point_pos" qualifiers="const">
@@ -2071,6 +2093,7 @@
 			<argument index="0" name="id" type="int">
 			</argument>
 			<description>
+				Returns the position of point with given id.
 			</description>
 		</method>
 		<method name="get_point_weight_scale" qualifiers="const">
@@ -2079,6 +2102,7 @@
 			<argument index="0" name="id" type="int">
 			</argument>
 			<description>
+				Returns the weight scale of point with given id.
 			</description>
 		</method>
 		<method name="has_point" qualifiers="const">
@@ -2087,12 +2111,14 @@
 			<argument index="0" name="id" type="int">
 			</argument>
 			<description>
+				Returns if the point with given id exists on AStar;
 			</description>
 		</method>
 		<method name="remove_point">
 			<argument index="0" name="id" type="int">
 			</argument>
 			<description>
+				Removes the point with given id.
 			</description>
 		</method>
 	</methods>
@@ -4609,7 +4635,7 @@
 			<argument index="0" name="from" type="PoolColorArray">
 			</argument>
 			<description>
-				Construct an array from a [PoolByteArray].
+				Construct an array from a [PoolColorArray].
 			</description>
 		</method>
 		<method name="Array">
@@ -4618,7 +4644,7 @@
 			<argument index="0" name="from" type="PoolVector3Array">
 			</argument>
 			<description>
-				Construct an array from a [PoolByteArray].
+				Construct an array from a [PoolVector3Array].
 			</description>
 		</method>
 		<method name="Array">
@@ -4627,7 +4653,7 @@
 			<argument index="0" name="from" type="PoolVector2Array">
 			</argument>
 			<description>
-				Construct an array from a [PoolByteArray].
+				Construct an array from a [PoolVector2Array].
 			</description>
 		</method>
 		<method name="Array">
@@ -4654,7 +4680,7 @@
 			<argument index="0" name="from" type="PoolIntArray">
 			</argument>
 			<description>
-				Construct an array from a [PoolByteArray].
+				Construct an array from a [PoolIntArray].
 			</description>
 		</method>
 		<method name="Array">
@@ -10146,10 +10172,71 @@
 			<description>
 			</description>
 		</method>
+		<method name="create_shape_owner">
+			<return type="int">
+			</return>
+			<argument index="0" name="owner" type="Object">
+			</argument>
+			<description>
+				Creates new holder for the shapes. Argument is a [CollisionShape] node. It will return owner_id which usually you will want to save for later use.
+			</description>
+		</method>
 		<method name="get_rid" qualifiers="const">
 			<return type="RID">
 			</return>
 			<description>
+			</description>
+		</method>
+		<method name="get_shape_owners">
+			<return type="Array">
+			</return>
+			<description>
+				Shape owner is a node which is holding concrete shape resources. This method will return an array which is holding an integer numbers that are representing unique ID of each owner. You can use those ids when you are using others shape_owner methods.
+			</description>
+		</method>
+		<method name="shape_owner_clear_shapes">
+			<argument index="0" name="owner_id" type="int">
+			</argument>
+			<description>
+				Will remove all the shapes associated with given owner.
+			</description>
+		</method>
+		<method name="shape_owner_get_shape">
+			<return type="Shape">
+			</return>
+			<argument index="0" name="owner_id" type="int">
+			</argument>
+			<argument index="1" name="shape_id" type="int">
+			</argument>
+			<description>
+				Will return a [Shape]. First argument owner_id is an integer that can be obtained from [method get_shape_owners]. Shape_id is a position of the shape inside owner; it's a value in range from 0 to [method shape_owner_get_shape_count].
+			</description>
+		</method>
+		<method name="shape_owner_get_shape_count">
+			<return type="int">
+			</return>
+			<argument index="0" name="owner_id" type="int">
+			</argument>
+			<description>
+				Returns number of shapes to which given owner is associated to.
+			</description>
+		</method>
+		<method name="shape_owner_get_transform">
+			<return type="Transform">
+			</return>
+			<argument index="0" name="owner_id" type="int">
+			</argument>
+			<description>
+				Will return [Transform] of an owner node.
+			</description>
+		</method>
+		<method name="shape_owner_remove_shape">
+			<argument index="0" name="owner_id" type="int">
+			</argument>
+			<argument index="1" name="shape_id" type="int">
+			</argument>
+			<description>
+				Removes related shape from the owner.
 			</description>
 		</method>
 		<method name="is_ray_pickable" qualifiers="const">
@@ -10222,11 +10309,72 @@
 			<description>
 			</description>
 		</method>
+		<method name="create_shape_owner">
+			<return type="int">
+			</return>
+			<argument index="0" name="owner" type="Object">
+			</argument>
+			<description>
+				Creates new holder for the shapes. Argument is a [CollisionShape2D] node. It will return owner_id which usually you will want to save for later use.
+			</description>
+		</method>
 		<method name="get_rid" qualifiers="const">
 			<return type="RID">
 			</return>
 			<description>
 				Return the RID of this object.
+			</description>
+		</method>
+		<method name="get_shape_owners">
+			<return type="Array">
+			</return>
+			<description>
+				Shape owner is a node which is holding concrete shape resources. This method will return an array which is holding an integer numbers that are representing unique ID of each owner. You can use those ids when you are using others shape_owner methods.
+			</description>
+		</method>
+		<method name="shape_owner_clear_shapes">
+			<argument index="0" name="owner_id" type="int">
+			</argument>
+			<description>
+				Will remove all the shapes associated with given owner.
+			</description>
+		</method>
+		<method name="shape_owner_get_shape">
+			<return type="Shape2D">
+			</return>
+			<argument index="0" name="owner_id" type="int">
+			</argument>
+			<argument index="1" name="shape_id" type="int">
+			</argument>
+			<description>
+				Will return a [Shape2D]. First argument owner_id is an integer that can be obtained from [method get_shape_owners]. Shape_id is a position of the shape inside owner; it's a value in range from 0 to [method shape_owner_get_shape_count].
+			</description>
+		</method>
+		<method name="shape_owner_get_shape_count">
+			<return type="int">
+			</return>
+			<argument index="0" name="owner_id" type="int">
+			</argument>
+			<description>
+				Returns number of shapes to which given owner is associated to.
+			</description>
+		</method>
+		<method name="shape_owner_get_transform">
+			<return type="Transform2D">
+			</return>
+			<argument index="0" name="owner_id" type="int">
+			</argument>
+			<description>
+				Will return [Transform2D] of an owner node.
+			</description>
+		</method>
+		<method name="shape_owner_remove_shape">
+			<argument index="0" name="owner_id" type="int">
+			</argument>
+			<argument index="1" name="shape_id" type="int">
+			</argument>
+			<description>
+				Removes related shape from the owner.
 			</description>
 		</method>
 		<method name="is_pickable" qualifiers="const">
@@ -10743,17 +10891,17 @@
 		</theme_item>
 		<theme_item name="color_sample" type="Texture">
 		</theme_item>
-		<theme_item name="color_width" type="int">
-		</theme_item>
-		<theme_item name="hseparator" type="int">
+		<theme_item name="h_width" type="int">
 		</theme_item>
 		<theme_item name="label_width" type="int">
 		</theme_item>
+		<theme_item name="margin" type="int">
+		</theme_item>
 		<theme_item name="screen_picker" type="Texture">
 		</theme_item>
-		<theme_item name="value_height" type="int">
+		<theme_item name="sv_height" type="int">
 		</theme_item>
-		<theme_item name="value_width" type="int">
+		<theme_item name="sv_width" type="int">
 		</theme_item>
 	</theme_items>
 </class>
@@ -11371,7 +11519,7 @@
 			<return type="Rect2">
 			</return>
 			<description>
-				Return position and size of the Control, relative to the top-left corner of the [i]window[/i] Control. This is a helper (see [method get_global_pos], [method get_size]).
+				Return position and size of the Control, relative to the top-left corner of the [i]window[/i] Control. This is a helper (see [method get_global_position], [method get_size]).
 			</description>
 		</method>
 		<method name="get_h_grow_direction" qualifiers="const">
@@ -11449,7 +11597,7 @@
 			<return type="Rect2">
 			</return>
 			<description>
-				Return position and size of the Control, relative to the top-left corner of the parent Control. This is a helper (see [method get_pos], [method get_size]).
+				Return position and size of the Control, relative to the top-left corner of the parent Control. This is a helper (see [method get_position], [method get_size]).
 			</description>
 		</method>
 		<method name="get_rotation" qualifiers="const">
@@ -14036,7 +14184,7 @@
 			<description>
 				Add a custom type, which will appear in the list of nodes or resources. An icon can be optionally passed.
 				When given node or resource is selected, the base type will be instanced (ie, "Spatial", "Control", "Resource"), then the script will be loaded and set to this object.
-				You can use the [method EditorPlugin.handles] to check if your custom object is being edited by checking the script or using 'extends' keyword.
+				You can use the [method EditorPlugin.handles] to check if your custom object is being edited by checking the script or using 'is' keyword.
 				During run-time, this will be a simple object with a script so this function does not need to be called then.
 			</description>
 		</method>
@@ -14114,6 +14262,8 @@
 			<argument index="1" name="event" type="InputEvent">
 			</argument>
 			<description>
+				Implement this function if you are interested in 3D view screen input events. It will be called only if currently selected node is handled by your plugin.
+				If you would like to always gets those input events then additionally use [method set_input_forwarding_always_enabled].
 			</description>
 		</method>
 		<method name="get_base_control">
@@ -14137,6 +14287,13 @@
 				Get the general settings for the editor (the same window that appears in the Settings menu).
 			</description>
 		</method>
+		<method name="get_edited_scene_root">
+			<return type="Node">
+			</return>
+			<description>
+				Returns root node of currently edited scene.
+			</description>
+		</method>
 		<method name="get_editor_viewport">
 			<return type="Control">
 			</return>
@@ -14151,6 +14308,13 @@
 				Get the name of the editor plugin. For main scren plugins this is what will appear in the selector (which by default is 2D, 3D, Script).
 			</description>
 		</method>
+		<method name="get_open_scenes">
+			<return type="Array">
+			</return>
+			<description>
+				Will return an Array of Strings which represent file paths to currently open scenes.
+			</description>
+		</method>
 		<method name="get_resource_filesystem">
 			<return type="EditorFileSystem">
 			</return>
@@ -14163,6 +14327,13 @@
 			</return>
 			<description>
 				Get tool for generating resource previews.
+			</description>
+		</method>
+		<method name="get_script_editor">
+			<return type="ScriptEditor">
+			</return>
+			<description>
+				Will return ScriptEditor object which contains informations about state of the scripts which are currently open by the editor.
 			</description>
 		</method>
 		<method name="get_selection">
@@ -14289,6 +14460,7 @@
 		</method>
 		<method name="set_input_event_forwarding_always_enabled">
 			<description>
+				Use this method if you always want to receive inputs from 3D view screen inside [method forward_spatial_gui_input]. It might be especially usable if your plugin will want to use raycast in the scene.
 			</description>
 		</method>
 		<method name="set_state" qualifiers="virtual">
@@ -14345,6 +14517,29 @@
 		<constant name="DOCK_SLOT_MAX" value="8">
 		</constant>
 	</constants>
+	<signals>
+		<signal name="main_screen_changed">
+			<argument index="0" name="screen_name" type="String">
+			</argument>
+			<description>
+				Emitted when user change main screen view (2D, 3D, Script, AssetLib). Works also with screens which are defined by plugins.
+			</description>
+		</signal>
+		<signal name="scene_changed">
+			<argument index="0" name="scene_root" type="Node">
+			</argument>
+			<description>
+				Emitted when user change scene. The argument is a root node of freshly opened scene.
+			</description>
+		</signal>
+		<signal name="scene_closed">
+			<argument index="0" name="filepath" type="String">
+			</argument>
+			<description>
+				Emitted when user close scene. The argument is file path to a closed scene.
+			</description>
+		</signal>
+	</signals>
 </class>
 <class name="EditorResourcePreview" inherits="Node" category="Core">
 	<brief_description>
@@ -16260,6 +16455,8 @@
 		<constant name="COMPRESSION_ZSTD" value="2">
 			Use the Zstd compression method.
 		</constant>
+		<constant name="COMPRESSION_GZIP" value="3">
+		</constant>
 	</constants>
 </class>
 <class name="FileDialog" inherits="ConfirmationDialog" category="Core">
@@ -16768,6 +16965,12 @@
 			<description>
 			</description>
 		</method>
+		<method name="get_normal_bias" qualifiers="const">
+			<return type="float">
+			</return>
+			<description>
+			</description>
+		</method>
 		<method name="get_probe_data" qualifiers="const">
 			<return type="Object">
 			</return>
@@ -16834,6 +17037,12 @@
 			<description>
 			</description>
 		</method>
+		<method name="set_normal_bias">
+			<argument index="0" name="max" type="float">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="set_probe_data">
 			<argument index="0" name="data" type="Object">
 			</argument>
@@ -16867,6 +17076,8 @@
 		<member name="extents" type="Vector3" setter="set_extents" getter="get_extents" brief="">
 		</member>
 		<member name="interior" type="bool" setter="set_interior" getter="is_interior" brief="">
+		</member>
+		<member name="normal_bias" type="float" setter="set_normal_bias" getter="get_normal_bias" brief="">
 		</member>
 		<member name="propagation" type="float" setter="set_propagation" getter="get_propagation" brief="">
 		</member>
@@ -16921,6 +17132,12 @@
 			</description>
 		</method>
 		<method name="get_energy" qualifiers="const">
+			<return type="float">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="get_normal_bias" qualifiers="const">
 			<return type="float">
 			</return>
 			<description>
@@ -16998,6 +17215,12 @@
 			<description>
 			</description>
 		</method>
+		<method name="set_normal_bias">
+			<argument index="0" name="bias" type="float">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="set_propagation">
 			<argument index="0" name="propagation" type="float">
 			</argument>
@@ -17027,6 +17250,8 @@
 		<member name="energy" type="float" setter="set_energy" getter="get_energy" brief="">
 		</member>
 		<member name="interior" type="bool" setter="set_interior" getter="is_interior" brief="">
+		</member>
+		<member name="normal_bias" type="float" setter="set_normal_bias" getter="get_normal_bias" brief="">
 		</member>
 		<member name="propagation" type="float" setter="set_propagation" getter="get_propagation" brief="">
 		</member>
@@ -17693,7 +17918,7 @@
 		Contains global variables accessible from everywhere.
 	</brief_description>
 	<description>
-		Contains global variables accessible from everywhere. Use the normal [Object] API, such as "Globals.get(variable)", "Globals.set(variable,value)" or "Globals.has(variable)" to access them. Variables stored in project.godot are also loaded into globals, making this object very useful for reading custom game configuration options.
+		Contains global variables accessible from everywhere. Use the normal [Object] API, such as "ProjectSettings.get(variable)", "ProjectSettings.set(variable,value)" or "ProjectSettings.has(variable)" to access them. Variables stored in project.godot are also loaded into ProjectSettings, making this object very useful for reading custom game configuration options.
 	</description>
 	<methods>
 		<method name="add_property_info">
@@ -17703,7 +17928,7 @@
 				Add a custom property info to a property. The dictionary must contain: name:[String](the name of the property) and type:[int](see TYPE_* in [@Global Scope]), and optionally hint:[int](see PROPERTY_HINT_* in [@Global Scope]), hint_string:[String].
 				Example:
 				[codeblock]
-				Globals.set("category/property_name", 0)
+				ProjectSettings.set("category/property_name", 0)
 
 				var property_info = {
 				    "name": "category/property_name",
@@ -17712,7 +17937,7 @@
 				    "hint_string": "one,two,three"
 				}
 
-				Globals.add_property_info(property_info)
+				ProjectSettings.add_property_info(property_info)
 				[/codeblock]
 			</description>
 		</method>
@@ -21420,7 +21645,7 @@
 		</method>
 		<method name="load_from_globals">
 			<description>
-				Clear the [InputMap] and load it anew from [Globals].
+				Clear the [InputMap] and load it anew from [ProjectSettings].
 			</description>
 		</method>
 	</methods>
@@ -22287,7 +22512,16 @@
 			<argument index="0" name="rel_vec" type="Vector3">
 			</argument>
 			<description>
-				Move the body in the given direction, stopping if there is an obstacle. The returned vector is how much movement was remaining before being stopped.
+				Move the body in the given direction, stopping if there is an obstacle. If as a result of a movement there will be any collision then informations about this collision will be in returned dictionary. Dictionary will contains those keys:
+				- "position" - collision position
+				- "normal" - collision normal
+				- "local_shape" - id of this kinematic body shape that took part in a collision
+				- "travel" -  traveled movement before being stopped
+				- "remainder" - remaining movement before being stopped
+				- "collider_id" - id of the collider, it can be used when dealing with [PhysicsServer]
+				- "collider" - colliding body
+				- "collider_shape_index" - index of the colliding shape, inside collider body "collider_metadata"
+				If the body did not intersect anything, then an empty dictionary (dir.empty()==true) is returned instead. Please note that this method is less user friendly than [method move_and_slide]. If you don't want to program each edge case manually, then it's recommended to use [method move_and_slide] instead.
 			</description>
 		</method>
 		<method name="move_and_slide">
@@ -22469,7 +22703,16 @@
 			<argument index="0" name="rel_vec" type="Vector2">
 			</argument>
 			<description>
-				Move the body in the given direction, stopping if there is an obstacle. The returned vector is how much movement was remaining before being stopped.
+				Move the body in the given direction, stopping if there is an obstacle. If as a result of a movement there will be any collision then informations about this collision will be in returned dictionary.	Dictionary will contains those keys:
+				- "position" - collision position
+				- "normal" - collision normal
+				- "local_shape" - id of this kinematic body shape that took part in a collision
+				- "travel" -  traveled movement before being stopped
+				- "remainder" - remaining movement before being stopped
+				- "collider_id" - id of the collider, it can be used when dealing with [Physics2DServer]
+				- "collider" - colliding body
+				- "collider_shape_index" - index of the colliding shape, inside collider body "collider_metadata"
+				If the body did not intersect anything, then an empty dictionary (dir.empty()==true) is returned instead. Please note that this method is less user friendly than [method move_and_slide]. If you don't want to program each edge case manually, then it's recommended to use [method move_and_slide] instead.
 			</description>
 		</method>
 		<method name="move_and_slide">
@@ -24667,7 +24910,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="create_debug_tagents">
+		<method name="create_debug_tangents">
 			<description>
 			</description>
 		</method>
@@ -24849,7 +25092,7 @@
 		MultiMesh provides low level mesh instancing. If the amount of [Mesh] instances needed goes from hundreds to thousands (and most need to be visible at close proximity) creating such a large amount of [MeshInstance] nodes may affect performance by using too much CPU or video memory.
 		For this case a MultiMesh becomes very useful, as it can draw thousands of instances with little API overhead.
 		As a drawback, if the instances are too far away of each other, performance may be reduced as every single instance will always rendered (they are spatially indexed as one, for the whole object).
-		Since instances may have any behavior, the Rect3 used for visibility must be provided by the user, or generated with [method generate_aabb].
+		Since instances may have any behavior, the Rect3 used for visibility must be provided by the user.
 	</description>
 	<methods>
 		<method name="get_aabb" qualifiers="const">
@@ -27779,7 +28022,7 @@
 			<return type="Array">
 			</return>
 			<description>
-				Return the property list, array of dictionaries, dictionaries must contain: name:String, type:int (see TYPE_* enum in globals) and optionally: hint:int (see PROPERTY_HINT_* in globals), hint_string:String, usage:int (see PROPERTY_USAGE_* in globals).
+				Return the property list, array of dictionaries, dictionaries must contain: name:String, type:int (see TYPE_* enum in [@Global Scope]) and optionally: hint:int (see PROPERTY_HINT_* in [@Global Scope]), hint_string:String, usage:int (see PROPERTY_USAGE_* in [@Global Scope]).
 			</description>
 		</method>
 		<method name="_init" qualifiers="virtual">
@@ -27915,6 +28158,8 @@
 			</description>
 		</method>
 		<method name="get_meta" qualifiers="const">
+			<return type="Variant">
+			</return>
 			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
@@ -27938,7 +28183,7 @@
 			<return type="Array">
 			</return>
 			<description>
-				Return the list of properties as an array of dictionaries, dictionaries contain: name:String, type:int (see TYPE_* enum in globals) and optionally: hint:int (see PROPERTY_HINT_* in globals), hint_string:String, usage:int (see PROPERTY_USAGE_* in globals).
+				Return the list of properties as an array of dictionaries, dictionaries contain: name:String, type:int (see TYPE_* enum in [@Global Scope]) and optionally: hint:int (see PROPERTY_HINT_* in [@Global Scope]), hint_string:String, usage:int (see PROPERTY_USAGE_* in [@Global Scope]).
 			</description>
 		</method>
 		<method name="get_script" qualifiers="const">
@@ -34381,7 +34626,7 @@
 			<argument index="1" name="to" type="int">
 			</argument>
 			<description>
-				Returns the slice of the [PoolByteArray] between indices (inclusive) as a new [RawArray].  Any negative index is considered to be from the end of the array.
+				Returns the slice of the [PoolByteArray] between indices (inclusive) as a new [PoolByteArray].  Any negative index is considered to be from the end of the array.
 			</description>
 		</method>
 	</methods>
@@ -37038,7 +37283,7 @@
 			<argument index="0" name="with" type="Rect3">
 			</argument>
 			<description>
-				Return the intersection between two [Rect3]. An empty AABB (size 0,0,0) is returned on failure.
+				Return the intersection between two [Rect3]. An empty Rect3 (size 0,0,0) is returned on failure.
 			</description>
 		</method>
 		<method name="intersects">
@@ -39988,6 +40233,44 @@
 	</members>
 	<constants>
 	</constants>
+</class>
+<class name="ScriptEditor" inherits="PanelContainer" category="Core">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<methods>
+		<method name="get_current_script">
+			<return type="Script">
+			</return>
+			<description>
+					Returns a [Script] that is currently active in editor.
+			</description>
+		</method>
+		<method name="get_open_scripts">
+			<return type="Array">
+			</return>
+			<description>
+						Returns an array with all [Script] objects which are currently open in editor.
+			</description>
+		</method>
+	</methods>
+	<signals>
+		<signal name="editor_script_changed">
+			<argument index="0" name="script" type="Script">
+			</argument>
+			<description>
+				Emitted when user changed active script. Argument is a freshly activated [Script].
+			</description>
+		</signal>
+		<signal name="script_close">
+			<argument index="0" name="script" type="Script">
+			</argument>
+			<description>
+				Emitted when editor is about to close the active script. Argument is a [Script] that is going to be closed.
+			</description>
+		</signal>
+	</signals>
 </class>
 <class name="SegmentShape2D" inherits="Shape2D" category="Core">
 	<brief_description>
@@ -49285,7 +49568,7 @@
 		Helper to manage UndoRedo in the editor or custom tools.
 	</brief_description>
 	<description>
-		Helper to maange UndoRedo in the editor or custom tools. It works by storing calls to functions in both 'do' an 'undo' lists.
+		Helper to manage UndoRedo in the editor or custom tools. It works by storing calls to functions in both 'do' an 'undo' lists.
 		Common behavior is to create an action, then add do/undo calls to functions or property changes, then committing the action.
 	</description>
 	<methods>
@@ -49338,13 +49621,12 @@
 			<argument index="0" name="object" type="Object">
 			</argument>
 			<description>
-				Add an 'undo' reference that will be erased if the 'undo' history is lost. This is useful mostly for nodes rmoved with the 'do' call (not the 'undo' call!).
+				Add an 'undo' reference that will be erased if the 'undo' history is lost. This is useful mostly for nodes removed with the 'do' call (not the 'undo' call!).
 			</description>
 		</method>
 		<method name="clear_history">
 			<description>
-				Clear the undo/redo history and associated
-			references.
+				Clear the undo/redo history and associated references.
 			</description>
 		</method>
 		<method name="commit_action">
@@ -49358,8 +49640,7 @@
 			<argument index="1" name="merge_mode" type="int" default="0">
 			</argument>
 			<description>
-				Create a new action. After this is called, do all your calls to [method add_do_method], [method add_undo_method], [method add_do_property] and [method add_un
-do_property].
+				Create a new action. After this is called, do all your calls to [method add_do_method], [method add_undo_method], [method add_do_property] and [method add_undo_property].
 			</description>
 		</method>
 		<method name="get_current_action_name" qualifiers="const">

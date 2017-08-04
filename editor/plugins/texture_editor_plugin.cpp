@@ -30,8 +30,8 @@
 #include "texture_editor_plugin.h"
 
 #include "editor/editor_settings.h"
-#include "project_settings.h"
 #include "io/resource_loader.h"
+#include "project_settings.h"
 
 void TextureEditor::_gui_input(Ref<InputEvent> p_event) {
 }
@@ -102,14 +102,24 @@ void TextureEditor::_notification(int p_what) {
 	}
 }
 
+void TextureEditor::_changed_callback(Object *p_changed, const char *p_prop) {
+
+	if (!is_visible())
+		return;
+	update();
+}
+
 void TextureEditor::edit(Ref<Texture> p_texture) {
+
+	if (!texture.is_null())
+		texture->remove_change_receptor(this);
 
 	texture = p_texture;
 
-	if (!texture.is_null())
+	if (!texture.is_null()) {
+		texture->add_change_receptor(this);
 		update();
-	else {
-
+	} else {
 		hide();
 	}
 }

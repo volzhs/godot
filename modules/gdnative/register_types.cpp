@@ -33,34 +33,69 @@
 #include "io/resource_loader.h"
 #include "io/resource_saver.h"
 
-GDNativeScriptLanguage *script_language_gdn = NULL;
-ResourceFormatLoaderGDNativeScript *resource_loader_gdn = NULL;
-ResourceFormatSaverGDNativeScript *resource_saver_gdn = NULL;
-//ResourceFormatLoaderDLLibrary *resource_loader_dllib=NULL;
+#include "core/os/os.h"
+
+godot_variant cb_standard_varcall(void *handle, godot_string *p_procedure, godot_array *p_args) {
+	if (handle == NULL) {
+		ERR_PRINT("No valid library handle, can't call standard varcall procedure");
+		godot_variant ret;
+		godot_variant_new_nil(&ret);
+		return ret;
+	}
+
+	void *library_proc;
+	Error err = OS::get_singleton()->get_dynamic_library_symbol_handle(
+			handle,
+			*(String *)p_procedure,
+			library_proc,
+			true); // we roll our own message
+	if (err != OK) {
+		ERR_PRINT((String("GDNative procedure \"" + *(String *)p_procedure) + "\" does not exists and can't be called").utf8().get_data());
+		godot_variant ret;
+		godot_variant_new_nil(&ret);
+		return ret;
+	}
+
+	godot_gdnative_procedure_fn proc;
+	proc = (godot_gdnative_procedure_fn)library_proc;
+
+	return proc(NULL, p_args);
+}
+
+GDNativeCallRegistry *GDNativeCallRegistry::singleton;
 
 void register_gdnative_types() {
 
 	ClassDB::register_class<GDNativeLibrary>();
-	ClassDB::register_class<GDNativeScript>();
+	ClassDB::register_class<GDNative>();
 
-	script_language_gdn = memnew(GDNativeScriptLanguage);
-	ScriptServer::register_language(script_language_gdn);
-	resource_loader_gdn = memnew(ResourceFormatLoaderGDNativeScript);
-	ResourceLoader::add_resource_format_loader(resource_loader_gdn);
-	resource_saver_gdn = memnew(ResourceFormatSaverGDNativeScript);
-	ResourceSaver::add_resource_format_saver(resource_saver_gdn);
+	GDNativeCallRegistry::singleton = memnew(GDNativeCallRegistry);
+
+	GDNativeCallRegistry::singleton->register_native_call_type("standard_varcall", cb_standard_varcall);
 }
 
 void unregister_gdnative_types() {
+	memdelete(GDNativeCallRegistry::singleton);
 
-	ScriptServer::unregister_language(script_language_gdn);
+	// This is for printing out the sizes of the core types
 
-	if (script_language_gdn)
-		memdelete(script_language_gdn);
-
-	if (resource_loader_gdn)
-		memdelete(resource_loader_gdn);
-
-	if (resource_saver_gdn)
-		memdelete(resource_saver_gdn);
+	/*
+	print_line(String("array:\t")     + itos(sizeof(Array)));
+	print_line(String("basis:\t")     + itos(sizeof(Basis)));
+	print_line(String("color:\t")     + itos(sizeof(Color)));
+	print_line(String("dict:\t" )     + itos(sizeof(Dictionary)));
+	print_line(String("node_path:\t") + itos(sizeof(NodePath)));
+	print_line(String("plane:\t")     + itos(sizeof(Plane)));
+	print_line(String("poolarray:\t") + itos(sizeof(PoolByteArray)));
+	print_line(String("quat:\t")      + itos(sizeof(Quat)));
+	print_line(String("rect2:\t")     + itos(sizeof(Rect2)));
+	print_line(String("rect3:\t")     + itos(sizeof(Rect3)));
+	print_line(String("rid:\t")       + itos(sizeof(RID)));
+	print_line(String("string:\t")    + itos(sizeof(String)));
+	print_line(String("transform:\t") + itos(sizeof(Transform)));
+	print_line(String("transfo2D:\t") + itos(sizeof(Transform2D)));
+	print_line(String("variant:\t")   + itos(sizeof(Variant)));
+	print_line(String("vector2:\t")   + itos(sizeof(Vector2)));
+	print_line(String("vector3:\t")   + itos(sizeof(Vector3)));
+	*/
 }

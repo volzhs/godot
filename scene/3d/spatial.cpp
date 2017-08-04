@@ -674,6 +674,16 @@ void Spatial::look_at_from_pos(const Vector3 &p_pos, const Vector3 &p_target, co
 	set_global_transform(lookat);
 }
 
+Vector3 Spatial::to_local(Vector3 p_global) const {
+
+	return get_global_transform().affine_inverse().xform(p_global);
+}
+
+Vector3 Spatial::to_global(Vector3 p_local) const {
+
+	return get_global_transform().xform(p_local);
+}
+
 void Spatial::set_notify_transform(bool p_enable) {
 	data.notify_transform = p_enable;
 }
@@ -704,7 +714,7 @@ void Spatial::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_scale"), &Spatial::get_scale);
 	ClassDB::bind_method(D_METHOD("set_global_transform", "global"), &Spatial::set_global_transform);
 	ClassDB::bind_method(D_METHOD("get_global_transform"), &Spatial::get_global_transform);
-	ClassDB::bind_method(D_METHOD("get_parent_spatial"), &Spatial::get_parent_spatial);
+	ClassDB::bind_method(D_METHOD("get_parent_spatial:Spatial"), &Spatial::get_parent_spatial);
 	ClassDB::bind_method(D_METHOD("set_ignore_transform_notification", "enabled"), &Spatial::set_ignore_transform_notification);
 	ClassDB::bind_method(D_METHOD("set_as_toplevel", "enable"), &Spatial::set_as_toplevel);
 	ClassDB::bind_method(D_METHOD("is_set_as_toplevel"), &Spatial::is_set_as_toplevel);
@@ -722,7 +732,7 @@ void Spatial::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_gizmo", "gizmo:SpatialGizmo"), &Spatial::set_gizmo);
 	ClassDB::bind_method(D_METHOD("get_gizmo:SpatialGizmo"), &Spatial::get_gizmo);
 
-	ClassDB::bind_method(D_METHOD("set_visible"), &Spatial::set_visible);
+	ClassDB::bind_method(D_METHOD("set_visible", "visible"), &Spatial::set_visible);
 	ClassDB::bind_method(D_METHOD("is_visible"), &Spatial::is_visible);
 	ClassDB::bind_method(D_METHOD("is_visible_in_tree"), &Spatial::is_visible_in_tree);
 	ClassDB::bind_method(D_METHOD("show"), &Spatial::show);
@@ -755,6 +765,9 @@ void Spatial::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("look_at", "target", "up"), &Spatial::look_at);
 	ClassDB::bind_method(D_METHOD("look_at_from_pos", "pos", "target", "up"), &Spatial::look_at_from_pos);
+
+	ClassDB::bind_method(D_METHOD("to_local", "global_point"), &Spatial::to_local);
+	ClassDB::bind_method(D_METHOD("to_global", "local_point"), &Spatial::to_global);
 
 	BIND_CONSTANT(NOTIFICATION_TRANSFORM_CHANGED);
 	BIND_CONSTANT(NOTIFICATION_ENTER_WORLD);

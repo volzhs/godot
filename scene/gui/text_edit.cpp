@@ -33,8 +33,8 @@
 #include "os/keyboard.h"
 #include "os/os.h"
 
-#include "project_settings.h"
 #include "message_queue.h"
+#include "project_settings.h"
 #include "scene/main/viewport.h"
 
 #define TAB_PIXELS
@@ -47,6 +47,10 @@ static bool _is_text_char(CharType c) {
 static bool _is_symbol(CharType c) {
 
 	return c != '_' && ((c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~') || c == '\t' || c == ' ');
+}
+
+static bool _is_whitespace(CharType c) {
+	return c == '\t' || c == ' ';
 }
 
 static bool _is_char(CharType c) {
@@ -2096,45 +2100,43 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 					break;
 
 #ifdef APPLE_STYLE_KEYS
-				if (k->get_alt()) {
+				if (k->get_alt() && cursor.column > 1) {
 #else
 				if (k->get_alt()) {
 					scancode_handled = false;
 					break;
-				} else if (k->get_command()) {
+				} else if (k->get_command() && cursor.column > 1) {
 #endif
 					int line = cursor.line;
 					int column = cursor.column;
 
-					bool prev_char = false;
-					bool only_whitespace = true;
-
-					while (only_whitespace && line > 0) {
-
-						while (column > 0) {
-							CharType c = text[line][column - 1];
-
-							if (c != '\t' && c != ' ') {
-								only_whitespace = false;
-								break;
-							}
-
-							column--;
-						}
-
-						if (only_whitespace) {
-							line--;
-							column = text[line].length();
-						}
+					// check if we are removing a single whitespace, if so remove it and the next char type
+					// else we just remove the whitespace
+					bool only_whitespace = false;
+					if (_is_whitespace(text[line][column - 1]) && _is_whitespace(text[line][column - 2])) {
+						only_whitespace = true;
+					} else if (_is_whitespace(text[line][column - 1])) {
+						// remove the single whitespace
+						column--;
 					}
 
+					// check if its a text char
+					bool only_char = (_is_text_char(text[line][column - 1]) && !only_whitespace);
+
+					// if its not whitespace or char then symbol.
+					bool only_symbols = !(only_whitespace || only_char);
+
 					while (column > 0) {
-						bool ischar = _is_text_char(text[line][column - 1]);
+						bool is_whitespace = _is_whitespace(text[line][column - 1]);
+						bool is_text_char = _is_text_char(text[line][column - 1]);
 
-						if (prev_char && !ischar)
+						if (only_whitespace && !is_whitespace) {
 							break;
-
-						prev_char = ischar;
+						} else if (only_char && !is_text_char) {
+							break;
+						} else if (only_symbols && (is_whitespace || is_text_char)) {
+							break;
+						}
 						column--;
 					}
 
@@ -2356,52 +2358,50 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 				int next_column;
 
 #ifdef APPLE_STYLE_KEYS
-				if (k->get_alt()) {
+				if (k->get_alt() && cursor.column < curline_len - 1) {
 #else
 				if (k->get_alt()) {
 					scancode_handled = false;
 					break;
-				} else if (k->get_command()) {
+				} else if (k->get_command() && cursor.column < curline_len - 1) {
 #endif
-					int last_line = text.size() - 1;
 
 					int line = cursor.line;
 					int column = cursor.column;
 
-					bool prev_char = false;
-					bool only_whitespace = true;
-
-					while (only_whitespace && line < last_line) {
-
-						while (column < text[line].length()) {
-							CharType c = text[line][column];
-
-							if (c != '\t' && c != ' ') {
-								only_whitespace = false;
-								break;
-							}
-
-							column++;
-						}
-
-						if (only_whitespace) {
-							line++;
-							column = 0;
-						}
+					// check if we are removing a single whitespace, if so remove it and the next char type
+					// else we just remove the whitespace
+					bool only_whitespace = false;
+					if (_is_whitespace(text[line][column]) && _is_whitespace(text[line][column + 1])) {
+						only_whitespace = true;
+					} else if (_is_whitespace(text[line][column])) {
+						// remove the single whitespace
+						column++;
 					}
 
-					while (column < text[line].length()) {
+					// check if its a text char
+					bool only_char = (_is_text_char(text[line][column]) && !only_whitespace);
 
-						bool ischar = _is_text_char(text[line][column]);
+					// if its not whitespace or char then symbol.
+					bool only_symbols = !(only_whitespace || only_char);
 
-						if (prev_char && !ischar)
+					while (column < curline_len) {
+						bool is_whitespace = _is_whitespace(text[line][column]);
+						bool is_text_char = _is_text_char(text[line][column]);
+
+						if (only_whitespace && !is_whitespace) {
 							break;
-						prev_char = ischar;
+						} else if (only_char && !is_text_char) {
+							break;
+						} else if (only_symbols && (is_whitespace || is_text_char)) {
+							break;
+						}
 						column++;
 					}
 
 					next_line = line;
 					next_column = column;
+
 				} else {
 					next_column = cursor.column < curline_len ? (cursor.column + 1) : 0;
 				}
@@ -4353,6 +4353,23 @@ String TextEdit::get_word_at_pos(const Vector2 &p_pos) const {
 
 		bool symbol = beg < s.length() && _is_symbol(s[beg]); //not sure if right but most editors behave like this
 
+		bool inside_quotes = false;
+		int qbegin, qend;
+		for (int i = 0; i < s.length(); i++) {
+			if (s[i] == '"') {
+				if (inside_quotes) {
+					qend = i;
+					inside_quotes = false;
+					if (col >= qbegin && col <= qend) {
+						return s.substr(qbegin, qend - qbegin);
+					}
+				} else {
+					qbegin = i + 1;
+					inside_quotes = true;
+				}
+			}
+		}
+
 		while (beg > 0 && s[beg - 1] > 32 && (symbol == _is_symbol(s[beg - 1]))) {
 			beg--;
 		}
@@ -4597,7 +4614,7 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_keyword_color", "keyword", "color"), &TextEdit::add_keyword_color);
 	ClassDB::bind_method(D_METHOD("add_color_region", "begin_key", "end_key", "color", "line_only"), &TextEdit::add_color_region, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("clear_colors"), &TextEdit::clear_colors);
-	ClassDB::bind_method(D_METHOD("menu_option"), &TextEdit::menu_option);
+	ClassDB::bind_method(D_METHOD("menu_option", "option"), &TextEdit::menu_option);
 	ClassDB::bind_method(D_METHOD("get_menu:PopupMenu"), &TextEdit::get_menu);
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "syntax_highlighting"), "set_syntax_coloring", "is_syntax_coloring_enabled");
