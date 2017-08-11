@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  path_db.cpp                                                          */
+/*  node_path.cpp                                                        */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -27,7 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "path_db.h"
+#include "node_path.h"
 
 #include "print_string.h"
 

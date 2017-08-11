@@ -300,6 +300,15 @@ void Particles2D::_notification(int p_what) {
 #endif
 	}
 
+	if (p_what == NOTIFICATION_PAUSED || p_what == NOTIFICATION_UNPAUSED) {
+		if (can_process()) {
+			VS::get_singleton()->particles_set_speed_scale(particles, speed_scale);
+		} else {
+
+			VS::get_singleton()->particles_set_speed_scale(particles, 0);
+		}
+	}
+
 	if (p_what == NOTIFICATION_TRANSFORM_CHANGED) {
 		_update_particle_emission_transform();
 	}
@@ -318,7 +327,7 @@ void Particles2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_use_local_coordinates", "enable"), &Particles2D::set_use_local_coordinates);
 	ClassDB::bind_method(D_METHOD("set_fixed_fps", "fps"), &Particles2D::set_fixed_fps);
 	ClassDB::bind_method(D_METHOD("set_fractional_delta", "enable"), &Particles2D::set_fractional_delta);
-	ClassDB::bind_method(D_METHOD("set_process_material", "material:Material"), &Particles2D::set_process_material);
+	ClassDB::bind_method(D_METHOD("set_process_material", "material"), &Particles2D::set_process_material);
 	ClassDB::bind_method(D_METHOD("set_speed_scale", "scale"), &Particles2D::set_speed_scale);
 
 	ClassDB::bind_method(D_METHOD("is_emitting"), &Particles2D::is_emitting);
@@ -332,17 +341,17 @@ void Particles2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_use_local_coordinates"), &Particles2D::get_use_local_coordinates);
 	ClassDB::bind_method(D_METHOD("get_fixed_fps"), &Particles2D::get_fixed_fps);
 	ClassDB::bind_method(D_METHOD("get_fractional_delta"), &Particles2D::get_fractional_delta);
-	ClassDB::bind_method(D_METHOD("get_process_material:Material"), &Particles2D::get_process_material);
+	ClassDB::bind_method(D_METHOD("get_process_material"), &Particles2D::get_process_material);
 	ClassDB::bind_method(D_METHOD("get_speed_scale"), &Particles2D::get_speed_scale);
 
 	ClassDB::bind_method(D_METHOD("set_draw_order", "order"), &Particles2D::set_draw_order);
 	ClassDB::bind_method(D_METHOD("get_draw_order"), &Particles2D::get_draw_order);
 
-	ClassDB::bind_method(D_METHOD("set_texture", "texture:Texture"), &Particles2D::set_texture);
-	ClassDB::bind_method(D_METHOD("get_texture:Texture"), &Particles2D::get_texture);
+	ClassDB::bind_method(D_METHOD("set_texture", "texture"), &Particles2D::set_texture);
+	ClassDB::bind_method(D_METHOD("get_texture"), &Particles2D::get_texture);
 
-	ClassDB::bind_method(D_METHOD("set_normal_map", "texture:Texture"), &Particles2D::set_normal_map);
-	ClassDB::bind_method(D_METHOD("get_normal_map:Texture"), &Particles2D::get_normal_map);
+	ClassDB::bind_method(D_METHOD("set_normal_map", "texture"), &Particles2D::set_normal_map);
+	ClassDB::bind_method(D_METHOD("get_normal_map"), &Particles2D::get_normal_map);
 
 	ClassDB::bind_method(D_METHOD("capture_rect"), &Particles2D::capture_rect);
 
@@ -396,6 +405,7 @@ Particles2D::Particles2D() {
 	set_randomness_ratio(0);
 	set_visibility_rect(Rect2(Vector2(-100, -100), Vector2(200, 200)));
 	set_use_local_coordinates(true);
+	set_draw_order(DRAW_ORDER_INDEX);
 	set_speed_scale(1);
 	h_frames = 1;
 	v_frames = 1;

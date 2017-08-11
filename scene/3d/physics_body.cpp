@@ -229,8 +229,8 @@ void StaticBody::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_bounce", "bounce"), &StaticBody::set_bounce);
 	ClassDB::bind_method(D_METHOD("get_bounce"), &StaticBody::get_bounce);
 
-	ClassDB::bind_method(D_METHOD("add_collision_exception_with", "body:PhysicsBody"), &PhysicsBody::add_collision_exception_with);
-	ClassDB::bind_method(D_METHOD("remove_collision_exception_with", "body:PhysicsBody"), &PhysicsBody::remove_collision_exception_with);
+	ClassDB::bind_method(D_METHOD("add_collision_exception_with", "body"), &PhysicsBody::add_collision_exception_with);
+	ClassDB::bind_method(D_METHOD("remove_collision_exception_with", "body"), &PhysicsBody::remove_collision_exception_with);
 
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "friction", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_friction", "get_friction");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "bounce", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_bounce", "get_bounce");
@@ -473,6 +473,21 @@ void RigidBody::_direct_state_changed(Object *p_state) {
 }
 
 void RigidBody::_notification(int p_what) {
+
+#ifdef TOOLS_ENABLED
+	if (p_what == NOTIFICATION_ENTER_TREE) {
+		if (get_tree()->is_editor_hint()) {
+			set_notify_local_transform(true); //used for warnings and only in editor
+		}
+	}
+
+	if (p_what == NOTIFICATION_LOCAL_TRANSFORM_CHANGED) {
+		if (get_tree()->is_editor_hint()) {
+			update_configuration_warning();
+		}
+	}
+
+#endif
 }
 
 void RigidBody::set_mode(Mode p_mode) {
@@ -745,6 +760,22 @@ Array RigidBody::get_colliding_bodies() const {
 	}
 
 	return ret;
+}
+
+String RigidBody::get_configuration_warning() const {
+
+	Transform t = get_transform();
+
+	String warning = CollisionObject::get_configuration_warning();
+
+	if ((get_mode() == MODE_RIGID || get_mode() == MODE_CHARACTER) && (ABS(t.basis.get_axis(0).length() - 1.0) > 0.05 || ABS(t.basis.get_axis(1).length() - 1.0) > 0.05 || ABS(t.basis.get_axis(0).length() - 1.0) > 0.05)) {
+		if (warning != String()) {
+			warning += "\n";
+		}
+		warning += TTR("Size changes to RigidBody (in character or rigid modes) will be overriden by the physics engine when running.\nChange the size in children collision shapes instead.");
+	}
+
+	return warning;
 }
 
 void RigidBody::_bind_methods() {
@@ -1107,7 +1138,7 @@ void KinematicBody::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_floor_velocity"), &KinematicBody::get_floor_velocity);
 
 	ClassDB::bind_method(D_METHOD("set_safe_margin", "pixels"), &KinematicBody::set_safe_margin);
-	ClassDB::bind_method(D_METHOD("get_safe_margin", "pixels"), &KinematicBody::get_safe_margin);
+	ClassDB::bind_method(D_METHOD("get_safe_margin"), &KinematicBody::get_safe_margin);
 
 	ClassDB::bind_method(D_METHOD("get_collision_count"), &KinematicBody::get_collision_count);
 	ClassDB::bind_method(D_METHOD("get_collision_position", "collision"), &KinematicBody::get_collision_position);

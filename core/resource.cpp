@@ -32,6 +32,7 @@
 #include "core_string_names.h"
 #include "io/resource_loader.h"
 #include "os/file_access.h"
+#include "scene/main/node.h" //only so casting works
 #include "script_language.h"
 #include <stdio.h>
 
@@ -227,12 +228,12 @@ RID Resource::get_rid() const {
 
 void Resource::register_owner(Object *p_owner) {
 
-	owners.insert(p_owner->get_instance_ID());
+	owners.insert(p_owner->get_instance_id());
 }
 
 void Resource::unregister_owner(Object *p_owner) {
 
-	owners.erase(p_owner->get_instance_ID());
+	owners.erase(p_owner->get_instance_id());
 }
 
 void Resource::notify_change_to_owners() {
@@ -336,10 +337,10 @@ void Resource::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_rid"), &Resource::get_rid);
 	ClassDB::bind_method(D_METHOD("set_local_to_scene", "enable"), &Resource::set_local_to_scene);
 	ClassDB::bind_method(D_METHOD("is_local_to_scene"), &Resource::is_local_to_scene);
-	ClassDB::bind_method(D_METHOD("get_local_scene:Node"), &Resource::get_local_scene);
+	ClassDB::bind_method(D_METHOD("get_local_scene"), &Resource::get_local_scene);
 	ClassDB::bind_method(D_METHOD("setup_local_to_scene"), &Resource::setup_local_to_scene);
 
-	ClassDB::bind_method(D_METHOD("duplicate:Resource", "subresources"), &Resource::duplicate, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("duplicate", "subresources"), &Resource::duplicate, DEFVAL(false));
 	ADD_SIGNAL(MethodInfo("changed"));
 	ADD_GROUP("Resource", "resource_");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "resource_local_to_scene"), "set_local_to_scene", "is_local_to_scene");

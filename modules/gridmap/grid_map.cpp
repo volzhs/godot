@@ -345,7 +345,7 @@ void GridMap::set_cell_item(int p_x, int p_y, int p_z, int p_item, int p_rot) {
 		Octant *g = memnew(Octant);
 		g->dirty = true;
 		g->static_body = PhysicsServer::get_singleton()->body_create(PhysicsServer::BODY_MODE_STATIC);
-		PhysicsServer::get_singleton()->body_attach_object_instance_ID(g->static_body, get_instance_ID());
+		PhysicsServer::get_singleton()->body_attach_object_instance_id(g->static_body, get_instance_id());
 		if (is_inside_world())
 			PhysicsServer::get_singleton()->body_set_space(g->static_body, get_world()->get_space());
 
@@ -830,8 +830,8 @@ void GridMap::_update_dirty_map_callback() {
 
 void GridMap::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_theme", "theme:MeshLibrary"), &GridMap::set_theme);
-	ClassDB::bind_method(D_METHOD("get_theme:MeshLibrary"), &GridMap::get_theme);
+	ClassDB::bind_method(D_METHOD("set_theme", "theme"), &GridMap::set_theme);
+	ClassDB::bind_method(D_METHOD("get_theme"), &GridMap::get_theme);
 
 	ClassDB::bind_method(D_METHOD("set_cell_size", "size"), &GridMap::set_cell_size);
 	ClassDB::bind_method(D_METHOD("get_cell_size"), &GridMap::get_cell_size);
@@ -857,7 +857,7 @@ void GridMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_clip", "enabled", "clipabove", "floor", "axis"), &GridMap::set_clip, DEFVAL(true), DEFVAL(0), DEFVAL(Vector3::AXIS_X));
 
 	ClassDB::bind_method(D_METHOD("create_area", "id", "area"), &GridMap::create_area);
-	ClassDB::bind_method(D_METHOD("area_get_bounds", "area", "bounds"), &GridMap::area_get_bounds);
+	ClassDB::bind_method(D_METHOD("area_get_bounds", "area"), &GridMap::area_get_bounds);
 	ClassDB::bind_method(D_METHOD("area_set_exterior_portal", "area", "enable"), &GridMap::area_set_exterior_portal);
 	ClassDB::bind_method(D_METHOD("area_set_name", "area", "name"), &GridMap::area_set_name);
 	ClassDB::bind_method(D_METHOD("area_get_name", "area"), &GridMap::area_get_name);
@@ -867,7 +867,7 @@ void GridMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("area_set_portal_disable_color", "area", "color"), &GridMap::area_set_portal_disable_color);
 	ClassDB::bind_method(D_METHOD("area_get_portal_disable_color", "area"), &GridMap::area_get_portal_disable_color);
 	ClassDB::bind_method(D_METHOD("erase_area", "area"), &GridMap::erase_area);
-	ClassDB::bind_method(D_METHOD("get_unused_area_id", "area"), &GridMap::get_unused_area_id);
+	ClassDB::bind_method(D_METHOD("get_unused_area_id"), &GridMap::get_unused_area_id);
 
 	ClassDB::bind_method(D_METHOD("clear"), &GridMap::clear);
 

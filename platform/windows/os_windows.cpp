@@ -807,7 +807,7 @@ void OS_Windows::process_key_events() {
 
 				if ((ke.lParam & (1 << 24)) && (ke.wParam == VK_RETURN)) {
 					// Special case for Numpad Enter key
-					k->set_scancode(KEY_ENTER);
+					k->set_scancode(KEY_KP_ENTER);
 				} else {
 					k->set_scancode(KeyMappingWindows::get_keysym(ke.wParam));
 				}
@@ -1191,10 +1191,6 @@ void OS_Windows::finalize() {
 		memdelete(main_loop);
 
 	main_loop = NULL;
-
-	for (int i = 0; i < get_audio_driver_count(); i++) {
-		AudioDriverManager::get_driver(i)->finish();
-	}
 
 	memdelete(joypad);
 	memdelete(input);
@@ -1952,7 +1948,7 @@ Error OS_Windows::kill(const ProcessID &p_pid) {
 	return ret != 0 ? OK : FAILED;
 };
 
-int OS_Windows::get_process_ID() const {
+int OS_Windows::get_process_id() const {
 	return _getpid();
 }
 

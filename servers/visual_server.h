@@ -60,7 +60,6 @@ protected:
 	RID test_texture;
 	RID white_texture;
 	RID test_material;
-	RID material_2d[32];
 
 	Error _surface_set_data(Array p_arrays, uint32_t p_format, uint32_t *p_offsets, uint32_t p_stride, PoolVector<uint8_t> &r_vertex_array, int p_vertex_array_len, PoolVector<uint8_t> &r_index_array, int p_index_array_len, Rect3 &r_aabb, Vector<Rect3> r_bone_aabb);
 
@@ -727,7 +726,7 @@ public:
 	virtual void instance_set_scenario(RID p_instance, RID p_scenario) = 0; // from can be mesh, light, poly, area and portal so far.
 	virtual void instance_set_layer_mask(RID p_instance, uint32_t p_mask) = 0;
 	virtual void instance_set_transform(RID p_instance, const Transform &p_transform) = 0;
-	virtual void instance_attach_object_instance_ID(RID p_instance, ObjectID p_ID) = 0;
+	virtual void instance_attach_object_instance_id(RID p_instance, ObjectID p_ID) = 0;
 	virtual void instance_set_blend_shape_weight(RID p_instance, int p_shape, float p_weight) = 0;
 	virtual void instance_set_surface_material(RID p_instance, int p_surface, RID p_material) = 0;
 	virtual void instance_set_visible(RID p_instance, bool p_visible) = 0;
@@ -875,12 +874,6 @@ public:
 	};
 	virtual void canvas_occluder_polygon_set_cull_mode(RID p_occluder_polygon, CanvasOccluderPolygonCullMode p_mode) = 0;
 
-	/* CURSOR */
-	virtual void cursor_set_rotation(float p_rotation, int p_cursor = 0) = 0; // radians
-	virtual void cursor_set_texture(RID p_texture, const Point2 &p_center_offset = Point2(0, 0), int p_cursor = 0, const Rect2 &p_region = Rect2()) = 0;
-	virtual void cursor_set_visible(bool p_visible, int p_cursor = 0) = 0;
-	virtual void cursor_set_pos(const Point2 &p_pos, int p_cursor = 0) = 0;
-
 	/* BLACK BARS */
 
 	virtual void black_bars_set_margins(int p_left, int p_top, int p_right, int p_bottom) = 0;
@@ -919,8 +912,6 @@ public:
 	virtual int get_render_info(RenderInfo p_info) = 0;
 
 	/* Materials for 2D on 3D */
-
-	RID material_2d_get(bool p_shaded, bool p_transparent, bool p_double_sided, bool p_cut_alpha, bool p_opaque_prepass);
 
 	/* TESTING */
 

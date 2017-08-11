@@ -57,6 +57,12 @@
 
 #define FREELOOK_MIN_SPEED 0.1
 
+#define MIN_Z 0.01
+#define MAX_Z 10000
+
+#define MIN_FOV 0.01
+#define MAX_FOV 179
+
 void SpatialEditorViewport::_update_camera() {
 	if (orthogonal) {
 		//camera->set_orthogonal(size.width*cursor.distance,get_znear(),get_zfar());
@@ -153,26 +159,15 @@ int SpatialEditorViewport::get_selected_count() const {
 
 float SpatialEditorViewport::get_znear() const {
 
-	float val = spatial_editor->get_znear();
-	if (val < 0.001)
-		val = 0.001;
-	return val;
+	return CLAMP(spatial_editor->get_znear(), MIN_Z, MAX_Z);
 }
 float SpatialEditorViewport::get_zfar() const {
 
-	float val = spatial_editor->get_zfar();
-	if (val < 0.001)
-		val = 0.001;
-	return val;
+	return CLAMP(spatial_editor->get_zfar(), MIN_Z, MAX_Z);
 }
 float SpatialEditorViewport::get_fov() const {
 
-	float val = spatial_editor->get_fov();
-	if (val < 0.001)
-		val = 0.001;
-	if (val > 89)
-		val = 89;
-	return val;
+	return CLAMP(spatial_editor->get_fov(), MIN_FOV, MAX_FOV);
 }
 
 Transform SpatialEditorViewport::_get_camera_transform() const {
@@ -271,6 +266,8 @@ ObjectID SpatialEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, 
 	float closest_dist = 1e20;
 	int selected_handle = -1;
 
+	Vector<Spatial *> subscenes = Vector<Spatial *>();
+
 	for (int i = 0; i < instances.size(); i++) {
 
 		Object *obj = ObjectDB::get_instance(instances[i]);
@@ -284,11 +281,19 @@ ObjectID SpatialEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, 
 
 		Ref<SpatialEditorGizmo> seg = spat->get_gizmo();
 
-		if (!seg.is_valid())
-			continue;
+		if ((!seg.is_valid()) || found_gizmos.has(seg)) {
 
-		if (found_gizmos.has(seg))
+			Node *subscene_candidate = spat;
+
+			while (subscene_candidate->get_owner() != editor->get_edited_scene())
+				subscene_candidate = subscene_candidate->get_owner();
+
+			spat = subscene_candidate->cast_to<Spatial>();
+			if (spat && (spat->get_filename() != ""))
+				subscenes.push_back(spat);
+
 			continue;
+		}
 
 		found_gizmos.insert(seg);
 		Vector3 point;
@@ -314,6 +319,22 @@ ObjectID SpatialEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, 
 
 		//	if (editor_selection->is_selected(spat))
 		//		r_includes_current=true;
+	}
+
+	for (int idx_subscene = 0; idx_subscene < subscenes.size(); idx_subscene++) {
+
+		Spatial *subscene = subscenes.get(idx_subscene);
+		float dist = ray.cross(subscene->get_global_transform().origin - pos).length();
+
+		if ((dist < 0) || (dist > 1.2))
+			continue;
+
+		if (dist < closest_dist) {
+			closest = subscene->get_instance_id();
+			closest_dist = dist;
+			item = subscene;
+			selected_handle = -1;
+		}
 	}
 
 	if (!item)
@@ -665,7 +686,7 @@ void SpatialEditorViewport::_list_select(Ref<InputEventMouseButton> b) {
 
 	if (selection_results.size() == 1) {
 
-		clicked = selection_results[0].item->get_instance_ID();
+		clicked = selection_results[0].item->get_instance_id();
 		selection_results.clear();
 
 		if (clicked) {
@@ -1195,17 +1216,47 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 							motion = motion_mask.dot(motion) * motion_mask;
 						}
 
+						//set_message("Translating: "+motion);
+
+						List<Node *> &selection = editor_selection->get_selected_node_list();
+
 						float snap = 0;
 
 						if (_edit.snap || spatial_editor->is_snap_enabled()) {
 
 							snap = spatial_editor->get_translate_snap();
-							motion.snap(Vector3(snap, snap, snap));
+							bool local_coords = spatial_editor->are_local_coords_enabled();
+
+							if (local_coords) {
+								bool multiple = false;
+								Spatial *node = NULL;
+								for (List<Node *>::Element *E = selection.front(); E; E = E->next()) {
+
+									Spatial *sp = E->get()->cast_to<Spatial>();
+									if (!sp) {
+										continue;
+									}
+									if (node) {
+										multiple = true;
+										break;
+									} else {
+										node = sp;
+									}
+								}
+
+								if (multiple) {
+									motion.snap(Vector3(snap, snap, snap));
+								} else {
+									Basis b = node->get_global_transform().basis.orthonormalized();
+									Vector3 local_motion = b.inverse().xform(motion);
+									local_motion.snap(Vector3(snap, snap, snap));
+									motion = b.xform(local_motion);
+								}
+
+							} else {
+								motion.snap(Vector3(snap, snap, snap));
+							}
 						}
-
-						//set_message("Translating: "+motion);
-
-						List<Node *> &selection = editor_selection->get_selected_node_list();
 
 						for (List<Node *>::Element *E = selection.front(); E; E = E->next()) {
 
@@ -2166,7 +2217,7 @@ void SpatialEditorViewport::_selection_result_pressed(int p_result) {
 	if (selection_results.size() <= p_result)
 		return;
 
-	clicked = selection_results[p_result].item->get_instance_ID();
+	clicked = selection_results[p_result].item->get_instance_id();
 
 	if (clicked) {
 		_select_clicked(clicked_wants_append, true);
@@ -2390,7 +2441,7 @@ SpatialEditorViewport::SpatialEditorViewport(SpatialEditor *p_spatial_editor, Ed
 
 	view_menu = memnew(MenuButton);
 	surface->add_child(view_menu);
-	view_menu->set_position(Point2(4, 4));
+	view_menu->set_position(Point2(4, 4) * EDSCALE);
 	view_menu->set_self_modulate(Color(1, 1, 1, 0.5));
 	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/top_view"), VIEW_TOP);
 	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/bottom_view"), VIEW_BOTTOM);
@@ -2434,8 +2485,8 @@ SpatialEditorViewport::SpatialEditorViewport(SpatialEditor *p_spatial_editor, Ed
 
 	preview_camera = memnew(Button);
 	preview_camera->set_toggle_mode(true);
-	preview_camera->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, 90);
-	preview_camera->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, 10);
+	preview_camera->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, 90 * EDSCALE);
+	preview_camera->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, 10 * EDSCALE);
 	preview_camera->set_text("preview");
 	surface->add_child(preview_camera);
 	preview_camera->hide();
@@ -2455,7 +2506,7 @@ SpatialEditorViewport::SpatialEditorViewport(SpatialEditor *p_spatial_editor, Ed
 
 	selection_menu = memnew(PopupMenu);
 	add_child(selection_menu);
-	selection_menu->set_custom_minimum_size(Vector2(100, 0));
+	selection_menu->set_custom_minimum_size(Size2(100, 0) * EDSCALE);
 	selection_menu->connect("id_pressed", this, "_selection_result_pressed");
 	selection_menu->connect("popup_hide", this, "_selection_menu_hide");
 
@@ -2464,7 +2515,7 @@ SpatialEditorViewport::SpatialEditorViewport(SpatialEditor *p_spatial_editor, Ed
 		viewport->set_as_audio_listener(true);
 	}
 
-	name = TTR("Top");
+	name = "";
 	_update_name();
 
 	EditorSettings::get_singleton()->connect("settings_changed", this, "update_transform_gizmo_view");
@@ -3039,9 +3090,9 @@ void SpatialEditor::edit(Spatial *p_spatial) {
 	/*
 	if (p_spatial) {
 		_validate_selection();
-		if (selected.has(p_spatial->get_instance_ID()) && selected.size()==1)
+		if (selected.has(p_spatial->get_instance_id()) && selected.size()==1)
 			return;
-		_select(p_spatial->get_instance_ID(),false,true);
+		_select(p_spatial->get_instance_id(),false,true);
 
 		// should become the selection
 	}
@@ -3933,27 +3984,27 @@ SpatialEditor::SpatialEditor(EditorNode *p_editor) {
 	settings_dialog->set_title(TTR("Viewport Settings"));
 	add_child(settings_dialog);
 	settings_vbc = memnew(VBoxContainer);
-	settings_vbc->set_custom_minimum_size(Size2(200, 0));
+	settings_vbc->set_custom_minimum_size(Size2(200, 0) * EDSCALE);
 	settings_dialog->add_child(settings_vbc);
 	//settings_dialog->set_child_rect(settings_vbc);
 
 	settings_fov = memnew(SpinBox);
-	settings_fov->set_max(179);
-	settings_fov->set_min(1);
+	settings_fov->set_max(MAX_FOV);
+	settings_fov->set_min(MIN_FOV);
 	settings_fov->set_step(0.01);
 	settings_fov->set_value(EDITOR_DEF("editors/3d/default_fov", 55.0));
 	settings_vbc->add_margin_child(TTR("Perspective FOV (deg.):"), settings_fov);
 
 	settings_znear = memnew(SpinBox);
-	settings_znear->set_max(10000);
-	settings_znear->set_min(0.1);
+	settings_znear->set_max(MAX_Z);
+	settings_znear->set_min(MIN_Z);
 	settings_znear->set_step(0.01);
 	settings_znear->set_value(EDITOR_DEF("editors/3d/default_z_near", 0.1));
 	settings_vbc->add_margin_child(TTR("View Z-Near:"), settings_znear);
 
 	settings_zfar = memnew(SpinBox);
-	settings_zfar->set_max(10000);
-	settings_zfar->set_min(0.1);
+	settings_zfar->set_max(MAX_Z);
+	settings_zfar->set_min(MIN_Z);
 	settings_zfar->set_step(0.01);
 	settings_zfar->set_value(EDITOR_DEF("editors/3d/default_z_far", 1500));
 	settings_vbc->add_margin_child(TTR("View Z-Far:"), settings_zfar);

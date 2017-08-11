@@ -185,19 +185,19 @@ bool SceneTreeEditor::_add_nodes(Node *p_node, TreeItem *p_parent) {
 	if (part_of_subscene) {
 
 		//item->set_selectable(0,marked_selectable);
-		item->set_custom_color(0, Color(0.8, 0.4, 0.20));
+		item->set_custom_color(0, get_color("error_color", "Editor").linear_interpolate(get_color("warning_color", "Editor"), 0.4));
 
 	} else if (marked.has(p_node)) {
 
 		item->set_selectable(0, marked_selectable);
-		item->set_custom_color(0, Color(0.8, 0.1, 0.10));
+		item->set_custom_color(0, get_color("error_color", "Editor"));
 	} else if (!marked_selectable && !marked_children_selectable) {
 
 		Node *node = p_node;
 		while (node) {
 			if (marked.has(node)) {
 				item->set_selectable(0, false);
-				item->set_custom_color(0, Color(0.8, 0.1, 0.10));
+				item->set_custom_color(0, get_color("error_color", "Editor"));
 				break;
 			}
 			node = node->get_parent();
@@ -411,9 +411,9 @@ void SceneTreeEditor::_update_tree() {
 
 void SceneTreeEditor::_compute_hash(Node *p_node, uint64_t &hash) {
 
-	hash = hash_djb2_one_64(p_node->get_instance_ID(), hash);
+	hash = hash_djb2_one_64(p_node->get_instance_id(), hash);
 	if (p_node->get_parent())
-		hash = hash_djb2_one_64(p_node->get_parent()->get_instance_ID(), hash); //so a reparent still produces a different hash
+		hash = hash_djb2_one_64(p_node->get_parent()->get_instance_id(), hash); //so a reparent still produces a different hash
 
 	for (int i = 0; i < p_node->get_child_count(); i++) {
 
@@ -625,8 +625,8 @@ void SceneTreeEditor::_renamed() {
 	} else {
 		undo_redo->create_action(TTR("Rename Node"));
 		emit_signal("node_prerename", n, new_name);
-		undo_redo->add_do_method(this, "_rename_node", n->get_instance_ID(), new_name);
-		undo_redo->add_undo_method(this, "_rename_node", n->get_instance_ID(), n->get_name());
+		undo_redo->add_do_method(this, "_rename_node", n->get_instance_id(), new_name);
+		undo_redo->add_undo_method(this, "_rename_node", n->get_instance_id(), n->get_name());
 		undo_redo->commit_action();
 	}
 }

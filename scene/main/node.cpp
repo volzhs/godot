@@ -77,11 +77,11 @@ void Node::_notification(int p_notification) {
 			}
 
 			if (data.input)
-				add_to_group("_vp_input" + itos(get_viewport()->get_instance_ID()));
+				add_to_group("_vp_input" + itos(get_viewport()->get_instance_id()));
 			if (data.unhandled_input)
-				add_to_group("_vp_unhandled_input" + itos(get_viewport()->get_instance_ID()));
+				add_to_group("_vp_unhandled_input" + itos(get_viewport()->get_instance_id()));
 			if (data.unhandled_key_input)
-				add_to_group("_vp_unhandled_key_input" + itos(get_viewport()->get_instance_ID()));
+				add_to_group("_vp_unhandled_key_input" + itos(get_viewport()->get_instance_id()));
 
 			get_tree()->node_count++;
 
@@ -90,11 +90,11 @@ void Node::_notification(int p_notification) {
 
 			get_tree()->node_count--;
 			if (data.input)
-				remove_from_group("_vp_input" + itos(get_viewport()->get_instance_ID()));
+				remove_from_group("_vp_input" + itos(get_viewport()->get_instance_id()));
 			if (data.unhandled_input)
-				remove_from_group("_vp_unhandled_input" + itos(get_viewport()->get_instance_ID()));
+				remove_from_group("_vp_unhandled_input" + itos(get_viewport()->get_instance_id()));
 			if (data.unhandled_key_input)
-				remove_from_group("_vp_unhandled_key_input" + itos(get_viewport()->get_instance_ID()));
+				remove_from_group("_vp_unhandled_key_input" + itos(get_viewport()->get_instance_id()));
 
 			data.pause_owner = NULL;
 			if (data.path_cache) {
@@ -705,11 +705,11 @@ void Node::rpcp(int p_peer_id, bool p_unreliable, const StringName &p_method, co
 	ERR_FAIL_COND(!is_inside_tree());
 
 	bool skip_rpc = false;
+	bool call_local_native = false;
+	bool call_local_script = false;
 
 	if (p_peer_id == 0 || p_peer_id == get_tree()->get_network_unique_id() || (p_peer_id < 0 && p_peer_id != -get_tree()->get_network_unique_id())) {
 		//check that send mode can use local call
-
-		bool call_local = false;
 
 		Map<StringName, RPCMode>::Element *E = data.rpc_methods.find(p_method);
 		if (E) {
@@ -724,29 +724,22 @@ void Node::rpcp(int p_peer_id, bool p_unreliable, const StringName &p_method, co
 				} break;
 				case RPC_MODE_SYNC: {
 					//call it, sync always results in call
-					call_local = true;
+					call_local_native = true;
 				} break;
 				case RPC_MODE_MASTER: {
-					call_local = is_network_master();
-					if (call_local) {
+					call_local_native = is_network_master();
+					if (call_local_native) {
 						skip_rpc = true; //no other master so..
 					}
 				} break;
 				case RPC_MODE_SLAVE: {
-					call_local = !is_network_master();
+					call_local_native = !is_network_master();
 				} break;
 			}
 		}
 
-		if (call_local) {
-			Variant::CallError ce;
-			call(p_method, p_arg, p_argcount, ce);
-			if (ce.error != Variant::CallError::CALL_OK) {
-				String error = Variant::get_call_error_text(this, p_method, p_arg, p_argcount, ce);
-				error = "rpc() aborted in local call:  - " + error;
-				ERR_PRINTS(error);
-				return;
-			}
+		if (call_local_native) {
+			// done below
 		} else if (get_script_instance()) {
 			//attempt with script
 			ScriptInstance::RPCMode rpc_mode = get_script_instance()->get_rpc_mode(p_method);
@@ -761,37 +754,47 @@ void Node::rpcp(int p_peer_id, bool p_unreliable, const StringName &p_method, co
 				} break;
 				case ScriptInstance::RPC_MODE_SYNC: {
 					//call it, sync always results in call
-					call_local = true;
+					call_local_script = true;
 				} break;
 				case ScriptInstance::RPC_MODE_MASTER: {
-					call_local = is_network_master();
-					if (call_local) {
+					call_local_script = is_network_master();
+					if (call_local_script) {
 						skip_rpc = true; //no other master so..
 					}
 				} break;
 				case ScriptInstance::RPC_MODE_SLAVE: {
-					call_local = !is_network_master();
+					call_local_script = !is_network_master();
 				} break;
-			}
-
-			if (call_local) {
-				Variant::CallError ce;
-				ce.error = Variant::CallError::CALL_OK;
-				get_script_instance()->call(p_method, p_arg, p_argcount, ce);
-				if (ce.error != Variant::CallError::CALL_OK) {
-					String error = Variant::get_call_error_text(this, p_method, p_arg, p_argcount, ce);
-					error = "rpc() aborted in script local call:  - " + error;
-					ERR_PRINTS(error);
-					return;
-				}
 			}
 		}
 	}
 
-	if (skip_rpc)
-		return;
+	if (!skip_rpc) {
+		get_tree()->_rpc(this, p_peer_id, p_unreliable, false, p_method, p_arg, p_argcount);
+	}
 
-	get_tree()->_rpc(this, p_peer_id, p_unreliable, false, p_method, p_arg, p_argcount);
+	if (call_local_native) {
+		Variant::CallError ce;
+		call(p_method, p_arg, p_argcount, ce);
+		if (ce.error != Variant::CallError::CALL_OK) {
+			String error = Variant::get_call_error_text(this, p_method, p_arg, p_argcount, ce);
+			error = "rpc() aborted in local call:  - " + error;
+			ERR_PRINTS(error);
+			return;
+		}
+	}
+
+	if (call_local_script) {
+		Variant::CallError ce;
+		ce.error = Variant::CallError::CALL_OK;
+		get_script_instance()->call(p_method, p_arg, p_argcount, ce);
+		if (ce.error != Variant::CallError::CALL_OK) {
+			String error = Variant::get_call_error_text(this, p_method, p_arg, p_argcount, ce);
+			error = "rpc() aborted in script local call:  - " + error;
+			ERR_PRINTS(error);
+			return;
+		}
+	}
 }
 
 /******** RSET *********/
@@ -1115,9 +1118,9 @@ void Node::set_process_input(bool p_enable) {
 		return;
 
 	if (p_enable)
-		add_to_group("_vp_input" + itos(get_viewport()->get_instance_ID()));
+		add_to_group("_vp_input" + itos(get_viewport()->get_instance_id()));
 	else
-		remove_from_group("_vp_input" + itos(get_viewport()->get_instance_ID()));
+		remove_from_group("_vp_input" + itos(get_viewport()->get_instance_id()));
 }
 
 bool Node::is_processing_input() const {
@@ -1133,9 +1136,9 @@ void Node::set_process_unhandled_input(bool p_enable) {
 		return;
 
 	if (p_enable)
-		add_to_group("_vp_unhandled_input" + itos(get_viewport()->get_instance_ID()));
+		add_to_group("_vp_unhandled_input" + itos(get_viewport()->get_instance_id()));
 	else
-		remove_from_group("_vp_unhandled_input" + itos(get_viewport()->get_instance_ID()));
+		remove_from_group("_vp_unhandled_input" + itos(get_viewport()->get_instance_id()));
 }
 
 bool Node::is_processing_unhandled_input() const {
@@ -1151,9 +1154,9 @@ void Node::set_process_unhandled_key_input(bool p_enable) {
 		return;
 
 	if (p_enable)
-		add_to_group("_vp_unhandled_key_input" + itos(get_viewport()->get_instance_ID()));
+		add_to_group("_vp_unhandled_key_input" + itos(get_viewport()->get_instance_id()));
 	else
-		remove_from_group("_vp_unhandled_key_input" + itos(get_viewport()->get_instance_ID()));
+		remove_from_group("_vp_unhandled_key_input" + itos(get_viewport()->get_instance_id()));
 }
 
 bool Node::is_processing_unhandled_key_input() const {
@@ -2606,7 +2609,7 @@ static void _Node_debug_sn(Object *p_obj) {
 		path = n->get_name();
 	else
 		path = String(p->get_name()) + "/" + p->get_path_to(n);
-	print_line(itos(p_obj->get_instance_ID()) + "- Stray Node: " + path + " (Type: " + n->get_class() + ")");
+	print_line(itos(p_obj->get_instance_id()) + "- Stray Node: " + path + " (Type: " + n->get_class() + ")");
 }
 
 void Node::_print_stray_nodes() {
@@ -2721,36 +2724,36 @@ void Node::_bind_methods() {
 	GLOBAL_DEF("node/name_casing", NAME_CASING_PASCAL_CASE);
 	ProjectSettings::get_singleton()->set_custom_property_info("node/name_casing", PropertyInfo(Variant::INT, "node/name_casing", PROPERTY_HINT_ENUM, "PascalCase,camelCase,snake_case"));
 
-	ClassDB::bind_method(D_METHOD("_add_child_below_node", "node:Node", "child_node:Node", "legible_unique_name"), &Node::add_child_below_node, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("_add_child_below_node", "node", "child_node", "legible_unique_name"), &Node::add_child_below_node, DEFVAL(false));
 
 	ClassDB::bind_method(D_METHOD("set_name", "name"), &Node::set_name);
 	ClassDB::bind_method(D_METHOD("get_name"), &Node::get_name);
-	ClassDB::bind_method(D_METHOD("add_child", "node:Node", "legible_unique_name"), &Node::add_child, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("remove_child", "node:Node"), &Node::remove_child);
-	//ClassDB::bind_method(D_METHOD("remove_and_delete_child","node:Node"),&Node::remove_and_delete_child);
+	ClassDB::bind_method(D_METHOD("add_child", "node", "legible_unique_name"), &Node::add_child, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("remove_child", "node"), &Node::remove_child);
+	//ClassDB::bind_method(D_METHOD("remove_and_delete_child","node"),&Node::remove_and_delete_child);
 	ClassDB::bind_method(D_METHOD("get_child_count"), &Node::get_child_count);
 	ClassDB::bind_method(D_METHOD("get_children"), &Node::_get_children);
-	ClassDB::bind_method(D_METHOD("get_child:Node", "idx"), &Node::get_child);
+	ClassDB::bind_method(D_METHOD("get_child", "idx"), &Node::get_child);
 	ClassDB::bind_method(D_METHOD("has_node", "path"), &Node::has_node);
-	ClassDB::bind_method(D_METHOD("get_node:Node", "path"), &Node::get_node);
-	ClassDB::bind_method(D_METHOD("get_parent:Node"), &Node::get_parent);
-	ClassDB::bind_method(D_METHOD("find_node:Node", "mask", "recursive", "owned"), &Node::find_node, DEFVAL(true), DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("get_node", "path"), &Node::get_node);
+	ClassDB::bind_method(D_METHOD("get_parent"), &Node::get_parent);
+	ClassDB::bind_method(D_METHOD("find_node", "mask", "recursive", "owned"), &Node::find_node, DEFVAL(true), DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("has_node_and_resource", "path"), &Node::has_node_and_resource);
 	ClassDB::bind_method(D_METHOD("get_node_and_resource", "path"), &Node::_get_node_and_resource);
 
 	ClassDB::bind_method(D_METHOD("is_inside_tree"), &Node::is_inside_tree);
-	ClassDB::bind_method(D_METHOD("is_a_parent_of", "node:Node"), &Node::is_a_parent_of);
-	ClassDB::bind_method(D_METHOD("is_greater_than", "node:Node"), &Node::is_greater_than);
+	ClassDB::bind_method(D_METHOD("is_a_parent_of", "node"), &Node::is_a_parent_of);
+	ClassDB::bind_method(D_METHOD("is_greater_than", "node"), &Node::is_greater_than);
 	ClassDB::bind_method(D_METHOD("get_path"), &Node::get_path);
-	ClassDB::bind_method(D_METHOD("get_path_to", "node:Node"), &Node::get_path_to);
+	ClassDB::bind_method(D_METHOD("get_path_to", "node"), &Node::get_path_to);
 	ClassDB::bind_method(D_METHOD("add_to_group", "group", "persistent"), &Node::add_to_group, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("remove_from_group", "group"), &Node::remove_from_group);
 	ClassDB::bind_method(D_METHOD("is_in_group", "group"), &Node::is_in_group);
-	ClassDB::bind_method(D_METHOD("move_child", "child_node:Node", "to_pos"), &Node::move_child);
+	ClassDB::bind_method(D_METHOD("move_child", "child_node", "to_pos"), &Node::move_child);
 	ClassDB::bind_method(D_METHOD("get_groups"), &Node::_get_groups);
 	ClassDB::bind_method(D_METHOD("raise"), &Node::raise);
-	ClassDB::bind_method(D_METHOD("set_owner", "owner:Node"), &Node::set_owner);
-	ClassDB::bind_method(D_METHOD("get_owner:Node"), &Node::get_owner);
+	ClassDB::bind_method(D_METHOD("set_owner", "owner"), &Node::set_owner);
+	ClassDB::bind_method(D_METHOD("get_owner"), &Node::get_owner);
 	ClassDB::bind_method(D_METHOD("remove_and_skip"), &Node::remove_and_skip);
 	ClassDB::bind_method(D_METHOD("get_index"), &Node::get_index);
 	ClassDB::bind_method(D_METHOD("print_tree"), &Node::print_tree);
@@ -2783,15 +2786,15 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_fixed_process_internal", "enable"), &Node::set_fixed_process_internal);
 	ClassDB::bind_method(D_METHOD("is_fixed_processing_internal"), &Node::is_fixed_processing_internal);
 
-	ClassDB::bind_method(D_METHOD("get_tree:SceneTree"), &Node::get_tree);
+	ClassDB::bind_method(D_METHOD("get_tree"), &Node::get_tree);
 
-	ClassDB::bind_method(D_METHOD("duplicate:Node", "flags"), &Node::duplicate, DEFVAL(DUPLICATE_USE_INSTANCING | DUPLICATE_SIGNALS | DUPLICATE_GROUPS | DUPLICATE_SCRIPTS));
-	ClassDB::bind_method(D_METHOD("replace_by", "node:Node", "keep_data"), &Node::replace_by, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("duplicate", "flags"), &Node::duplicate, DEFVAL(DUPLICATE_USE_INSTANCING | DUPLICATE_SIGNALS | DUPLICATE_GROUPS | DUPLICATE_SCRIPTS));
+	ClassDB::bind_method(D_METHOD("replace_by", "node", "keep_data"), &Node::replace_by, DEFVAL(false));
 
 	ClassDB::bind_method(D_METHOD("set_scene_instance_load_placeholder", "load_placeholder"), &Node::set_scene_instance_load_placeholder);
 	ClassDB::bind_method(D_METHOD("get_scene_instance_load_placeholder"), &Node::get_scene_instance_load_placeholder);
 
-	ClassDB::bind_method(D_METHOD("get_viewport:Viewport"), &Node::get_viewport);
+	ClassDB::bind_method(D_METHOD("get_viewport"), &Node::get_viewport);
 
 	ClassDB::bind_method(D_METHOD("queue_free"), &Node::queue_delete);
 
@@ -2830,10 +2833,10 @@ void Node::_bind_methods() {
 		ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "rpc_unreliable_id", &Node::_rpc_unreliable_id_bind, mi);
 	}
 
-	ClassDB::bind_method(D_METHOD("rset", "property", "value:Variant"), &Node::rset);
-	ClassDB::bind_method(D_METHOD("rset_id", "peer_id", "property", "value:Variant"), &Node::rset_id);
-	ClassDB::bind_method(D_METHOD("rset_unreliable", "property", "value:Variant"), &Node::rset_unreliable);
-	ClassDB::bind_method(D_METHOD("rset_unreliable_id", "peer_id", "property", "value:Variant"), &Node::rset_unreliable_id);
+	ClassDB::bind_method(D_METHOD("rset", "property", "value"), &Node::rset);
+	ClassDB::bind_method(D_METHOD("rset_id", "peer_id", "property", "value"), &Node::rset_id);
+	ClassDB::bind_method(D_METHOD("rset_unreliable", "property", "value"), &Node::rset_unreliable);
+	ClassDB::bind_method(D_METHOD("rset_unreliable_id", "peer_id", "property", "value"), &Node::rset_unreliable_id);
 
 	BIND_CONSTANT(NOTIFICATION_ENTER_TREE);
 	BIND_CONSTANT(NOTIFICATION_EXIT_TREE);

@@ -430,7 +430,7 @@ public:
 	FUNC2(instance_set_scenario, RID, RID) // from can be mesh, light, poly, area and portal so far.
 	FUNC2(instance_set_layer_mask, RID, uint32_t)
 	FUNC2(instance_set_transform, RID, const Transform &)
-	FUNC2(instance_attach_object_instance_ID, RID, ObjectID)
+	FUNC2(instance_attach_object_instance_id, RID, ObjectID)
 	FUNC3(instance_set_blend_shape_weight, RID, int, float)
 	FUNC3(instance_set_surface_material, RID, int, RID)
 	FUNC2(instance_set_visible, RID, bool)
@@ -537,12 +537,6 @@ public:
 	FUNC2(canvas_occluder_polygon_set_shape_as_lines, RID, const PoolVector<Vector2> &)
 
 	FUNC2(canvas_occluder_polygon_set_cull_mode, RID, CanvasOccluderPolygonCullMode)
-
-	/* CURSOR */
-	FUNC2(cursor_set_rotation, float, int) // radians
-	FUNC4(cursor_set_texture, RID, const Point2 &, int, const Rect2 &)
-	FUNC2(cursor_set_visible, bool, int)
-	FUNC2(cursor_set_pos, const Point2 &, int)
 
 	/* BLACK BARS */
 

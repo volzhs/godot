@@ -197,18 +197,28 @@ void RasterizerGLES3::begin_frame() {
 
 	uint64_t tick = OS::get_singleton()->get_ticks_usec();
 
-	double time_total = double(tick) / 1000000.0;
+	double delta = double(tick - prev_ticks) / 1000000.0;
+	delta *= Engine::get_singleton()->get_time_scale();
+
+	time_total += delta;
+
+	if (delta == 0) {
+		//to avoid hiccups
+		delta = 0.001;
+	}
+
+	prev_ticks = tick;
+
+	double time_roll_over = GLOBAL_GET("rendering/limits/time/time_rollover_secs");
+	if (time_total > time_roll_over)
+		time_total = 0; //roll over every day (should be customz
 
 	storage->frame.time[0] = time_total;
 	storage->frame.time[1] = Math::fmod(time_total, 3600);
 	storage->frame.time[2] = Math::fmod(time_total, 900);
 	storage->frame.time[3] = Math::fmod(time_total, 60);
 	storage->frame.count++;
-	storage->frame.delta = double(tick - storage->frame.prev_tick) / 1000000.0;
-	if (storage->frame.prev_tick == 0) {
-		//to avoid hiccups
-		storage->frame.delta = 0.001;
-	}
+	storage->frame.delta = delta;
 
 	storage->frame.prev_tick = tick;
 
@@ -408,6 +418,7 @@ void RasterizerGLES3::register_config() {
 
 	GLOBAL_DEF("rendering/quality/filters/use_nearest_mipmap_filter", false);
 	GLOBAL_DEF("rendering/quality/filters/anisotropic_filter_level", 4.0);
+	GLOBAL_DEF("rendering/limits/time/time_rollover_secs", 3600);
 }
 
 RasterizerGLES3::RasterizerGLES3() {
@@ -420,6 +431,9 @@ RasterizerGLES3::RasterizerGLES3() {
 	storage->canvas = canvas;
 	scene->storage = storage;
 	storage->scene = scene;
+
+	prev_ticks = 0;
+	time_total = 0;
 }
 
 RasterizerGLES3::~RasterizerGLES3() {

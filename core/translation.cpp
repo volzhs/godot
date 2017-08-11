@@ -923,9 +923,8 @@ void Translation::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "locale"), "set_locale", "get_locale");
 }
 
-Translation::Translation() {
-
-	locale = "en";
+Translation::Translation()
+	: locale("en") {
 }
 
 ///////////////////////////////////////////////
@@ -1125,8 +1124,8 @@ void TranslationServer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("translate", "message"), &TranslationServer::translate);
 
-	ClassDB::bind_method(D_METHOD("add_translation", "translation:Translation"), &TranslationServer::add_translation);
-	ClassDB::bind_method(D_METHOD("remove_translation", "translation:Translation"), &TranslationServer::remove_translation);
+	ClassDB::bind_method(D_METHOD("add_translation", "translation"), &TranslationServer::add_translation);
+	ClassDB::bind_method(D_METHOD("remove_translation", "translation"), &TranslationServer::remove_translation);
 
 	ClassDB::bind_method(D_METHOD("clear"), &TranslationServer::clear);
 }
@@ -1144,9 +1143,8 @@ void TranslationServer::load_translations() {
 	}
 }
 
-TranslationServer::TranslationServer() {
-
+TranslationServer::TranslationServer()
+	: locale("en"),
+	  enabled(true) {
 	singleton = this;
-	locale = "en";
-	enabled = true;
 }

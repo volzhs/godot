@@ -375,6 +375,8 @@ void CanvasItemEditor::set_state(const Dictionary &p_state) {
 		int idx = skeleton_menu->get_item_index(SKELETON_SHOW_BONES);
 		skeleton_menu->set_item_checked(idx, skeleton_show_bones);
 	}
+
+	viewport->update();
 }
 
 void CanvasItemEditor::_add_canvas_item(CanvasItem *p_canvas_item) {
@@ -385,7 +387,7 @@ void CanvasItemEditor::_add_canvas_item(CanvasItem *p_canvas_item) {
 		return;
 
 	canvas_items.insert(p_canvas_item,p_info);
-	p_canvas_item->connect("hide",this,"_visibility_changed",varray(p_canvas_item->get_instance_ID()),CONNECT_ONESHOT);
+	p_canvas_item->connect("hide",this,"_visibility_changed",varray(p_canvas_item->get_instance_id()),CONNECT_ONESHOT);
 #endif
 }
 
@@ -1390,7 +1392,12 @@ void CanvasItemEditor::_viewport_gui_input(const Ref<InputEvent> &p_event) {
 		while ((n && n != scene && n->get_owner() != scene) || (n && !n->is_class("CanvasItem"))) {
 			n = n->get_parent();
 		};
-		c = n->cast_to<CanvasItem>();
+
+		if (n) {
+			c = n->cast_to<CanvasItem>();
+		} else {
+			c = NULL;
+		}
 
 		// Select the item
 		additive_selection = b->get_shift();
@@ -2204,7 +2211,7 @@ void CanvasItemEditor::_find_canvas_items_span(Node *p_node, Rect2 &r_rect, cons
 
 		if (c->has_meta("_edit_bone_")) {
 
-			ObjectID id = c->get_instance_ID();
+			ObjectID id = c->get_instance_id();
 			if (!bone_list.has(id)) {
 				BoneList bone;
 				bone.bone = id;
@@ -2769,7 +2776,7 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 					pc.pos = n2d->get_position();
 					pc.rot = n2d->get_rotation();
 					pc.scale = n2d->get_scale();
-					pc.id = n2d->get_instance_ID();
+					pc.id = n2d->get_instance_id();
 					pose_clipboard.push_back(pc);
 				}
 			}
@@ -3478,7 +3485,7 @@ void CanvasItemEditorViewport::_on_change_type() {
 }
 
 void CanvasItemEditorViewport::_create_preview(const Vector<String> &files) const {
-	label->set_position(get_global_position() + Point2(14, 14));
+	label->set_position(get_global_position() + Point2(14, 14) * EDSCALE);
 	label_desc->set_position(label->get_position() + Point2(0, label->get_size().height));
 	for (int i = 0; i < files.size(); i++) {
 		String path = files[i];
@@ -3784,10 +3791,16 @@ void CanvasItemEditorViewport::drop_data(const Point2 &p_point, const Variant &p
 }
 
 void CanvasItemEditorViewport::_notification(int p_what) {
-	if (p_what == NOTIFICATION_ENTER_TREE) {
-		connect("mouse_exited", this, "_on_mouse_exit");
-	} else if (p_what == NOTIFICATION_EXIT_TREE) {
-		disconnect("mouse_exited", this, "_on_mouse_exit");
+	switch (p_what) {
+		case NOTIFICATION_ENTER_TREE: {
+			connect("mouse_exited", this, "_on_mouse_exit");
+			label->add_color_override("font_color", get_color("warning_color", "Editor"));
+		} break;
+		case NOTIFICATION_EXIT_TREE: {
+			disconnect("mouse_exited", this, "_on_mouse_exit");
+		} break;
+
+		default: break;
 	}
 }
 
@@ -3817,11 +3830,12 @@ CanvasItemEditorViewport::CanvasItemEditorViewport(EditorNode *p_node, CanvasIte
 	accept = memnew(AcceptDialog);
 	editor->get_gui_base()->add_child(accept);
 
-	selector = memnew(WindowDialog);
+	selector = memnew(AcceptDialog);
 	selector->set_title(TTR("Change default type"));
 
 	VBoxContainer *vbc = memnew(VBoxContainer);
-	vbc->add_constant_override("separation", 10 * EDSCALE);
+	vbc->set_h_size_flags(SIZE_EXPAND_FILL);
+	vbc->set_v_size_flags(SIZE_EXPAND_FILL);
 	vbc->set_custom_minimum_size(Size2(200, 260) * EDSCALE);
 
 	selector_label = memnew(Label);
@@ -3844,17 +3858,12 @@ CanvasItemEditorViewport::CanvasItemEditorViewport(EditorNode *p_node, CanvasIte
 	}
 	vbc->add_child(btn_group);
 
-	Button *ok = memnew(Button);
-	ok->set_text(TTR("OK"));
-	ok->set_h_size_flags(0);
-	vbc->add_child(ok);
-	ok->connect("pressed", this, "_on_change_type");
+	selector->connect("confirmed", this, "_on_change_type");
 
 	selector->add_child(vbc);
 	editor->get_gui_base()->add_child(selector);
 
 	label = memnew(Label);
-	label->add_color_override("font_color", Color(1, 1, 0, 1));
 	label->add_color_override("font_color_shadow", Color(0, 0, 0, 1));
 	label->add_constant_override("shadow_as_outline", 1 * EDSCALE);
 	label->hide();

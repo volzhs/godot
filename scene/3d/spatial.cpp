@@ -72,8 +72,12 @@ SpatialGizmo::SpatialGizmo() {
 
 void Spatial::_notify_dirty() {
 
+#ifdef TOOLS_ENABLED
+	if ((data.gizmo.is_valid() || data.notify_transform) && !data.ignore_notification && !xform_change.in_list()) {
+#else
 	if (data.notify_transform && !data.ignore_notification && !xform_change.in_list()) {
 
+#endif
 		get_tree()->xform_change_list.add(&xform_change);
 	}
 }
@@ -104,9 +108,11 @@ void Spatial::_propagate_transform_changed(Spatial *p_origin) {
 			continue; //don't propagate to a toplevel
 		E->get()->_propagate_transform_changed(p_origin);
 	}
-
+#ifdef TOOLS_ENABLED
+	if ((data.gizmo.is_valid() || data.notify_transform) && !data.ignore_notification && !xform_change.in_list()) {
+#else
 	if (data.notify_transform && !data.ignore_notification && !xform_change.in_list()) {
-
+#endif
 		get_tree()->xform_change_list.add(&xform_change);
 	}
 	data.dirty |= DIRTY_GLOBAL;
@@ -714,11 +720,11 @@ void Spatial::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_scale"), &Spatial::get_scale);
 	ClassDB::bind_method(D_METHOD("set_global_transform", "global"), &Spatial::set_global_transform);
 	ClassDB::bind_method(D_METHOD("get_global_transform"), &Spatial::get_global_transform);
-	ClassDB::bind_method(D_METHOD("get_parent_spatial:Spatial"), &Spatial::get_parent_spatial);
+	ClassDB::bind_method(D_METHOD("get_parent_spatial"), &Spatial::get_parent_spatial);
 	ClassDB::bind_method(D_METHOD("set_ignore_transform_notification", "enabled"), &Spatial::set_ignore_transform_notification);
 	ClassDB::bind_method(D_METHOD("set_as_toplevel", "enable"), &Spatial::set_as_toplevel);
 	ClassDB::bind_method(D_METHOD("is_set_as_toplevel"), &Spatial::is_set_as_toplevel);
-	ClassDB::bind_method(D_METHOD("get_world:World"), &Spatial::get_world);
+	ClassDB::bind_method(D_METHOD("get_world"), &Spatial::get_world);
 
 	// TODO: Obsolete those two methods (old name) properly (GH-4397)
 	ClassDB::bind_method(D_METHOD("_set_rotation_deg", "rotation_deg"), &Spatial::_set_rotation_deg);
@@ -729,8 +735,8 @@ void Spatial::_bind_methods() {
 #endif
 
 	ClassDB::bind_method(D_METHOD("update_gizmo"), &Spatial::update_gizmo);
-	ClassDB::bind_method(D_METHOD("set_gizmo", "gizmo:SpatialGizmo"), &Spatial::set_gizmo);
-	ClassDB::bind_method(D_METHOD("get_gizmo:SpatialGizmo"), &Spatial::get_gizmo);
+	ClassDB::bind_method(D_METHOD("set_gizmo", "gizmo"), &Spatial::set_gizmo);
+	ClassDB::bind_method(D_METHOD("get_gizmo"), &Spatial::get_gizmo);
 
 	ClassDB::bind_method(D_METHOD("set_visible", "visible"), &Spatial::set_visible);
 	ClassDB::bind_method(D_METHOD("is_visible"), &Spatial::is_visible);

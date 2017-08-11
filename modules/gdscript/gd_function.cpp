@@ -888,8 +888,8 @@ Variant GDFunction::call(GDInstance *p_instance, const Variant **p_args, int p_a
 				gdfs->state._class = _class;
 				gdfs->state.ip = ip + ipofs;
 				gdfs->state.line = line;
-				gdfs->state.instance_id = (p_instance && p_instance->get_owner()) ? p_instance->get_owner()->get_instance_ID() : 0;
-				gdfs->state.script_id = _class->get_instance_ID();
+				gdfs->state.instance_id = (p_instance && p_instance->get_owner()) ? p_instance->get_owner()->get_instance_id() : 0;
+				gdfs->state.script_id = _class->get_instance_id();
 				//gdfs->state.result_pos=ip+ipofs-1;
 				gdfs->state.defarg = defarg;
 				gdfs->state.instance = p_instance;
@@ -1507,7 +1507,7 @@ Variant GDFunctionState::resume(const Variant &p_arg) {
 
 void GDFunctionState::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("resume:Variant", "arg"), &GDFunctionState::resume, DEFVAL(Variant()));
+	ClassDB::bind_method(D_METHOD("resume", "arg"), &GDFunctionState::resume, DEFVAL(Variant()));
 	ClassDB::bind_method(D_METHOD("is_valid", "extended_check"), &GDFunctionState::is_valid, DEFVAL(false));
 	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "_signal_callback", &GDFunctionState::_signal_callback, MethodInfo("_signal_callback"));
 

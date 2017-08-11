@@ -46,9 +46,9 @@
 
 #ifdef DEBUG_METHODS_ENABLED
 
-ParamDef::ParamDef(const Variant &p_variant) {
-	used = true;
-	val = p_variant;
+ParamDef::ParamDef(const Variant &p_variant)
+	: used(true),
+	  val(p_variant) {
 }
 
 MethodDefinition D_METHOD(const char *p_name) {
@@ -937,6 +937,28 @@ bool ClassDB::get_property(Object *p_object, const StringName &p_property, Varia
 	return false;
 }
 
+int ClassDB::get_property_index(const StringName &p_class, const StringName &p_property, bool *r_is_valid) {
+
+	ClassInfo *type = classes.getptr(p_class);
+	ClassInfo *check = type;
+	while (check) {
+		const PropertySetGet *psg = check->property_setget.getptr(p_property);
+		if (psg) {
+
+			if (r_is_valid)
+				*r_is_valid = true;
+
+			return psg->index;
+		}
+
+		check = check->inherits_ptr;
+	}
+	if (r_is_valid)
+		*r_is_valid = false;
+
+	return -1;
+}
+
 Variant::Type ClassDB::get_property_type(const StringName &p_class, const StringName &p_property, bool *r_is_valid) {
 
 	ClassInfo *type = classes.getptr(p_class);
@@ -1060,12 +1082,6 @@ MethodBind *ClassDB::bind_methodfi(uint32_t p_flags, MethodBind *p_bind, const c
 	StringName mdname = StaticCString::create(method_name);
 #endif
 
-	StringName rettype;
-	if (mdname.operator String().find(":") != -1) {
-		rettype = mdname.operator String().get_slice(":", 1);
-		mdname = mdname.operator String().get_slice(":", 0);
-	}
-
 	OBJTYPE_WLOCK;
 	ERR_FAIL_COND_V(!p_bind, NULL);
 	p_bind->set_name(mdname);
@@ -1084,7 +1100,7 @@ MethodBind *ClassDB::bind_methodfi(uint32_t p_flags, MethodBind *p_bind, const c
 	if (!type) {
 		ERR_PRINTS("Couldn't bind method '" + mdname + "' for instance: " + instance_type);
 		memdelete(p_bind);
-		ERR_FAIL_COND_V(!type, NULL);
+		ERR_FAIL_V(NULL);
 	}
 
 	if (type->method_map.has(mdname)) {
@@ -1093,11 +1109,20 @@ MethodBind *ClassDB::bind_methodfi(uint32_t p_flags, MethodBind *p_bind, const c
 		ERR_EXPLAIN("Method already bound: " + instance_type + "::" + mdname);
 		ERR_FAIL_V(NULL);
 	}
+
 #ifdef DEBUG_METHODS_ENABLED
+
+	if (method_name.args.size() > p_bind->get_argument_count()) {
+		memdelete(p_bind);
+		ERR_EXPLAIN("Method definition provides more arguments than the method actually has: " + instance_type + "::" + mdname);
+		ERR_FAIL_V(NULL);
+	}
+
 	p_bind->set_argument_names(method_name.args);
-	p_bind->set_return_type(rettype);
+
 	type->method_order.push_back(mdname);
 #endif
+
 	type->method_map[mdname] = p_bind;
 
 	Vector<Variant> defvals;

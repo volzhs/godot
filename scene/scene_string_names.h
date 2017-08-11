@@ -30,7 +30,7 @@
 #ifndef SCENE_STRING_NAMES_H
 #define SCENE_STRING_NAMES_H
 
-#include "path_db.h"
+#include "node_path.h"
 #include "string_db.h"
 class SceneStringNames {
 
@@ -172,8 +172,6 @@ public:
 	StringName area_exited;
 
 	StringName _get_minimum_size;
-
-	StringName play_play;
 
 	StringName _im_update;
 	StringName _queue_update;

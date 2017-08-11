@@ -1523,6 +1523,10 @@ void main() {
 #endif
 
 
+#if defined(ALPHA_SCISSOR_USED)
+	float alpha_scissor = 0.5;
+#endif
+
 #if defined(ENABLE_TANGENT_INTERP) || defined(ENABLE_NORMALMAP) || defined(LIGHT_USE_ANISOTROPY)
 	vec3 binormal = normalize(binormal_interp)*side;
 	vec3 tangent = normalize(tangent_interp)*side;
@@ -1570,6 +1574,12 @@ FRAGMENT_SHADER_CODE
 
 }
 
+
+#if defined(ALPHA_SCISSOR_USED)
+	if (alpha<alpha_scissor) {
+		discard;
+	}
+#endif
 
 
 #if defined(ENABLE_NORMALMAP)
@@ -1929,7 +1939,7 @@ FRAGMENT_SHADER_CODE
 
 		if (fog_depth_enabled) {
 
-			float fog_z = smoothstep(fog_depth_begin,z_far,-vertex.z);
+			float fog_z = smoothstep(fog_depth_begin,z_far,length(vertex));
 
 			fog_amount = pow(fog_z,fog_depth_curve);
 			if (fog_transmit_enabled) {

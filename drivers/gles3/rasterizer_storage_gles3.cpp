@@ -1596,6 +1596,7 @@ void RasterizerStorageGLES3::_update_shader(Shader *p_shader) const {
 			p_shader->spatial.depth_draw_mode = Shader::Spatial::DEPTH_DRAW_OPAQUE;
 			p_shader->spatial.cull_mode = Shader::Spatial::CULL_MODE_BACK;
 			p_shader->spatial.uses_alpha = false;
+			p_shader->spatial.uses_alpha_scissor = false;
 			p_shader->spatial.uses_discard = false;
 			p_shader->spatial.unshaded = false;
 			p_shader->spatial.ontop = false;
@@ -1625,6 +1626,7 @@ void RasterizerStorageGLES3::_update_shader(Shader *p_shader) const {
 			shaders.actions_scene.render_mode_flags["vertex_lighting"] = &p_shader->spatial.uses_vertex_lighting;
 
 			shaders.actions_scene.usage_flag_pointers["ALPHA"] = &p_shader->spatial.uses_alpha;
+			shaders.actions_scene.usage_flag_pointers["ALPHA_SCISSOR"] = &p_shader->spatial.uses_alpha_scissor;
 			shaders.actions_scene.usage_flag_pointers["VERTEX"] = &p_shader->spatial.uses_vertex;
 
 			shaders.actions_scene.usage_flag_pointers["SSS_STRENGTH"] = &p_shader->spatial.uses_sss;
@@ -6902,17 +6904,19 @@ void RasterizerStorageGLES3::initialize() {
 	config.use_fast_texture_filter = int(ProjectSettings::get_singleton()->get("rendering/quality/filters/use_nearest_mipmap_filter"));
 	config.use_anisotropic_filter = config.extensions.has("rendering/quality/filters/anisotropic_filter_level");
 
-	config.s3tc_supported = config.extensions.has("GL_EXT_texture_compression_dxt1") || config.extensions.has("GL_EXT_texture_compression_s3tc") || config.extensions.has("WEBGL_compressed_texture_s3tc");
 	config.etc_supported = config.extensions.has("GL_OES_compressed_ETC1_RGB8_texture");
 	config.latc_supported = config.extensions.has("GL_EXT_texture_compression_latc");
-	config.rgtc_supported = config.extensions.has("GL_EXT_texture_compression_rgtc");
 	config.bptc_supported = config.extensions.has("GL_ARB_texture_compression_bptc");
 #ifdef GLES_OVER_GL
 	config.hdr_supported = true;
 	config.etc2_supported = false;
+	config.s3tc_supported = true;
+	config.rgtc_supported = true; //RGTC - core since OpenGL version 3.0
 #else
 	config.etc2_supported = true;
 	config.hdr_supported = false;
+	config.s3tc_supported = config.extensions.has("GL_EXT_texture_compression_dxt1") || config.extensions.has("GL_EXT_texture_compression_s3tc") || config.extensions.has("WEBGL_compressed_texture_s3tc");
+	config.rgtc_supported = config.extensions.has("GL_EXT_texture_compression_rgtc") || config.extensions.has("GL_ARB_texture_compression_rgtc");
 #endif
 
 	config.pvrtc_supported = config.extensions.has("GL_IMG_texture_compression_pvrtc");

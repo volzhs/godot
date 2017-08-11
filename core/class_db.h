@@ -45,12 +45,11 @@ struct ParamHint {
 	String hint_text;
 	Variant default_val;
 
-	ParamHint(const String &p_name = "", PropertyHint p_hint = PROPERTY_HINT_NONE, const String &p_hint_text = "", Variant p_default_val = Variant()) {
-
-		name = p_name;
-		hint = p_hint;
-		hint_text = p_hint_text;
-		default_val = p_default_val;
+	ParamHint(const String &p_name = "", PropertyHint p_hint = PROPERTY_HINT_NONE, const String &p_hint_text = "", Variant p_default_val = Variant())
+		: name(p_name),
+		  hint(p_hint),
+		  hint_text(p_hint_text),
+		  default_val(p_default_val) {
 	}
 };
 
@@ -73,8 +72,10 @@ struct MethodDefinition {
 	StringName name;
 	Vector<StringName> args;
 	MethodDefinition() {}
-	MethodDefinition(const char *p_name) { name = p_name; }
-	MethodDefinition(const StringName &p_name) { name = p_name; }
+	MethodDefinition(const char *p_name)
+		: name(p_name) {}
+	MethodDefinition(const StringName &p_name)
+		: name(p_name) {}
 };
 
 MethodDefinition D_METHOD(const char *p_name);
@@ -436,12 +437,6 @@ public:
 		MethodBind *bind = create_vararg_method_bind(p_method, p_info);
 		ERR_FAIL_COND_V(!bind, NULL);
 
-		String rettype;
-		if (p_name.operator String().find(":") != -1) {
-			rettype = p_name.operator String().get_slice(":", 1);
-			p_name = p_name.operator String().get_slice(":", 0);
-		}
-
 		bind->set_name(p_name);
 		bind->set_default_arguments(p_default_args);
 
@@ -461,8 +456,7 @@ public:
 		}
 		type->method_map[p_name] = bind;
 #ifdef DEBUG_METHODS_ENABLED
-		if (!rettype.empty())
-			bind->set_return_type(rettype);
+		bind->set_return_type("Variant");
 		type->method_order.push_back(p_name);
 #endif
 
@@ -480,6 +474,7 @@ public:
 	static bool set_property(Object *p_object, const StringName &p_property, const Variant &p_value, bool *r_valid = NULL);
 	static bool get_property(Object *p_object, const StringName &p_property, Variant &r_value);
 	static bool has_property(const StringName &p_class, const StringName &p_property, bool p_no_inheritance = false);
+	static int get_property_index(const StringName &p_class, const StringName &p_property, bool *r_is_valid = NULL);
 	static Variant::Type get_property_type(const StringName &p_class, const StringName &p_property, bool *r_is_valid = NULL);
 	static StringName get_property_setter(StringName p_class, const StringName p_property);
 	static StringName get_property_getter(StringName p_class, const StringName p_property);

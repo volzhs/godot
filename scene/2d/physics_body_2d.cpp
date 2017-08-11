@@ -70,8 +70,8 @@ void PhysicsBody2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_set_layers", "mask"), &PhysicsBody2D::_set_layers);
 	ClassDB::bind_method(D_METHOD("_get_layers"), &PhysicsBody2D::_get_layers);
-	ClassDB::bind_method(D_METHOD("add_collision_exception_with", "body:PhysicsBody2D"), &PhysicsBody2D::add_collision_exception_with);
-	ClassDB::bind_method(D_METHOD("remove_collision_exception_with", "body:PhysicsBody2D"), &PhysicsBody2D::remove_collision_exception_with);
+	ClassDB::bind_method(D_METHOD("add_collision_exception_with", "body"), &PhysicsBody2D::add_collision_exception_with);
+	ClassDB::bind_method(D_METHOD("remove_collision_exception_with", "body"), &PhysicsBody2D::remove_collision_exception_with);
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "layers", PROPERTY_HINT_LAYERS_2D_PHYSICS, "", 0), "_set_layers", "_get_layers"); //for backwards compat
 
 	ADD_GROUP("Collision", "collision_");
@@ -798,6 +798,40 @@ bool RigidBody2D::is_contact_monitor_enabled() const {
 	return contact_monitor != NULL;
 }
 
+void RigidBody2D::_notification(int p_what) {
+
+#ifdef TOOLS_ENABLED
+	if (p_what == NOTIFICATION_ENTER_TREE) {
+		if (get_tree()->is_editor_hint()) {
+			set_notify_local_transform(true); //used for warnings and only in editor
+		}
+	}
+
+	if (p_what == NOTIFICATION_LOCAL_TRANSFORM_CHANGED) {
+		if (get_tree()->is_editor_hint()) {
+			update_configuration_warning();
+		}
+	}
+
+#endif
+}
+
+String RigidBody2D::get_configuration_warning() const {
+
+	Transform2D t = get_transform();
+
+	String warning = CollisionObject2D::get_configuration_warning();
+
+	if ((get_mode() == MODE_RIGID || get_mode() == MODE_CHARACTER) && (ABS(t.elements[0].length() - 1.0) > 0.05 || ABS(t.elements[1].length() - 1.0) > 0.05)) {
+		if (warning != String()) {
+			warning += "\n";
+		}
+		warning += TTR("Size changes to RigidBody2D (in character or rigid modes) will be overriden by the physics engine when running.\nChange the size in children collision shapes instead.");
+	}
+
+	return warning;
+}
+
 void RigidBody2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_mode", "mode"), &RigidBody2D::set_mode);
@@ -862,7 +896,7 @@ void RigidBody2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_can_sleep", "able_to_sleep"), &RigidBody2D::set_can_sleep);
 	ClassDB::bind_method(D_METHOD("is_able_to_sleep"), &RigidBody2D::is_able_to_sleep);
 
-	ClassDB::bind_method(D_METHOD("test_motion", "motion", "margin", "result:Physics2DTestMotionResult"), &RigidBody2D::_test_motion, DEFVAL(0.08), DEFVAL(Variant()));
+	ClassDB::bind_method(D_METHOD("test_motion", "motion", "margin", "result"), &RigidBody2D::_test_motion, DEFVAL(0.08), DEFVAL(Variant()));
 
 	ClassDB::bind_method(D_METHOD("_direct_state_changed"), &RigidBody2D::_direct_state_changed);
 	ClassDB::bind_method(D_METHOD("_body_enter_tree"), &RigidBody2D::_body_enter_tree);
@@ -1170,7 +1204,7 @@ void KinematicBody2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_floor_velocity"), &KinematicBody2D::get_floor_velocity);
 
 	ClassDB::bind_method(D_METHOD("set_safe_margin", "pixels"), &KinematicBody2D::set_safe_margin);
-	ClassDB::bind_method(D_METHOD("get_safe_margin", "pixels"), &KinematicBody2D::get_safe_margin);
+	ClassDB::bind_method(D_METHOD("get_safe_margin"), &KinematicBody2D::get_safe_margin);
 
 	ClassDB::bind_method(D_METHOD("get_collision_count"), &KinematicBody2D::get_collision_count);
 	ClassDB::bind_method(D_METHOD("get_collision_position", "collision"), &KinematicBody2D::get_collision_position);

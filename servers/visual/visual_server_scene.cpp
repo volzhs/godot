@@ -797,7 +797,7 @@ void VisualServerScene::instance_set_transform(RID p_instance, const Transform &
 	instance->transform = p_transform;
 	_instance_queue_update(instance, true);
 }
-void VisualServerScene::instance_attach_object_instance_ID(RID p_instance, ObjectID p_ID) {
+void VisualServerScene::instance_attach_object_instance_id(RID p_instance, ObjectID p_ID) {
 
 	Instance *instance = instance_owner.get(p_instance);
 	ERR_FAIL_COND(!instance);
@@ -880,13 +880,13 @@ void VisualServerScene::instance_attach_skeleton(RID p_instance, RID p_skeleton)
 		return;
 
 	if (instance->skeleton.is_valid()) {
-		VSG::storage->instance_remove_skeleton(p_skeleton, instance);
+		VSG::storage->instance_remove_skeleton(instance->skeleton, instance);
 	}
 
 	instance->skeleton = p_skeleton;
 
 	if (instance->skeleton.is_valid()) {
-		VSG::storage->instance_add_skeleton(p_skeleton, instance);
+		VSG::storage->instance_add_skeleton(instance->skeleton, instance);
 	}
 
 	_instance_queue_update(instance, true);

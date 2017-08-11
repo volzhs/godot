@@ -55,11 +55,11 @@
 ////// Script stuff
 
 void NativeScript::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("set_class_name", "class_name:String"), &NativeScript::set_class_name);
-	ClassDB::bind_method(D_METHOD("get_class_name:String"), &NativeScript::get_class_name);
+	ClassDB::bind_method(D_METHOD("set_class_name", "class_name"), &NativeScript::set_class_name);
+	ClassDB::bind_method(D_METHOD("get_class_name"), &NativeScript::get_class_name);
 
-	ClassDB::bind_method(D_METHOD("set_library", "library:GDNativeLibrary"), &NativeScript::set_library);
-	ClassDB::bind_method(D_METHOD("get_library:GDNativeLibrary"), &NativeScript::get_library);
+	ClassDB::bind_method(D_METHOD("set_library", "library"), &NativeScript::set_library);
+	ClassDB::bind_method(D_METHOD("get_library"), &NativeScript::get_library);
 
 	ADD_PROPERTYNZ(PropertyInfo(Variant::STRING, "class_name"), "set_class_name", "get_class_name");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::OBJECT, "library", PROPERTY_HINT_RESOURCE_TYPE, "GDNativeLibrary"), "set_library", "get_library");
@@ -77,14 +77,12 @@ void NativeScript::_update_placeholder(PlaceHolderScriptInstance *p_placeholder)
 	ERR_FAIL_COND(!script_data);
 
 	List<PropertyInfo> info;
+	get_script_property_list(&info);
 	Map<StringName, Variant> values;
-
-	for (Map<StringName, NativeScriptDesc::Property>::Element *E = script_data->properties.front(); E; E = E->next()) {
-		PropertyInfo p = E->get().info;
-		p.name = String(E->key());
-
-		info.push_back(p);
-		values[p.name] = E->get().default_value;
+	for (List<PropertyInfo>::Element *E = info.front(); E; E = E->next()) {
+		Variant value;
+		get_property_default_value(E->get().name, value);
+		values[E->get().name] = value;
 	}
 
 	p_placeholder->update(info, values);
@@ -113,7 +111,7 @@ void NativeScript::set_library(Ref<GDNativeLibrary> p_library) {
 	lib_path = library->get_active_library_path();
 
 #ifndef NO_THREADS
-	if (Thread::get_caller_ID() != Thread::get_main_ID()) {
+	if (Thread::get_caller_id() != Thread::get_main_id()) {
 		NSL->defer_init_library(p_library, this);
 	} else
 #endif
@@ -317,11 +315,11 @@ void NativeScript::get_script_signal_list(List<MethodInfo> *r_signals) const {
 bool NativeScript::get_property_default_value(const StringName &p_property, Variant &r_value) const {
 	NativeScriptDesc *script_data = get_script_desc();
 
-	if (!script_data)
-		return false;
-
-	Map<StringName, NativeScriptDesc::Property>::Element *P = script_data->properties.find(p_property);
-
+	Map<StringName, NativeScriptDesc::Property>::Element *P = NULL;
+	while (!P && script_data) {
+		P = script_data->properties.find(p_property);
+		script_data = script_data->base_data;
+	}
 	if (!P)
 		return false;
 
@@ -974,11 +972,11 @@ void NativeScriptLanguage::profiling_stop() {
 }
 
 int NativeScriptLanguage::profiling_get_accumulated_data(ProfilingInfo *p_info_arr, int p_info_max) {
-	return -1;
+	return 0;
 }
 
 int NativeScriptLanguage::profiling_get_frame_data(ProfilingInfo *p_info_arr, int p_info_max) {
-	return -1;
+	return 0;
 }
 
 #ifndef NO_THREADS
@@ -1055,13 +1053,15 @@ void NativeScriptLanguage::unregister_script(NativeScript *script) {
 void NativeScriptLanguage::call_libraries_cb(const StringName &name) {
 	// library_gdnatives is modified only from the main thread, so it's safe not to use mutex here
 	for (Map<String, Ref<GDNative> >::Element *L = library_gdnatives.front(); L; L = L->next()) {
-		L->get()->call_native_raw(
-				_noarg_call_type,
-				name,
-				NULL,
-				0,
-				NULL,
-				NULL);
+		if (L->get()->is_initialized()) {
+			L->get()->call_native_raw(
+					_noarg_call_type,
+					name,
+					NULL,
+					0,
+					NULL,
+					NULL);
+		}
 	}
 }
 

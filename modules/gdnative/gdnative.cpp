@@ -155,7 +155,6 @@ String GDNativeLibrary::get_active_library_path() const {
 }
 
 GDNative::GDNative() {
-	initialized = false;
 	native_handle = NULL;
 }
 
@@ -170,8 +169,8 @@ void GDNative::_compile_dummy_for_api() {
 }
 
 void GDNative::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("set_library", "library:GDNativeLibrary"), &GDNative::set_library);
-	ClassDB::bind_method(D_METHOD("get_library:GDNativeLibrary"), &GDNative::get_library);
+	ClassDB::bind_method(D_METHOD("set_library", "library"), &GDNative::set_library);
+	ClassDB::bind_method(D_METHOD("get_library"), &GDNative::get_library);
 
 	ClassDB::bind_method(D_METHOD("initialize"), &GDNative::initialize);
 	ClassDB::bind_method(D_METHOD("terminate"), &GDNative::terminate);
@@ -179,7 +178,7 @@ void GDNative::_bind_methods() {
 	// TODO(karroffel): get_native_(raw_)call_types binding?
 
 	// TODO(karroffel): make this a varargs function?
-	ClassDB::bind_method(D_METHOD("call_native:Variant", "procedure_name", "arguments:Array"), &GDNative::call_native);
+	ClassDB::bind_method(D_METHOD("call_native", "procedure_name", "arguments"), &GDNative::call_native);
 
 	ADD_PROPERTYNZ(PropertyInfo(Variant::OBJECT, "library", PROPERTY_HINT_RESOURCE_TYPE, "GDNativeLibrary"), "set_library", "get_library");
 }
@@ -219,6 +218,9 @@ bool GDNative::initialize() {
 			library_init);
 
 	if (err || !library_init) {
+		OS::get_singleton()->close_dynamic_library(native_handle);
+		native_handle = NULL;
+		ERR_PRINT("Failed to obtain godot_gdnative_init symbol");
 		return false;
 	}
 
@@ -272,7 +274,11 @@ bool GDNative::terminate() {
 	OS::get_singleton()->close_dynamic_library(native_handle);
 	native_handle = NULL;
 
-	return false;
+	return true;
+}
+
+bool GDNative::is_initialized() {
+	return (native_handle != NULL);
 }
 
 void GDNativeCallRegistry::register_native_call_type(StringName p_call_type, native_call_cb p_callback) {

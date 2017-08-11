@@ -407,7 +407,7 @@ void Skeleton::bind_child_node_to_bone(int p_bone, Node *p_node) {
 	ERR_FAIL_NULL(p_node);
 	ERR_FAIL_INDEX(p_bone, bones.size());
 
-	uint32_t id = p_node->get_instance_ID();
+	uint32_t id = p_node->get_instance_id();
 
 	for (List<uint32_t>::Element *E = bones[p_bone].nodes_bound.front(); E; E = E->next()) {
 
@@ -422,7 +422,7 @@ void Skeleton::unbind_child_node_from_bone(int p_bone, Node *p_node) {
 	ERR_FAIL_NULL(p_node);
 	ERR_FAIL_INDEX(p_bone, bones.size());
 
-	uint32_t id = p_node->get_instance_ID();
+	uint32_t id = p_node->get_instance_id();
 	bones[p_bone].nodes_bound.erase(id);
 }
 void Skeleton::get_bound_child_nodes_to_bone(int p_bone, List<Node *> *p_bound) const {
@@ -518,8 +518,8 @@ void Skeleton::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_bone_disable_rest", "bone_idx", "disable"), &Skeleton::set_bone_disable_rest);
 	ClassDB::bind_method(D_METHOD("is_bone_rest_disabled", "bone_idx"), &Skeleton::is_bone_rest_disabled);
 
-	ClassDB::bind_method(D_METHOD("bind_child_node_to_bone", "bone_idx", "node:Node"), &Skeleton::bind_child_node_to_bone);
-	ClassDB::bind_method(D_METHOD("unbind_child_node_from_bone", "bone_idx", "node:Node"), &Skeleton::unbind_child_node_from_bone);
+	ClassDB::bind_method(D_METHOD("bind_child_node_to_bone", "bone_idx", "node"), &Skeleton::bind_child_node_to_bone);
+	ClassDB::bind_method(D_METHOD("unbind_child_node_from_bone", "bone_idx", "node"), &Skeleton::unbind_child_node_from_bone);
 	ClassDB::bind_method(D_METHOD("get_bound_child_nodes_to_bone", "bone_idx"), &Skeleton::_get_bound_child_nodes_to_bone);
 
 	ClassDB::bind_method(D_METHOD("clear_bones"), &Skeleton::clear_bones);

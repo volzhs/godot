@@ -102,7 +102,7 @@ void FileSystemDock::_notification(int p_what) {
 
 		case NOTIFICATION_RESIZED: {
 
-			bool new_mode = get_size().height < get_viewport_rect().size.height * 3 / 4;
+			bool new_mode = get_size().height < get_viewport_rect().size.height / 2;
 
 			if (new_mode != split_mode) {
 
@@ -589,7 +589,7 @@ void FileSystemDock::_go_to_dir(const String &p_dir) {
 
 void FileSystemDock::_preview_invalidated(const String &p_path) {
 
-	if (p_path.get_base_dir() == path && search_box->get_text() == String() && file_list_vb->is_visible_in_tree()) {
+	if (display_mode == DISPLAY_THUMBNAILS && p_path.get_base_dir() == path && search_box->get_text() == String() && file_list_vb->is_visible_in_tree()) {
 
 		for (int i = 0; i < files->get_item_count(); i++) {
 
@@ -1737,7 +1737,6 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	file_list_vb->set_v_size_flags(SIZE_EXPAND_FILL);
 
 	path_hb = memnew(HBoxContainer);
-	path_hb->add_child(memnew(Control));
 	file_list_vb->add_child(path_hb);
 
 	button_back = memnew(ToolButton);

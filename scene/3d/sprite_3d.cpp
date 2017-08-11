@@ -389,7 +389,7 @@ void Sprite3D::_draw() {
 	int axis = get_axis();
 	normal[axis] = 1.0;
 
-	RID mat = VS::get_singleton()->material_2d_get(get_draw_flag(FLAG_SHADED), get_draw_flag(FLAG_TRANSPARENT), get_draw_flag(FLAG_DOUBLE_SIDED), get_alpha_cut_mode() == ALPHA_CUT_DISCARD, get_alpha_cut_mode() == ALPHA_CUT_OPAQUE_PREPASS);
+	RID mat = SpatialMaterial::get_material_rid_for_2d(get_draw_flag(FLAG_SHADED), get_draw_flag(FLAG_TRANSPARENT), get_draw_flag(FLAG_DOUBLE_SIDED), get_alpha_cut_mode() == ALPHA_CUT_DISCARD, get_alpha_cut_mode() == ALPHA_CUT_OPAQUE_PREPASS);
 	VS::get_singleton()->immediate_set_material(immediate, mat);
 
 	VS::get_singleton()->immediate_begin(immediate, VS::PRIMITIVE_TRIANGLE_FAN, texture->get_rid());
@@ -502,7 +502,7 @@ void Sprite3D::set_vframes(int p_amount) {
 	ERR_FAIL_COND(p_amount < 1);
 	vframes = p_amount;
 	_queue_update();
-	_change_notify("frame");
+	_change_notify();
 }
 int Sprite3D::get_vframes() const {
 
@@ -514,7 +514,7 @@ void Sprite3D::set_hframes(int p_amount) {
 	ERR_FAIL_COND(p_amount < 1);
 	hframes = p_amount;
 	_queue_update();
-	_change_notify("frame");
+	_change_notify();
 }
 int Sprite3D::get_hframes() const {
 
@@ -562,8 +562,8 @@ void Sprite3D::_validate_property(PropertyInfo &property) const {
 
 void Sprite3D::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_texture", "texture:Texture"), &Sprite3D::set_texture);
-	ClassDB::bind_method(D_METHOD("get_texture:Texture"), &Sprite3D::get_texture);
+	ClassDB::bind_method(D_METHOD("set_texture", "texture"), &Sprite3D::set_texture);
+	ClassDB::bind_method(D_METHOD("get_texture"), &Sprite3D::get_texture);
 
 	ClassDB::bind_method(D_METHOD("set_region", "enabled"), &Sprite3D::set_region);
 	ClassDB::bind_method(D_METHOD("is_region"), &Sprite3D::is_region);
@@ -724,8 +724,8 @@ void AnimatedSprite3D::_draw() {
 
 void AnimatedSprite3D::_bind_methods(){
 
-	ClassDB::bind_method(D_METHOD("set_sprite_frames","sprite_frames:SpriteFrames"),&AnimatedSprite3D::set_sprite_frames);
-	ClassDB::bind_method(D_METHOD("get_sprite_frames:Texture"),&AnimatedSprite3D::get_sprite_frames);
+	ClassDB::bind_method(D_METHOD("set_sprite_frames","sprite_frames"),&AnimatedSprite3D::set_sprite_frames);
+	ClassDB::bind_method(D_METHOD("get_sprite_frames"),&AnimatedSprite3D::get_sprite_frames);
 	ClassDB::bind_method(D_METHOD("set_frame","frame"),&AnimatedSprite3D::set_frame);
 	ClassDB::bind_method(D_METHOD("get_frame"),&AnimatedSprite3D::get_frame);
 
@@ -892,7 +892,8 @@ void AnimatedSprite3D::_draw() {
 	int axis = get_axis();
 	normal[axis] = 1.0;
 
-	RID mat = VS::get_singleton()->material_2d_get(get_draw_flag(FLAG_SHADED), get_draw_flag(FLAG_TRANSPARENT), get_draw_flag(FLAG_DOUBLE_SIDED), get_alpha_cut_mode() == ALPHA_CUT_DISCARD, get_alpha_cut_mode() == ALPHA_CUT_OPAQUE_PREPASS);
+	RID mat = SpatialMaterial::get_material_rid_for_2d(get_draw_flag(FLAG_SHADED), get_draw_flag(FLAG_TRANSPARENT), get_draw_flag(FLAG_DOUBLE_SIDED), get_alpha_cut_mode() == ALPHA_CUT_DISCARD, get_alpha_cut_mode() == ALPHA_CUT_OPAQUE_PREPASS);
+
 	VS::get_singleton()->immediate_set_material(immediate, mat);
 
 	VS::get_singleton()->immediate_begin(immediate, VS::PRIMITIVE_TRIANGLE_FAN, texture->get_rid());
@@ -1245,8 +1246,8 @@ String AnimatedSprite3D::get_configuration_warning() const {
 
 void AnimatedSprite3D::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_sprite_frames", "sprite_frames:SpriteFrames"), &AnimatedSprite3D::set_sprite_frames);
-	ClassDB::bind_method(D_METHOD("get_sprite_frames:SpriteFrames"), &AnimatedSprite3D::get_sprite_frames);
+	ClassDB::bind_method(D_METHOD("set_sprite_frames", "sprite_frames"), &AnimatedSprite3D::set_sprite_frames);
+	ClassDB::bind_method(D_METHOD("get_sprite_frames"), &AnimatedSprite3D::get_sprite_frames);
 
 	ClassDB::bind_method(D_METHOD("set_animation", "animation"), &AnimatedSprite3D::set_animation);
 	ClassDB::bind_method(D_METHOD("get_animation"), &AnimatedSprite3D::get_animation);

@@ -615,7 +615,7 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 
 						Ref<Resource> res = value;
 						Array arr;
-						arr.push_back(button->get_instance_ID());
+						arr.push_back(button->get_instance_id());
 						arr.push_back(String(value));
 						EditorResourcePreview::get_singleton()->queue_edited_resource_preview(res, this, "_button_resource_previewed", arr);
 
@@ -869,14 +869,26 @@ void VisualScriptEditor::_member_edited() {
 		}
 		selected = new_name;
 
-		_update_graph();
-
+		int node_id = script->get_function_node_id(name);
+		Ref<VisualScriptFunction> func;
+		if (script->has_node(name, node_id)) {
+			func = script->get_node(name, node_id);
+		}
 		undo_redo->create_action(TTR("Rename Function"));
 		undo_redo->add_do_method(script.ptr(), "rename_function", name, new_name);
 		undo_redo->add_undo_method(script.ptr(), "rename_function", new_name, name);
+		if (func.is_valid()) {
+
+			undo_redo->add_do_method(func.ptr(), "set_name", new_name);
+			undo_redo->add_undo_method(func.ptr(), "set_name", name);
+		}
 		undo_redo->add_do_method(this, "_update_members");
 		undo_redo->add_undo_method(this, "_update_members");
+		undo_redo->add_do_method(this, "_update_graph");
+		undo_redo->add_undo_method(this, "_update_graph");
 		undo_redo->commit_action();
+
+		//		_update_graph();
 
 		return; //or crash because it will become invalid
 	}
@@ -1969,7 +1981,7 @@ String VisualScriptEditor::get_name() {
 	} else if (script->get_name() != "")
 		name = script->get_name();
 	else
-		name = script->get_class() + "(" + itos(script->get_instance_ID()) + ")";
+		name = script->get_class() + "(" + itos(script->get_instance_id()) + ")";
 
 	return name;
 }

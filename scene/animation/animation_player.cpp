@@ -247,7 +247,7 @@ void AnimationPlayer::_generate_node_caches(AnimationData *p_anim) {
 			ERR_EXPLAIN("On Animation: '" + p_anim->name + "', couldn't resolve track:  '" + String(a->track_get_path(i)) + "'");
 		}
 		ERR_CONTINUE(!child); // couldn't find the child node
-		uint32_t id = resource.is_valid() ? resource->get_instance_ID() : child->get_instance_ID();
+		uint32_t id = resource.is_valid() ? resource->get_instance_id() : child->get_instance_id();
 		int bone_idx = -1;
 
 		if (a->track_get_path(i).get_property() && child->cast_to<Skeleton>()) {
@@ -1215,11 +1215,11 @@ void AnimationPlayer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_node_removed"), &AnimationPlayer::_node_removed);
 	ClassDB::bind_method(D_METHOD("_animation_changed"), &AnimationPlayer::_animation_changed);
 
-	ClassDB::bind_method(D_METHOD("add_animation", "name", "animation:Animation"), &AnimationPlayer::add_animation);
+	ClassDB::bind_method(D_METHOD("add_animation", "name", "animation"), &AnimationPlayer::add_animation);
 	ClassDB::bind_method(D_METHOD("remove_animation", "name"), &AnimationPlayer::remove_animation);
 	ClassDB::bind_method(D_METHOD("rename_animation", "name", "newname"), &AnimationPlayer::rename_animation);
 	ClassDB::bind_method(D_METHOD("has_animation", "name"), &AnimationPlayer::has_animation);
-	ClassDB::bind_method(D_METHOD("get_animation:Animation", "name"), &AnimationPlayer::get_animation);
+	ClassDB::bind_method(D_METHOD("get_animation", "name"), &AnimationPlayer::get_animation);
 	ClassDB::bind_method(D_METHOD("get_animation_list"), &AnimationPlayer::_get_animation_list);
 
 	ClassDB::bind_method(D_METHOD("animation_set_next", "anim_from", "anim_to"), &AnimationPlayer::animation_set_next);
@@ -1256,7 +1256,7 @@ void AnimationPlayer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("seek", "pos_sec", "update"), &AnimationPlayer::seek, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_pos"), &AnimationPlayer::get_current_animation_pos);
 
-	ClassDB::bind_method(D_METHOD("find_animation", "animation:Animation"), &AnimationPlayer::find_animation);
+	ClassDB::bind_method(D_METHOD("find_animation", "animation"), &AnimationPlayer::find_animation);
 
 	ClassDB::bind_method(D_METHOD("clear_caches"), &AnimationPlayer::clear_caches);
 
@@ -1268,7 +1268,7 @@ void AnimationPlayer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("advance", "delta"), &AnimationPlayer::advance);
 
-	ADD_GROUP("Playback", "playback_");
+	ADD_GROUP("Playback Options", "playback_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "playback_process_mode", PROPERTY_HINT_ENUM, "Fixed,Idle"), "set_animation_process_mode", "get_animation_process_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "playback_default_blend_time", PROPERTY_HINT_RANGE, "0,4096,0.01"), "set_default_blend_time", "get_default_blend_time");
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "root_node"), "set_root", "get_root");

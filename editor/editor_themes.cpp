@@ -143,7 +143,7 @@ Ref<Theme> create_editor_theme() {
 	Color light_color_1 = base_color.linear_interpolate(Color(1, 1, 1, 1), contrast);
 	Color light_color_2 = base_color.linear_interpolate(Color(1, 1, 1, 1), contrast * 1.5);
 
-	const int border_width = (border_size % 3) * EDSCALE;
+	const int border_width = CLAMP(border_size, 0, 3) * EDSCALE;
 
 	Color title_color_hl = base_color;
 	if (highlight_tabs)
@@ -163,7 +163,7 @@ Ref<Theme> create_editor_theme() {
 	theme->set_color("light_color_1", "Editor", light_color_1);
 	theme->set_color("light_color_2", "Editor", light_color_2);
 
-	Color success_color = highlight_color.linear_interpolate(Color(0, 1, .8), 0.8);
+	Color success_color = highlight_color.linear_interpolate(Color(.6, 1, .6), 0.8);
 	Color warning_color = highlight_color.linear_interpolate(Color(1, 1, .2), 0.8);
 	Color error_color = highlight_color.linear_interpolate(Color(1, .2, .2), 0.8);
 	theme->set_color("success_color", "Editor", success_color);
@@ -175,6 +175,10 @@ Ref<Theme> create_editor_theme() {
 	theme->set_icon("unchecked", "CheckBox", theme->get_icon("GuiUnchecked", "EditorIcons"));
 	theme->set_icon("checked", "PopupMenu", theme->get_icon("GuiChecked", "EditorIcons"));
 	theme->set_icon("unchecked", "PopupMenu", theme->get_icon("GuiUnchecked", "EditorIcons"));
+	theme->set_icon("radio_checked", "CheckBox", theme->get_icon("GuiRadioChecked", "EditorIcons"));
+	theme->set_icon("radio_unchecked", "CheckBox", theme->get_icon("GuiRadioUnchecked", "EditorIcons"));
+	theme->set_icon("radio_checked", "PopupMenu", theme->get_icon("GuiChecked", "EditorIcons"));
+	theme->set_icon("radio_unchecked", "PopupMenu", theme->get_icon("GuiUnchecked", "EditorIcons"));
 
 	// Editor background
 	Ref<StyleBoxFlat> style_panel = make_flat_stylebox(dark_color_2, 4, 4, 4, 4);
@@ -238,7 +242,7 @@ Ref<Theme> create_editor_theme() {
 	theme->set_stylebox("panel", "TabContainer", style_content_panel);
 	theme->set_stylebox("Content", "EditorStyles", style_content_panel_vp);
 
-	Ref<StyleBoxFlat> style_button_type = make_flat_stylebox(dark_color_1, 4, 4, 6, 4);
+	Ref<StyleBoxFlat> style_button_type = make_flat_stylebox(dark_color_1, 6, 4, 6, 4);
 	style_button_type->set_draw_center(true);
 	style_button_type->set_border_size(border_width);
 	style_button_type->set_light_color(light_color_1);
@@ -287,12 +291,12 @@ Ref<Theme> create_editor_theme() {
 
 	// PopupMenu
 	Ref<StyleBoxFlat> style_popup_menu = make_flat_stylebox(dark_color_1, 8, 8, 8, 8);
-	style_popup_menu->set_border_size(border_width);
+	style_popup_menu->set_border_size(MAX(EDSCALE, border_width));
 	style_popup_menu->set_light_color(light_color_1);
 	style_popup_menu->set_dark_color(light_color_1);
 	style_popup_menu->set_border_blend(false);
 	theme->set_stylebox("panel", "PopupMenu", style_popup_menu);
-	theme->set_stylebox("separator", "PopupMenu", make_line_stylebox(separator_color, border_width, 8 - border_width));
+	theme->set_stylebox("separator", "PopupMenu", make_line_stylebox(separator_color, MAX(EDSCALE, border_width), 8 - MAX(EDSCALE, border_width)));
 
 	// Tree & ItemList background
 	Ref<StyleBoxFlat> style_tree_bg = make_flat_stylebox(dark_color_1, 2, 4, 2, 4);
@@ -382,12 +386,12 @@ Ref<Theme> create_editor_theme() {
 	theme->set_stylebox("SceneTabBG", "EditorStyles", make_empty_stylebox(6, 5, 6, 5));
 	theme->set_icon("close", "Tabs", title_hl_close_icon);
 
-	// Separatos (no separatos)
+	// Separators (no separators)
 	theme->set_stylebox("separator", "HSeparator", make_line_stylebox(separator_color, border_width));
 	theme->set_stylebox("separator", "VSeparator", make_line_stylebox(separator_color, border_width, 0, true));
 
 	// Debugger
-	Ref<StyleBoxFlat> style_panel_debugger = make_flat_stylebox(dark_color_2, 0, 4, 0, 0);
+	Ref<StyleBoxFlat> style_panel_debugger = make_flat_stylebox(dark_color_2, 4, 4, 4, 4);
 	theme->set_stylebox("DebuggerPanel", "EditorStyles", style_panel_debugger);
 
 	Ref<StyleBoxFlat> style_tab_fg_debugger = make_flat_stylebox(dark_color_2, 10, 5, 10, 5);
@@ -431,7 +435,7 @@ Ref<Theme> create_editor_theme() {
 
 	// WindowDialog
 	Ref<StyleBoxFlat> style_window = make_flat_stylebox(dark_color_2, 4, 4, 4, 4);
-	style_window->set_border_size(border_width);
+	style_window->set_border_size(MAX(EDSCALE, border_width));
 	style_window->set_border_blend(false);
 	style_window->set_light_color(title_color_hl);
 	style_window->set_dark_color(title_color_hl);
@@ -477,6 +481,9 @@ Ref<Theme> create_editor_theme() {
 	theme->set_stylebox("slider", "VSlider", make_stylebox(theme->get_icon("GuiVsliderBg", "EditorIcons"), 4, 4, 4, 4));
 	theme->set_icon("grabber", "VSlider", theme->get_icon("GuiSliderGrabber", "EditorIcons"));
 	theme->set_icon("grabber_highlight", "VSlider", theme->get_icon("GuiSliderGrabberHl", "EditorIcons"));
+
+	//RichTextLabel
+	theme->set_stylebox("focus", "RichTextLabel", make_empty_stylebox());
 
 	// Panel
 	theme->set_stylebox("panel", "Panel", style_panel);

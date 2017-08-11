@@ -1561,7 +1561,7 @@ void RasterizerSceneGLES3::_render_geometry(RenderList::Element *e) {
 				if (!c.normals.empty()) {
 
 					glEnableVertexAttribArray(VS::ARRAY_NORMAL);
-					glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vector3) * vertices, c.normals.ptr());
+					glBufferSubData(GL_ARRAY_BUFFER, buf_ofs, sizeof(Vector3) * vertices, c.normals.ptr());
 					glVertexAttribPointer(VS::ARRAY_NORMAL, 3, GL_FLOAT, false, sizeof(Vector3) * vertices, ((uint8_t *)NULL) + buf_ofs);
 					buf_ofs += sizeof(Vector3) * vertices;
 
@@ -1573,7 +1573,7 @@ void RasterizerSceneGLES3::_render_geometry(RenderList::Element *e) {
 				if (!c.tangents.empty()) {
 
 					glEnableVertexAttribArray(VS::ARRAY_TANGENT);
-					glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Plane) * vertices, c.tangents.ptr());
+					glBufferSubData(GL_ARRAY_BUFFER, buf_ofs, sizeof(Plane) * vertices, c.tangents.ptr());
 					glVertexAttribPointer(VS::ARRAY_TANGENT, 4, GL_FLOAT, false, sizeof(Plane) * vertices, ((uint8_t *)NULL) + buf_ofs);
 					buf_ofs += sizeof(Plane) * vertices;
 
@@ -1585,7 +1585,7 @@ void RasterizerSceneGLES3::_render_geometry(RenderList::Element *e) {
 				if (!c.colors.empty()) {
 
 					glEnableVertexAttribArray(VS::ARRAY_COLOR);
-					glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Color) * vertices, c.colors.ptr());
+					glBufferSubData(GL_ARRAY_BUFFER, buf_ofs, sizeof(Color) * vertices, c.colors.ptr());
 					glVertexAttribPointer(VS::ARRAY_COLOR, 4, GL_FLOAT, false, sizeof(Color), ((uint8_t *)NULL) + buf_ofs);
 					buf_ofs += sizeof(Color) * vertices;
 
@@ -1598,7 +1598,7 @@ void RasterizerSceneGLES3::_render_geometry(RenderList::Element *e) {
 				if (!c.uvs.empty()) {
 
 					glEnableVertexAttribArray(VS::ARRAY_TEX_UV);
-					glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vector2) * vertices, c.uvs.ptr());
+					glBufferSubData(GL_ARRAY_BUFFER, buf_ofs, sizeof(Vector2) * vertices, c.uvs.ptr());
 					glVertexAttribPointer(VS::ARRAY_TEX_UV, 2, GL_FLOAT, false, sizeof(Vector2), ((uint8_t *)NULL) + buf_ofs);
 					buf_ofs += sizeof(Vector2) * vertices;
 
@@ -1610,7 +1610,7 @@ void RasterizerSceneGLES3::_render_geometry(RenderList::Element *e) {
 				if (!c.uvs2.empty()) {
 
 					glEnableVertexAttribArray(VS::ARRAY_TEX_UV2);
-					glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vector2) * vertices, c.uvs2.ptr());
+					glBufferSubData(GL_ARRAY_BUFFER, buf_ofs, sizeof(Vector2) * vertices, c.uvs2.ptr());
 					glVertexAttribPointer(VS::ARRAY_TEX_UV2, 2, GL_FLOAT, false, sizeof(Vector2), ((uint8_t *)NULL) + buf_ofs);
 					buf_ofs += sizeof(Vector2) * vertices;
 
@@ -1620,7 +1620,7 @@ void RasterizerSceneGLES3::_render_geometry(RenderList::Element *e) {
 				}
 
 				glEnableVertexAttribArray(VS::ARRAY_VERTEX);
-				glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vector3) * vertices, c.vertices.ptr());
+				glBufferSubData(GL_ARRAY_BUFFER, buf_ofs, sizeof(Vector3) * vertices, c.vertices.ptr());
 				glVertexAttribPointer(VS::ARRAY_VERTEX, 3, GL_FLOAT, false, sizeof(Vector3), ((uint8_t *)NULL) + buf_ofs);
 				glDrawArrays(gl_primitive[c.primitive], 0, c.vertices.size());
 			}
@@ -2182,7 +2182,7 @@ void RasterizerSceneGLES3::_add_geometry(RasterizerStorageGLES3::Geometry *p_geo
 
 void RasterizerSceneGLES3::_add_geometry_with_material(RasterizerStorageGLES3::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES3::GeometryOwner *p_owner, RasterizerStorageGLES3::Material *m, bool p_shadow) {
 
-	bool has_base_alpha = (m->shader->spatial.uses_alpha || m->shader->spatial.uses_screen_texture || m->shader->spatial.unshaded);
+	bool has_base_alpha = (m->shader->spatial.uses_alpha && !m->shader->spatial.uses_alpha_scissor) || m->shader->spatial.uses_screen_texture || m->shader->spatial.unshaded;
 	bool has_blend_alpha = m->shader->spatial.blend_mode != RasterizerStorageGLES3::Shader::Spatial::BLEND_MODE_MIX || m->shader->spatial.ontop;
 	bool has_alpha = has_base_alpha || has_blend_alpha;
 	bool shadow = false;
@@ -2206,7 +2206,7 @@ void RasterizerSceneGLES3::_add_geometry_with_material(RasterizerStorageGLES3::G
 		if (has_blend_alpha || (has_base_alpha && m->shader->spatial.depth_draw_mode != RasterizerStorageGLES3::Shader::Spatial::DEPTH_DRAW_ALPHA_PREPASS))
 			return; //bye
 
-		if (!m->shader->spatial.writes_modelview_or_projection && !m->shader->spatial.uses_vertex && !m->shader->spatial.uses_discard && m->shader->spatial.depth_draw_mode != RasterizerStorageGLES3::Shader::Spatial::DEPTH_DRAW_ALPHA_PREPASS) {
+		if (!m->shader->spatial.uses_alpha_scissor && !m->shader->spatial.writes_modelview_or_projection && !m->shader->spatial.uses_vertex && !m->shader->spatial.uses_discard && m->shader->spatial.depth_draw_mode != RasterizerStorageGLES3::Shader::Spatial::DEPTH_DRAW_ALPHA_PREPASS) {
 			//shader does not use discard and does not write a vertex position, use generic material
 			if (p_instance->cast_shadows == VS::SHADOW_CASTING_SETTING_DOUBLE_SIDED)
 				m = storage->material_owner.getptr(default_material_twosided);
@@ -3050,6 +3050,11 @@ void RasterizerSceneGLES3::_fill_render_list(InstanceBase **p_cull_result, int p
 
 			} break;
 			case VS::INSTANCE_IMMEDIATE: {
+
+				RasterizerStorageGLES3::Immediate *immediate = storage->immediate_owner.getptr(inst->base);
+				ERR_CONTINUE(!immediate);
+
+				_add_geometry(immediate, inst, NULL, -1, p_shadow);
 
 			} break;
 			case VS::INSTANCE_PARTICLES: {

@@ -45,7 +45,6 @@
 #include "pair.h"
 #include "print_string.h"
 #include "project_settings.h"
-#include "project_settings.h"
 #include "property_selector.h"
 #include "scene/gui/label.h"
 #include "scene/main/viewport.h"
@@ -321,7 +320,7 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 
 			CheckBox *c = checks20[0];
 			c->set_text("True");
-			checks20gc->set_position(Vector2(4, 4));
+			checks20gc->set_position(Vector2(4, 4) * EDSCALE);
 			c->set_pressed(v);
 			c->show();
 
@@ -434,14 +433,14 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 
 			} else if (hint == PROPERTY_HINT_EXP_EASING) {
 
-				easing_draw->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_BEGIN, 5);
-				easing_draw->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 5);
-				easing_draw->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, 5);
-				easing_draw->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 30);
-				type_button->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_BEGIN, 3);
-				type_button->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 3);
-				type_button->set_anchor_and_margin(MARGIN_TOP, ANCHOR_END, 25);
-				type_button->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 7);
+				easing_draw->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_BEGIN, 5 * EDSCALE);
+				easing_draw->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 5 * EDSCALE);
+				easing_draw->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, 5 * EDSCALE);
+				easing_draw->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 30 * EDSCALE);
+				type_button->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_BEGIN, 3 * EDSCALE);
+				type_button->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 3 * EDSCALE);
+				type_button->set_anchor_and_margin(MARGIN_TOP, ANCHOR_END, 25 * EDSCALE);
+				type_button->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 7 * EDSCALE);
 				type_button->set_text(TTR("Preset.."));
 				type_button->get_popup()->clear();
 				type_button->get_popup()->add_item(TTR("Linear"), EASING_LINEAR);
@@ -524,7 +523,7 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 				action_buttons[0]->set_anchor(MARGIN_TOP, ANCHOR_END);
 				action_buttons[0]->set_anchor(MARGIN_RIGHT, ANCHOR_END);
 				action_buttons[0]->set_anchor(MARGIN_BOTTOM, ANCHOR_END);
-				action_buttons[0]->set_begin(Point2(70, button_margin - 5));
+				action_buttons[0]->set_begin(Point2(70 * EDSCALE, button_margin - 5 * EDSCALE));
 				action_buttons[0]->set_end(Point2(margin, margin));
 				action_buttons[0]->set_text(TTR("Close"));
 				action_buttons[0]->show();
@@ -863,6 +862,10 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 			List<String> names;
 			names.push_back(TTR("Assign"));
 			names.push_back(TTR("Clear"));
+
+			if (owner->is_class("Node") && (v.get_type() == Variant::NODE_PATH) && owner->cast_to<Node>()->has_node(v))
+				names.push_back(TTR("Select Node"));
+
 			config_action_buttons(names);
 
 		} break;
@@ -872,7 +875,7 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 				break;
 
 			menu->clear();
-			menu->set_size(Size2(1, 1));
+			menu->set_size(Size2(1, 1) * EDSCALE);
 
 			if (p_name == "script" && hint_text == "Script" && owner->cast_to<Node>()) {
 				menu->add_icon_item(get_icon("Script", "EditorIcons"), TTR("New Script"), OBJ_MENU_NEW_SCRIPT);
@@ -921,7 +924,7 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 
 			if (!RES(v).is_null()) {
 
-				menu->add_icon_item(get_icon("EditResource", "EditorIcons"), "Edit", OBJ_MENU_EDIT);
+				menu->add_icon_item(get_icon("Edit", "EditorIcons"), "Edit", OBJ_MENU_EDIT);
 				menu->add_icon_item(get_icon("Del", "EditorIcons"), "Clear", OBJ_MENU_CLEAR);
 				menu->add_icon_item(get_icon("Duplicate", "EditorIcons"), "Make Unique", OBJ_MENU_MAKE_UNIQUE);
 				RES r = v;
@@ -1270,7 +1273,18 @@ void CustomPropertyEditor::_action_pressed(int p_which) {
 				v = NodePath();
 				emit_signal("variant_changed");
 				hide();
+			} else if (p_which == 2) {
+
+				if (owner->is_class("Node") && (v.get_type() == Variant::NODE_PATH) && owner->cast_to<Node>()->has_node(v)) {
+
+					Node *target_node = owner->cast_to<Node>()->get_node(v);
+					EditorNode::get_singleton()->get_editor_selection()->clear();
+					EditorNode::get_singleton()->get_scene_tree_dock()->set_selected(target_node);
+				}
+
+				hide();
 			}
+
 		} break;
 		case Variant::OBJECT: {
 
@@ -2370,7 +2384,7 @@ void PropertyEditor::set_item_text(TreeItem *p_item, int p_type, const String &p
 					p_item->set_text(1, res->get_path().get_file());
 				} else if (!res->is_class("Texture")) {
 					//texture already previews via itself
-					EditorResourcePreview::get_singleton()->queue_edited_resource_preview(res, this, "_resource_preview_done", p_item->get_instance_ID());
+					EditorResourcePreview::get_singleton()->queue_edited_resource_preview(res, this, "_resource_preview_done", p_item->get_instance_id());
 				}
 			}
 
@@ -3630,7 +3644,7 @@ void PropertyEditor::update_tree() {
 						item->set_text(1, res->get_path().get_file());
 					} else if (!res->is_class("Texture")) {
 						//texture already previews via itself
-						EditorResourcePreview::get_singleton()->queue_edited_resource_preview(res, this, "_resource_preview_done", item->get_instance_ID());
+						EditorResourcePreview::get_singleton()->queue_edited_resource_preview(res, this, "_resource_preview_done", item->get_instance_id());
 					}
 				}
 
@@ -3735,6 +3749,10 @@ void PropertyEditor::_item_selected() {
 	TreeItem *item = tree->get_selected();
 	ERR_FAIL_COND(!item);
 	selected_property = item->get_metadata(1);
+}
+
+void PropertyEditor::_item_rmb_edited() {
+	_custom_editor_request(true);
 }
 
 void PropertyEditor::_edit_set(const String &p_name, const Variant &p_value, bool p_refresh_all, const String &p_changed_field) {
@@ -3858,7 +3876,7 @@ void PropertyEditor::_item_edited() {
 				break;
 
 			if (type == Variant::INT)
-				_edit_set(name, round(item->get_range(1)), refresh_all);
+				_edit_set(name, int64_t(round(item->get_range(1))), refresh_all);
 			else
 				_edit_set(name, item->get_range(1), refresh_all);
 		} break;
@@ -4233,6 +4251,7 @@ void PropertyEditor::_bind_methods() {
 
 	ClassDB::bind_method("_item_edited", &PropertyEditor::_item_edited);
 	ClassDB::bind_method("_item_selected", &PropertyEditor::_item_selected);
+	ClassDB::bind_method("_item_rmb_edited", &PropertyEditor::_item_rmb_edited);
 	ClassDB::bind_method("_item_folded", &PropertyEditor::_item_folded);
 	ClassDB::bind_method("_custom_editor_request", &PropertyEditor::_custom_editor_request);
 	ClassDB::bind_method("_custom_editor_edited", &PropertyEditor::_custom_editor_edited);
@@ -4387,6 +4406,7 @@ PropertyEditor::PropertyEditor() {
 	add_child(tree);
 
 	tree->connect("item_edited", this, "_item_edited", varray(), CONNECT_DEFERRED);
+	tree->connect("item_rmb_edited", this, "_item_rmb_edited");
 	tree->connect("cell_selected", this, "_item_selected");
 	tree->connect("item_collapsed", this, "_item_folded");
 
@@ -4586,7 +4606,7 @@ void SectionedPropertyEditor::edit(Object *p_object) {
 		return;
 	}
 
-	ObjectID id = p_object->get_instance_ID();
+	ObjectID id = p_object->get_instance_id();
 
 	if (obj != id) {
 

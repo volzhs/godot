@@ -183,7 +183,7 @@ ObjectID EditorHistory::get_current() {
 	if (!obj)
 		return 0;
 
-	return obj->get_instance_ID();
+	return obj->get_instance_id();
 }
 
 int EditorHistory::get_path_size() const {
@@ -208,7 +208,7 @@ ObjectID EditorHistory::get_path_object(int p_index) const {
 	if (!obj)
 		return 0;
 
-	return obj->get_instance_ID();
+	return obj->get_instance_id();
 }
 
 String EditorHistory::get_path_property(int p_index) const {
@@ -867,8 +867,8 @@ void EditorSelection::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_node_removed"), &EditorSelection::_node_removed);
 	ClassDB::bind_method(D_METHOD("clear"), &EditorSelection::clear);
-	ClassDB::bind_method(D_METHOD("add_node", "node:Node"), &EditorSelection::add_node);
-	ClassDB::bind_method(D_METHOD("remove_node", "node:Node"), &EditorSelection::remove_node);
+	ClassDB::bind_method(D_METHOD("add_node", "node"), &EditorSelection::add_node);
+	ClassDB::bind_method(D_METHOD("remove_node", "node"), &EditorSelection::remove_node);
 	ClassDB::bind_method(D_METHOD("get_selected_nodes"), &EditorSelection::_get_selected_nodes);
 	ClassDB::bind_method(D_METHOD("get_transformable_selected_nodes"), &EditorSelection::_get_transformable_selected_nodes);
 	ADD_SIGNAL(MethodInfo("selection_changed"));

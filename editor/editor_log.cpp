@@ -36,7 +36,7 @@
 void EditorLog::_error_handler(void *p_self, const char *p_func, const char *p_file, int p_line, const char *p_error, const char *p_errorexp, ErrorHandlerType p_type) {
 
 	EditorLog *self = (EditorLog *)p_self;
-	if (self->current != Thread::get_caller_ID())
+	if (self->current != Thread::get_caller_id())
 		return;
 
 	String err_str;
@@ -52,31 +52,6 @@ void EditorLog::_error_handler(void *p_self, const char *p_func, const char *p_f
 	*/
 
 	err_str = " " + err_str;
-	self->log->add_newline();
-
-	Ref<Texture> icon;
-
-	switch (p_type) {
-		case ERR_HANDLER_ERROR: {
-
-			icon = self->get_icon("Error", "EditorIcons");
-			return; // these are confusing
-		} break;
-		case ERR_HANDLER_WARNING: {
-
-			icon = self->get_icon("Error", "EditorIcons");
-
-		} break;
-		case ERR_HANDLER_SCRIPT: {
-
-			icon = self->get_icon("ScriptError", "EditorIcons");
-		} break;
-		case ERR_HANDLER_SHADER: {
-
-			icon = self->get_icon("Shader", "EditorIcons");
-		} break;
-	}
-
 	self->add_message(err_str, true);
 }
 
@@ -114,16 +89,16 @@ void EditorLog::clear() {
 
 void EditorLog::add_message(const String &p_msg, bool p_error) {
 
+	log->add_newline();
 	if (p_error) {
+		log->push_color(get_color("fg_error", "Editor"));
 		Ref<Texture> icon = get_icon("Error", "EditorIcons");
 		log->add_image(icon);
 		//button->set_icon(icon);
-		log->push_color(get_color("fg_error", "Editor"));
 	} else {
 		//button->set_icon(Ref<Texture>());
 	}
 
-	log->add_newline();
 	log->add_text(p_msg);
 	//button->set_text(p_msg);
 
@@ -168,14 +143,9 @@ EditorLog::EditorLog() {
 	HBoxContainer *hb = memnew(HBoxContainer);
 	vb->add_child(hb);
 	title = memnew(Label);
-	title->set_text(TTR(" Output:"));
+	title->set_text(TTR("Output:"));
 	title->set_h_size_flags(SIZE_EXPAND_FILL);
 	hb->add_child(title);
-
-	//pd = memnew( PaneDrag );
-	//hb->add_child(pd);
-	//pd->connect("dragged",this,"_dragged");
-	//pd->set_default_cursor_shape(Control::CURSOR_MOVE);
 
 	clearbutton = memnew(Button);
 	hb->add_child(clearbutton);
@@ -184,7 +154,7 @@ EditorLog::EditorLog() {
 
 	ec = memnew(Control);
 	vb->add_child(ec);
-	ec->set_custom_minimum_size(Size2(0, 180));
+	ec->set_custom_minimum_size(Size2(0, 180) * EDSCALE);
 	ec->set_v_size_flags(SIZE_EXPAND_FILL);
 
 	pc = memnew(PanelContainer);
@@ -204,7 +174,7 @@ EditorLog::EditorLog() {
 	eh.userdata = this;
 	add_error_handler(&eh);
 
-	current = Thread::get_caller_ID();
+	current = Thread::get_caller_id();
 
 	EditorNode::get_undo_redo()->set_commit_notify_callback(_undo_redo_cbk, this);
 }

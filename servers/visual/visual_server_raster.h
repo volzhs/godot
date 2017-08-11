@@ -61,6 +61,9 @@ class VisualServerRaster : public VisualServer {
 	bool draw_extra_frame;
 	RID test_cube;
 
+	int black_margin[4];
+	RID black_image[4];
+
 	struct FrameDrawnCallbacks {
 
 		ObjectID object;
@@ -584,6 +587,8 @@ class VisualServerRaster : public VisualServer {
 
 #endif
 
+	void _draw_margins();
+
 public:
 	_FORCE_INLINE_ static void redraw_request() { changes++; }
 
@@ -998,7 +1003,7 @@ public:
 	BIND2(instance_set_scenario, RID, RID) // from can be mesh, light, poly, area and portal so far.
 	BIND2(instance_set_layer_mask, RID, uint32_t)
 	BIND2(instance_set_transform, RID, const Transform &)
-	BIND2(instance_attach_object_instance_ID, RID, ObjectID)
+	BIND2(instance_attach_object_instance_id, RID, ObjectID)
 	BIND3(instance_set_blend_shape_weight, RID, int, float)
 	BIND3(instance_set_surface_material, RID, int, RID)
 	BIND2(instance_set_visible, RID, bool)
@@ -1109,12 +1114,6 @@ public:
 	BIND2(canvas_occluder_polygon_set_shape_as_lines, RID, const PoolVector<Vector2> &)
 
 	BIND2(canvas_occluder_polygon_set_cull_mode, RID, CanvasOccluderPolygonCullMode)
-
-	/* CURSOR */
-	virtual void cursor_set_rotation(float p_rotation, int p_cursor = 0); // radians
-	virtual void cursor_set_texture(RID p_texture, const Point2 &p_center_offset = Point2(0, 0), int p_cursor = 0, const Rect2 &p_region = Rect2());
-	virtual void cursor_set_visible(bool p_visible, int p_cursor = 0);
-	virtual void cursor_set_pos(const Point2 &p_pos, int p_cursor = 0);
 
 	/* BLACK BARS */
 

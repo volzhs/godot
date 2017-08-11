@@ -2028,6 +2028,89 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 		}
 	}
 
+	Ref<InputEventScreenTouch> touch_event = p_event;
+	if (touch_event.is_valid()) {
+
+		Size2 pos = touch_event->get_position();
+		if (touch_event->is_pressed()) {
+
+			Control *over = _gui_find_control(pos);
+			if (over) {
+
+				if (!gui.modal_stack.empty()) {
+
+					Control *top = gui.modal_stack.back()->get();
+					if (over != top && !top->is_a_parent_of(over)) {
+
+						return;
+					}
+				}
+				if (over->can_process()) {
+
+					touch_event = touch_event->xformed_by(Transform2D()); //make a copy
+					if (over == gui.mouse_focus) {
+						pos = gui.focus_inv_xform.xform(pos);
+					} else {
+						pos = over->get_global_transform_with_canvas().affine_inverse().xform(pos);
+					}
+					touch_event->set_position(pos);
+					_gui_call_input(over, touch_event);
+				}
+				get_tree()->set_input_as_handled();
+				return;
+			}
+		} else if (gui.mouse_focus) {
+
+			if (gui.mouse_focus->can_process()) {
+
+				touch_event = touch_event->xformed_by(Transform2D()); //make a copy
+				touch_event->set_position(gui.focus_inv_xform.xform(pos));
+
+				_gui_call_input(gui.mouse_focus, touch_event);
+			}
+			get_tree()->set_input_as_handled();
+			return;
+		}
+	}
+
+	Ref<InputEventScreenDrag> drag_event = p_event;
+	if (drag_event.is_valid()) {
+
+		Control *over = gui.mouse_focus;
+		if (!over) {
+			over = _gui_find_control(drag_event->get_position());
+		}
+		if (over) {
+
+			if (!gui.modal_stack.empty()) {
+
+				Control *top = gui.modal_stack.back()->get();
+				if (over != top && !top->is_a_parent_of(over)) {
+
+					return;
+				}
+			}
+			if (over->can_process()) {
+
+				Transform2D localizer = over->get_global_transform_with_canvas().affine_inverse();
+				Size2 pos = localizer.xform(drag_event->get_position());
+				Vector2 speed = localizer.basis_xform(drag_event->get_speed());
+				Vector2 rel = localizer.basis_xform(drag_event->get_relative());
+
+				drag_event = drag_event->xformed_by(Transform2D()); //make a copy
+
+				drag_event->set_speed(speed);
+				drag_event->set_relative(rel);
+				drag_event->set_position(pos);
+
+				_gui_call_input(over, drag_event);
+			}
+
+			get_tree()->set_input_as_handled();
+			return;
+		}
+	}
+
 	if (mm.is_null() && mb.is_null() && p_event->is_action_type()) {
 
 		if (gui.key_focus && !gui.key_focus->is_visible_in_tree()) {
@@ -2303,7 +2386,7 @@ List<Control *>::Element *Viewport::_gui_show_modal(Control *p_control) {
 
 	gui.modal_stack.push_back(p_control);
 	if (gui.key_focus)
-		p_control->_modal_set_prev_focus_owner(gui.key_focus->get_instance_ID());
+		p_control->_modal_set_prev_focus_owner(gui.key_focus->get_instance_id());
 	else
 		p_control->_modal_set_prev_focus_owner(0);
 
@@ -2558,12 +2641,12 @@ void Viewport::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_size", "size"), &Viewport::set_size);
 	ClassDB::bind_method(D_METHOD("get_size"), &Viewport::get_size);
-	ClassDB::bind_method(D_METHOD("set_world_2d", "world_2d:World2D"), &Viewport::set_world_2d);
-	ClassDB::bind_method(D_METHOD("get_world_2d:World2D"), &Viewport::get_world_2d);
-	ClassDB::bind_method(D_METHOD("find_world_2d:World2D"), &Viewport::find_world_2d);
-	ClassDB::bind_method(D_METHOD("set_world", "world:World"), &Viewport::set_world);
-	ClassDB::bind_method(D_METHOD("get_world:World"), &Viewport::get_world);
-	ClassDB::bind_method(D_METHOD("find_world:World"), &Viewport::find_world);
+	ClassDB::bind_method(D_METHOD("set_world_2d", "world_2d"), &Viewport::set_world_2d);
+	ClassDB::bind_method(D_METHOD("get_world_2d"), &Viewport::get_world_2d);
+	ClassDB::bind_method(D_METHOD("find_world_2d"), &Viewport::find_world_2d);
+	ClassDB::bind_method(D_METHOD("set_world", "world"), &Viewport::set_world);
+	ClassDB::bind_method(D_METHOD("get_world"), &Viewport::get_world);
+	ClassDB::bind_method(D_METHOD("find_world"), &Viewport::find_world);
 
 	ClassDB::bind_method(D_METHOD("set_canvas_transform", "xform"), &Viewport::set_canvas_transform);
 	ClassDB::bind_method(D_METHOD("get_canvas_transform"), &Viewport::get_canvas_transform);
@@ -2613,34 +2696,34 @@ void Viewport::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_render_info", "info"), &Viewport::get_render_info);
 
-	ClassDB::bind_method(D_METHOD("get_texture:ViewportTexture"), &Viewport::get_texture);
+	ClassDB::bind_method(D_METHOD("get_texture"), &Viewport::get_texture);
 
 	ClassDB::bind_method(D_METHOD("set_physics_object_picking", "enable"), &Viewport::set_physics_object_picking);
 	ClassDB::bind_method(D_METHOD("get_physics_object_picking"), &Viewport::get_physics_object_picking);
 
 	ClassDB::bind_method(D_METHOD("get_viewport_rid"), &Viewport::get_viewport_rid);
-	ClassDB::bind_method(D_METHOD("input", "local_event:InputEvent"), &Viewport::input);
-	ClassDB::bind_method(D_METHOD("unhandled_input", "local_event:InputEvent"), &Viewport::unhandled_input);
+	ClassDB::bind_method(D_METHOD("input", "local_event"), &Viewport::input);
+	ClassDB::bind_method(D_METHOD("unhandled_input", "local_event"), &Viewport::unhandled_input);
 
 	ClassDB::bind_method(D_METHOD("update_worlds"), &Viewport::update_worlds);
 
 	ClassDB::bind_method(D_METHOD("set_use_own_world", "enable"), &Viewport::set_use_own_world);
 	ClassDB::bind_method(D_METHOD("is_using_own_world"), &Viewport::is_using_own_world);
 
-	ClassDB::bind_method(D_METHOD("get_camera:Camera"), &Viewport::get_camera);
+	ClassDB::bind_method(D_METHOD("get_camera"), &Viewport::get_camera);
 
 	ClassDB::bind_method(D_METHOD("set_as_audio_listener", "enable"), &Viewport::set_as_audio_listener);
-	ClassDB::bind_method(D_METHOD("is_audio_listener", "enable"), &Viewport::is_audio_listener);
+	ClassDB::bind_method(D_METHOD("is_audio_listener"), &Viewport::is_audio_listener);
 
 	ClassDB::bind_method(D_METHOD("set_as_audio_listener_2d", "enable"), &Viewport::set_as_audio_listener_2d);
-	ClassDB::bind_method(D_METHOD("is_audio_listener_2d", "enable"), &Viewport::is_audio_listener_2d);
+	ClassDB::bind_method(D_METHOD("is_audio_listener_2d"), &Viewport::is_audio_listener_2d);
 	ClassDB::bind_method(D_METHOD("set_attach_to_screen_rect", "rect"), &Viewport::set_attach_to_screen_rect);
 
 	ClassDB::bind_method(D_METHOD("get_mouse_position"), &Viewport::get_mouse_position);
 	ClassDB::bind_method(D_METHOD("warp_mouse", "to_pos"), &Viewport::warp_mouse);
 
 	ClassDB::bind_method(D_METHOD("gui_has_modal_stack"), &Viewport::gui_has_modal_stack);
-	ClassDB::bind_method(D_METHOD("gui_get_drag_data:Variant"), &Viewport::gui_get_drag_data);
+	ClassDB::bind_method(D_METHOD("gui_get_drag_data"), &Viewport::gui_get_drag_data);
 
 	ClassDB::bind_method(D_METHOD("set_disable_input", "disable"), &Viewport::set_disable_input);
 	ClassDB::bind_method(D_METHOD("is_input_disabled"), &Viewport::is_input_disabled);
@@ -2769,7 +2852,7 @@ Viewport::Viewport() {
 	set_shadow_atlas_quadrant_subdiv(2, SHADOW_ATLAS_QUADRANT_SUBDIV_16);
 	set_shadow_atlas_quadrant_subdiv(3, SHADOW_ATLAS_QUADRANT_SUBDIV_64);
 
-	String id = itos(get_instance_ID());
+	String id = itos(get_instance_id());
 	input_group = "_vp_input" + id;
 	gui_input_group = "_vp_gui_input" + id;
 	unhandled_input_group = "_vp_unhandled_input" + id;

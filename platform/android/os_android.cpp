@@ -135,7 +135,7 @@ void OS_Android::initialize(const VideoMode &p_desired, int p_video_driver, int 
 		visual_server = memnew(VisualServerWrapMT(visual_server, false));
 	};*/
 	visual_server->init();
-	visual_server->cursor_set_visible(false, 0);
+	//	visual_server->cursor_set_visible(false, 0);
 
 	AudioDriverManager::get_driver(p_audio_driver)->set_singleton();
 
@@ -686,11 +686,11 @@ void OS_Android::set_screen_orientation(ScreenOrientation p_orientation) {
 		set_screen_orientation_func(p_orientation);
 }
 
-String OS_Android::get_unique_ID() const {
+String OS_Android::get_unique_id() const {
 
 	if (get_unique_id_func)
 		return get_unique_id_func();
-	return OS::get_unique_ID();
+	return OS::get_unique_id();
 }
 
 Error OS_Android::native_video_play(String p_path, float p_volume) {
