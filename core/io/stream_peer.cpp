@@ -210,7 +210,7 @@ void StreamPeer::put_double(double p_val) {
 void StreamPeer::put_utf8_string(const String &p_string) {
 
 	CharString cs = p_string.utf8();
-	put_u32(p_string.length());
+	put_u32(cs.length());
 	put_data((const uint8_t *)cs.get_data(), cs.length());
 }
 void StreamPeer::put_var(const Variant &p_variant) {
@@ -459,8 +459,9 @@ Error StreamPeerBuffer::get_partial_data(uint8_t *p_buffer, int p_bytes, int &r_
 	}
 
 	PoolVector<uint8_t>::Read r = data.read();
-	copymem(p_buffer, r.ptr(), r_received);
+	copymem(p_buffer, r.ptr() + pointer, r_received);
 
+	pointer += r_received;
 	// FIXME: return what? OK or ERR_*
 }
 

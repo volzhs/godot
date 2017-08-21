@@ -83,6 +83,7 @@ enum PropertyHint {
 	PROPERTY_HINT_PROPERTY_OF_BASE_TYPE, ///< a property of a base type
 	PROPERTY_HINT_PROPERTY_OF_INSTANCE, ///< a property of an instance
 	PROPERTY_HINT_PROPERTY_OF_SCRIPT, ///< a property of a script & base
+	PROPERTY_HINT_OBJECT_TOO_BIG, ///< object is too big to send
 	PROPERTY_HINT_MAX,
 };
 
@@ -443,7 +444,7 @@ private:
 	mutable StringName _class_name;
 	mutable const StringName *_class_ptr;
 
-	void _add_user_signal(const String &p_name, const Array &p_pargs = Array());
+	void _add_user_signal(const String &p_name, const Array &p_args = Array());
 	bool _has_user_signal(const StringName &p_name) const;
 	Variant _emit_signal(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
 	Array _get_signal_list() const;
@@ -678,8 +679,7 @@ public:
 
 	virtual void get_argument_options(const StringName &p_function, int p_idx, List<String> *r_options) const;
 
-	StringName XL_MESSAGE(const StringName &p_message) const; //translate message (internationalization)
-	StringName tr(const StringName &p_message) const; //translate message (alternative)
+	StringName tr(const StringName &p_message) const; // translate message (internationalization)
 
 	bool _is_queued_for_deletion; // set to true by SceneTree::queue_delete()
 	bool is_queued_for_deletion() const;

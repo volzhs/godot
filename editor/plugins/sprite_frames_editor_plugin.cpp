@@ -714,7 +714,7 @@ void SpriteFramesEditor::_bind_methods() {
 
 SpriteFramesEditor::SpriteFramesEditor() {
 
-	//add_style_override("panel", get_stylebox("panel","Panel"));
+	//add_style_override("panel", EditorNode::get_singleton()->get_gui_base()->get_stylebox("panel","Panel"));
 
 	split = memnew(HSplitContainer);
 	add_child(split);
@@ -747,7 +747,7 @@ SpriteFramesEditor::SpriteFramesEditor() {
 	animations->set_hide_root(true);
 	animations->connect("cell_selected", this, "_animation_select");
 	animations->connect("item_edited", this, "_animation_name_edited");
-	animations->set_single_select_cell_editing_only_when_already_selected(true);
+	animations->set_allow_reselect(true);
 
 	anim_speed = memnew(SpinBox);
 	vbc_animlist->add_margin_child(TTR("Speed (FPS):"), anim_speed);

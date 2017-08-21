@@ -83,8 +83,8 @@ godot_int GDAPI godot_string_findmk_from_in_place(const godot_string *p_self, co
 godot_int GDAPI godot_string_findn(const godot_string *p_self, godot_string p_what);
 godot_int GDAPI godot_string_findn_from(const godot_string *p_self, godot_string p_what, godot_int p_from);
 godot_int GDAPI find_last(const godot_string *p_self, godot_string p_what);
-godot_string GDAPI godot_string_format(const godot_string *p_self, const godot_variant *values);
-godot_string GDAPI godot_string_format_with_custom_placeholder(const godot_string *p_self, const godot_variant *values, const char *placeholder);
+godot_string GDAPI godot_string_format(const godot_string *p_self, const godot_variant *p_values);
+godot_string GDAPI godot_string_format_with_custom_placeholder(const godot_string *p_self, const godot_variant *p_values, const char *p_placeholder);
 godot_string GDAPI godot_string_hex_encode_buffer(const uint8_t *p_buffer, godot_int p_len);
 godot_int GDAPI godot_string_hex_to_int(const godot_string *p_self);
 godot_int GDAPI godot_string_hex_to_int_without_prefix(const godot_string *p_self);
@@ -172,7 +172,7 @@ void GDAPI godot_string_utf8(godot_string *p_self, char *result);
 godot_bool GDAPI godot_string_parse_utf8(godot_string *p_self, const char *p_utf8);
 godot_bool GDAPI godot_string_parse_utf8_with_len(godot_string *p_self, const char *p_utf8, godot_int p_len);
 godot_string GDAPI godot_string_chars_to_utf8(const char *p_utf8);
-godot_string GDAPI godot_string_chars_utf8_with_len(const char *p_utf8, godot_int p_len);
+godot_string GDAPI godot_string_chars_to_utf8_with_len(const char *p_utf8, godot_int p_len);
 
 uint32_t GDAPI godot_string_hash(const godot_string *p_self);
 uint64_t GDAPI godot_string_hash64(const godot_string *p_self);

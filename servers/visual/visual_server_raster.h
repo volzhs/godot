@@ -786,6 +786,7 @@ public:
 	BIND2(light_set_projector, RID, RID)
 	BIND2(light_set_negative, RID, bool)
 	BIND2(light_set_cull_mask, RID, uint32_t)
+	BIND2(light_set_reverse_cull_face_mode, RID, bool)
 
 	BIND2(light_omni_set_shadow_mode, RID, LightOmniShadowMode)
 	BIND2(light_omni_set_shadow_detail, RID, LightOmniShadowDetail)
@@ -1059,7 +1060,7 @@ public:
 	BIND8(canvas_item_add_texture_rect_region, RID, const Rect2 &, RID, const Rect2 &, const Color &, bool, RID, bool)
 	BIND11(canvas_item_add_nine_patch, RID, const Rect2 &, const Rect2 &, RID, const Vector2 &, const Vector2 &, NinePatchAxisMode, NinePatchAxisMode, bool, const Color &, RID)
 	BIND7(canvas_item_add_primitive, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, float, RID)
-	BIND6(canvas_item_add_polygon, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, RID)
+	BIND7(canvas_item_add_polygon, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, RID, bool)
 	BIND8(canvas_item_add_triangle_array, RID, const Vector<int> &, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, int, RID)
 	BIND3(canvas_item_add_mesh, RID, const RID &, RID)
 	BIND3(canvas_item_add_multimesh, RID, RID, RID)

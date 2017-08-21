@@ -28002,15 +28002,6 @@
 		Objects also receive notifications ([method _notification]). Notifications are a simple way to notify the object about simple events, so they can all be handled together.
 	</description>
 	<methods>
-		<method name="XL_MESSAGE" qualifiers="const">
-			<return type="String">
-			</return>
-			<argument index="0" name="message" type="String">
-			</argument>
-			<description>
-				Deprecated, will go away.
-			</description>
-		</method>
 		<method name="_get" qualifiers="virtual">
 			<argument index="0" name="property" type="String">
 			</argument>
@@ -28301,7 +28292,7 @@
 			<argument index="0" name="enable" type="bool">
 			</argument>
 			<description>
-				Set true if this object can translate strings (in calls to tr() ). Default is true.
+				Define whether this object can translate strings (with calls to [method tr]). Default is true.
 			</description>
 		</method>
 		<method name="set_meta">
@@ -28326,7 +28317,7 @@
 			<argument index="0" name="message" type="String">
 			</argument>
 			<description>
-				Translate a message. Only works in message translation is enabled (which is by default). See [method set_message_translation].
+				Translate a message. Only works if message translation is enabled (which it is by default). See [method set_message_translation].
 			</description>
 		</method>
 	</methods>

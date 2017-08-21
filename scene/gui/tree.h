@@ -471,7 +471,7 @@ private:
 
 	TreeItem *_search_item_text(TreeItem *p_at, const String &p_find, int *r_col, bool p_selectable, bool p_backwards = false);
 
-	TreeItem *_find_item_at_pos(TreeItem *p_current, const Point2 &p_pos, int &r_column, int &h, int &section) const;
+	TreeItem *_find_item_at_pos(TreeItem *p_item, const Point2 &p_pos, int &r_column, int &h, int &section) const;
 
 	/*	float drag_speed;
 	float drag_accum;
@@ -490,7 +490,8 @@ private:
 	bool allow_rmb_select;
 	bool scrolling;
 
-	bool force_select_on_already_selected;
+	bool allow_reselect;
+
 	bool force_edit_checkbox_only_on_checkbox;
 
 	bool hide_folding;
@@ -524,7 +525,7 @@ public:
 	void set_column_expand(int p_column, bool p_expand);
 	int get_column_width(int p_column) const;
 
-	void set_hide_root(bool p_eanbled);
+	void set_hide_root(bool p_enabled);
 	TreeItem *get_next_selected(TreeItem *p_item);
 	TreeItem *get_selected() const;
 	int get_selected_column() const;
@@ -566,14 +567,14 @@ public:
 	void set_drop_mode_flags(int p_flags);
 	int get_drop_mode_flags() const;
 
-	void set_single_select_cell_editing_only_when_already_selected(bool p_enable);
-	bool get_single_select_cell_editing_only_when_already_selected() const;
-
 	void set_edit_checkbox_cell_only_when_checkbox_is_pressed(bool p_enable);
 	bool get_edit_checkbox_cell_only_when_checkbox_is_pressed() const;
 
 	void set_allow_rmb_select(bool p_allow);
 	bool get_allow_rmb_select() const;
+
+	void set_allow_reselect(bool p_allow);
+	bool get_allow_reselect() const;
 
 	void set_value_evaluator(ValueEvaluator *p_evaluator);
 

@@ -43,10 +43,10 @@ bool DynamicFontData::CacheID::operator<(CacheID right) const {
 	return false;
 }
 
-Ref<DynamicFontAtSize> DynamicFontData::_get_dynamic_font_at_size(CacheID p_id) {
+Ref<DynamicFontAtSize> DynamicFontData::_get_dynamic_font_at_size(CacheID p_cache_id) {
 
-	if (size_cache.has(p_id)) {
-		return Ref<DynamicFontAtSize>(size_cache[p_id]);
+	if (size_cache.has(p_cache_id)) {
+		return Ref<DynamicFontAtSize>(size_cache[p_cache_id]);
 	}
 
 	Ref<DynamicFontAtSize> dfas;
@@ -55,8 +55,8 @@ Ref<DynamicFontAtSize> DynamicFontData::_get_dynamic_font_at_size(CacheID p_id) 
 
 	dfas->font = Ref<DynamicFontData>(this);
 
-	size_cache[p_id] = dfas.ptr();
-	dfas->id = p_id;
+	size_cache[p_cache_id] = dfas.ptr();
+	dfas->id = p_cache_id;
 	dfas->_load();
 
 	return dfas;
@@ -524,7 +524,7 @@ void DynamicFontAtSize::_update_char(CharType p_char) {
 		if (mh > texsize)
 			texsize = mh; //special case, adapt to it?
 
-		texsize = nearest_power_of_2(texsize);
+		texsize = next_power_of_2(texsize);
 
 		texsize = MIN(texsize, 4096);
 

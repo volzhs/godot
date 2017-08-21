@@ -231,7 +231,7 @@ void TabContainer::_notification(int p_what) {
 
 				// Draw the tab contents.
 				Control *control = tabs[i + first_tab_cache]->cast_to<Control>();
-				String text = control->has_meta("_tab_name") ? String(XL_MESSAGE(String(control->get_meta("_tab_name")))) : String(control->get_name());
+				String text = control->has_meta("_tab_name") ? String(tr(String(control->get_meta("_tab_name")))) : String(control->get_name());
 
 				int x_content = tab_rect.position.x + tab_style->get_margin(MARGIN_LEFT);
 				int top_margin = tab_style->get_margin(MARGIN_TOP);
@@ -299,7 +299,7 @@ int TabContainer::_get_tab_width(int p_index) const {
 
 	// Get the width of the text displayed on the tab.
 	Ref<Font> font = get_font("font");
-	String text = control->has_meta("_tab_name") ? String(XL_MESSAGE(String(control->get_meta("_tab_name")))) : String(control->get_name());
+	String text = control->has_meta("_tab_name") ? String(tr(String(control->get_meta("_tab_name")))) : String(control->get_name());
 	int width = font->get_string_size(text).width;
 
 	// Add space for a tab icon.
@@ -371,8 +371,10 @@ void TabContainer::add_child_notify(Node *p_child) {
 	if (tabs_visible)
 		c->set_margin(MARGIN_TOP, _get_top_margin());
 	Ref<StyleBox> sb = get_stylebox("panel");
-	for (int i = 0; i < 4; i++)
-		c->set_margin(Margin(i), c->get_margin(Margin(i)) + sb->get_margin(Margin(i)));
+	c->set_margin(Margin(MARGIN_TOP), c->get_margin(Margin(MARGIN_TOP)) + sb->get_margin(Margin(MARGIN_TOP)));
+	c->set_margin(Margin(MARGIN_LEFT), c->get_margin(Margin(MARGIN_LEFT)) + sb->get_margin(Margin(MARGIN_LEFT)));
+	c->set_margin(Margin(MARGIN_RIGHT), c->get_margin(Margin(MARGIN_RIGHT)) - sb->get_margin(Margin(MARGIN_RIGHT)));
+	c->set_margin(Margin(MARGIN_BOTTOM), c->get_margin(Margin(MARGIN_BOTTOM)) - sb->get_margin(Margin(MARGIN_BOTTOM)));
 
 	update();
 	p_child->connect("renamed", this, "_child_renamed_callback");
@@ -402,8 +404,10 @@ void TabContainer::set_current_tab(int p_current) {
 			c->set_area_as_parent_rect();
 			if (tabs_visible)
 				c->set_margin(MARGIN_TOP, _get_top_margin());
-			for (int i = 0; i < 4; i++)
-				c->set_margin(Margin(i), c->get_margin(Margin(i)) + sb->get_margin(Margin(i)));
+			c->set_margin(Margin(MARGIN_TOP), c->get_margin(Margin(MARGIN_TOP)) + sb->get_margin(Margin(MARGIN_TOP)));
+			c->set_margin(Margin(MARGIN_LEFT), c->get_margin(Margin(MARGIN_LEFT)) + sb->get_margin(Margin(MARGIN_LEFT)));
+			c->set_margin(Margin(MARGIN_RIGHT), c->get_margin(Margin(MARGIN_RIGHT)) - sb->get_margin(Margin(MARGIN_RIGHT)));
+			c->set_margin(Margin(MARGIN_BOTTOM), c->get_margin(Margin(MARGIN_BOTTOM)) - sb->get_margin(Margin(MARGIN_BOTTOM)));
 
 		} else
 			c->hide();
@@ -544,11 +548,11 @@ Ref<Texture> TabContainer::get_tab_icon(int p_tab) const {
 		return Ref<Texture>();
 }
 
-void TabContainer::set_tab_disabled(int p_tab, bool p_enabled) {
+void TabContainer::set_tab_disabled(int p_tab, bool p_disabled) {
 
 	Control *child = _get_tab(p_tab);
 	ERR_FAIL_COND(!child);
-	child->set_meta("_tab_disabled", p_enabled);
+	child->set_meta("_tab_disabled", p_disabled);
 	update();
 }
 

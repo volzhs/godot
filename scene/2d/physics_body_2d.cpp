@@ -28,6 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "physics_body_2d.h"
+
+#include "engine.h"
 #include "scene/scene_string_names.h"
 
 void PhysicsBody2D::_notification(int p_what) {
@@ -802,13 +804,13 @@ void RigidBody2D::_notification(int p_what) {
 
 #ifdef TOOLS_ENABLED
 	if (p_what == NOTIFICATION_ENTER_TREE) {
-		if (get_tree()->is_editor_hint()) {
+		if (Engine::get_singleton()->is_editor_hint()) {
 			set_notify_local_transform(true); //used for warnings and only in editor
 		}
 	}
 
 	if (p_what == NOTIFICATION_LOCAL_TRANSFORM_CHANGED) {
-		if (get_tree()->is_editor_hint()) {
+		if (Engine::get_singleton()->is_editor_hint()) {
 			update_configuration_warning();
 		}
 	}
@@ -982,11 +984,12 @@ Dictionary KinematicBody2D::_move(const Vector2 &p_motion) {
 	if (move(p_motion, col)) {
 		Dictionary d;
 		d["position"] = col.collision;
-		d["normal"] = col.collision;
+		d["normal"] = col.normal;
 		d["local_shape"] = col.local_shape;
 		d["travel"] = col.travel;
 		d["remainder"] = col.remainder;
 		d["collider_id"] = col.collider;
+		d["collider_velocity"] = col.collider_vel;
 		if (col.collider) {
 			d["collider"] = ObjectDB::get_instance(col.collider);
 		} else {

@@ -111,6 +111,8 @@ static int init_screen = -1;
 static bool use_vsync = true;
 static bool editor = false;
 
+static OS::ProcessID allow_focus_steal_pid = 0;
+
 static String unescape_cmdline(const String &p_str) {
 
 	return p_str.replace("%20", " ");
@@ -547,11 +549,10 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			} else {
 				goto error;
 			}
-		} else if (I->get() == "-epid") {
+		} else if (I->get() == "-allow_focus_steal_pid") {
 			if (I->next()) {
 
-				int editor_pid = I->next()->get().to_int();
-				ProjectSettings::get_singleton()->set("editor_pid", editor_pid);
+				allow_focus_steal_pid = I->next()->get().to_int64();
 				N = I->next()->next();
 			} else {
 				goto error;
@@ -660,6 +661,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 
 	if (editor) {
+		Engine::get_singleton()->set_editor_hint(true);
 		main_args.push_back("-editor");
 		init_maximized = true;
 		use_custom_res = false;
@@ -1000,6 +1002,10 @@ Error Main::setup2() {
 
 #endif
 
+	if (allow_focus_steal_pid) {
+		OS::get_singleton()->enable_for_stealing_focus(allow_focus_steal_pid);
+	}
+
 	MAIN_PRINT("Main: Load Scripts, Modules, Drivers");
 
 	register_module_types();
@@ -1048,7 +1054,7 @@ bool Main::start() {
 	String script;
 	String test;
 	String screen;
-	String _export_platform;
+	String _export_preset;
 	String _import;
 	String _import_script;
 	bool noquit = false;
@@ -1083,10 +1089,10 @@ bool Main::start() {
 				test = args[i + 1];
 			} else if (args[i] == "-export") {
 				editor = true; //needs editor
-				_export_platform = args[i + 1];
+				_export_preset = args[i + 1];
 			} else if (args[i] == "-export_debug") {
 				editor = true; //needs editor
-				_export_platform = args[i + 1];
+				_export_preset = args[i + 1];
 				export_debug = true;
 			} else if (args[i] == "-import") {
 				editor = true; //needs editor
@@ -1136,7 +1142,7 @@ bool Main::start() {
 
 #endif
 
-	if (_export_platform != "") {
+	if (_export_preset != "") {
 		if (game_path == "") {
 			String err = "Command line param ";
 			err += export_debug ? "-export_debug" : "-export";
@@ -1243,9 +1249,9 @@ bool Main::start() {
 			//root_node->set_editor(editor);
 			//startup editor
 
-			if (_export_platform != "") {
+			if (_export_preset != "") {
 
-				editor_node->export_platform(_export_platform, game_path, export_debug, "", true);
+				editor_node->export_preset(_export_preset, game_path, export_debug, "", true);
 				game_path = ""; //no load anything
 			}
 		}
@@ -1275,6 +1281,8 @@ bool Main::start() {
 				sml_aspect = SceneTree::STRETCH_ASPECT_KEEP_WIDTH;
 			else if (stretch_aspect == "keep_height")
 				sml_aspect = SceneTree::STRETCH_ASPECT_KEEP_HEIGHT;
+			else if (stretch_aspect == "expand")
+				sml_aspect = SceneTree::STRETCH_ASPECT_EXPAND;
 
 			sml->set_screen_stretch(sml_sm, sml_aspect, stretch_size, stretch_shrink);
 
@@ -1302,7 +1310,7 @@ bool Main::start() {
 			GLOBAL_DEF("display/window/stretch/mode", "disabled");
 			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/mode", PropertyInfo(Variant::STRING, "display/window/stretch/mode", PROPERTY_HINT_ENUM, "disabled,2d,viewport"));
 			GLOBAL_DEF("display/window/stretch/aspect", "ignore");
-			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/aspect", PropertyInfo(Variant::STRING, "display/window/stretch/aspect", PROPERTY_HINT_ENUM, "ignore,keep,keep_width,keep_height"));
+			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/aspect", PropertyInfo(Variant::STRING, "display/window/stretch/aspect", PROPERTY_HINT_ENUM, "ignore,keep,keep_width,keep_height,expand"));
 			GLOBAL_DEF("display/window/stretch/shrink", 1);
 			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/shrink", PropertyInfo(Variant::STRING, "display/window/stretch/shrink", PROPERTY_HINT_RANGE, "1,8,1"));
 			sml->set_auto_accept_quit(GLOBAL_DEF("application/config/auto_accept_quit", true));
@@ -1464,6 +1472,7 @@ bool Main::start() {
 				String iconpath = GLOBAL_DEF("application/config/icon", "Variant()");
 				if (iconpath != "") {
 					Ref<Image> icon;
+					icon.instance();
 					if (icon->load(iconpath) == OK)
 						OS::get_singleton()->set_icon(icon);
 				}

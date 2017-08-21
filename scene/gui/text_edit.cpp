@@ -338,6 +338,11 @@ void TextEdit::_update_scrollbars() {
 		v_scroll->show();
 		v_scroll->set_max(total_rows);
 		v_scroll->set_page(visible_rows);
+		if (smooth_scroll_enabled) {
+			v_scroll->set_step(0.25);
+		} else {
+			v_scroll->set_step(1);
+		}
 
 		if (fabs(v_scroll->get_value() - (double)cursor.line_ofs) >= 1) {
 			v_scroll->set_value(cursor.line_ofs);
@@ -420,6 +425,24 @@ void TextEdit::_notification(int p_what) {
 			draw_caret = false;
 			update();
 		} break;
+		case NOTIFICATION_FIXED_PROCESS: {
+			if (scrolling && v_scroll->get_value() != target_v_scroll) {
+				double target_y = target_v_scroll - v_scroll->get_value();
+				double dist = sqrt(target_y * target_y);
+				double vel = ((target_y / dist) * 50) * get_fixed_process_delta_time();
+
+				if (vel >= dist) {
+					v_scroll->set_value(target_v_scroll);
+					scrolling = false;
+					set_fixed_process(false);
+				} else {
+					v_scroll->set_value(v_scroll->get_value() + vel);
+				}
+			} else {
+				scrolling = false;
+				set_fixed_process(false);
+			}
+		} break;
 		case NOTIFICATION_DRAW: {
 
 			if ((!has_focus() && !menu->has_focus()) || !window_has_focus) {
@@ -454,6 +477,7 @@ void TextEdit::_notification(int p_what) {
 			_update_scrollbars();
 
 			RID ci = get_canvas_item();
+			VisualServer::get_singleton()->canvas_item_set_clip(get_canvas_item(), true);
 			int xmargin_beg = cache.style_normal->get_margin(MARGIN_LEFT) + cache.line_number_w + cache.breakpoint_gutter_width;
 			int xmargin_end = cache.size.width - cache.style_normal->get_margin(MARGIN_RIGHT);
 			//let's do it easy for now:
@@ -463,7 +487,7 @@ void TextEdit::_notification(int p_what) {
 
 			int ascent = cache.font->get_ascent();
 
-			int visible_rows = get_visible_rows();
+			int visible_rows = get_visible_rows() + 1;
 
 			int tab_w = cache.font->get_char_size(' ').width * indent_size;
 
@@ -674,7 +698,11 @@ void TextEdit::_notification(int p_what) {
 
 				int char_margin = xmargin_beg - cursor.x_ofs;
 				int char_ofs = 0;
-				int ofs_y = i * get_row_height() + cache.line_spacing / 2;
+				int ofs_y = (i * get_row_height() + cache.line_spacing / 2);
+				if (smooth_scroll_enabled) {
+					ofs_y -= (v_scroll->get_value() - cursor.line_ofs) * get_row_height();
+				}
+
 				bool prev_is_char = false;
 				bool prev_is_number = false;
 				bool in_keyword = false;
@@ -1028,6 +1056,8 @@ void TextEdit::_notification(int p_what) {
 
 					if (cursor.column == j && cursor.line == line && block_caret && draw_caret && !insert_mode) {
 						color = cache.caret_background_color;
+					} else if (!syntax_coloring && block_caret) {
+						color = cache.font_color;
 					}
 
 					if (str[j] >= 32) {
@@ -1498,7 +1528,7 @@ void TextEdit::_get_mouse_pos(const Point2i &p_mouse, int &r_row, int &r_col) co
 	float rows = p_mouse.y;
 	rows -= cache.style_normal->get_margin(MARGIN_TOP);
 	rows /= get_row_height();
-	int row = cursor.line_ofs + rows;
+	int row = cursor.line_ofs + (rows + (v_scroll->get_value() - cursor.line_ofs));
 
 	if (row < 0)
 		row = 0;
@@ -1564,10 +1594,43 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 		if (mb->is_pressed()) {
 
 			if (mb->get_button_index() == BUTTON_WHEEL_UP && !mb->get_command()) {
-				v_scroll->set_value(v_scroll->get_value() - (3 * mb->get_factor()));
+				if (scrolling) {
+					target_v_scroll = (target_v_scroll - (3 * mb->get_factor()));
+				} else {
+					target_v_scroll = (v_scroll->get_value() - (3 * mb->get_factor()));
+				}
+
+				if (smooth_scroll_enabled) {
+					if (target_v_scroll <= 0) {
+						target_v_scroll = 0;
+					}
+					scrolling = true;
+					set_fixed_process(true);
+				} else {
+					v_scroll->set_value(target_v_scroll);
+				}
 			}
 			if (mb->get_button_index() == BUTTON_WHEEL_DOWN && !mb->get_command()) {
-				v_scroll->set_value(v_scroll->get_value() + (3 * mb->get_factor()));
+				if (scrolling) {
+					target_v_scroll = (target_v_scroll + (3 * mb->get_factor()));
+				} else {
+					target_v_scroll = (v_scroll->get_value() + (3 * mb->get_factor()));
+				}
+
+				if (smooth_scroll_enabled) {
+					int max_v_scroll = get_line_count() - 1;
+					if (!scroll_past_end_of_file_enabled) {
+						max_v_scroll -= get_visible_rows() - 1;
+					}
+
+					if (target_v_scroll > max_v_scroll) {
+						target_v_scroll = max_v_scroll;
+					}
+					scrolling = true;
+					set_fixed_process(true);
+				} else {
+					v_scroll->set_value(target_v_scroll);
+				}
 			}
 			if (mb->get_button_index() == BUTTON_WHEEL_LEFT) {
 				h_scroll->set_value(h_scroll->get_value() - (100 * mb->get_factor()));
@@ -2248,6 +2311,13 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 #endif
 					bool prev_char = false;
 					int cc = cursor.column;
+
+					if (cc == 0 && cursor.line > 0) {
+						cursor_set_line(cursor.line - 1);
+						cursor_set_column(text[cursor.line].length());
+						break;
+					}
+
 					while (cc > 0) {
 
 						bool ischar = _is_text_char(text[cursor.line][cc - 1]);
@@ -2305,6 +2375,13 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 #endif
 					bool prev_char = false;
 					int cc = cursor.column;
+
+					if (cc == text[cursor.line].length() && cursor.line < text.size() - 1) {
+						cursor_set_line(cursor.line + 1);
+						cursor_set_column(0);
+						break;
+					}
+
 					while (cc < text[cursor.line].length()) {
 
 						bool ischar = _is_text_char(text[cursor.line][cc]);
@@ -2933,7 +3010,7 @@ void TextEdit::_base_remove_text(int p_from_line, int p_from_column, int p_to_li
 	}
 }
 
-void TextEdit::_insert_text(int p_line, int p_char, const String &p_text, int *r_end_line, int *r_end_column) {
+void TextEdit::_insert_text(int p_line, int p_char, const String &p_text, int *r_end_line, int *r_end_char) {
 
 	if (!setting_text)
 		idle_detect->start();
@@ -2946,8 +3023,8 @@ void TextEdit::_insert_text(int p_line, int p_char, const String &p_text, int *r
 	_base_insert_text(p_line, p_char, p_text, retline, retchar);
 	if (r_end_line)
 		*r_end_line = retline;
-	if (r_end_column)
-		*r_end_column = retchar;
+	if (r_end_char)
+		*r_end_char = retchar;
 
 	if (!undo_enabled)
 		return;
@@ -3095,7 +3172,7 @@ void TextEdit::adjust_viewport_to_cursor() {
 		visible_rows -= ((h_scroll->get_combined_minimum_size().height - 1) / get_row_height());
 
 	if (cursor.line >= (cursor.line_ofs + visible_rows))
-		cursor.line_ofs = cursor.line - visible_rows + 1;
+		cursor.line_ofs = cursor.line - visible_rows;
 	if (cursor.line < cursor.line_ofs)
 		cursor.line_ofs = cursor.line;
 
@@ -4178,6 +4255,15 @@ void TextEdit::set_h_scroll(int p_scroll) {
 	h_scroll->set_value(p_scroll);
 }
 
+void TextEdit::set_smooth_scroll_enabled(bool p_enable) {
+	v_scroll->set_smooth_scroll_enabled(p_enable);
+	smooth_scroll_enabled = p_enable;
+}
+
+bool TextEdit::is_smooth_scroll_enabled() const {
+	return smooth_scroll_enabled;
+}
+
 void TextEdit::set_completion(bool p_enabled, const Vector<String> &p_prefixes) {
 
 	completion_prefixes.clear();
@@ -4678,6 +4764,9 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_syntax_coloring", "enable"), &TextEdit::set_syntax_coloring);
 	ClassDB::bind_method(D_METHOD("is_syntax_coloring_enabled"), &TextEdit::is_syntax_coloring_enabled);
 
+	ClassDB::bind_method(D_METHOD("set_smooth_scroll_enable", "enable"), &TextEdit::set_smooth_scroll_enabled);
+	ClassDB::bind_method(D_METHOD("is_smooth_scroll_enabled"), &TextEdit::is_smooth_scroll_enabled);
+
 	ClassDB::bind_method(D_METHOD("add_keyword_color", "keyword", "color"), &TextEdit::add_keyword_color);
 	ClassDB::bind_method(D_METHOD("add_color_region", "begin_key", "end_key", "color", "line_only"), &TextEdit::add_color_region, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("clear_colors"), &TextEdit::clear_colors);
@@ -4687,6 +4776,7 @@ void TextEdit::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "syntax_highlighting"), "set_syntax_coloring", "is_syntax_coloring_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "show_line_numbers"), "set_show_line_numbers", "is_show_line_numbers_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "highlight_all_occurrences"), "set_highlight_all_occurrences", "is_highlight_all_occurrences_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "smooth_scrolling"), "set_smooth_scroll_enable", "is_smooth_scroll_enabled");
 
 	ADD_GROUP("Caret", "caret_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "caret_block_mode"), "cursor_set_block_mode", "cursor_is_block_mode");
@@ -4823,6 +4913,9 @@ TextEdit::TextEdit() {
 	insert_mode = false;
 	window_has_focus = true;
 	select_identifiers_enabled = false;
+	smooth_scroll_enabled = false;
+	scrolling = false;
+	target_v_scroll = 0;
 
 	raised_from_completion = false;
 

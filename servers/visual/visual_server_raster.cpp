@@ -2902,7 +2902,7 @@ Vector<RID> VisualServerRaster::instances_cull_aabb(const AABB& p_aabb, RID p_sc
 
 	int culled=0;
 	Instance *cull[1024];
-	culled=scenario->octree.cull_AABB(p_aabb,cull,1024);
+	culled=scenario->octree.cull_aabb(p_aabb,cull,1024);
 
 	for (int i=0;i<culled;i++) {
 
@@ -4376,7 +4376,7 @@ void VisualServerRaster::canvas_light_set_shadow_buffer_size(RID p_light, int p_
 
 	ERR_FAIL_COND(p_size<32 || p_size>16384);
 
-	clight->shadow_buffer_size=nearest_power_of_2(p_size);
+	clight->shadow_buffer_size=next_power_of_2(p_size);
 
 
 	if (clight->shadow_buffer.is_valid()) {

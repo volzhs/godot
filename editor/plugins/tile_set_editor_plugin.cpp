@@ -147,12 +147,12 @@ void TileSetEditor::_import_node(Node *p_node, Ref<TileSet> p_library) {
 	}
 }
 
-void TileSetEditor::_import_scene(Node *scene, Ref<TileSet> p_library, bool p_merge) {
+void TileSetEditor::_import_scene(Node *p_scene, Ref<TileSet> p_library, bool p_merge) {
 
 	if (!p_merge)
 		p_library->clear();
 
-	_import_node(scene, p_library);
+	_import_node(p_scene, p_library);
 }
 
 void TileSetEditor::_menu_confirm() {
@@ -294,7 +294,6 @@ TileSetEditorPlugin::TileSetEditorPlugin(EditorNode *p_node) {
 
 	p_node->get_viewport()->add_child(tileset_editor);
 	tileset_editor->set_area_as_parent_rect();
-	tileset_editor->set_anchor(MARGIN_RIGHT, Control::ANCHOR_END);
 	tileset_editor->set_anchor(MARGIN_BOTTOM, Control::ANCHOR_BEGIN);
 	tileset_editor->set_end(Point2(0, 22));
 	tileset_editor->hide();

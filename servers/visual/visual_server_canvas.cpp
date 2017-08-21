@@ -392,14 +392,14 @@ void VisualServerCanvas::canvas_item_set_draw_behind_parent(RID p_item, bool p_e
 	canvas_item->behind = p_enable;
 }
 
-void VisualServerCanvas::canvas_item_add_line(RID p_item, const Point2 &p_from, const Point2 &p_to, const Color &p_colors, float p_width, bool p_antialiased) {
+void VisualServerCanvas::canvas_item_add_line(RID p_item, const Point2 &p_from, const Point2 &p_to, const Color &p_color, float p_width, bool p_antialiased) {
 
 	Item *canvas_item = canvas_item_owner.getornull(p_item);
 	ERR_FAIL_COND(!canvas_item);
 
 	Item::CommandLine *line = memnew(Item::CommandLine);
 	ERR_FAIL_COND(!line);
-	line->color = p_colors;
+	line->color = p_color;
 	line->from = p_from;
 	line->to = p_to;
 	line->width = p_width;
@@ -632,7 +632,7 @@ void VisualServerCanvas::canvas_item_add_primitive(RID p_item, const Vector<Poin
 	canvas_item->commands.push_back(prim);
 }
 
-void VisualServerCanvas::canvas_item_add_polygon(RID p_item, const Vector<Point2> &p_points, const Vector<Color> &p_colors, const Vector<Point2> &p_uvs, RID p_texture, RID p_normal_map) {
+void VisualServerCanvas::canvas_item_add_polygon(RID p_item, const Vector<Point2> &p_points, const Vector<Color> &p_colors, const Vector<Point2> &p_uvs, RID p_texture, RID p_normal_map, bool p_antialiased) {
 
 	Item *canvas_item = canvas_item_owner.getornull(p_item);
 	ERR_FAIL_COND(!canvas_item);
@@ -661,6 +661,7 @@ void VisualServerCanvas::canvas_item_add_polygon(RID p_item, const Vector<Point2
 	polygon->colors = p_colors;
 	polygon->indices = indices;
 	polygon->count = indices.size();
+	polygon->antialiased = p_antialiased;
 	canvas_item->rect_dirty = true;
 
 	canvas_item->commands.push_back(polygon);
@@ -745,6 +746,7 @@ void VisualServerCanvas::canvas_item_add_particles(RID p_item, RID p_particles, 
 	//take the chance and request processing for them, at least once until they become visible again
 	VSG::storage->particles_request_process(p_particles);
 
+	canvas_item->rect_dirty = true;
 	canvas_item->commands.push_back(part);
 }
 
@@ -758,6 +760,7 @@ void VisualServerCanvas::canvas_item_add_multimesh(RID p_item, RID p_mesh, RID p
 	mm->multimesh = p_mesh;
 	mm->skeleton = p_skeleton;
 
+	canvas_item->rect_dirty = true;
 	canvas_item->commands.push_back(mm);
 }
 
@@ -1001,11 +1004,11 @@ void VisualServerCanvas::canvas_light_set_shadow_buffer_size(RID p_light, int p_
 	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
 	ERR_FAIL_COND(!clight);
 
-	int new_size = nearest_power_of_2(p_size);
+	int new_size = next_power_of_2(p_size);
 	if (new_size == clight->shadow_buffer_size)
 		return;
 
-	clight->shadow_buffer_size = nearest_power_of_2(p_size);
+	clight->shadow_buffer_size = next_power_of_2(p_size);
 
 	if (clight->shadow_buffer.is_valid()) {
 		VSG::storage->free(clight->shadow_buffer);

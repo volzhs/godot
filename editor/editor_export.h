@@ -30,6 +30,7 @@
 #ifndef EDITOR_EXPORT_H
 #define EDITOR_EXPORT_H
 
+#include "os/dir_access.h"
 #include "resource.h"
 #include "scene/main/node.h"
 #include "scene/main/timer.h"
@@ -156,6 +157,9 @@ private:
 	void gen_debug_flags(Vector<String> &r_flags, int p_flags);
 	static Error _save_pack_file(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total);
 	static Error _save_zip_file(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total);
+
+	void _edit_files_with_filter(DirAccess *da, const Vector<String> &p_filters, Set<String> &r_list, bool exclude);
+	void _edit_filter_list(Set<String> &r_list, const String &p_filter, bool exclude);
 
 protected:
 	bool exists_export_template(String template_file_name, String *err) const;
@@ -290,7 +294,7 @@ public:
 	void set_name(const String &p_name);
 	void set_os_name(const String &p_name);
 
-	void set_logo(const Ref<Texture> &p_loco);
+	void set_logo(const Ref<Texture> &p_logo);
 
 	void set_release_64(const String &p_file);
 	void set_release_32(const String &p_file);

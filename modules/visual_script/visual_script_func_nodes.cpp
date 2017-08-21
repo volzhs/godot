@@ -341,12 +341,12 @@ String VisualScriptFunctionCall::get_base_script() const {
 	return base_script;
 }
 
-void VisualScriptFunctionCall::set_singleton(const StringName &p_path) {
+void VisualScriptFunctionCall::set_singleton(const StringName &p_type) {
 
-	if (singleton == p_path)
+	if (singleton == p_type)
 		return;
 
-	singleton = p_path;
+	singleton = p_type;
 	Object *obj = ProjectSettings::get_singleton()->get_singleton_object(singleton);
 	if (obj) {
 		base_type = obj->get_class();
@@ -1164,7 +1164,7 @@ void VisualScriptPropertySet::_update_cache() {
 	if (!OS::get_singleton()->get_main_loop()->cast_to<SceneTree>())
 		return;
 
-	if (!OS::get_singleton()->get_main_loop()->cast_to<SceneTree>()->is_editor_hint()) //only update cache if editor exists, it's pointless otherwise
+	if (!Engine::get_singleton()->is_editor_hint()) //only update cache if editor exists, it's pointless otherwise
 		return;
 
 	if (call_mode == CALL_MODE_BASIC_TYPE) {

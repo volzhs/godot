@@ -38,6 +38,7 @@
 #include "editor_node.h"
 #include "editor_settings.h"
 #include "io/image_loader.h"
+#include "io/marshalls.h"
 #include "io/resource_loader.h"
 #include "multi_node_edit.h"
 #include "os/input.h"
@@ -434,13 +435,13 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 			} else if (hint == PROPERTY_HINT_EXP_EASING) {
 
 				easing_draw->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_BEGIN, 5 * EDSCALE);
-				easing_draw->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 5 * EDSCALE);
+				easing_draw->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, -5 * EDSCALE);
 				easing_draw->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, 5 * EDSCALE);
-				easing_draw->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 30 * EDSCALE);
+				easing_draw->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, -30 * EDSCALE);
 				type_button->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_BEGIN, 3 * EDSCALE);
-				type_button->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 3 * EDSCALE);
-				type_button->set_anchor_and_margin(MARGIN_TOP, ANCHOR_END, 25 * EDSCALE);
-				type_button->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 7 * EDSCALE);
+				type_button->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, -3 * EDSCALE);
+				type_button->set_anchor_and_margin(MARGIN_TOP, ANCHOR_END, -25 * EDSCALE);
+				type_button->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, -7 * EDSCALE);
 				type_button->set_text(TTR("Preset.."));
 				type_button->get_popup()->clear();
 				type_button->get_popup()->add_item(TTR("Linear"), EASING_LINEAR);
@@ -523,8 +524,8 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 				action_buttons[0]->set_anchor(MARGIN_TOP, ANCHOR_END);
 				action_buttons[0]->set_anchor(MARGIN_RIGHT, ANCHOR_END);
 				action_buttons[0]->set_anchor(MARGIN_BOTTOM, ANCHOR_END);
-				action_buttons[0]->set_begin(Point2(70 * EDSCALE, button_margin - 5 * EDSCALE));
-				action_buttons[0]->set_end(Point2(margin, margin));
+				action_buttons[0]->set_begin(Point2(-70 * EDSCALE, -button_margin + 5 * EDSCALE));
+				action_buttons[0]->set_end(Point2(-margin, -margin));
 				action_buttons[0]->set_text(TTR("Close"));
 				action_buttons[0]->show();
 
@@ -1938,10 +1939,8 @@ CustomPropertyEditor::CustomPropertyEditor() {
 
 	text_edit = memnew(TextEdit);
 	add_child(text_edit);
-	text_edit->set_area_as_parent_rect();
-	for (int i = 0; i < 4; i++)
-		text_edit->set_margin((Margin)i, 5);
-	text_edit->set_margin(MARGIN_BOTTOM, 30);
+	text_edit->set_area_as_parent_rect(5);
+	text_edit->set_margin(MARGIN_BOTTOM, -30);
 
 	text_edit->hide();
 	text_edit->connect("text_changed", this, "_text_edit_changed");
@@ -2320,7 +2319,15 @@ void PropertyEditor::set_item_text(TreeItem *p_item, int p_type, const String &p
 		} break;
 		case Variant::OBJECT: {
 
-			if (obj->get(p_name).get_type() == Variant::NIL || obj->get(p_name).operator RefPtr().is_null()) {
+			Ref<EncodedObjectAsID> encoded = obj->get(p_name); //for debugger and remote tools
+
+			if (encoded.is_valid()) {
+
+				p_item->set_text(1, "Object: " + itos(encoded->get_object_id()));
+				p_item->set_icon(1, Ref<Texture>());
+				p_item->set_custom_as_button(1, true);
+
+			} else if (obj->get(p_name).get_type() == Variant::NIL || obj->get(p_name).operator RefPtr().is_null()) {
 				p_item->set_text(1, "<null>");
 				p_item->set_icon(1, Ref<Texture>());
 				p_item->set_custom_as_button(1, false);
@@ -2474,11 +2481,14 @@ bool PropertyEditor::_is_drop_valid(const Dictionary &p_drag_data, const Diction
 
 			String allowed_type = d["hint_text"];
 
+			print_line("allowed type " + allowed_type);
+
 			Dictionary drag_data = p_drag_data;
 			if (drag_data.has("type") && String(drag_data["type"]) == "resource") {
 				Ref<Resource> res = drag_data["resource"];
 				for (int i = 0; i < allowed_type.get_slice_count(","); i++) {
 					String at = allowed_type.get_slice(",", i).strip_edges();
+					print_line("RES vs " + at);
 					if (res.is_valid() && ClassDB::is_parent_class(res->get_class(), at)) {
 						return true;
 					}
@@ -2489,13 +2499,18 @@ bool PropertyEditor::_is_drop_valid(const Dictionary &p_drag_data, const Diction
 
 				Vector<String> files = drag_data["files"];
 
+				print_line("fileS: " + String(Variant(files)));
 				if (files.size() == 1) {
 					String file = files[0];
 					String ftype = EditorFileSystem::get_singleton()->get_file_type(file);
+
+					print_line("file: " + file);
+					print_line("type: " + ftype);
 					if (ftype != "") {
 
 						for (int i = 0; i < allowed_type.get_slice_count(","); i++) {
 							String at = allowed_type.get_slice(",", i).strip_edges();
+							print_line("FILE vs " + at);
 							if (ClassDB::is_parent_class(ftype, at)) {
 								return true;
 							}
@@ -3602,7 +3617,16 @@ void PropertyEditor::update_tree() {
 
 				RES res = obj->get(p.name).operator RefPtr();
 
-				if (obj->get(p.name).get_type() == Variant::NIL || res.is_null()) {
+				Ref<EncodedObjectAsID> encoded = obj->get(p.name); //for debugger and remote tools
+
+				if (encoded.is_valid()) {
+
+					item->set_text(1, "Object: " + itos(encoded->get_object_id()));
+					item->set_icon(1, Ref<Texture>());
+					item->set_custom_as_button(1, true);
+					item->set_editable(1, true);
+
+				} else if (obj->get(p.name).get_type() == Variant::NIL || res.is_null()) {
 					item->set_text(1, "<null>");
 					item->set_icon(1, Ref<Texture>());
 					item->set_custom_as_button(1, false);
@@ -3931,6 +3955,13 @@ void PropertyEditor::_item_edited() {
 			if (!item->is_custom_set_as_button(1))
 				break;
 
+			Ref<EncodedObjectAsID> encoded = obj->get(name); //for debugger and remote tools
+
+			if (encoded.is_valid()) {
+
+				emit_signal("object_id_selected", encoded->get_object_id());
+			}
+
 			RES res = obj->get(name);
 			if (res.is_valid()) {
 				emit_signal("resource_selected", res.get_ref_ptr(), name);
@@ -4183,9 +4214,9 @@ void PropertyEditor::set_keying(bool p_active) {
 	update_tree();
 }
 
-void PropertyEditor::_draw_flags(Object *t, const Rect2 &p_rect) {
+void PropertyEditor::_draw_flags(Object *p_object, const Rect2 &p_rect) {
 
-	TreeItem *ti = t->cast_to<TreeItem>();
+	TreeItem *ti = p_object->cast_to<TreeItem>();
 	if (!ti)
 		return;
 
@@ -4766,19 +4797,19 @@ double PropertyValueEvaluator::eval(const String &p_text) {
 		return _default_eval(p_text);
 	}
 
-	ScriptInstance *script_instance = script->instance_create(this);
+	Object dummy;
+	ScriptInstance *script_instance = script->instance_create(&dummy);
 	if (!script_instance)
 		return _default_eval(p_text);
 
 	Variant::CallError call_err;
-	script_instance->call("set_this", obj);
-	double result = script_instance->call("e", NULL, 0, call_err);
+	Variant arg = obj;
+	const Variant *args[] = { &arg };
+	double result = script_instance->call("eval", args, 1, call_err);
 	if (call_err.error == Variant::CallError::CALL_OK) {
 		return result;
 	}
 	print_line("[PropertyValueEvaluator]: Error eval! Error code: " + itos(call_err.error));
-
-	memdelete(script_instance);
 
 	return _default_eval(p_text);
 }
@@ -4788,9 +4819,8 @@ void PropertyValueEvaluator::edit(Object *p_obj) {
 }
 
 String PropertyValueEvaluator::_build_script(const String &p_text) {
-	String script_text = "tool\nvar this\nfunc set_this(p_this):\n\tthis=p_this\nfunc e():\n\treturn ";
-	script_text += p_text.strip_edges();
-	script_text += "\n";
+	String script_text =
+			"tool\nextends Object\nfunc eval(s):\n\tself = s\n\treturn " + p_text.strip_edges() + "\n";
 	return script_text;
 }
 

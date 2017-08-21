@@ -615,6 +615,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("text_editor/line_numbers/line_length_guideline_column", 80);
 	hints["text_editor/line_numbers/line_length_guideline_column"] = PropertyInfo(Variant::INT, "text_editor/line_numbers/line_length_guideline_column", PROPERTY_HINT_RANGE, "20, 160, 10");
 
+	set("text_editor/open_scripts/smooth_scrolling", true);
 	set("text_editor/open_scripts/show_members_overview", true);
 
 	set("text_editor/files/trim_trailing_whitespace_on_save", false);
@@ -663,6 +664,8 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("editors/3d/emulate_3_button_mouse", false);
 	set("editors/3d/warped_mouse_panning", true);
 
+	set("editors/3d/orbit_sensitivity", 0.4);
+
 	set("editors/3d/freelook_base_speed", 1);
 
 	set("editors/3d/freelook_activation_modifier", 0);
@@ -683,7 +686,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("editors/poly_editor/point_grab_radius", 8);
 
 	set("run/window_placement/rect", 1);
-	hints["run/window_placement/rect"] = PropertyInfo(Variant::INT, "run/window_placement/rect", PROPERTY_HINT_ENUM, "Default,Centered,Custom Position,Force Maximized,Force Full Screen");
+	hints["run/window_placement/rect"] = PropertyInfo(Variant::INT, "run/window_placement/rect", PROPERTY_HINT_ENUM, "Top Left,Centered,Custom Position,Force Maximized,Force Fullscreen");
 	String screen_hints = TTR("Default (Same as Editor)");
 	for (int i = 0; i < OS::get_singleton()->get_screen_count(); i++) {
 		screen_hints += ",Monitor " + itos(i + 1);
@@ -721,11 +724,10 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 
 	set("filesystem/import/pvrtc_texture_tool", "");
 #ifdef WINDOWS_ENABLED
-	hints["filesystem/import/pvrtc_texture_tool"] = PropertyInfo(Variant::STRING, "import/pvrtc_texture_tool", PROPERTY_HINT_GLOBAL_FILE, "*.exe");
+	hints["filesystem/import/pvrtc_texture_tool"] = PropertyInfo(Variant::STRING, "filesystem/import/pvrtc_texture_tool", PROPERTY_HINT_GLOBAL_FILE, "*.exe");
 #else
-	hints["import/pvrtc_texture_tool"] = PropertyInfo(Variant::STRING, "import/pvrtc_texture_tool", PROPERTY_HINT_GLOBAL_FILE, "");
+	hints["filesystem/import/pvrtc_texture_tool"] = PropertyInfo(Variant::STRING, "filesystem/import/pvrtc_texture_tool", PROPERTY_HINT_GLOBAL_FILE, "");
 #endif
-	// TODO: Rename to "filesystem/import/pvrtc_fast_conversion" to match other names?
 	set("filesystem/import/pvrtc_fast_conversion", false);
 
 	set("run/auto_save/save_before_running", true);
@@ -843,9 +845,9 @@ void EditorSettings::add_property_hint(const PropertyInfo &p_hint) {
 	hints[p_hint.name] = p_hint;
 }
 
-void EditorSettings::set_favorite_dirs(const Vector<String> &p_favorites) {
+void EditorSettings::set_favorite_dirs(const Vector<String> &p_favorites_dirs) {
 
-	favorite_dirs = p_favorites;
+	favorite_dirs = p_favorites_dirs;
 	FileAccess *f = FileAccess::open(get_project_settings_path().plus_file("favorite_dirs"), FileAccess::WRITE);
 	if (f) {
 		for (int i = 0; i < favorite_dirs.size(); i++)
@@ -859,9 +861,9 @@ Vector<String> EditorSettings::get_favorite_dirs() const {
 	return favorite_dirs;
 }
 
-void EditorSettings::set_recent_dirs(const Vector<String> &p_recent) {
+void EditorSettings::set_recent_dirs(const Vector<String> &p_recent_dirs) {
 
-	recent_dirs = p_recent;
+	recent_dirs = p_recent_dirs;
 	FileAccess *f = FileAccess::open(get_project_settings_path().plus_file("recent_dirs"), FileAccess::WRITE);
 	if (f) {
 		for (int i = 0; i < recent_dirs.size(); i++)

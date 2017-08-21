@@ -273,7 +273,7 @@ void VisualScript::_node_ports_changed(int p_id) {
 	Function &func = functions[function];
 	Ref<VisualScriptNode> vsn = func.nodes[p_id].node;
 
-	if (OS::get_singleton()->get_main_loop() && OS::get_singleton()->get_main_loop()->cast_to<SceneTree>() && OS::get_singleton()->get_main_loop()->cast_to<SceneTree>()->is_editor_hint()) {
+	if (OS::get_singleton()->get_main_loop() && OS::get_singleton()->get_main_loop()->cast_to<SceneTree>() && Engine::get_singleton()->is_editor_hint()) {
 		vsn->validate_input_default_values(); //force validate default values when editing on editor
 	}
 
@@ -1578,12 +1578,15 @@ Variant VisualScriptInstance::_call_internal(const StringName &p_method, void *p
 
 		VisualScriptNodeInstance::StartMode start_mode;
 		{
-			if (p_resuming_yield)
+			if (p_resuming_yield) {
 				start_mode = VisualScriptNodeInstance::START_MODE_RESUME_YIELD;
-			else if (!flow_stack || !(flow_stack[flow_stack_pos] & VisualScriptNodeInstance::FLOW_STACK_PUSHED_BIT)) //if there is a push bit, it means we are continuing a sequence
-				start_mode = VisualScriptNodeInstance::START_MODE_BEGIN_SEQUENCE;
-			else
+				p_resuming_yield = false; // should resume only the first time
+			} else if (flow_stack && (flow_stack[flow_stack_pos] & VisualScriptNodeInstance::FLOW_STACK_PUSHED_BIT)) {
+				//if there is a push bit, it means we are continuing a sequence
 				start_mode = VisualScriptNodeInstance::START_MODE_CONTINUE_SEQUENCE;
+			} else {
+				start_mode = VisualScriptNodeInstance::START_MODE_BEGIN_SEQUENCE;
+			}
 		}
 
 		VSDEBUG("STEP - STARTSEQ: " + itos(start_mode));

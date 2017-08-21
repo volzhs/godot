@@ -63,7 +63,7 @@ void Label::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_TRANSLATION_CHANGED) {
 
-		String new_text = XL_MESSAGE(text);
+		String new_text = tr(text);
 		if (new_text == xl_text)
 			return; //nothing new
 		xl_text = new_text;
@@ -493,7 +493,10 @@ void Label::regenerate_word_cache() {
 		minsize.height = (font->get_height() * line_count) + (line_spacing * (line_count - 1));
 	}
 
-	minimum_size_changed();
+	if (!autowrap || !clip) {
+		//helps speed up some labels that may change a lot, as no resizing is requested. Do not change.
+		minimum_size_changed();
+	}
 	word_cache_dirty = false;
 }
 
@@ -526,7 +529,7 @@ void Label::set_text(const String &p_string) {
 	if (text == p_string)
 		return;
 	text = p_string;
-	xl_text = XL_MESSAGE(p_string);
+	xl_text = tr(p_string);
 	word_cache_dirty = true;
 	if (percent_visible < 1)
 		visible_chars = get_total_character_count() * percent_visible;

@@ -47,6 +47,7 @@ class Polygon2D : public Node2D {
 	float tex_rot;
 	bool invert;
 	float invert_border;
+	bool antialiased;
 
 	Vector2 offset;
 	mutable bool rect_cache_dirty;
@@ -84,10 +85,13 @@ public:
 	void set_texture_scale(const Size2 &p_scale);
 	Size2 get_texture_scale() const;
 
-	void set_invert(bool p_rot);
+	void set_invert(bool p_invert);
 	bool get_invert() const;
 
-	void set_invert_border(float p_border);
+	void set_antialiased(bool p_antialiased);
+	bool get_antialiased() const;
+
+	void set_invert_border(float p_invert_border);
 	float get_invert_border() const;
 
 	void set_offset(const Vector2 &p_offset);

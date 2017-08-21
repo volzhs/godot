@@ -127,7 +127,7 @@ int PacketPeerUDPPosix::get_max_packet_size() const {
 	return 512; // uhm maybe not
 }
 
-Error PacketPeerUDPPosix::listen(int p_port, IP_Address p_bind_address, int p_recv_buffer_size) {
+Error PacketPeerUDPPosix::listen(int p_port, const IP_Address &p_bind_address, int p_recv_buffer_size) {
 
 	ERR_FAIL_COND_V(sockfd != -1, ERR_ALREADY_IN_USE);
 	ERR_FAIL_COND_V(!p_bind_address.is_valid() && !p_bind_address.is_wildcard(), ERR_INVALID_PARAMETER);
@@ -172,13 +172,13 @@ Error PacketPeerUDPPosix::wait() {
 	return _poll(true);
 }
 
-Error PacketPeerUDPPosix::_poll(bool p_wait) {
+Error PacketPeerUDPPosix::_poll(bool p_block) {
 
 	if (sockfd == -1) {
 		return FAILED;
 	}
 
-	_set_sock_blocking(p_wait);
+	_set_sock_blocking(p_block);
 
 	struct sockaddr_storage from = { 0 };
 	socklen_t len = sizeof(struct sockaddr_storage);
@@ -216,7 +216,7 @@ Error PacketPeerUDPPosix::_poll(bool p_wait) {
 
 		len = sizeof(struct sockaddr_storage);
 		++queue_count;
-		if (p_wait)
+		if (p_block)
 			break;
 	};
 

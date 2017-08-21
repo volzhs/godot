@@ -28,6 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "popup.h"
+
+#include "engine.h"
 #include "os/keyboard.h"
 
 void Popup::_gui_input(Ref<InputEvent> p_event) {
@@ -48,7 +50,7 @@ void Popup::_notification(int p_what) {
 	if (p_what == NOTIFICATION_ENTER_TREE) {
 //small helper to make editing of these easier in editor
 #ifdef TOOLS_ENABLED
-		if (get_tree()->is_editor_hint() && get_tree()->get_edited_scene_root() && get_tree()->get_edited_scene_root()->is_a_parent_of(this)) {
+		if (Engine::get_singleton()->is_editor_hint() && get_tree()->get_edited_scene_root() && get_tree()->get_edited_scene_root()->is_a_parent_of(this)) {
 			set_as_toplevel(false);
 		}
 #endif
@@ -108,13 +110,10 @@ void Popup::set_as_minsize() {
 
 			float margin_begin = c->get_margin(m_beg);
 			float margin_end = c->get_margin(m_end);
-			AnchorType anchor_begin = c->get_anchor(m_beg);
-			AnchorType anchor_end = c->get_anchor(m_end);
+			float anchor_begin = c->get_anchor(m_beg);
+			float anchor_end = c->get_anchor(m_end);
 
-			if (anchor_begin == ANCHOR_BEGIN)
-				minsize[j] += margin_begin;
-			if (anchor_end == ANCHOR_END)
-				minsize[j] += margin_end;
+			minsize[j] += margin_begin * (ANCHOR_END - anchor_begin) + margin_end * anchor_end;
 		}
 
 		total_minsize.width = MAX(total_minsize.width, minsize.width);
@@ -145,13 +144,10 @@ void Popup::popup_centered_minsize(const Size2 &p_minsize) {
 
 			float margin_begin = c->get_margin(m_beg);
 			float margin_end = c->get_margin(m_end);
-			AnchorType anchor_begin = c->get_anchor(m_beg);
-			AnchorType anchor_end = c->get_anchor(m_end);
+			float anchor_begin = c->get_anchor(m_beg);
+			float anchor_end = c->get_anchor(m_end);
 
-			if (anchor_begin == ANCHOR_BEGIN)
-				minsize[j] += margin_begin;
-			if (anchor_end == ANCHOR_END)
-				minsize[j] += margin_end;
+			minsize[j] += margin_begin * (ANCHOR_END - anchor_begin) + margin_end * anchor_end;
 		}
 
 		total_minsize.width = MAX(total_minsize.width, minsize.width);
@@ -209,15 +205,15 @@ void Popup::popup_centered_ratio(float p_screen_ratio) {
 	popped_up = true;
 }
 
-void Popup::popup(const Rect2 &bounds) {
+void Popup::popup(const Rect2 &p_bounds) {
 
 	emit_signal("about_to_show");
 	show_modal(exclusive);
 
 	// Fit the popup into the optionally provided bounds.
-	if (!bounds.has_no_area()) {
-		set_position(bounds.position);
-		set_size(bounds.size);
+	if (!p_bounds.has_no_area()) {
+		set_position(p_bounds.position);
+		set_size(p_bounds.size);
 	}
 	_fix_size();
 
@@ -282,9 +278,10 @@ void PopupPanel::set_child_rect(Control *p_child) {
 
 	Ref<StyleBox> p = get_stylebox("panel");
 	p_child->set_area_as_parent_rect();
-	for (int i = 0; i < 4; i++) {
-		p_child->set_margin(Margin(i), p->get_margin(Margin(i)));
-	}
+	p_child->set_margin(MARGIN_LEFT, p->get_margin(MARGIN_LEFT));
+	p_child->set_margin(MARGIN_RIGHT, -p->get_margin(MARGIN_RIGHT));
+	p_child->set_margin(MARGIN_TOP, p->get_margin(MARGIN_TOP));
+	p_child->set_margin(MARGIN_BOTTOM, -p->get_margin(MARGIN_BOTTOM));
 }
 
 void PopupPanel::_notification(int p_what) {

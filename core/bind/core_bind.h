@@ -458,7 +458,7 @@ protected:
 public:
 	Error open(const String &p_path);
 
-	Error list_dir_begin(bool p_skip_internal = false, bool p_skip_hidden = false); ///< This starts dir listing
+	Error list_dir_begin(bool p_skip_navigational = false, bool p_skip_hidden = false); ///< This starts dir listing
 	String get_next();
 	bool current_is_dir() const;
 
@@ -646,6 +646,9 @@ public:
 	Dictionary get_version_info() const;
 
 	bool is_in_fixed_frame() const;
+
+	void set_editor_hint(bool p_enabled);
+	bool is_editor_hint() const;
 
 	_Engine();
 };

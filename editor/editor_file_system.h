@@ -137,6 +137,11 @@ class EditorFileSystem : public Node {
 
 	void _scan_filesystem();
 
+	Set<String> late_added_files; //keep track of files that were added, these will be re-scanned
+	Set<String> late_update_files;
+
+	void _save_late_updated_files();
+
 	EditorFileSystemDirectory *filesystem;
 
 	static EditorFileSystem *singleton;
@@ -168,6 +173,8 @@ class EditorFileSystem : public Node {
 
 	void _scan_fs_changes(EditorFileSystemDirectory *p_dir, const ScanProgress &p_progress);
 
+	void _delete_internal_files(String p_file);
+
 	Set<String> valid_extensions;
 	Set<String> import_extensions;
 
@@ -193,6 +200,8 @@ class EditorFileSystem : public Node {
 	bool _check_missing_imported_files(const String &p_path);
 
 	bool reimport_on_missing_imported_files;
+
+	Vector<String> _get_dependencies(const String &p_path);
 
 protected:
 	void _notification(int p_what);

@@ -67,10 +67,10 @@ void WindowDialog::_fix_size() {
 		right = panel_texture->get_expand_margin_size(MARGIN_RIGHT);
 	} else if (panel->get_class() == "StyleBoxFlat") {
 		Ref<StyleBoxFlat> panel_flat = panel->cast_to<StyleBoxFlat>();
-		top = panel_flat->_get_additional_border_size(MARGIN_TOP);
-		left = panel_flat->_get_additional_border_size(MARGIN_LEFT);
-		bottom = panel_flat->_get_additional_border_size(MARGIN_BOTTOM);
-		right = panel_flat->_get_additional_border_size(MARGIN_RIGHT);
+		top = panel_flat->get_expand_margin_size(MARGIN_TOP);
+		left = panel_flat->get_expand_margin_size(MARGIN_LEFT);
+		bottom = panel_flat->get_expand_margin_size(MARGIN_BOTTOM);
+		right = panel_flat->get_expand_margin_size(MARGIN_RIGHT);
 	}
 
 	pos.x = MAX(left, MIN(pos.x, viewport_size.x - size.x - right));
@@ -215,7 +215,7 @@ void WindowDialog::_notification(int p_what) {
 			close_button->set_pressed_texture(get_icon("close", "WindowDialog"));
 			close_button->set_hover_texture(get_icon("close_highlight", "WindowDialog"));
 			close_button->set_anchor(MARGIN_LEFT, ANCHOR_END);
-			close_button->set_begin(Point2(get_constant("close_h_ofs", "WindowDialog"), -get_constant("close_v_ofs", "WindowDialog")));
+			close_button->set_begin(Point2(-get_constant("close_h_ofs", "WindowDialog"), -get_constant("close_v_ofs", "WindowDialog")));
 		} break;
 
 		case NOTIFICATION_MOUSE_EXIT: {
@@ -227,11 +227,11 @@ void WindowDialog::_notification(int p_what) {
 		} break;
 #ifdef TOOLS_ENABLED
 		case NOTIFICATION_POST_POPUP: {
-			if (get_tree() && get_tree()->is_editor_hint() && EditorNode::get_singleton())
+			if (get_tree() && Engine::get_singleton()->is_editor_hint() && EditorNode::get_singleton())
 				EditorNode::get_singleton()->dim_editor(true);
 		} break;
 		case NOTIFICATION_POPUP_HIDE: {
-			if (get_tree() && get_tree()->is_editor_hint() && EditorNode::get_singleton())
+			if (get_tree() && Engine::get_singleton()->is_editor_hint() && EditorNode::get_singleton())
 				EditorNode::get_singleton()->dim_editor(false);
 		} break;
 #endif
@@ -271,7 +271,7 @@ int WindowDialog::_drag_hit_test(const Point2 &pos) const {
 
 void WindowDialog::set_title(const String &p_title) {
 
-	title = XL_MESSAGE(p_title);
+	title = tr(p_title);
 	update();
 }
 String WindowDialog::get_title() const {
@@ -546,7 +546,7 @@ AcceptDialog::AcceptDialog() {
 	label->set_anchor(MARGIN_RIGHT, ANCHOR_END);
 	label->set_anchor(MARGIN_BOTTOM, ANCHOR_END);
 	label->set_begin(Point2(margin, margin));
-	label->set_end(Point2(margin, button_margin + 10));
+	label->set_end(Point2(-margin, -button_margin - 10));
 	//label->set_autowrap(true);
 	add_child(label);
 

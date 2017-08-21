@@ -2143,7 +2143,7 @@ _FORCE_INLINE_ static void _fill_std140_variant_ubo_value(ShaderLanguage::DataTy
 
 				gui[0] = v.normal.x;
 				gui[1] = v.normal.y;
-				gui[2] = v.normal.x;
+				gui[2] = v.normal.z;
 				gui[3] = v.d;
 			}
 		} break;
@@ -2497,7 +2497,13 @@ void RasterizerStorageGLES3::_update_material(Material *material) {
 				//value=E->get().default_value;
 			} else {
 				//zero because it was not provided
-				_fill_std140_ubo_empty(E->get().type, data);
+				if (E->get().type == ShaderLanguage::TYPE_VEC4 && E->get().hint == ShaderLanguage::ShaderNode::Uniform::HINT_COLOR) {
+					//colors must be set as black, with alpha as 1.0
+					_fill_std140_variant_ubo_value(E->get().type, Color(0, 0, 0, 1), data, material->shader->mode == VS::SHADER_SPATIAL);
+				} else {
+					//else just zero it out
+					_fill_std140_ubo_empty(E->get().type, data);
+				}
 			}
 		}
 
@@ -4451,7 +4457,7 @@ RID RasterizerStorageGLES3::light_create(VS::LightType p_type) {
 	light->omni_shadow_mode = VS::LIGHT_OMNI_SHADOW_DUAL_PARABOLOID;
 	light->omni_shadow_detail = VS::LIGHT_OMNI_SHADOW_DETAIL_VERTICAL;
 	light->directional_blend_splits = false;
-
+	light->reverse_cull = false;
 	light->version = 0;
 
 	return light_owner.make_rid(light);
@@ -4528,6 +4534,14 @@ void RasterizerStorageGLES3::light_set_cull_mask(RID p_light, uint32_t p_mask) {
 
 	light->version++;
 	light->instance_change_notify();
+}
+
+void RasterizerStorageGLES3::light_set_reverse_cull_face_mode(RID p_light, bool p_enabled) {
+
+	Light *light = light_owner.getornull(p_light);
+	ERR_FAIL_COND(!light);
+
+	light->reverse_cull = p_enabled;
 }
 
 void RasterizerStorageGLES3::light_omni_set_shadow_mode(RID p_light, VS::LightOmniShadowMode p_mode) {
@@ -5177,6 +5191,10 @@ void RasterizerStorageGLES3::particles_set_emitting(RID p_particles, bool p_emit
 
 	Particles *particles = particles_owner.getornull(p_particles);
 	ERR_FAIL_COND(!particles);
+	if (p_emitting != particles->emitting) {
+		// Restart is overriden by set_emitting
+		particles->restart_request = false;
+	}
 	particles->emitting = p_emitting;
 }
 void RasterizerStorageGLES3::particles_set_amount(RID p_particles, int p_amount) {
@@ -5468,58 +5486,58 @@ RID RasterizerStorageGLES3::particles_get_draw_pass_mesh(RID p_particles, int p_
 	return particles->draw_passes[p_pass];
 }
 
-void RasterizerStorageGLES3::_particles_process(Particles *particles, float p_delta) {
+void RasterizerStorageGLES3::_particles_process(Particles *p_particles, float p_delta) {
 
-	float new_phase = Math::fmod((float)particles->phase + (p_delta / particles->lifetime) * particles->speed_scale, (float)1.0);
+	float new_phase = Math::fmod((float)p_particles->phase + (p_delta / p_particles->lifetime) * p_particles->speed_scale, (float)1.0);
 
-	if (particles->clear) {
-		particles->cycle_number = 0;
-		particles->random_seed = Math::rand();
-	} else if (new_phase < particles->phase) {
-		if (particles->one_shot) {
-			particles->emitting = false;
+	if (p_particles->clear) {
+		p_particles->cycle_number = 0;
+		p_particles->random_seed = Math::rand();
+	} else if (new_phase < p_particles->phase) {
+		if (p_particles->one_shot) {
+			p_particles->emitting = false;
 			shaders.particles.set_uniform(ParticlesShaderGLES3::EMITTING, false);
 		}
-		particles->cycle_number++;
+		p_particles->cycle_number++;
 	}
 
 	shaders.particles.set_uniform(ParticlesShaderGLES3::SYSTEM_PHASE, new_phase);
-	shaders.particles.set_uniform(ParticlesShaderGLES3::PREV_SYSTEM_PHASE, particles->phase);
-	particles->phase = new_phase;
+	shaders.particles.set_uniform(ParticlesShaderGLES3::PREV_SYSTEM_PHASE, p_particles->phase);
+	p_particles->phase = new_phase;
 
-	shaders.particles.set_uniform(ParticlesShaderGLES3::DELTA, p_delta * particles->speed_scale);
-	shaders.particles.set_uniform(ParticlesShaderGLES3::CLEAR, particles->clear);
-	glUniform1ui(shaders.particles.get_uniform_location(ParticlesShaderGLES3::RANDOM_SEED), particles->random_seed);
+	shaders.particles.set_uniform(ParticlesShaderGLES3::DELTA, p_delta * p_particles->speed_scale);
+	shaders.particles.set_uniform(ParticlesShaderGLES3::CLEAR, p_particles->clear);
+	glUniform1ui(shaders.particles.get_uniform_location(ParticlesShaderGLES3::RANDOM_SEED), p_particles->random_seed);
 
-	if (particles->use_local_coords)
+	if (p_particles->use_local_coords)
 		shaders.particles.set_uniform(ParticlesShaderGLES3::EMISSION_TRANSFORM, Transform());
 	else
-		shaders.particles.set_uniform(ParticlesShaderGLES3::EMISSION_TRANSFORM, particles->emission_transform);
+		shaders.particles.set_uniform(ParticlesShaderGLES3::EMISSION_TRANSFORM, p_particles->emission_transform);
 
-	glUniform1ui(shaders.particles.get_uniform(ParticlesShaderGLES3::CYCLE), particles->cycle_number);
+	glUniform1ui(shaders.particles.get_uniform(ParticlesShaderGLES3::CYCLE), p_particles->cycle_number);
 
-	particles->clear = false;
+	p_particles->clear = false;
 
-	glBindVertexArray(particles->particle_vaos[0]);
+	glBindVertexArray(p_particles->particle_vaos[0]);
 
-	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, particles->particle_buffers[1]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, p_particles->particle_buffers[1]);
 
 	//		GLint size = 0;
 	//		glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 
 	glBeginTransformFeedback(GL_POINTS);
-	glDrawArrays(GL_POINTS, 0, particles->amount);
+	glDrawArrays(GL_POINTS, 0, p_particles->amount);
 	glEndTransformFeedback();
 
-	SWAP(particles->particle_buffers[0], particles->particle_buffers[1]);
-	SWAP(particles->particle_vaos[0], particles->particle_vaos[1]);
+	SWAP(p_particles->particle_buffers[0], p_particles->particle_buffers[1]);
+	SWAP(p_particles->particle_vaos[0], p_particles->particle_vaos[1]);
 
 	glBindVertexArray(0);
 	/* //debug particles :D
-	glBindBuffer(GL_ARRAY_BUFFER, particles->particle_buffers[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, p_particles->particle_buffers[0]);
 
-	float *data = (float *)glMapBufferRange(GL_ARRAY_BUFFER, 0, particles->amount * 16 * 6, GL_MAP_READ_BIT);
-	for (int i = 0; i < particles->amount; i++) {
+	float *data = (float *)glMapBufferRange(GL_ARRAY_BUFFER, 0, p_particles->amount * 16 * 6, GL_MAP_READ_BIT);
+	for (int i = 0; i < p_particles->amount; i++) {
 		int ofs = i * 24;
 		print_line(itos(i) + ":");
 		print_line("\tColor: " + Color(data[ofs + 0], data[ofs + 1], data[ofs + 2], data[ofs + 3]));

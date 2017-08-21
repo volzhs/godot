@@ -395,7 +395,7 @@ void PopupMenu::_notification(int p_what) {
 		case NOTIFICATION_TRANSLATION_CHANGED: {
 
 			for (int i = 0; i < items.size(); i++) {
-				items[i].xl_text = XL_MESSAGE(items[i].text);
+				items[i].xl_text = tr(items[i].text);
 			}
 
 			minimum_size_changed();
@@ -513,7 +513,7 @@ void PopupMenu::add_icon_item(const Ref<Texture> &p_icon, const String &p_label,
 	Item item;
 	item.icon = p_icon;
 	item.text = p_label;
-	item.xl_text = XL_MESSAGE(p_label);
+	item.xl_text = tr(p_label);
 	item.accel = p_accel;
 	item.ID = p_ID;
 	items.push_back(item);
@@ -523,7 +523,7 @@ void PopupMenu::add_item(const String &p_label, int p_ID, uint32_t p_accel) {
 
 	Item item;
 	item.text = p_label;
-	item.xl_text = XL_MESSAGE(p_label);
+	item.xl_text = tr(p_label);
 	item.accel = p_accel;
 	item.ID = p_ID;
 	items.push_back(item);
@@ -534,7 +534,7 @@ void PopupMenu::add_submenu_item(const String &p_label, const String &p_submenu,
 
 	Item item;
 	item.text = p_label;
-	item.xl_text = XL_MESSAGE(p_label);
+	item.xl_text = tr(p_label);
 	item.ID = p_ID;
 	item.submenu = p_submenu;
 	items.push_back(item);
@@ -546,7 +546,7 @@ void PopupMenu::add_icon_check_item(const Ref<Texture> &p_icon, const String &p_
 	Item item;
 	item.icon = p_icon;
 	item.text = p_label;
-	item.xl_text = XL_MESSAGE(p_label);
+	item.xl_text = tr(p_label);
 	item.accel = p_accel;
 	item.ID = p_ID;
 	item.checkable = true;
@@ -557,7 +557,7 @@ void PopupMenu::add_check_item(const String &p_label, int p_ID, uint32_t p_accel
 
 	Item item;
 	item.text = p_label;
-	item.xl_text = XL_MESSAGE(p_label);
+	item.xl_text = tr(p_label);
 	item.accel = p_accel;
 	item.ID = p_ID;
 	item.checkable = true;
@@ -628,7 +628,7 @@ void PopupMenu::set_item_text(int p_idx, const String &p_text) {
 
 	ERR_FAIL_INDEX(p_idx, items.size());
 	items[p_idx].text = p_text;
-	items[p_idx].xl_text = XL_MESSAGE(p_text);
+	items[p_idx].xl_text = tr(p_text);
 
 	update();
 }

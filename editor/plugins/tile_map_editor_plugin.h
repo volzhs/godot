@@ -97,6 +97,7 @@ class TileMapEditor : public VBoxContainer {
 
 	bool selection_active;
 	bool mouse_over;
+	bool show_tile_info;
 
 	bool flip_h;
 	bool flip_v;
@@ -197,8 +198,8 @@ public:
 
 	virtual String get_name() const { return "TileMap"; }
 	bool has_main_screen() const { return false; }
-	virtual void edit(Object *p_node);
-	virtual bool handles(Object *p_node) const;
+	virtual void edit(Object *p_object);
+	virtual bool handles(Object *p_object) const;
 	virtual void make_visible(bool p_visible);
 
 	TileMapEditorPlugin(EditorNode *p_node);

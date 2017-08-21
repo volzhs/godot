@@ -910,7 +910,7 @@ Vector<ObjectID> VisualServerScene::instances_cull_aabb(const Rect3 &p_aabb, RID
 
 	int culled = 0;
 	Instance *cull[1024];
-	culled = scenario->octree.cull_AABB(p_aabb, cull, 1024);
+	culled = scenario->octree.cull_aabb(p_aabb, cull, 1024);
 
 	for (int i = 0; i < culled; i++) {
 
@@ -978,16 +978,6 @@ void VisualServerScene::instance_geometry_set_flag(RID p_instance, VS::InstanceF
 
 	switch (p_flags) {
 
-		case VS::INSTANCE_FLAG_CAST_SHADOW: {
-			if (p_enabled == true) {
-				instance->cast_shadows = VS::SHADOW_CASTING_SETTING_ON;
-			} else {
-				instance->cast_shadows = VS::SHADOW_CASTING_SETTING_OFF;
-			}
-
-			instance->base_material_changed(); // to actually compute if shadows are visible or not
-
-		} break;
 		case VS::INSTANCE_FLAG_VISIBLE_IN_ALL_ROOMS: {
 
 			instance->visible_in_all_rooms = p_enabled;
@@ -1001,6 +991,12 @@ void VisualServerScene::instance_geometry_set_flag(RID p_instance, VS::InstanceF
 	}
 }
 void VisualServerScene::instance_geometry_set_cast_shadows_setting(RID p_instance, VS::ShadowCastingSetting p_shadow_casting_setting) {
+
+	Instance *instance = instance_owner.get(p_instance);
+	ERR_FAIL_COND(!instance);
+
+	instance->cast_shadows = p_shadow_casting_setting;
+	instance->base_material_changed(); // to actually compute if shadows are visible or not
 }
 void VisualServerScene::instance_geometry_set_material_override(RID p_instance, RID p_material) {
 
@@ -1048,8 +1044,9 @@ void VisualServerScene::_update_instance(Instance *p_instance) {
 		VSG::storage->particles_set_emission_transform(p_instance->base, p_instance->transform);
 	}
 
-	if (p_instance->aabb.has_no_surface())
+	if (p_instance->aabb.has_no_surface()) {
 		return;
+	}
 
 #if 0
 	if (p_instance->base_type == VS::INSTANCE_PARTICLES) {
@@ -2645,11 +2642,11 @@ static float _get_normal_advance(const Vector3 &p_normal) {
 	return 1.0 / normal.dot(unorm);
 }
 
-void VisualServerScene::_bake_gi_probe_light(const GIProbeDataHeader *header, const GIProbeDataCell *cells, InstanceGIProbeData::LocalData *local_data, const uint32_t *leaves, int leaf_count, const InstanceGIProbeData::LightCache &light_cache, int sign) {
+void VisualServerScene::_bake_gi_probe_light(const GIProbeDataHeader *header, const GIProbeDataCell *cells, InstanceGIProbeData::LocalData *local_data, const uint32_t *leaves, int p_leaf_count, const InstanceGIProbeData::LightCache &light_cache, int p_sign) {
 
-	int light_r = int(light_cache.color.r * light_cache.energy * 1024.0) * sign;
-	int light_g = int(light_cache.color.g * light_cache.energy * 1024.0) * sign;
-	int light_b = int(light_cache.color.b * light_cache.energy * 1024.0) * sign;
+	int light_r = int(light_cache.color.r * light_cache.energy * 1024.0) * p_sign;
+	int light_g = int(light_cache.color.g * light_cache.energy * 1024.0) * p_sign;
+	int light_b = int(light_cache.color.b * light_cache.energy * 1024.0) * p_sign;
 
 	float limits[3] = { float(header->width), float(header->height), float(header->depth) };
 	Plane clip[3];
@@ -2685,7 +2682,7 @@ void VisualServerScene::_bake_gi_probe_light(const GIProbeDataHeader *header, co
 
 			uint64_t us = OS::get_singleton()->get_ticks_usec();
 
-			for (int i = 0; i < leaf_count; i++) {
+			for (int i = 0; i < p_leaf_count; i++) {
 
 				uint32_t idx = leaves[i];
 
@@ -2750,7 +2747,7 @@ void VisualServerScene::_bake_gi_probe_light(const GIProbeDataHeader *header, co
 
 			float local_radius = light_cache.radius * light_cache.transform.basis.get_axis(2).length();
 
-			for (int i = 0; i < leaf_count; i++) {
+			for (int i = 0; i < p_leaf_count; i++) {
 
 				uint32_t idx = leaves[i];
 
@@ -3278,8 +3275,9 @@ void VisualServerScene::render_probes() {
 
 void VisualServerScene::_update_dirty_instance(Instance *p_instance) {
 
-	if (p_instance->update_aabb)
+	if (p_instance->update_aabb) {
 		_update_instance_aabb(p_instance);
+	}
 
 	if (p_instance->update_materials) {
 

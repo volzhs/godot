@@ -886,6 +886,8 @@ void VisualScriptEditor::_member_edited() {
 		undo_redo->add_undo_method(this, "_update_members");
 		undo_redo->add_do_method(this, "_update_graph");
 		undo_redo->add_undo_method(this, "_update_graph");
+		undo_redo->add_do_method(this, "emit_signal", "script_changed");
+		undo_redo->add_undo_method(this, "emit_signal", "script_changed");
 		undo_redo->commit_action();
 
 		//		_update_graph();
@@ -901,6 +903,8 @@ void VisualScriptEditor::_member_edited() {
 		undo_redo->add_undo_method(script.ptr(), "rename_variable", new_name, name);
 		undo_redo->add_do_method(this, "_update_members");
 		undo_redo->add_undo_method(this, "_update_members");
+		undo_redo->add_do_method(this, "emit_signal", "script_changed");
+		undo_redo->add_undo_method(this, "emit_signal", "script_changed");
 		undo_redo->commit_action();
 
 		return; //or crash because it will become invalid
@@ -914,6 +918,8 @@ void VisualScriptEditor::_member_edited() {
 		undo_redo->add_undo_method(script.ptr(), "rename_custom_signal", new_name, name);
 		undo_redo->add_do_method(this, "_update_members");
 		undo_redo->add_undo_method(this, "_update_members");
+		undo_redo->add_do_method(this, "emit_signal", "script_changed");
+		undo_redo->add_undo_method(this, "emit_signal", "script_changed");
 		undo_redo->commit_action();
 
 		return; //or crash because it will become invalid
@@ -1051,7 +1057,8 @@ void VisualScriptEditor::_member_button(Object *p_item, int p_column, int p_butt
 				undo_redo->add_undo_method(this, "_update_members");
 				undo_redo->add_do_method(this, "_update_graph");
 				undo_redo->add_undo_method(this, "_update_graph");
-
+				undo_redo->add_do_method(this, "emit_signal", "script_changed");
+				undo_redo->add_undo_method(this, "emit_signal", "script_changed");
 				undo_redo->commit_action();
 
 				_update_graph();
@@ -1070,6 +1077,8 @@ void VisualScriptEditor::_member_button(Object *p_item, int p_column, int p_butt
 			undo_redo->add_undo_method(script.ptr(), "remove_variable", name);
 			undo_redo->add_do_method(this, "_update_members");
 			undo_redo->add_undo_method(this, "_update_members");
+			undo_redo->add_do_method(this, "emit_signal", "script_changed");
+			undo_redo->add_undo_method(this, "emit_signal", "script_changed");
 			undo_redo->commit_action();
 			return; //or crash because it will become invalid
 		}
@@ -1084,6 +1093,8 @@ void VisualScriptEditor::_member_button(Object *p_item, int p_column, int p_butt
 			undo_redo->add_undo_method(script.ptr(), "remove_custom_signal", name);
 			undo_redo->add_do_method(this, "_update_members");
 			undo_redo->add_undo_method(this, "_update_members");
+			undo_redo->add_do_method(this, "emit_signal", "script_changed");
+			undo_redo->add_undo_method(this, "emit_signal", "script_changed");
 			undo_redo->commit_action();
 			return; //or crash because it will become invalid
 		}
@@ -2450,17 +2461,17 @@ void VisualScriptEditor::_graph_connect_to_empty(const String &p_from, int p_fro
 	port_action_popup->popup();
 }
 
-VisualScriptNode::TypeGuess VisualScriptEditor::_guess_output_type(int p_node, int p_output, Set<int> &visited_nodes) {
+VisualScriptNode::TypeGuess VisualScriptEditor::_guess_output_type(int p_port_action_node, int p_port_action_output, Set<int> &visited_nodes) {
 
 	VisualScriptNode::TypeGuess tg;
 	tg.type = Variant::NIL;
 
-	if (visited_nodes.has(p_node))
+	if (visited_nodes.has(p_port_action_node))
 		return tg; //no loop
 
-	visited_nodes.insert(p_node);
+	visited_nodes.insert(p_port_action_node);
 
-	Ref<VisualScriptNode> node = script->get_node(edited_func, p_node);
+	Ref<VisualScriptNode> node = script->get_node(edited_func, p_port_action_node);
 
 	if (!node.is_valid()) {
 
@@ -2479,7 +2490,7 @@ VisualScriptNode::TypeGuess VisualScriptEditor::_guess_output_type(int p_node, i
 			int from_node;
 			int from_port;
 
-			if (script->get_input_value_port_connection_source(edited_func, p_node, i, &from_node, &from_port)) {
+			if (script->get_input_value_port_connection_source(edited_func, p_port_action_node, i, &from_node, &from_port)) {
 
 				g = _guess_output_type(from_node, from_port, visited_nodes);
 			} else {
@@ -2501,7 +2512,7 @@ VisualScriptNode::TypeGuess VisualScriptEditor::_guess_output_type(int p_node, i
 		in_guesses.push_back(g);
 	}
 
-	return node->guess_output_type(in_guesses.ptr(), p_output);
+	return node->guess_output_type(in_guesses.ptr(), p_port_action_output);
 }
 
 void VisualScriptEditor::_port_action_menu(int p_option) {
@@ -3223,7 +3234,7 @@ VisualScriptEditor::VisualScriptEditor() {
 	members->connect("button_pressed", this, "_member_button");
 	members->connect("item_edited", this, "_member_edited");
 	members->connect("cell_selected", this, "_member_selected", varray(), CONNECT_DEFERRED);
-	members->set_single_select_cell_editing_only_when_already_selected(true);
+	members->set_allow_reselect(true);
 	members->set_hide_folding(true);
 	members->set_drag_forwarding(this);
 
@@ -3268,10 +3279,9 @@ VisualScriptEditor::VisualScriptEditor() {
 	select_func_text->set_valign(Label::VALIGN_CENTER);
 	select_func_text->set_h_size_flags(SIZE_EXPAND_FILL);
 	add_child(select_func_text);
-	graph->set_area_as_parent_rect();
 
 	hint_text = memnew(Label);
-	hint_text->set_anchor_and_margin(MARGIN_TOP, ANCHOR_END, 100);
+	hint_text->set_anchor_and_margin(MARGIN_TOP, ANCHOR_END, -100);
 	hint_text->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 0);
 	hint_text->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 0);
 	hint_text->set_align(Label::ALIGN_CENTER);

@@ -267,6 +267,7 @@ ObjectID SpatialEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, 
 	int selected_handle = -1;
 
 	Vector<Spatial *> subscenes = Vector<Spatial *>();
+	Vector<Vector3> subscenes_positions = Vector<Vector3>();
 
 	for (int i = 0; i < instances.size(); i++) {
 
@@ -284,13 +285,16 @@ ObjectID SpatialEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, 
 		if ((!seg.is_valid()) || found_gizmos.has(seg)) {
 
 			Node *subscene_candidate = spat;
+			Vector3 source_click_spatial_pos = spat->get_global_transform().origin;
 
-			while (subscene_candidate->get_owner() != editor->get_edited_scene())
+			while ((subscene_candidate->get_owner() != NULL) && (subscene_candidate->get_owner() != editor->get_edited_scene()))
 				subscene_candidate = subscene_candidate->get_owner();
 
 			spat = subscene_candidate->cast_to<Spatial>();
-			if (spat && (spat->get_filename() != ""))
+			if (spat && (spat->get_filename() != "") && (subscene_candidate->get_owner() != NULL)) {
 				subscenes.push_back(spat);
+				subscenes_positions.push_back(source_click_spatial_pos);
+			}
 
 			continue;
 		}
@@ -324,7 +328,7 @@ ObjectID SpatialEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, 
 	for (int idx_subscene = 0; idx_subscene < subscenes.size(); idx_subscene++) {
 
 		Spatial *subscene = subscenes.get(idx_subscene);
-		float dist = ray.cross(subscene->get_global_transform().origin - pos).length();
+		float dist = ray.cross(subscenes_positions.get(idx_subscene) - pos).length();
 
 		if ((dist < 0) || (dist > 1.2))
 			continue;
@@ -410,7 +414,7 @@ void SpatialEditorViewport::_find_items_at_pos(const Point2 &p_pos, bool &r_incl
 	results.sort();
 }
 
-Vector3 SpatialEditorViewport::_get_screen_to_space(const Vector3 &p_pos) {
+Vector3 SpatialEditorViewport::_get_screen_to_space(const Vector3 &p_vector3) {
 
 	CameraMatrix cm;
 	cm.set_perspective(get_fov(), get_size().aspect(), get_znear(), get_zfar());
@@ -423,7 +427,7 @@ Vector3 SpatialEditorViewport::_get_screen_to_space(const Vector3 &p_pos) {
 	camera_transform.basis.rotate(Vector3(0, 1, 0), -cursor.y_rot);
 	camera_transform.translate(0, 0, cursor.distance);
 
-	return camera_transform.xform(Vector3(((p_pos.x / get_size().width) * 2.0 - 1.0) * screen_w, ((1.0 - (p_pos.y / get_size().height)) * 2.0 - 1.0) * screen_h, -get_znear()));
+	return camera_transform.xform(Vector3(((p_vector3.x / get_size().width) * 2.0 - 1.0) * screen_w, ((1.0 - (p_vector3.y / get_size().height)) * 2.0 - 1.0) * screen_h, -get_znear()));
 }
 
 void SpatialEditorViewport::_select_region() {
@@ -1449,8 +1453,12 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 
 			case NAVIGATION_ORBIT: {
 				Point2i relative = _get_warped_mouse_motion(m);
-				cursor.x_rot += relative.y / 80.0;
-				cursor.y_rot += relative.x / 80.0;
+
+				real_t degrees_per_pixel = EditorSettings::get_singleton()->get("editors/3d/orbit_sensitivity");
+				real_t radians_per_pixel = Math::deg2rad(degrees_per_pixel);
+
+				cursor.x_rot += relative.y * radians_per_pixel;
+				cursor.y_rot += relative.x * radians_per_pixel;
 				if (cursor.x_rot > Math_PI / 2.0)
 					cursor.x_rot = Math_PI / 2.0;
 				if (cursor.x_rot < -Math_PI / 2.0)
@@ -1464,8 +1472,12 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 				// It technically works too in ortho, but it's awful for a user due to fov being near zero
 				if (!orthogonal) {
 					Point2i relative = _get_warped_mouse_motion(m);
-					cursor.x_rot += relative.y / 120.0;
-					cursor.y_rot += relative.x / 120.0;
+
+					real_t degrees_per_pixel = EditorSettings::get_singleton()->get("editors/3d/orbit_sensitivity");
+					real_t radians_per_pixel = Math::deg2rad(degrees_per_pixel);
+
+					cursor.x_rot += relative.y * radians_per_pixel;
+					cursor.y_rot += relative.x * radians_per_pixel;
 					if (cursor.x_rot > Math_PI / 2.0)
 						cursor.x_rot = Math_PI / 2.0;
 					if (cursor.x_rot < -Math_PI / 2.0)
@@ -2485,7 +2497,7 @@ SpatialEditorViewport::SpatialEditorViewport(SpatialEditor *p_spatial_editor, Ed
 
 	preview_camera = memnew(Button);
 	preview_camera->set_toggle_mode(true);
-	preview_camera->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, 90 * EDSCALE);
+	preview_camera->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, -90 * EDSCALE);
 	preview_camera->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, 10 * EDSCALE);
 	preview_camera->set_text("preview");
 	surface->add_child(preview_camera);
@@ -2893,7 +2905,7 @@ Object *SpatialEditor::_get_editor_data(Object *p_what) {
 	si->sbox_instance = VisualServer::get_singleton()->instance_create2(selection_box->get_rid(), sp->get_world()->get_scenario());
 	VS::get_singleton()->instance_geometry_set_cast_shadows_setting(si->sbox_instance, VS::SHADOW_CASTING_SETTING_OFF);
 
-	if (get_tree()->is_editor_hint())
+	if (Engine::get_singleton()->is_editor_hint())
 		editor->call("edit_node", sp);
 
 	return si;
