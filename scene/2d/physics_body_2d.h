@@ -197,6 +197,7 @@ private:
 	bool _test_motion(const Vector2 &p_motion, float p_margin = 0.08, const Ref<Physics2DTestMotionResult> &p_result = Ref<Physics2DTestMotionResult>());
 
 protected:
+	void _notification(int p_what);
 	static void _bind_methods();
 
 public:
@@ -265,6 +266,8 @@ public:
 
 	Array get_colliding_bodies() const; //function for script
 
+	virtual String get_configuration_warning() const;
+
 	RigidBody2D();
 	~RigidBody2D();
 };
@@ -285,6 +288,12 @@ class KinematicBody2D : public PhysicsBody2D {
 	int collider_shape;
 	Variant collider_metadata;
 	Vector2 travel;
+
+	Vector2 move_and_slide_floor_velocity;
+	bool move_and_slide_on_floor;
+	bool move_and_slide_on_ceiling;
+	bool move_and_slide_on_wall;
+	Array move_and_slide_colliders;
 
 	Variant _get_collider() const;
 
@@ -313,6 +322,12 @@ public:
 
 	void set_collision_margin(float p_margin);
 	float get_collision_margin() const;
+
+	Vector2 move_and_slide(const Vector2 &p_linear_velocity, const Vector2 &p_floor_direction = Vector2(0, 0), float p_slope_stop_min_velocity = 5, int p_max_bounces = 4);
+	bool is_move_and_slide_on_floor() const;
+	bool is_move_and_slide_on_wall() const;
+	bool is_move_and_slide_on_ceiling() const;
+	Array get_move_and_slide_colliders() const;
 
 	KinematicBody2D();
 	~KinematicBody2D();

@@ -857,8 +857,8 @@ void RasterizerGLES2::texture_allocate(RID p_texture, int p_width, int p_height,
 	GLenum internal_format;
 	bool compressed;
 
-	int po2_width = nearest_power_of_2(p_width);
-	int po2_height = nearest_power_of_2(p_height);
+	int po2_width = next_power_of_2(p_width);
+	int po2_height = next_power_of_2(p_height);
 
 	if (p_flags & VS::TEXTURE_FLAG_VIDEO_SURFACE) {
 		p_flags &= ~VS::TEXTURE_FLAG_MIPMAPS; // no mipies for video
@@ -977,7 +977,7 @@ void RasterizerGLES2::texture_set_data(RID p_texture, const Image &p_image, VS::
 		glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // raw Filtering
 	}
 
-	bool force_clamp_to_edge = !(texture->flags & VS::TEXTURE_FLAG_MIPMAPS && !texture->ignore_mipmaps) && (nearest_power_of_2(texture->alloc_height) != texture->alloc_height || nearest_power_of_2(texture->alloc_width) != texture->alloc_width);
+	bool force_clamp_to_edge = !(texture->flags & VS::TEXTURE_FLAG_MIPMAPS && !texture->ignore_mipmaps) && (next_power_of_2(texture->alloc_height) != texture->alloc_height || next_power_of_2(texture->alloc_width) != texture->alloc_width);
 
 	if (!force_clamp_to_edge && (texture->flags & VS::TEXTURE_FLAG_REPEAT || texture->flags & VS::TEXTURE_FLAG_MIRRORED_REPEAT) && texture->target != GL_TEXTURE_CUBE_MAP) {
 
@@ -1234,7 +1234,7 @@ void RasterizerGLES2::texture_set_flags(RID p_texture, uint32_t p_flags) {
 	uint32_t cube = texture->flags & VS::TEXTURE_FLAG_CUBEMAP;
 	texture->flags = p_flags | cube; // can't remove a cube from being a cube
 
-	bool force_clamp_to_edge = !(p_flags & VS::TEXTURE_FLAG_MIPMAPS && !texture->ignore_mipmaps) && (nearest_power_of_2(texture->alloc_height) != texture->alloc_height || nearest_power_of_2(texture->alloc_width) != texture->alloc_width);
+	bool force_clamp_to_edge = !(p_flags & VS::TEXTURE_FLAG_MIPMAPS && !texture->ignore_mipmaps) && (next_power_of_2(texture->alloc_height) != texture->alloc_height || next_power_of_2(texture->alloc_width) != texture->alloc_width);
 
 	if (!force_clamp_to_edge && (texture->flags & VS::TEXTURE_FLAG_REPEAT || texture->flags & VS::TEXTURE_FLAG_MIRRORED_REPEAT) && texture->target != GL_TEXTURE_CUBE_MAP) {
 
@@ -2701,7 +2701,7 @@ void RasterizerGLES2::multimesh_set_instance_count(RID p_multimesh, int p_count)
 
 	if (use_texture_instancing) {
 
-		if (nearest_power_of_2(p_count) != nearest_power_of_2(multimesh->elements.size())) {
+		if (next_power_of_2(p_count) != next_power_of_2(multimesh->elements.size())) {
 			if (multimesh->tex_id) {
 				glDeleteTextures(1, &multimesh->tex_id);
 				multimesh->tex_id = 0;
@@ -2709,7 +2709,7 @@ void RasterizerGLES2::multimesh_set_instance_count(RID p_multimesh, int p_count)
 
 			if (p_count) {
 
-				uint32_t po2 = nearest_power_of_2(p_count);
+				uint32_t po2 = next_power_of_2(p_count);
 				if (po2 & 0xAAAAAAAA) {
 					//half width
 
@@ -3333,7 +3333,7 @@ void RasterizerGLES2::skeleton_resize(RID p_skeleton, int p_bones) {
 	};
 	if (use_hw_skeleton_xform) {
 
-		if (nearest_power_of_2(p_bones) != nearest_power_of_2(skeleton->bones.size())) {
+		if (next_power_of_2(p_bones) != next_power_of_2(skeleton->bones.size())) {
 			if (skeleton->tex_id) {
 				glDeleteTextures(1, &skeleton->tex_id);
 				skeleton->tex_id = 0;
@@ -3344,7 +3344,7 @@ void RasterizerGLES2::skeleton_resize(RID p_skeleton, int p_bones) {
 				glGenTextures(1, &skeleton->tex_id);
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, skeleton->tex_id);
-				int ps = nearest_power_of_2(p_bones * 3);
+				int ps = next_power_of_2(p_bones * 3);
 #ifdef GLEW_ENABLED
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, ps, 1, 0, GL_RGBA, GL_FLOAT, skel_default.ptr());
 #else
@@ -3951,7 +3951,12 @@ void RasterizerGLES2::begin_frame() {
 
 	double time = (OS::get_singleton()->get_ticks_usec() / 1000); // get msec
 	time /= 1000.0; // make secs
-	time_delta = time - last_time;
+	if (frame != 0) {
+		time_delta = time_scale * (time - last_time);
+	} else {
+		time_delta = 0.0f;
+	}
+	scaled_time += time_delta;
 	last_time = time;
 	frame++;
 
@@ -3996,7 +4001,7 @@ void RasterizerGLES2::begin_frame() {
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, s->tex_id);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, nearest_power_of_2(s->bones.size() * 3), 1, GL_RGBA, GL_FLOAT, sk_float);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, next_power_of_2(s->bones.size() * 3), 1, GL_RGBA, GL_FLOAT, sk_float);
 		_skeleton_dirty_list.remove(_skeleton_dirty_list.first());
 	}
 
@@ -4966,7 +4971,7 @@ bool RasterizerGLES2::_setup_material(const Geometry *p_geometry, const Material
 		DEBUG_TEST_ERROR("Material arameters");
 
 		if (p_material->shader_cache->uses_time) {
-			material_shader.set_uniform(MaterialShaderGLES2::TIME, Math::fmod(last_time, shader_time_rollback));
+			material_shader.set_uniform(MaterialShaderGLES2::TIME, Math::fmod(scaled_time, shader_time_rollback));
 			draw_next_frame = true;
 		}
 		//if uses TIME - draw_next_frame=true
@@ -5009,7 +5014,7 @@ bool RasterizerGLES2::_setup_material(const Geometry *p_geometry, const Material
 		material_shader.set_uniform(MaterialShaderGLES2::FOG_COLOR_END, Vector3(col_end.r, col_end.g, col_end.b));
 	}
 
-	//material_shader.set_uniform(MaterialShaderGLES2::TIME,Math::fmod(last_time,300.0));
+	//material_shader.set_uniform(MaterialShaderGLES2::TIME,Math::fmod(scaled_time,300.0));
 	//if uses TIME - draw_next_frame=true
 
 	return rebind;
@@ -8794,7 +8799,7 @@ void RasterizerGLES2::_canvas_item_setup_shader_uniforms(CanvasItemMaterial *mat
 	}
 
 	if (shader->uses_time) {
-		canvas_shader.set_uniform(CanvasShaderGLES2::TIME, Math::fmod(last_time, shader_time_rollback));
+		canvas_shader.set_uniform(CanvasShaderGLES2::TIME, Math::fmod(scaled_time, shader_time_rollback));
 		draw_next_frame = true;
 	}
 	//if uses TIME - draw_next_frame=true
@@ -9369,6 +9374,11 @@ bool RasterizerGLES2::is_shader(const RID &p_rid) const {
 bool RasterizerGLES2::is_canvas_light_occluder(const RID &p_rid) const {
 
 	return false;
+}
+
+void RasterizerGLES2::set_time_scale(float p_scale) {
+
+	time_scale = p_scale;
 }
 
 void RasterizerGLES2::free(const RID &p_rid) {
@@ -10405,6 +10415,7 @@ void RasterizerGLES2::init() {
 #endif
 
 	shader_time_rollback = GLOBAL_DEF("rasterizer/shader_time_rollback", 300);
+	time_scale = 1.0f;
 
 	using_canvas_bg = false;
 	_update_framebuffer();
@@ -10737,6 +10748,7 @@ RasterizerGLES2::RasterizerGLES2(bool p_compress_arrays, bool p_keep_ram_copy, b
 
 	base_framebuffer = 0;
 	frame = 0;
+	scaled_time = 0.0;
 	draw_next_frame = false;
 	use_framebuffers = true;
 	framebuffer.active = false;

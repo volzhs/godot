@@ -260,6 +260,7 @@ ObjectID SpatialEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, 
 	r_includes_current = false;
 
 	List<_RayResult> results;
+	Vector<Spatial *> subscenes = Vector<Spatial *>();
 
 	for (int i = 0; i < instances.size(); i++) {
 
@@ -275,11 +276,18 @@ ObjectID SpatialEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, 
 
 		Ref<SpatialEditorGizmo> seg = spat->get_gizmo();
 
-		if (!seg.is_valid())
-			continue;
+		if (!seg.is_valid() || found_gizmos.has(seg)) {
+			Node *subscene_candidate = spat;
 
-		if (found_gizmos.has(seg))
+			while ((subscene_candidate->get_owner() != NULL) && (subscene_candidate->get_owner() != editor->get_edited_scene()))
+				subscene_candidate = subscene_candidate->get_owner();
+
+			spat = subscene_candidate->cast_to<Spatial>();
+			if (spat && (spat->get_filename() != "") && (subscene_candidate->get_owner() != NULL))
+				subscenes.push_back(spat);
+
 			continue;
+		}
 
 		found_gizmos.insert(seg);
 		Vector3 point;
@@ -303,6 +311,23 @@ ObjectID SpatialEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, 
 		res.item = spat;
 		res.depth = dist;
 		res.handle = handle;
+		results.push_back(res);
+	}
+	for (int idx_subscene = 0; idx_subscene < subscenes.size(); idx_subscene++) {
+
+		Spatial *subscene = subscenes.get(idx_subscene);
+		float dist = ray.cross(subscene->get_global_transform().origin - pos).length();
+
+		if ((dist < 0) || (dist > 1.2))
+			continue;
+
+		if (editor_selection->is_selected(subscene))
+			r_includes_current = true;
+
+		_RayResult res;
+		res.item = subscene;
+		res.depth = dist;
+		res.handle = -1;
 		results.push_back(res);
 	}
 
@@ -739,8 +764,7 @@ void SpatialEditorViewport::_list_select(InputEventMouseButton b) {
 			selection_menu->add_item(spat->get_name());
 			selection_menu->set_item_icon(i, icon);
 			selection_menu->set_item_metadata(i, node_path);
-			selection_menu->set_item_tooltip(i, String(spat->get_name()) +
-														"\nType: " + spat->get_type() + "\nPath: " + node_path);
+			selection_menu->set_item_tooltip(i, String(spat->get_name()) + "\nType: " + spat->get_type() + "\nPath: " + node_path);
 		}
 
 		selection_menu->set_global_pos(Vector2(b.global_x, b.global_y));

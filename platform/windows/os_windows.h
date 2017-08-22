@@ -136,6 +136,8 @@ class OS_Windows : public OS {
 	void _drag_event(int p_x, int p_y, int idx);
 	void _touch_event(bool p_pressed, int p_x, int p_y, int idx);
 
+	void _update_window_style(bool repaint = true);
+
 	// functions used by main to initialize/deintialize the OS
 protected:
 	virtual int get_video_driver_count() const;
@@ -165,21 +167,11 @@ protected:
 	};
 	Map<ProcessID, ProcessInfo> *process_map;
 
-	struct MonitorInfo {
-		HMONITOR hMonitor;
-		HDC hdcMonitor;
-		Rect2 rect;
-		int dpi;
-	};
-
 	bool pre_fs_valid;
 	RECT pre_fs_rect;
-	Vector<MonitorInfo> monitor_info;
 	bool maximized;
 	bool minimized;
 	bool borderless;
-
-	static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData);
 
 public:
 	LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

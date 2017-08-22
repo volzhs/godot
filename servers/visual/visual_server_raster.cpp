@@ -3847,7 +3847,7 @@ void VisualServerRaster::canvas_light_set_shadow_buffer_size(RID p_light, int p_
 
 	ERR_FAIL_COND(p_size < 32 || p_size > 16384);
 
-	clight->shadow_buffer_size = nearest_power_of_2(p_size);
+	clight->shadow_buffer_size = next_power_of_2(p_size);
 
 	if (clight->shadow_buffer.is_valid()) {
 		rasterizer->free(clight->shadow_buffer);
@@ -7015,6 +7015,11 @@ void VisualServerRaster::set_default_clear_color(const Color &p_color) {
 Color VisualServerRaster::get_default_clear_color() const {
 
 	return clear_color;
+}
+
+void VisualServerRaster::set_time_scale(float p_scale) {
+
+	rasterizer->set_time_scale(p_scale);
 }
 
 void VisualServerRaster::set_boot_image(const Image &p_image, const Color &p_color, bool p_scale) {

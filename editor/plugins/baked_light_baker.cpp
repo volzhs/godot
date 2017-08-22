@@ -1217,7 +1217,7 @@ void BakedLightBaker::_make_octree_texture() {
 			base <<= 16;
 			base |= int((pos.z + cell_size * 0.5) / cell_size);
 
-			uint32_t hash = HashMapHahserDefault::hash(base);
+			uint32_t hash = HashMapHasherDefault::hash(base);
 			uint32_t idx = hash % hash_table_size;
 			octhashptr[oct_idx].next = hashptr[idx];
 			octhashptr[oct_idx].hash = hash;
@@ -1243,7 +1243,7 @@ void BakedLightBaker::_make_octree_texture() {
 			base <<= 16;
 			base |= int((pos.z + cell_size * 0.5) / cell_size);
 
-			uint32_t hash = HashMapHahserDefault::hash(base);
+			uint32_t hash = HashMapHasherDefault::hash(base);
 			uint32_t idx = hash % hash_table_size;
 
 			uint32_t bucket = hashptr[idx];
@@ -1333,7 +1333,7 @@ void BakedLightBaker::_make_octree_texture() {
 		} else {
 
 			baked_light_texture_w = otex_w;
-			baked_light_texture_h = nearest_power_of_2(row);
+			baked_light_texture_h = next_power_of_2(row);
 			print_line("w: " + itos(otex_w));
 			print_line("h: " + itos(row));
 			break;
@@ -1419,7 +1419,7 @@ void BakedLightBaker::_make_octree_texture() {
 		}
 	}
 
-	baked_octree_texture_h = nearest_power_of_2(baked_octree_texture_h);
+	baked_octree_texture_h = next_power_of_2(baked_octree_texture_h);
 	print_line("RESULT! " + itos(baked_octree_texture_w) + "," + itos(baked_octree_texture_h));
 }
 
