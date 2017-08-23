@@ -616,7 +616,6 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
 					//do initialization here, when there's OpenGL! hackish but the only way
 					engine->os = new OS_Android(_gfx_init, engine);
 
-					//char *args[]={"-test","gui",NULL};
 					__android_log_print(ANDROID_LOG_INFO, "godot", "pre asdasd setup...");
 #if 0
 				Error err  = Main::setup("apk",2,args);
@@ -834,7 +833,6 @@ void android_main(struct android_app *app) {
 			if (engine.requested_quit) {
 				engine_term_display(&engine);
 				exit(0);
-				return;
 			}
 
 			//     LOGI("end\n");

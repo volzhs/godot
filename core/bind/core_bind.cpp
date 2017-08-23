@@ -151,12 +151,12 @@ void _ResourceSaver::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("save", "path", "resource", "flags"), &_ResourceSaver::save, DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("get_recognized_extensions", "type"), &_ResourceSaver::get_recognized_extensions);
 
-	BIND_CONSTANT(FLAG_RELATIVE_PATHS);
-	BIND_CONSTANT(FLAG_BUNDLE_RESOURCES);
-	BIND_CONSTANT(FLAG_CHANGE_PATH);
-	BIND_CONSTANT(FLAG_OMIT_EDITOR_PROPERTIES);
-	BIND_CONSTANT(FLAG_SAVE_BIG_ENDIAN);
-	BIND_CONSTANT(FLAG_COMPRESS);
+	BIND_ENUM_CONSTANT(FLAG_RELATIVE_PATHS);
+	BIND_ENUM_CONSTANT(FLAG_BUNDLE_RESOURCES);
+	BIND_ENUM_CONSTANT(FLAG_CHANGE_PATH);
+	BIND_ENUM_CONSTANT(FLAG_OMIT_EDITOR_PROPERTIES);
+	BIND_ENUM_CONSTANT(FLAG_SAVE_BIG_ENDIAN);
+	BIND_ENUM_CONSTANT(FLAG_COMPRESS);
 }
 
 _ResourceSaver::_ResourceSaver() {
@@ -978,9 +978,9 @@ void _OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_screen_count"), &_OS::get_screen_count);
 	ClassDB::bind_method(D_METHOD("get_current_screen"), &_OS::get_current_screen);
 	ClassDB::bind_method(D_METHOD("set_current_screen", "screen"), &_OS::set_current_screen);
-	ClassDB::bind_method(D_METHOD("get_screen_position", "screen"), &_OS::get_screen_position, DEFVAL(0));
-	ClassDB::bind_method(D_METHOD("get_screen_size", "screen"), &_OS::get_screen_size, DEFVAL(0));
-	ClassDB::bind_method(D_METHOD("get_screen_dpi", "screen"), &_OS::get_screen_dpi, DEFVAL(0));
+	ClassDB::bind_method(D_METHOD("get_screen_position", "screen"), &_OS::get_screen_position, DEFVAL(-1));
+	ClassDB::bind_method(D_METHOD("get_screen_size", "screen"), &_OS::get_screen_size, DEFVAL(-1));
+	ClassDB::bind_method(D_METHOD("get_screen_dpi", "screen"), &_OS::get_screen_dpi, DEFVAL(-1));
 	ClassDB::bind_method(D_METHOD("get_window_position"), &_OS::get_window_position);
 	ClassDB::bind_method(D_METHOD("set_window_position", "position"), &_OS::set_window_position);
 	ClassDB::bind_method(D_METHOD("get_window_size"), &_OS::get_window_size);
@@ -1104,49 +1104,49 @@ void _OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_power_seconds_left"), &_OS::get_power_seconds_left);
 	ClassDB::bind_method(D_METHOD("get_power_percent_left"), &_OS::get_power_percent_left);
 
-	BIND_CONSTANT(DAY_SUNDAY);
-	BIND_CONSTANT(DAY_MONDAY);
-	BIND_CONSTANT(DAY_TUESDAY);
-	BIND_CONSTANT(DAY_WEDNESDAY);
-	BIND_CONSTANT(DAY_THURSDAY);
-	BIND_CONSTANT(DAY_FRIDAY);
-	BIND_CONSTANT(DAY_SATURDAY);
+	BIND_ENUM_CONSTANT(DAY_SUNDAY);
+	BIND_ENUM_CONSTANT(DAY_MONDAY);
+	BIND_ENUM_CONSTANT(DAY_TUESDAY);
+	BIND_ENUM_CONSTANT(DAY_WEDNESDAY);
+	BIND_ENUM_CONSTANT(DAY_THURSDAY);
+	BIND_ENUM_CONSTANT(DAY_FRIDAY);
+	BIND_ENUM_CONSTANT(DAY_SATURDAY);
 
-	BIND_CONSTANT(MONTH_JANUARY);
-	BIND_CONSTANT(MONTH_FEBRUARY);
-	BIND_CONSTANT(MONTH_MARCH);
-	BIND_CONSTANT(MONTH_APRIL);
-	BIND_CONSTANT(MONTH_MAY);
-	BIND_CONSTANT(MONTH_JUNE);
-	BIND_CONSTANT(MONTH_JULY);
-	BIND_CONSTANT(MONTH_AUGUST);
-	BIND_CONSTANT(MONTH_SEPTEMBER);
-	BIND_CONSTANT(MONTH_OCTOBER);
-	BIND_CONSTANT(MONTH_NOVEMBER);
-	BIND_CONSTANT(MONTH_DECEMBER);
+	BIND_ENUM_CONSTANT(MONTH_JANUARY);
+	BIND_ENUM_CONSTANT(MONTH_FEBRUARY);
+	BIND_ENUM_CONSTANT(MONTH_MARCH);
+	BIND_ENUM_CONSTANT(MONTH_APRIL);
+	BIND_ENUM_CONSTANT(MONTH_MAY);
+	BIND_ENUM_CONSTANT(MONTH_JUNE);
+	BIND_ENUM_CONSTANT(MONTH_JULY);
+	BIND_ENUM_CONSTANT(MONTH_AUGUST);
+	BIND_ENUM_CONSTANT(MONTH_SEPTEMBER);
+	BIND_ENUM_CONSTANT(MONTH_OCTOBER);
+	BIND_ENUM_CONSTANT(MONTH_NOVEMBER);
+	BIND_ENUM_CONSTANT(MONTH_DECEMBER);
 
-	BIND_CONSTANT(SCREEN_ORIENTATION_LANDSCAPE);
-	BIND_CONSTANT(SCREEN_ORIENTATION_PORTRAIT);
-	BIND_CONSTANT(SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
-	BIND_CONSTANT(SCREEN_ORIENTATION_REVERSE_PORTRAIT);
-	BIND_CONSTANT(SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-	BIND_CONSTANT(SCREEN_ORIENTATION_SENSOR_PORTRAIT);
-	BIND_CONSTANT(SCREEN_ORIENTATION_SENSOR);
+	BIND_ENUM_CONSTANT(SCREEN_ORIENTATION_LANDSCAPE);
+	BIND_ENUM_CONSTANT(SCREEN_ORIENTATION_PORTRAIT);
+	BIND_ENUM_CONSTANT(SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+	BIND_ENUM_CONSTANT(SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+	BIND_ENUM_CONSTANT(SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+	BIND_ENUM_CONSTANT(SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+	BIND_ENUM_CONSTANT(SCREEN_ORIENTATION_SENSOR);
 
-	BIND_CONSTANT(SYSTEM_DIR_DESKTOP);
-	BIND_CONSTANT(SYSTEM_DIR_DCIM);
-	BIND_CONSTANT(SYSTEM_DIR_DOCUMENTS);
-	BIND_CONSTANT(SYSTEM_DIR_DOWNLOADS);
-	BIND_CONSTANT(SYSTEM_DIR_MOVIES);
-	BIND_CONSTANT(SYSTEM_DIR_MUSIC);
-	BIND_CONSTANT(SYSTEM_DIR_PICTURES);
-	BIND_CONSTANT(SYSTEM_DIR_RINGTONES);
+	BIND_ENUM_CONSTANT(SYSTEM_DIR_DESKTOP);
+	BIND_ENUM_CONSTANT(SYSTEM_DIR_DCIM);
+	BIND_ENUM_CONSTANT(SYSTEM_DIR_DOCUMENTS);
+	BIND_ENUM_CONSTANT(SYSTEM_DIR_DOWNLOADS);
+	BIND_ENUM_CONSTANT(SYSTEM_DIR_MOVIES);
+	BIND_ENUM_CONSTANT(SYSTEM_DIR_MUSIC);
+	BIND_ENUM_CONSTANT(SYSTEM_DIR_PICTURES);
+	BIND_ENUM_CONSTANT(SYSTEM_DIR_RINGTONES);
 
-	BIND_CONSTANT(POWERSTATE_UNKNOWN);
-	BIND_CONSTANT(POWERSTATE_ON_BATTERY);
-	BIND_CONSTANT(POWERSTATE_NO_BATTERY);
-	BIND_CONSTANT(POWERSTATE_CHARGING);
-	BIND_CONSTANT(POWERSTATE_CHARGED);
+	BIND_ENUM_CONSTANT(POWERSTATE_UNKNOWN);
+	BIND_ENUM_CONSTANT(POWERSTATE_ON_BATTERY);
+	BIND_ENUM_CONSTANT(POWERSTATE_NO_BATTERY);
+	BIND_ENUM_CONSTANT(POWERSTATE_CHARGING);
+	BIND_ENUM_CONSTANT(POWERSTATE_CHARGED);
 }
 
 _OS::_OS() {
@@ -1406,11 +1406,10 @@ Error _File::open_encrypted_pass(const String &p_path, int p_mode_flags, const S
 Error _File::open_compressed(const String &p_path, int p_mode_flags, int p_compress_mode) {
 
 	FileAccessCompressed *fac = memnew(FileAccessCompressed);
-	Error err = OK;
 
 	fac->configure("GCPF", (Compression::Mode)p_compress_mode);
 
-	err = fac->_open(p_path, p_mode_flags);
+	Error err = fac->_open(p_path, p_mode_flags);
 
 	if (err) {
 		memdelete(fac);
@@ -1772,15 +1771,15 @@ void _File::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("file_exists", "path"), &_File::file_exists);
 	ClassDB::bind_method(D_METHOD("get_modified_time", "file"), &_File::get_modified_time);
 
-	BIND_CONSTANT(READ);
-	BIND_CONSTANT(WRITE);
-	BIND_CONSTANT(READ_WRITE);
-	BIND_CONSTANT(WRITE_READ);
+	BIND_ENUM_CONSTANT(READ);
+	BIND_ENUM_CONSTANT(WRITE);
+	BIND_ENUM_CONSTANT(READ_WRITE);
+	BIND_ENUM_CONSTANT(WRITE_READ);
 
-	BIND_CONSTANT(COMPRESSION_FASTLZ);
-	BIND_CONSTANT(COMPRESSION_DEFLATE);
-	BIND_CONSTANT(COMPRESSION_ZSTD);
-	BIND_CONSTANT(COMPRESSION_GZIP);
+	BIND_ENUM_CONSTANT(COMPRESSION_FASTLZ);
+	BIND_ENUM_CONSTANT(COMPRESSION_DEFLATE);
+	BIND_ENUM_CONSTANT(COMPRESSION_ZSTD);
+	BIND_ENUM_CONSTANT(COMPRESSION_GZIP);
 }
 
 _File::_File() {
@@ -2285,9 +2284,9 @@ void _Thread::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_active"), &_Thread::is_active);
 	ClassDB::bind_method(D_METHOD("wait_to_finish"), &_Thread::wait_to_finish);
 
-	BIND_CONSTANT(PRIORITY_LOW);
-	BIND_CONSTANT(PRIORITY_NORMAL);
-	BIND_CONSTANT(PRIORITY_HIGH);
+	BIND_ENUM_CONSTANT(PRIORITY_LOW);
+	BIND_ENUM_CONSTANT(PRIORITY_NORMAL);
+	BIND_ENUM_CONSTANT(PRIORITY_HIGH);
 }
 _Thread::_Thread() {
 
@@ -2534,11 +2533,6 @@ float _Engine::get_frames_per_second() const {
 	return Engine::get_singleton()->get_frames_per_second();
 }
 
-String _Engine::get_custom_level() const {
-
-	return Engine::get_singleton()->get_custom_level();
-}
-
 void _Engine::set_time_scale(float p_scale) {
 	Engine::get_singleton()->set_time_scale(p_scale);
 }
@@ -2587,8 +2581,6 @@ void _Engine::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_time_scale", "time_scale"), &_Engine::set_time_scale);
 	ClassDB::bind_method(D_METHOD("get_time_scale"), &_Engine::get_time_scale);
-
-	ClassDB::bind_method(D_METHOD("get_custom_level"), &_Engine::get_custom_level);
 
 	ClassDB::bind_method(D_METHOD("get_frames_drawn"), &_Engine::get_frames_drawn);
 	ClassDB::bind_method(D_METHOD("get_frames_per_second"), &_Engine::get_frames_per_second);

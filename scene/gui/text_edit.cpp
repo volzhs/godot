@@ -429,7 +429,7 @@ void TextEdit::_notification(int p_what) {
 			if (scrolling && v_scroll->get_value() != target_v_scroll) {
 				double target_y = target_v_scroll - v_scroll->get_value();
 				double dist = sqrt(target_y * target_y);
-				double vel = ((target_y / dist) * 50) * get_fixed_process_delta_time();
+				double vel = ((target_y / dist) * v_scroll_speed) * get_fixed_process_delta_time();
 
 				if (vel >= dist) {
 					v_scroll->set_value(target_v_scroll);
@@ -459,7 +459,7 @@ void TextEdit::_notification(int p_what) {
 			int line_number_char_count = 0;
 
 			{
-				int lc = text.size() + 1;
+				int lc = text.size();
 				cache.line_number_w = 0;
 				while (lc) {
 					cache.line_number_w += 1;
@@ -2880,6 +2880,8 @@ void TextEdit::_post_shift_selection() {
 }
 
 void TextEdit::_scroll_lines_up() {
+	scrolling = false;
+
 	// adjust the vertical scroll
 	if (get_v_scroll() > 0) {
 		set_v_scroll(get_v_scroll() - 1);
@@ -2892,6 +2894,8 @@ void TextEdit::_scroll_lines_up() {
 }
 
 void TextEdit::_scroll_lines_down() {
+	scrolling = false;
+
 	// calculate the maximum vertical scroll position
 	int max_v_scroll = get_line_count() - 1;
 	if (!scroll_past_end_of_file_enabled) {
@@ -3156,6 +3160,7 @@ int TextEdit::get_visible_rows() const {
 	return total;
 }
 void TextEdit::adjust_viewport_to_cursor() {
+	scrolling = false;
 
 	if (cursor.line_ofs > cursor.line)
 		cursor.line_ofs = cursor.line;
@@ -3195,6 +3200,7 @@ void TextEdit::adjust_viewport_to_cursor() {
 }
 
 void TextEdit::center_viewport_to_cursor() {
+	scrolling = false;
 
 	if (cursor.line_ofs > cursor.line)
 		cursor.line_ofs = cursor.line;
@@ -3311,6 +3317,10 @@ void TextEdit::cursor_set_block_mode(const bool p_enable) {
 
 bool TextEdit::cursor_is_block_mode() const {
 	return block_caret;
+}
+
+void TextEdit::_v_scroll_input() {
+	scrolling = false;
 }
 
 void TextEdit::_scroll_moved(double p_to_val) {
@@ -3656,9 +3666,6 @@ void TextEdit::cut() {
 
 void TextEdit::copy() {
 
-	if (!selection.active)
-		return;
-
 	if (!selection.active) {
 		String clipboard = _base_get_text(cursor.line, 0, cursor.line, text[cursor.line].length());
 		OS::get_singleton()->set_clipboard(clipboard);
@@ -3898,10 +3905,8 @@ bool TextEdit::search(const String &p_key, uint32_t p_search_flags, int p_from_l
 
 	//search through the whole documment, but start by current line
 
-	int line = -1;
+	int line = p_from_line;
 	int pos = -1;
-
-	line = p_from_line;
 
 	for (int i = 0; i < text.size() + 1; i++) {
 		//backwards is broken...
@@ -4262,6 +4267,14 @@ void TextEdit::set_smooth_scroll_enabled(bool p_enable) {
 
 bool TextEdit::is_smooth_scroll_enabled() const {
 	return smooth_scroll_enabled;
+}
+
+void TextEdit::set_v_scroll_speed(float p_speed) {
+	v_scroll_speed = p_speed;
+}
+
+float TextEdit::get_v_scroll_speed() const {
+	return v_scroll_speed;
 }
 
 void TextEdit::set_completion(bool p_enabled, const Vector<String> &p_prefixes) {
@@ -4703,10 +4716,11 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_push_current_op"), &TextEdit::_push_current_op);
 	ClassDB::bind_method(D_METHOD("_click_selection_held"), &TextEdit::_click_selection_held);
 	ClassDB::bind_method(D_METHOD("_toggle_draw_caret"), &TextEdit::_toggle_draw_caret);
+	ClassDB::bind_method(D_METHOD("_v_scroll_input"), &TextEdit::_v_scroll_input);
 
-	BIND_CONSTANT(SEARCH_MATCH_CASE);
-	BIND_CONSTANT(SEARCH_WHOLE_WORDS);
-	BIND_CONSTANT(SEARCH_BACKWARDS);
+	BIND_ENUM_CONSTANT(SEARCH_MATCH_CASE);
+	BIND_ENUM_CONSTANT(SEARCH_WHOLE_WORDS);
+	BIND_ENUM_CONSTANT(SEARCH_BACKWARDS);
 
 	/*
     ClassDB::bind_method(D_METHOD("delete_char"),&TextEdit::delete_char);
@@ -4766,6 +4780,8 @@ void TextEdit::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_smooth_scroll_enable", "enable"), &TextEdit::set_smooth_scroll_enabled);
 	ClassDB::bind_method(D_METHOD("is_smooth_scroll_enabled"), &TextEdit::is_smooth_scroll_enabled);
+	ClassDB::bind_method(D_METHOD("set_v_scroll_speed", "speed"), &TextEdit::set_v_scroll_speed);
+	ClassDB::bind_method(D_METHOD("get_v_scroll_speed"), &TextEdit::get_v_scroll_speed);
 
 	ClassDB::bind_method(D_METHOD("add_keyword_color", "keyword", "color"), &TextEdit::add_keyword_color);
 	ClassDB::bind_method(D_METHOD("add_color_region", "begin_key", "end_key", "color", "line_only"), &TextEdit::add_color_region, DEFVAL(false));
@@ -4777,6 +4793,7 @@ void TextEdit::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "show_line_numbers"), "set_show_line_numbers", "is_show_line_numbers_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "highlight_all_occurrences"), "set_highlight_all_occurrences", "is_highlight_all_occurrences_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "smooth_scrolling"), "set_smooth_scroll_enable", "is_smooth_scroll_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "v_scroll_speed"), "set_v_scroll_speed", "get_v_scroll_speed");
 
 	ADD_GROUP("Caret", "caret_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "caret_block_mode"), "cursor_set_block_mode", "cursor_is_block_mode");
@@ -4789,13 +4806,13 @@ void TextEdit::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("breakpoint_toggled", PropertyInfo(Variant::INT, "row")));
 	ADD_SIGNAL(MethodInfo("symbol_lookup", PropertyInfo(Variant::STRING, "symbol"), PropertyInfo(Variant::INT, "row"), PropertyInfo(Variant::INT, "column")));
 
-	BIND_CONSTANT(MENU_CUT);
-	BIND_CONSTANT(MENU_COPY);
-	BIND_CONSTANT(MENU_PASTE);
-	BIND_CONSTANT(MENU_CLEAR);
-	BIND_CONSTANT(MENU_SELECT_ALL);
-	BIND_CONSTANT(MENU_UNDO);
-	BIND_CONSTANT(MENU_MAX);
+	BIND_ENUM_CONSTANT(MENU_CUT);
+	BIND_ENUM_CONSTANT(MENU_COPY);
+	BIND_ENUM_CONSTANT(MENU_PASTE);
+	BIND_ENUM_CONSTANT(MENU_CLEAR);
+	BIND_ENUM_CONSTANT(MENU_SELECT_ALL);
+	BIND_ENUM_CONSTANT(MENU_UNDO);
+	BIND_ENUM_CONSTANT(MENU_MAX);
 
 	GLOBAL_DEF("gui/timers/text_edit_idle_detect_sec", 3);
 }
@@ -4836,6 +4853,8 @@ TextEdit::TextEdit() {
 
 	h_scroll->connect("value_changed", this, "_scroll_moved");
 	v_scroll->connect("value_changed", this, "_scroll_moved");
+
+	v_scroll->connect("scrolling", this, "_v_scroll_input");
 
 	cursor_changed_dirty = false;
 	text_changed_dirty = false;
@@ -4916,6 +4935,7 @@ TextEdit::TextEdit() {
 	smooth_scroll_enabled = false;
 	scrolling = false;
 	target_v_scroll = 0;
+	v_scroll_speed = 80;
 
 	raised_from_completion = false;
 

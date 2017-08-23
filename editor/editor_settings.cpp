@@ -593,6 +593,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	hints["text_editor/theme/color_theme"] = PropertyInfo(Variant::STRING, "text_editor/theme/color_theme", PROPERTY_HINT_ENUM, "Default");
 
 	set("text_editor/theme/line_spacing", 4);
+	set("text_editor/theme/adapted_code_editor_background_color", true);
 
 	_load_default_text_editor_theme();
 
@@ -616,6 +617,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	hints["text_editor/line_numbers/line_length_guideline_column"] = PropertyInfo(Variant::INT, "text_editor/line_numbers/line_length_guideline_column", PROPERTY_HINT_RANGE, "20, 160, 10");
 
 	set("text_editor/open_scripts/smooth_scrolling", true);
+	set("text_editor/open_scripts/v_scroll_speed", 80);
 	set("text_editor/open_scripts/show_members_overview", true);
 
 	set("text_editor/files/trim_trailing_whitespace_on_save", false);

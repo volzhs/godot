@@ -1954,6 +1954,23 @@ void Node::propagate_notification(int p_notification) {
 	data.blocked--;
 }
 
+void Node::propagate_call(const StringName &p_method, const Array &p_args, const bool p_parent_first) {
+
+	data.blocked++;
+
+	if (p_parent_first && has_method(p_method))
+		callv(p_method, p_args);
+
+	for (int i = 0; i < data.children.size(); i++) {
+		data.children[i]->propagate_call(p_method, p_args, p_parent_first);
+	}
+
+	if (!p_parent_first && has_method(p_method))
+		callv(p_method, p_args);
+
+	data.blocked--;
+}
+
 void Node::_propagate_replace_owner(Node *p_owner, Node *p_by_owner) {
 	if (get_owner() == p_owner)
 		set_owner(p_by_owner);
@@ -2761,6 +2778,7 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_filename", "filename"), &Node::set_filename);
 	ClassDB::bind_method(D_METHOD("get_filename"), &Node::get_filename);
 	ClassDB::bind_method(D_METHOD("propagate_notification", "what"), &Node::propagate_notification);
+	ClassDB::bind_method(D_METHOD("propagate_call", "method", "args", "parent_first"), &Node::propagate_call, DEFVAL(Array()), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("set_fixed_process", "enable"), &Node::set_fixed_process);
 	ClassDB::bind_method(D_METHOD("get_fixed_process_delta_time"), &Node::get_fixed_process_delta_time);
 	ClassDB::bind_method(D_METHOD("is_fixed_processing"), &Node::is_fixed_processing);
@@ -2858,20 +2876,20 @@ void Node::_bind_methods() {
 	BIND_CONSTANT(NOTIFICATION_INTERNAL_PROCESS);
 	BIND_CONSTANT(NOTIFICATION_INTERNAL_FIXED_PROCESS);
 
-	BIND_CONSTANT(RPC_MODE_DISABLED);
-	BIND_CONSTANT(RPC_MODE_REMOTE);
-	BIND_CONSTANT(RPC_MODE_SYNC);
-	BIND_CONSTANT(RPC_MODE_MASTER);
-	BIND_CONSTANT(RPC_MODE_SLAVE);
+	BIND_ENUM_CONSTANT(RPC_MODE_DISABLED);
+	BIND_ENUM_CONSTANT(RPC_MODE_REMOTE);
+	BIND_ENUM_CONSTANT(RPC_MODE_SYNC);
+	BIND_ENUM_CONSTANT(RPC_MODE_MASTER);
+	BIND_ENUM_CONSTANT(RPC_MODE_SLAVE);
 
-	BIND_CONSTANT(PAUSE_MODE_INHERIT);
-	BIND_CONSTANT(PAUSE_MODE_STOP);
-	BIND_CONSTANT(PAUSE_MODE_PROCESS);
+	BIND_ENUM_CONSTANT(PAUSE_MODE_INHERIT);
+	BIND_ENUM_CONSTANT(PAUSE_MODE_STOP);
+	BIND_ENUM_CONSTANT(PAUSE_MODE_PROCESS);
 
-	BIND_CONSTANT(DUPLICATE_SIGNALS);
-	BIND_CONSTANT(DUPLICATE_GROUPS);
-	BIND_CONSTANT(DUPLICATE_SCRIPTS);
-	BIND_CONSTANT(DUPLICATE_USE_INSTANCING);
+	BIND_ENUM_CONSTANT(DUPLICATE_SIGNALS);
+	BIND_ENUM_CONSTANT(DUPLICATE_GROUPS);
+	BIND_ENUM_CONSTANT(DUPLICATE_SCRIPTS);
+	BIND_ENUM_CONSTANT(DUPLICATE_USE_INSTANCING);
 
 	ADD_SIGNAL(MethodInfo("renamed"));
 	ADD_SIGNAL(MethodInfo("tree_entered"));

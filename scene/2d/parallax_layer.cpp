@@ -36,6 +36,9 @@ void ParallaxLayer::set_motion_scale(const Size2 &p_scale) {
 
 	motion_scale = p_scale;
 
+	if (!get_parent())
+		return;
+
 	ParallaxBackground *pb = get_parent()->cast_to<ParallaxBackground>();
 	if (is_inside_tree() && pb) {
 		Vector2 ofs = pb->get_final_offset();
@@ -52,6 +55,9 @@ Size2 ParallaxLayer::get_motion_scale() const {
 void ParallaxLayer::set_motion_offset(const Size2 &p_offset) {
 
 	motion_offset = p_offset;
+
+	if (!get_parent())
+		return;
 
 	ParallaxBackground *pb = get_parent()->cast_to<ParallaxBackground>();
 	if (is_inside_tree() && pb) {

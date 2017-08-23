@@ -31,9 +31,11 @@
 
 #include "core/io/resource_loader.h"
 #include "editor_fonts.h"
-#include "editor_icons.h"
+#include "editor_icons.gen.h"
 #include "editor_scale.h"
 #include "editor_settings.h"
+#include "modules/svg/image_loader_svg.h"
+#include "time.h"
 
 static Ref<StyleBoxTexture> make_stylebox(Ref<Texture> texture, float p_left, float p_top, float p_right, float p_botton, float p_margin_left = -1, float p_margin_top = -1, float p_margin_right = -1, float p_margin_botton = -1, bool p_draw_center = true) {
 	Ref<StyleBoxTexture> style(memnew(StyleBoxTexture));
@@ -84,27 +86,47 @@ static Ref<StyleBoxFlat> change_border_color(Ref<StyleBoxFlat> p_style, Color p_
 	return style;
 }
 
-static Ref<StyleBoxFlat> add_additional_border(Ref<StyleBoxFlat> p_style, int p_left, int p_top, int p_right, int p_bottom) {
-	Ref<StyleBoxFlat> style = p_style->duplicate();
-	style->set_border_width(MARGIN_LEFT, p_left * EDSCALE + style->get_border_width(MARGIN_LEFT));
-	style->set_border_width(MARGIN_RIGHT, p_right * EDSCALE + style->get_border_width(MARGIN_RIGHT));
-	style->set_border_width(MARGIN_TOP, p_top * EDSCALE + style->get_border_width(MARGIN_TOP));
-	style->set_border_width(MARGIN_BOTTOM, p_bottom * EDSCALE + style->get_border_width(MARGIN_BOTTOM));
-	style->set_expand_margin_size(MARGIN_LEFT, p_left * EDSCALE);
-	style->set_expand_margin_size(MARGIN_RIGHT, p_right * EDSCALE);
-	style->set_expand_margin_size(MARGIN_TOP, p_top * EDSCALE);
-	style->set_expand_margin_size(MARGIN_BOTTOM, p_bottom * EDSCALE);
-	return style;
-}
-
 #define HIGHLIGHT_COLOR_LIGHT highlight_color.linear_interpolate(Color(1, 1, 1, 1), 0.3)
 #define HIGHLIGHT_COLOR_DARK highlight_color.linear_interpolate(Color(0, 0, 0, 1), 0.5)
 
-Ref<Theme> create_editor_theme() {
+Ref<ImageTexture> editor_generate_icon(int p_index, bool dark_theme = true) {
+	Ref<ImageTexture> icon = memnew(ImageTexture);
+	Ref<Image> img = memnew(Image);
+
+	ImageLoaderSVG::create_image_from_string(img, dark_theme ? editor_icons_sources[p_index] : editor_icons_sources_dark[p_index], EDSCALE, true);
+	if ((EDSCALE - (float)((int)EDSCALE)) > 0.0)
+		icon->create_from_image(img); // in this case filter really helps
+	else
+		icon->create_from_image(img, 0);
+
+	return icon;
+}
+
+void editor_register_icons(Ref<Theme> p_theme, bool dark_theme = true) {
+
+#ifdef SVG_ENABLED
+	print_line(rtos(EDSCALE));
+
+	clock_t begin_time = clock();
+
+	for (int i = 0; i < editor_icons_count; i++) {
+
+		Ref<ImageTexture> icon = editor_generate_icon(i, dark_theme);
+		p_theme->set_icon(editor_icons_names[i], "EditorIcons", icon);
+	}
+	clock_t end_time = clock();
+	double time_d = (double)(end_time - begin_time) / CLOCKS_PER_SEC;
+	print_line("SVG_GENERATION TIME: " + rtos(time_d));
+#else
+	print_line("Sorry no icons for you");
+#endif
+}
+
+Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
+
 	Ref<Theme> theme = Ref<Theme>(memnew(Theme));
 
 	editor_register_fonts(theme);
-	editor_register_icons(theme);
 
 	const float default_contrast = 0.25;
 
@@ -153,10 +175,21 @@ Ref<Theme> create_editor_theme() {
 		title_color_hl = base_color.linear_interpolate(Color(1, 1, 1, 1), contrast / default_contrast / 10);
 	bool dark_bg = ((title_color_hl.r + title_color_hl.g + title_color_hl.b) / 3.0) < 0.5;
 	Color title_color_hl_text_color = dark_bg ? Color(1, 1, 1, 0.9) : Color(0, 0, 0, 0.9);
-	Ref<Texture> title_hl_close_icon = theme->get_icon((dark_bg ? "GuiCloseLight" : "GuiCloseDark"), "EditorIcons");
 
-	bool dark_base = ((base_color.r + base_color.g + base_color.b) / 3.0) < 0.5;
-	Color separator_color = dark_base ? Color(1, 1, 1, 0.1) : Color(0, 0, 0, 0.1);
+	bool dark_theme = ((base_color.r + base_color.g + base_color.b) / 3.0) < 0.5;
+	Color separator_color = dark_theme ? Color(1, 1, 1, 0.1) : Color(0, 0, 0, 0.1);
+
+	// the resolution or the dark theme parameter has not changed, so we do not regenerate the icons
+	if (p_theme != NULL && fabs(p_theme->get_constant("scale", "Editor") - EDSCALE) < 0.00001 && p_theme->get_constant("dark_theme", "Editor") == dark_theme) {
+		for (int i = 0; i < editor_icons_count; i++) {
+			theme->set_icon(editor_icons_names[i], "EditorIcons", p_theme->get_icon(editor_icons_names[i], "EditorIcons"));
+		}
+	} else {
+		editor_register_icons(theme, dark_theme);
+	}
+
+	theme->set_constant("scale", "Editor", EDSCALE);
+	theme->set_constant("dark_theme", "Editor", dark_theme);
 
 	theme->set_color("highlight_color", "Editor", highlight_color);
 	theme->set_color("base_color", "Editor", base_color);
@@ -342,7 +375,7 @@ Ref<Theme> create_editor_theme() {
 	theme->set_color("prop_section", "Editor", dark_color_1.linear_interpolate(Color(1, 1, 1, 1), 0.09));
 	theme->set_color("prop_subsection", "Editor", dark_color_1.linear_interpolate(Color(1, 1, 1, 1), 0.06));
 	theme->set_color("fg_selected", "Editor", HIGHLIGHT_COLOR_DARK);
-	theme->set_color("fg_error", "Editor", Color::html("ffbd8e8e"));
+	theme->set_color("fg_error", "Editor", theme->get_color("error_color", "Editor"));
 	theme->set_color("drop_position_color", "Tree", highlight_color);
 
 	// ItemList
@@ -377,7 +410,9 @@ Ref<Theme> create_editor_theme() {
 	theme->set_icon("menu_hl", "TabContainer", theme->get_icon("GuiTabMenu", "EditorIcons"));
 	theme->set_stylebox("SceneTabFG", "EditorStyles", make_flat_stylebox(title_color_hl, 10, 5, 10, 5));
 	theme->set_stylebox("SceneTabBG", "EditorStyles", make_empty_stylebox(6, 5, 6, 5));
-	theme->set_icon("close", "Tabs", title_hl_close_icon);
+	theme->set_icon("close", "Tabs", theme->get_icon("GuiClose", "EditorIcons"));
+	theme->set_stylebox("button_pressed", "Tabs", style_menu);
+	theme->set_stylebox("button", "Tabs", style_menu);
 
 	// Separators (no separators)
 	theme->set_stylebox("separator", "HSeparator", make_line_stylebox(separator_color, border_width));
@@ -434,8 +469,8 @@ Ref<Theme> create_editor_theme() {
 	style_window->set_expand_margin_size(MARGIN_TOP, 24 * EDSCALE);
 	theme->set_stylebox("panel", "WindowDialog", style_window);
 	theme->set_color("title_color", "WindowDialog", title_color_hl_text_color);
-	theme->set_icon("close", "WindowDialog", title_hl_close_icon);
-	theme->set_icon("close_highlight", "WindowDialog", title_hl_close_icon);
+	theme->set_icon("close", "WindowDialog", theme->get_icon("GuiClose", "EditorIcons"));
+	theme->set_icon("close_highlight", "WindowDialog", theme->get_icon("GuiClose", "EditorIcons"));
 	theme->set_constant("close_h_ofs", "WindowDialog", 22 * EDSCALE);
 	theme->set_constant("close_v_ofs", "WindowDialog", 20 * EDSCALE);
 	theme->set_constant("title_height", "WindowDialog", 24 * EDSCALE);
@@ -491,7 +526,8 @@ Ref<Theme> create_editor_theme() {
 	// PopupPanel
 	Ref<StyleBoxFlat> style_dock_select = make_flat_stylebox(base_color);
 	style_dock_select->set_border_color_all(light_color_1);
-	style_dock_select = add_additional_border(style_dock_select, 2, 2, 2, 2);
+	style_dock_select->set_expand_margin_size_all(2);
+	style_dock_select->set_border_width_all(2);
 	theme->set_stylebox("panel", "PopupPanel", style_dock_select);
 
 	// SpinBox
@@ -513,19 +549,19 @@ Ref<Theme> create_editor_theme() {
 	Ref<StyleBoxFlat> graphsb = make_flat_stylebox(Color(0, 0, 0, 0.3), 16, 24, 16, 5);
 	graphsb->set_border_width_all(border_width);
 	graphsb->set_border_color_all(Color(1, 1, 1, 0.6));
-	graphsb = add_additional_border(graphsb, 0, -22, 0, 0);
+	graphsb->set_border_width(MARGIN_TOP, 22 * EDSCALE + border_width);
 	Ref<StyleBoxFlat> graphsbselected = make_flat_stylebox(Color(0, 0, 0, 0.4), 16, 24, 16, 5);
 	graphsbselected->set_border_width_all(border_width);
 	graphsbselected->set_border_color_all(Color(1, 1, 1, 0.9));
-	graphsbselected = add_additional_border(graphsbselected, 0, -22, 0, 0);
+	graphsbselected->set_border_width(MARGIN_TOP, 22 * EDSCALE + border_width);
 	Ref<StyleBoxFlat> graphsbcomment = make_flat_stylebox(Color(0, 0, 0, 0.3), 16, 24, 16, 5);
 	graphsbcomment->set_border_width_all(border_width);
 	graphsbcomment->set_border_color_all(Color(1, 1, 1, 0.6));
-	graphsbcomment = add_additional_border(graphsbcomment, 0, -22, 0, 0);
+	graphsbcomment->set_border_width(MARGIN_TOP, 22 * EDSCALE + border_width);
 	Ref<StyleBoxFlat> graphsbcommentselected = make_flat_stylebox(Color(0, 0, 0, 0.4), 16, 24, 16, 5);
 	graphsbcommentselected->set_border_width_all(border_width);
 	graphsbcommentselected->set_border_color_all(Color(1, 1, 1, 0.9));
-	graphsbcommentselected = add_additional_border(graphsbcommentselected, 0, -22, 0, 0);
+	graphsbcommentselected->set_border_width(MARGIN_TOP, 22 * EDSCALE + border_width);
 	theme->set_stylebox("frame", "GraphNode", graphsb);
 	theme->set_stylebox("selectedframe", "GraphNode", graphsbselected);
 	theme->set_stylebox("comment", "GraphNode", graphsbcomment);

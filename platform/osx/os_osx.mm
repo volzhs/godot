@@ -137,6 +137,11 @@ static bool mouse_down_control = false;
 	//_GodotInputMonitorChange();
 }
 
+- (void)showAbout:(id)sender {
+	if (OS_OSX::singleton->get_main_loop())
+		OS_OSX::singleton->get_main_loop()->notification(MainLoop::NOTIFICATION_WM_ABOUT);
+}
+
 @end
 
 @interface GodotWindowDelegate : NSObject {
@@ -1428,6 +1433,10 @@ void OS_OSX::set_current_screen(int p_screen) {
 };
 
 Point2 OS_OSX::get_screen_position(int p_screen) const {
+	if (p_screen == -1) {
+		p_screen = get_current_screen();
+	}
+
 	NSArray *screenArray = [NSScreen screens];
 	if (p_screen < [screenArray count]) {
 		float displayScale = 1.0;
@@ -1444,6 +1453,10 @@ Point2 OS_OSX::get_screen_position(int p_screen) const {
 }
 
 int OS_OSX::get_screen_dpi(int p_screen) const {
+	if (p_screen == -1) {
+		p_screen = get_current_screen();
+	}
+
 	NSArray *screenArray = [NSScreen screens];
 	if (p_screen < [screenArray count]) {
 		float displayScale = 1.0;
@@ -1464,6 +1477,10 @@ int OS_OSX::get_screen_dpi(int p_screen) const {
 }
 
 Size2 OS_OSX::get_screen_size(int p_screen) const {
+	if (p_screen == -1) {
+		p_screen = get_current_screen();
+	}
+
 	NSArray *screenArray = [NSScreen screens];
 	if (p_screen < [screenArray count]) {
 		float displayScale = 1.0;
@@ -1514,9 +1531,14 @@ Point2 OS_OSX::get_window_position() const {
 
 void OS_OSX::set_window_position(const Point2 &p_position) {
 
-	Point2 size = p_position;
-	size /= display_scale;
-	[window_object setFrame:NSMakeRect(size.x, size.y, [window_object frame].size.width, [window_object frame].size.height) display:YES];
+	Size2 scr = get_screen_size();
+	NSPoint pos;
+
+	pos.x = p_position.x / display_scale;
+	// For OS X the y starts at the bottom
+	pos.y = (scr.height - p_position.y) / display_scale;
+
+	[window_object setFrameTopLeftPoint:pos];
 
 	_update_window();
 };
@@ -1897,7 +1919,7 @@ OS_OSX::OS_OSX() {
 	// Setup Apple menu
 	NSMenu *apple_menu = [[NSMenu alloc] initWithTitle:@""];
 	title = [NSString stringWithFormat:NSLocalizedString(@"About %@", nil), nsappname];
-	[apple_menu addItemWithTitle:title action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
+	[apple_menu addItemWithTitle:title action:@selector(showAbout:) keyEquivalent:@""];
 
 	[apple_menu addItem:[NSMenuItem separatorItem]];
 

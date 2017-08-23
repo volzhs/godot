@@ -75,9 +75,14 @@ void ScriptTextEditor::_load_theme_settings() {
 
 	text_edit->clear_colors();
 
-	/* keyword color */
+	/* color from color_theme or from editor color */
 
-	text_edit->add_color_override("background_color", EDITOR_DEF("text_editor/highlighting/background_color", Color(0, 0, 0, 0)));
+	Color background_color = EDITOR_DEF("text_editor/highlighting/background_color", Color(0, 0, 0, 0));
+	if (EDITOR_DEF("text_editor/theme/adapted_code_editor_background_color", false))
+		background_color = get_color("dark_color_1", "Editor");
+
+	/* keyword color */
+	text_edit->add_color_override("background_color", background_color);
 	text_edit->add_color_override("completion_background_color", EDITOR_DEF("text_editor/highlighting/completion_background_color", Color(0, 0, 0, 0)));
 	text_edit->add_color_override("completion_selected_color", EDITOR_DEF("text_editor/highlighting/completion_selected_color", Color::html("434244")));
 	text_edit->add_color_override("completion_existing_color", EDITOR_DEF("text_editor/highlighting/completion_existing_color", Color::html("21dfdfdf")));
@@ -972,16 +977,27 @@ void ScriptTextEditor::_edit_option(int p_op) {
 			Ref<Script> scr = get_edited_script();
 			if (scr.is_null())
 				return;
+
+			te->begin_complex_operation();
 			int begin, end;
 			if (te->is_selection_active()) {
 				begin = te->get_selection_from_line();
 				end = te->get_selection_to_line();
+				// ignore if the cursor is not past the first column
+				if (te->get_selection_to_column() == 0) {
+					end--;
+				}
 			} else {
 				begin = 0;
 				end = te->get_line_count() - 1;
 			}
 			scr->get_language()->auto_indent_code(text, begin, end);
-			te->set_text(text);
+			Vector<String> lines = text.split("\n");
+			for (int i = begin; i <= end; ++i) {
+				te->set_line(i, lines[i]);
+			}
+
+			te->end_complex_operation();
 
 		} break;
 		case EDIT_TRIM_TRAILING_WHITESAPCE: {

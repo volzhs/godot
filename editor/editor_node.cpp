@@ -336,7 +336,7 @@ void EditorNode::_notification(int p_what) {
 	if (p_what == EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED) {
 		scene_tabs->set_tab_close_display_policy((bool(EDITOR_DEF("interface/always_show_close_button_in_scene_tabs", false)) ? Tabs::CLOSE_BUTTON_SHOW_ALWAYS : Tabs::CLOSE_BUTTON_SHOW_ACTIVE_ONLY));
 		property_editor->set_enable_capitalize_paths(bool(EDITOR_DEF("interface/capitalize_properties", true)));
-		Ref<Theme> theme = create_editor_theme();
+		Ref<Theme> theme = create_editor_theme(theme_base->get_theme());
 		theme_base->set_theme(theme);
 		gui_base->add_style_override("panel", gui_base->get_stylebox("Background", "EditorStyles"));
 		play_button_panel->add_style_override("panel", gui_base->get_stylebox("PlayButtonPanel", "EditorStyles"));
@@ -1851,47 +1851,6 @@ void EditorNode::_run(bool p_current, const String &p_custom) {
 	_playing_edited = p_current;
 }
 
-void EditorNode::_cleanup_scene() {
-
-#if 0
-	Node *scene = editor_data.get_edited_scene_root();
-	editor_selection->clear();
-	editor_data.clear_editor_states();
-	editor_history.clear();
-	_hide_top_editors();
-	animation_editor->cleanup();
-	property_editor->edit(NULL);
-	resources_dock->cleanup();
-	scene_import_metadata.unref();
-	//set_edited_scene(NULL);
-	if (scene) {
-		if (scene->get_filename()!="") {
-			previous_scenes.push_back(scene->get_filename());
-		}
-
-		memdelete(scene);
-	}
-	editor_data.get_undo_redo().clear_history();
-	saved_version=editor_data.get_undo_redo().get_version();
-	run_settings_dialog->set_run_mode(0);
-	run_settings_dialog->set_custom_arguments("-l $scene");
-
-	List<Ref<Resource> > cached;
-	ResourceCache::get_cached_resources(&cached);
-
-	for(List<Ref<Resource> >::Element *E=cached.front();E;E=E->next()) {
-
-		String path = E->get()->get_path();
-		if (path.is_resource_file()) {
-			ERR_PRINT(("Stray resource not cleaned:"+path).utf8().get_data());
-		}
-
-	}
-
-	_update_title();
-#endif
-}
-
 void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 
 	//print_line("option "+itos(p_option)+" confirm "+itos(p_confirmed));
@@ -1914,8 +1873,6 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			int idx = editor_data.add_edited_scene(-1);
 			_scene_tab_changed(idx);
 			editor_data.clear_editor_states();
-
-			//_cleanup_scene();
 
 		} break;
 		case FILE_NEW_INHERITED_SCENE:
@@ -2737,8 +2694,6 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 
 				import_reload_fn = scene->get_filename();
 				_save_scene(import_reload_fn);
-				_cleanup_scene();
-
 
 			}
 
@@ -2824,9 +2779,9 @@ void EditorNode::_discard_changes(const String &p_str) {
 			String exec = OS::get_singleton()->get_executable_path();
 
 			List<String> args;
-			args.push_back("-path");
+			args.push_back("--path");
 			args.push_back(exec.get_base_dir());
-			args.push_back("-pm");
+			args.push_back("--project-manager");
 
 			OS::ProcessID pid = 0;
 			Error err = OS::get_singleton()->execute(exec, args, false, &pid);
@@ -3327,8 +3282,6 @@ Error EditorNode::load_scene(const String &p_scene, bool p_ignore_broken_deps, b
 	} else {
 		_scene_tab_changed(idx);
 	}
-
-	//_cleanup_scene(); // i'm sorry but this MUST happen to avoid modified resources to not be reloaded.
 
 	dependency_errors.clear();
 
@@ -5242,7 +5195,7 @@ EditorNode::EditorNode() {
 	main_vbox = memnew(VBoxContainer);
 	gui_base->add_child(main_vbox);
 	main_vbox->set_area_as_parent_rect(8);
-	main_vbox->set_margin(MARGIN_TOP, 5);
+	main_vbox->set_margin(MARGIN_TOP, 5 * EDSCALE);
 
 	menu_hb = memnew(HBoxContainer);
 	main_vbox->add_child(menu_hb);
@@ -5657,7 +5610,7 @@ EditorNode::EditorNode() {
 	play_hb->add_child(stop_button);
 	//stop_button->set_toggle_mode(true);
 	stop_button->set_focus_mode(Control::FOCUS_NONE);
-	stop_button->set_icon(gui_base->get_icon("MainStop", "EditorIcons"));
+	stop_button->set_icon(gui_base->get_icon("Stop", "EditorIcons"));
 	stop_button->connect("pressed", this, "_menu_option", make_binds(RUN_STOP));
 	stop_button->set_tooltip(TTR("Stop the scene."));
 	stop_button->set_shortcut(ED_SHORTCUT("editor/stop", TTR("Stop"), KEY_F8));

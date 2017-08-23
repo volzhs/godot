@@ -259,6 +259,7 @@ class TextEdit : public Control {
 	bool smooth_scroll_enabled;
 	bool scrolling;
 	float target_v_scroll;
+	float v_scroll_speed;
 
 	bool raised_from_completion;
 
@@ -298,6 +299,7 @@ class TextEdit : public Control {
 	void adjust_viewport_to_cursor();
 	void _scroll_moved(double);
 	void _update_scrollbars();
+	void _v_scroll_input();
 	void _click_selection_held();
 
 	void _pre_shift_selection();
@@ -494,6 +496,9 @@ public:
 	void set_smooth_scroll_enabled(bool p_enable);
 	bool is_smooth_scroll_enabled() const;
 
+	void set_v_scroll_speed(float p_speed);
+	float get_v_scroll_speed() const;
+
 	uint32_t get_version() const;
 	uint32_t get_saved_version() const;
 	void tag_saved_version();
@@ -534,5 +539,8 @@ public:
 	TextEdit();
 	~TextEdit();
 };
+
+VARIANT_ENUM_CAST(TextEdit::MenuItems);
+VARIANT_ENUM_CAST(TextEdit::SearchFlags);
 
 #endif // TEXT_EDIT_H

@@ -1894,7 +1894,26 @@ GDParser::PatternNode *GDParser::_parse_pattern(bool p_static) {
 				return NULL;
 			}
 
-			if (value->type != Node::TYPE_IDENTIFIER && value->type != Node::TYPE_CONSTANT) {
+			if (value->type == Node::TYPE_OPERATOR) {
+				// Maybe it's SomeEnum.VALUE
+				Node *current_value = value;
+
+				while (current_value->type == Node::TYPE_OPERATOR) {
+					OperatorNode *op_node = static_cast<OperatorNode *>(current_value);
+
+					if (op_node->op != OperatorNode::OP_INDEX_NAMED) {
+						_set_error("Invalid operator in pattern. Only index (`A.B`) is allowed");
+						return NULL;
+					}
+					current_value = op_node->arguments[0];
+				}
+
+				if (current_value->type != Node::TYPE_IDENTIFIER) {
+					_set_error("Only constant expression or variables allowed in a pattern");
+					return NULL;
+				}
+
+			} else if (value->type != Node::TYPE_IDENTIFIER && value->type != Node::TYPE_CONSTANT) {
 				_set_error("Only constant expressions or variables allowed in a pattern");
 				return NULL;
 			}
@@ -2381,9 +2400,7 @@ void GDParser::_parse_block(BlockNode *p_block, bool p_static) {
 				if (tokenizer->get_token() == GDTokenizer::TK_OP_ASSIGN) {
 
 					tokenizer->advance();
-					Node *subexpr = NULL;
-
-					subexpr = _parse_and_reduce_expression(p_block, p_static);
+					Node *subexpr = _parse_and_reduce_expression(p_block, p_static);
 					if (!subexpr) {
 						if (_recover_from_completion()) {
 							break;
@@ -3135,9 +3152,7 @@ void GDParser::_parse_class(ClassNode *p_class) {
 						if (tokenizer->get_token() == GDTokenizer::TK_OP_ASSIGN) {
 							defaulting = true;
 							tokenizer->advance(1);
-							Node *defval = NULL;
-
-							defval = _parse_and_reduce_expression(p_class, _static);
+							Node *defval = _parse_and_reduce_expression(p_class, _static);
 							if (!defval || error_set)
 								return;
 
@@ -3875,9 +3890,7 @@ void GDParser::_parse_class(ClassNode *p_class) {
 #endif
 					tokenizer->advance();
 
-					Node *subexpr = NULL;
-
-					subexpr = _parse_and_reduce_expression(p_class, false, autoexport);
+					Node *subexpr = _parse_and_reduce_expression(p_class, false, autoexport);
 					if (!subexpr) {
 						if (_recover_from_completion()) {
 							break;
@@ -4035,9 +4048,7 @@ void GDParser::_parse_class(ClassNode *p_class) {
 
 				tokenizer->advance();
 
-				Node *subexpr = NULL;
-
-				subexpr = _parse_and_reduce_expression(p_class, true, true);
+				Node *subexpr = _parse_and_reduce_expression(p_class, true, true);
 				if (!subexpr) {
 					if (_recover_from_completion()) {
 						break;
@@ -4103,9 +4114,7 @@ void GDParser::_parse_class(ClassNode *p_class) {
 						if (tokenizer->get_token() == GDTokenizer::TK_OP_ASSIGN) {
 							tokenizer->advance();
 
-							Node *subexpr = NULL;
-
-							subexpr = _parse_and_reduce_expression(p_class, true, true);
+							Node *subexpr = _parse_and_reduce_expression(p_class, true, true);
 							if (!subexpr) {
 								if (_recover_from_completion()) {
 									break;

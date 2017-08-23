@@ -38,6 +38,7 @@
 #include <stdio.h>
 //#include "servers/spatial_sound_2d_server.h"
 
+#include "editor/editor_node.h"
 #include "io/marshalls.h"
 #include "io/resource_loader.h"
 #include "scene/resources/material.h"
@@ -624,6 +625,19 @@ void SceneTree::_notification(int p_notification) {
 
 			notify_group_flags(GROUP_CALL_REALTIME | GROUP_CALL_MULTILEVEL, "input", NOTIFICATION_WM_UNFOCUS_REQUEST);
 
+		} break;
+
+		case NOTIFICATION_WM_ABOUT: {
+
+#ifdef TOOLS_ENABLED
+			if (EditorNode::get_singleton()) {
+				EditorNode::get_singleton()->show_about();
+			} else {
+#endif
+				get_root()->propagate_notification(p_notification);
+#ifdef TOOLS_ENABLED
+			}
+#endif
 		} break;
 
 		default:
@@ -2191,18 +2205,19 @@ void SceneTree::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("connection_failed"));
 	ADD_SIGNAL(MethodInfo("server_disconnected"));
 
-	BIND_CONSTANT(GROUP_CALL_DEFAULT);
-	BIND_CONSTANT(GROUP_CALL_REVERSE);
-	BIND_CONSTANT(GROUP_CALL_REALTIME);
-	BIND_CONSTANT(GROUP_CALL_UNIQUE);
+	BIND_ENUM_CONSTANT(GROUP_CALL_DEFAULT);
+	BIND_ENUM_CONSTANT(GROUP_CALL_REVERSE);
+	BIND_ENUM_CONSTANT(GROUP_CALL_REALTIME);
+	BIND_ENUM_CONSTANT(GROUP_CALL_UNIQUE);
 
-	BIND_CONSTANT(STRETCH_MODE_DISABLED);
-	BIND_CONSTANT(STRETCH_MODE_2D);
-	BIND_CONSTANT(STRETCH_MODE_VIEWPORT);
-	BIND_CONSTANT(STRETCH_ASPECT_IGNORE);
-	BIND_CONSTANT(STRETCH_ASPECT_KEEP);
-	BIND_CONSTANT(STRETCH_ASPECT_KEEP_WIDTH);
-	BIND_CONSTANT(STRETCH_ASPECT_KEEP_HEIGHT);
+	BIND_ENUM_CONSTANT(STRETCH_MODE_DISABLED);
+	BIND_ENUM_CONSTANT(STRETCH_MODE_2D);
+	BIND_ENUM_CONSTANT(STRETCH_MODE_VIEWPORT);
+
+	BIND_ENUM_CONSTANT(STRETCH_ASPECT_IGNORE);
+	BIND_ENUM_CONSTANT(STRETCH_ASPECT_KEEP);
+	BIND_ENUM_CONSTANT(STRETCH_ASPECT_KEEP_WIDTH);
+	BIND_ENUM_CONSTANT(STRETCH_ASPECT_KEEP_HEIGHT);
 }
 
 SceneTree *SceneTree::singleton = NULL;

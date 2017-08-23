@@ -1220,10 +1220,10 @@ Error EditorExportPlatformAndroid::export_project(const String& p_path, bool p_d
 		/*String host = EditorSettings::get_singleton()->get("filesystem/file_server/host");
 		int port = EditorSettings::get_singleton()->get("filesystem/file_server/post");
 		String passwd = EditorSettings::get_singleton()->get("filesystem/file_server/password");
-		cl.push_back("-rfs");
+		cl.push_back("--remote-fs");
 		cl.push_back(host+":"+itos(port));
 		if (passwd!="") {
-			cl.push_back("-rfs_pass");
+			cl.push_back("--remote-fs-password");
 			cl.push_back(passwd);
 		}*/
 
@@ -1243,10 +1243,10 @@ Error EditorExportPlatformAndroid::export_project(const String& p_path, bool p_d
 			err = save_pack(pf);
 			memdelete(pf);
 
-			cl.push_back("-use_apk_expansion");
-			cl.push_back("-apk_expansion_md5");
+			cl.push_back("--use_apk_expansion");
+			cl.push_back("--apk_expansion_md5");
 			cl.push_back(FileAccess::get_md5(fullpath));
-			cl.push_back("-apk_expansion_key");
+			cl.push_back("--apk_expansion_key");
 			cl.push_back(apk_expansion_pkey.strip_edges());
 
 		} else {
@@ -1262,10 +1262,10 @@ Error EditorExportPlatformAndroid::export_project(const String& p_path, bool p_d
 	}
 
 	if (use_32_fb)
-		cl.push_back("-use_depth_32");
+		cl.push_back("--use_depth_32");
 
 	if (immersive)
-		cl.push_back("-use_immersive");
+		cl.push_back("--use_immersive");
 
 	if (cl.size()) {
 		//add comandline
@@ -3024,7 +3024,7 @@ public:
 			args.push_back(devices[p_device].id);
 			args.push_back("reverse");
 			args.push_back("--remove-all");
-			err = OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
+			OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
 
 			int dbg_port = EditorSettings::get_singleton()->get("network/debug/remote_port");
 			args.clear();
@@ -3034,7 +3034,7 @@ public:
 			args.push_back("tcp:" + itos(dbg_port));
 			args.push_back("tcp:" + itos(dbg_port));
 
-			err = OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
+			OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
 			print_line("Reverse result: " + itos(rv));
 
 			int fs_port = EditorSettings::get_singleton()->get("filesystem/file_server/port");
@@ -3330,10 +3330,10 @@ public:
 			/*String host = EditorSettings::get_singleton()->get("filesystem/file_server/host");
 			int port = EditorSettings::get_singleton()->get("filesystem/file_server/post");
 			String passwd = EditorSettings::get_singleton()->get("filesystem/file_server/password");
-			cl.push_back("-rfs");
+			cl.push_back("--remote-fs");
 			cl.push_back(host+":"+itos(port));
 			if (passwd!="") {
-				cl.push_back("-rfs_pass");
+				cl.push_back("--remote-fs-password");
 				cl.push_back(passwd);
 			}*/
 
@@ -3350,10 +3350,10 @@ public:
 					return OK;
 				}
 
-				cl.push_back("-use_apk_expansion");
-				cl.push_back("-apk_expansion_md5");
+				cl.push_back("--use_apk_expansion");
+				cl.push_back("--apk_expansion_md5");
 				cl.push_back(FileAccess::get_md5(fullpath));
-				cl.push_back("-apk_expansion_key");
+				cl.push_back("--apk_expansion_key");
 				cl.push_back(apk_expansion_pkey.strip_edges());
 
 			} else {
@@ -3367,10 +3367,10 @@ public:
 		}
 
 		if (use_32_fb)
-			cl.push_back("-use_depth_32");
+			cl.push_back("--use_depth_32");
 
 		if (immersive)
-			cl.push_back("-use_immersive");
+			cl.push_back("--use_immersive");
 
 		if (cl.size()) {
 			//add comandline
