@@ -2470,6 +2470,8 @@ void GDParser::_parse_block(BlockNode *p_block, bool p_static) {
 
 				cf_if->body = alloc_node<BlockNode>();
 				cf_if->body->parent_block = p_block;
+				cf_if->body->if_condition = condition; //helps code completion
+
 				p_block->sub_blocks.push_back(cf_if->body);
 
 				if (!_enter_indent_block(cf_if->body)) {
@@ -3957,7 +3959,7 @@ void GDParser::_parse_class(ClassNode *p_class) {
 							member._export.usage |= PROPERTY_USAGE_SCRIPT_VARIABLE;
 							if (cn->value.get_type() == Variant::OBJECT) {
 								Object *obj = cn->value;
-								Resource *res = obj->cast_to<Resource>();
+								Resource *res = Object::cast_to<Resource>(obj);
 								if (res == NULL) {
 									_set_error("Exported constant not a type or resource.");
 									return;

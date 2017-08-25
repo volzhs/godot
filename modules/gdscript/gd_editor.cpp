@@ -372,8 +372,8 @@ static GDCompletionIdentifier _get_type_from_variant(const Variant &p_variant) {
 		Object *obj = p_variant;
 		if (obj) {
 			/*
-			if (obj->cast_to<GDNativeClass>()) {
-				t.obj_type=obj->cast_to<GDNativeClass>()->get_name();
+			if (Object::cast_to<GDNativeClass>(obj)) {
+				t.obj_type=Object::cast_to<GDNativeClass>(obj)->get_name();
 				t.value=Variant();
 			} else {
 			*/
@@ -597,8 +597,7 @@ static bool _guess_expression_type(GDCompletionContext &context, const GDParser:
 
 					if (id.operator String() == "new" && base.value.get_type() == Variant::OBJECT) {
 						Object *obj = base.value;
-						if (obj && obj->cast_to<GDNativeClass>()) {
-							GDNativeClass *gdnc = obj->cast_to<GDNativeClass>();
+						if (GDNativeClass *gdnc = Object::cast_to<GDNativeClass>(obj)) {
 							r_type.type = Variant::OBJECT;
 							r_type.value = Variant();
 							r_type.obj_type = gdnc->get_name();
@@ -929,6 +928,20 @@ static bool _guess_expression_type(GDCompletionContext &context, const GDParser:
 }
 
 static bool _guess_identifier_type_in_block(GDCompletionContext &context, int p_line, const StringName &p_identifier, GDCompletionIdentifier &r_type) {
+
+	if (context.block->if_condition && context.block->if_condition->type == GDParser::Node::TYPE_OPERATOR && static_cast<const GDParser::OperatorNode *>(context.block->if_condition)->op == GDParser::OperatorNode::OP_IS) {
+		//is used, check if identifier is in there! this helps resolve in blocks that are (if (identifier is value)): which are very common..
+		//super dirty hack, but very useful
+		//credit: Zylann
+		//TODO: this could be hacked to detect ANDed conditions too..
+		const GDParser::OperatorNode *op = static_cast<const GDParser::OperatorNode *>(context.block->if_condition);
+		if (op->arguments[0]->type == GDParser::Node::TYPE_IDENTIFIER && static_cast<const GDParser::IdentifierNode *>(op->arguments[0])->name == p_identifier) {
+			//bingo
+			if (_guess_expression_type(context, op->arguments[1], op->line, r_type)) {
+				return true;
+			}
+		}
+	}
 
 	GDCompletionIdentifier gdi = _get_native_class(context);
 	if (gdi.obj_type != StringName()) {
@@ -1495,48 +1508,45 @@ static void _find_type_arguments(GDCompletionContext &context, const GDParser::N
 			if (id.value.get_type()) {
 				Object *obj = id.value;
 
-				if (obj) {
+				GDScript *scr = Object::cast_to<GDScript>(obj);
+				if (scr) {
+					while (scr) {
 
-					GDScript *scr = obj->cast_to<GDScript>();
-					if (scr) {
-						while (scr) {
-
-							for (const Map<StringName, GDFunction *>::Element *E = scr->get_member_functions().front(); E; E = E->next()) {
-								if (E->get()->is_static() && p_method == E->get()->get_name()) {
-									arghint = "static func " + String(p_method) + "(";
-									for (int i = 0; i < E->get()->get_argument_count(); i++) {
-										if (i > 0)
-											arghint += ", ";
-										else
-											arghint += " ";
-										if (i == p_argidx) {
-											arghint += String::chr(0xFFFF);
-										}
-										arghint += "var " + E->get()->get_argument_name(i);
-										int deffrom = E->get()->get_argument_count() - E->get()->get_default_argument_count();
-										if (i >= deffrom) {
-											int defidx = deffrom - i;
-											if (defidx >= 0 && defidx < E->get()->get_default_argument_count()) {
-												arghint += "=" + E->get()->get_default_argument(defidx).get_construct_string();
-											}
-										}
-										if (i == p_argidx) {
-											arghint += String::chr(0xFFFF);
+						for (const Map<StringName, GDFunction *>::Element *E = scr->get_member_functions().front(); E; E = E->next()) {
+							if (E->get()->is_static() && p_method == E->get()->get_name()) {
+								arghint = "static func " + String(p_method) + "(";
+								for (int i = 0; i < E->get()->get_argument_count(); i++) {
+									if (i > 0)
+										arghint += ", ";
+									else
+										arghint += " ";
+									if (i == p_argidx) {
+										arghint += String::chr(0xFFFF);
+									}
+									arghint += "var " + E->get()->get_argument_name(i);
+									int deffrom = E->get()->get_argument_count() - E->get()->get_default_argument_count();
+									if (i >= deffrom) {
+										int defidx = deffrom - i;
+										if (defidx >= 0 && defidx < E->get()->get_default_argument_count()) {
+											arghint += "=" + E->get()->get_default_argument(defidx).get_construct_string();
 										}
 									}
-									arghint += ")";
-									return; //found
+									if (i == p_argidx) {
+										arghint += String::chr(0xFFFF);
+									}
 								}
+								arghint += ")";
+								return; //found
 							}
-
-							if (scr->get_base().is_valid())
-								scr = scr->get_base().ptr();
-							else
-								scr = NULL;
 						}
-					} else {
-						on_script = obj->get_script();
+
+						if (scr->get_base().is_valid())
+							scr = scr->get_base().ptr();
+						else
+							scr = NULL;
 					}
+				} else {
+					on_script = obj->get_script();
 				}
 			}
 
@@ -2207,30 +2217,27 @@ Error GDScriptLanguage::complete_code(const String &p_code, const String &p_base
 					if (t.value.get_type()) {
 						Object *obj = t.value;
 
-						if (obj) {
+						GDScript *scr = Object::cast_to<GDScript>(obj);
+						if (scr) {
+							while (scr) {
 
-							GDScript *scr = obj->cast_to<GDScript>();
-							if (scr) {
-								while (scr) {
-
-									if (!isfunction) {
-										for (const Map<StringName, Variant>::Element *E = scr->get_constants().front(); E; E = E->next()) {
-											options.insert(E->key());
-										}
+								if (!isfunction) {
+									for (const Map<StringName, Variant>::Element *E = scr->get_constants().front(); E; E = E->next()) {
+										options.insert(E->key());
 									}
-									for (const Map<StringName, GDFunction *>::Element *E = scr->get_member_functions().front(); E; E = E->next()) {
-										if (E->get()->is_static())
-											options.insert(E->key());
-									}
-
-									if (scr->get_base().is_valid())
-										scr = scr->get_base().ptr();
-									else
-										scr = NULL;
 								}
-							} else {
-								on_script = obj->get_script();
+								for (const Map<StringName, GDFunction *>::Element *E = scr->get_member_functions().front(); E; E = E->next()) {
+									if (E->get()->is_static())
+										options.insert(E->key());
+								}
+
+								if (scr->get_base().is_valid())
+									scr = scr->get_base().ptr();
+								else
+									scr = NULL;
 							}
+						} else {
+							on_script = obj->get_script();
 						}
 					}
 
@@ -2822,9 +2829,9 @@ Error GDScriptLanguage::lookup_code(const String &p_code, const String &p_symbol
 							Object *obj = value;
 							if (obj) {
 
-								if (obj->cast_to<GDNativeClass>()) {
+								if (Object::cast_to<GDNativeClass>(obj)) {
 									r_result.type = ScriptLanguage::LookupResult::RESULT_CLASS;
-									r_result.class_name = obj->cast_to<GDNativeClass>()->get_name();
+									r_result.class_name = Object::cast_to<GDNativeClass>(obj)->get_name();
 
 								} else {
 									r_result.type = ScriptLanguage::LookupResult::RESULT_CLASS;
