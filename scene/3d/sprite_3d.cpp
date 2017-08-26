@@ -273,11 +273,13 @@ void SpriteBase3D::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "flags/transparent"), _SCS("set_draw_flag"), _SCS("get_draw_flag"), FLAG_TRANSPARENT);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "flags/shaded"), _SCS("set_draw_flag"), _SCS("get_draw_flag"), FLAG_SHADED);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "flags/double_sided"), _SCS("set_draw_flag"), _SCS("get_draw_flag"), FLAG_DOUBLE_SIDED);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "flags/on_top"), _SCS("set_draw_flag"), _SCS("get_draw_flag"), FLAG_ONTOP);
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "flags/alpha_cut", PROPERTY_HINT_ENUM, "Disabled,Discard,Opaque Pre-Pass"), _SCS("set_alpha_cut_mode"), _SCS("get_alpha_cut_mode"));
 
 	BIND_CONSTANT(FLAG_TRANSPARENT);
 	BIND_CONSTANT(FLAG_SHADED);
 	BIND_CONSTANT(FLAG_DOUBLE_SIDED);
+	BIND_CONSTANT(FLAG_ONTOP);
 	BIND_CONSTANT(FLAG_MAX);
 
 	BIND_CONSTANT(ALPHA_CUT_DISABLED);
@@ -347,8 +349,8 @@ void Sprite3D::_draw() {
 	Rect2i dst_rect(ofs, s);
 
 	Rect2 final_rect;
-	Rect2 final_src_rect;
-	if (!texture->get_rect_region(dst_rect, src_rect, final_rect, final_src_rect))
+	Rect2 final_uv_rect;
+	if (!texture->get_rect_region_uv_rect(dst_rect, src_rect, final_rect, final_uv_rect))
 		return;
 
 	if (final_rect.size.x == 0 || final_rect.size.y == 0)
@@ -368,10 +370,10 @@ void Sprite3D::_draw() {
 
 	};
 	Vector2 uvs[4] = {
-		final_src_rect.pos / tsize,
-		(final_src_rect.pos + Vector2(final_src_rect.size.x, 0)) / tsize,
-		(final_src_rect.pos + final_src_rect.size) / tsize,
-		(final_src_rect.pos + Vector2(0, final_src_rect.size.y)) / tsize,
+		final_uv_rect.pos,
+		final_uv_rect.pos + Vector2(final_uv_rect.size.x, 0),
+		final_uv_rect.pos + final_uv_rect.size,
+		final_uv_rect.pos + Vector2(0, final_uv_rect.size.y),
 	};
 
 	if (is_flipped_h()) {
@@ -388,7 +390,7 @@ void Sprite3D::_draw() {
 	int axis = get_axis();
 	normal[axis] = 1.0;
 
-	RID mat = VS::get_singleton()->material_2d_get(get_draw_flag(FLAG_SHADED), get_draw_flag(FLAG_TRANSPARENT), get_draw_flag(FLAG_DOUBLE_SIDED), get_alpha_cut_mode() == ALPHA_CUT_DISCARD, get_alpha_cut_mode() == ALPHA_CUT_OPAQUE_PREPASS);
+	RID mat = VS::get_singleton()->material_2d_get(get_draw_flag(FLAG_SHADED), get_draw_flag(FLAG_TRANSPARENT), get_draw_flag(FLAG_DOUBLE_SIDED), get_draw_flag(FLAG_ONTOP), get_alpha_cut_mode() == ALPHA_CUT_DISCARD, get_alpha_cut_mode() == ALPHA_CUT_OPAQUE_PREPASS);
 	VS::get_singleton()->immediate_set_material(immediate, mat);
 
 	VS::get_singleton()->immediate_begin(immediate, VS::PRIMITIVE_TRIANGLE_FAN, texture->get_rid());
@@ -629,7 +631,7 @@ void AnimatedSprite3D::_draw() {
 
 	Rect2 final_rect;
 	Rect2 final_src_rect;
-	if (!texture->get_rect_region(dst_rect,src_rect,final_rect,final_src_rect))
+	if (!texture->get_rect_region_uv_rect(dst_rect,src_rect,final_rect, final_uv_rect))
 		return;
 
 
@@ -651,10 +653,10 @@ void AnimatedSprite3D::_draw() {
 
 	};
 	Vector2 uvs[4]={
-		final_src_rect.pos / tsize,
-		(final_src_rect.pos+Vector2(final_src_rect.size.x,0)) / tsize,
-		(final_src_rect.pos+final_src_rect.size) / tsize,
-		(final_src_rect.pos+Vector2(0,final_src_rect.size.y)) / tsize,
+		final_src_rect.pos,
+		final_src_rect.pos+Vector2(final_src_rect.size.x,0),
+		final_src_rect.pos+final_src_rect.size,
+		final_src_rect.pos+Vector2(0,final_src_rect.size.y),
 	};
 
 	if (is_flipped_h()) {
@@ -672,7 +674,7 @@ void AnimatedSprite3D::_draw() {
 	int axis = get_axis();
 	normal[axis]=1.0;
 
-	RID mat = VS::get_singleton()->material_2d_get(get_draw_flag(FLAG_SHADED),get_draw_flag(FLAG_TRANSPARENT),get_alpha_cut_mode()==ALPHA_CUT_DISCARD,get_alpha_cut_mode()==ALPHA_CUT_OPAQUE_PREPASS);
+	RID mat = VS::get_singleton()->material_2d_get(get_draw_flag(FLAG_SHADED),get_draw_flag(FLAG_TRANSPARENT),get_draw_flag(FLAG_ONTOP),get_alpha_cut_mode()==ALPHA_CUT_DISCARD,get_alpha_cut_mode()==ALPHA_CUT_OPAQUE_PREPASS);
 	VS::get_singleton()->immediate_set_material(immediate,mat);
 
 	VS::get_singleton()->immediate_begin(immediate,VS::PRIMITIVE_TRIANGLE_FAN,texture->get_rid());
@@ -839,19 +841,27 @@ void AnimatedSprite3D::_draw() {
 
 	src_rect.size = s;
 
-	Point2i ofs = get_offset();
-	if (is_centered())
-		ofs -= s / 2;
-
-	Rect2i dst_rect(ofs, s);
+	Rect2i dst_rect(0, 0, s.width, s.height);
 
 	Rect2 final_rect;
-	Rect2 final_src_rect;
-	if (!texture->get_rect_region(dst_rect, src_rect, final_rect, final_src_rect))
+	Rect2 final_uv_rect;
+	if (!texture->get_rect_region_uv_rect(dst_rect, src_rect, final_rect, final_uv_rect))
 		return;
 
 	if (final_rect.size.x == 0 || final_rect.size.y == 0)
 		return;
+
+	if (is_flipped_h())
+		final_rect.pos.x = dst_rect.size.x - final_rect.pos.x - final_rect.size.x;
+
+	if (!is_flipped_v())
+		final_rect.pos.y = dst_rect.size.y - final_rect.pos.y - final_rect.size.y;
+
+	Point2i ofs = get_offset();
+	if (is_centered())
+		ofs -= s / 2;
+
+	final_rect.pos += ofs;
 
 	Color color = _get_color_accum();
 	color.a *= get_opacity();
@@ -867,10 +877,10 @@ void AnimatedSprite3D::_draw() {
 
 	};
 	Vector2 uvs[4] = {
-		final_src_rect.pos / tsize,
-		(final_src_rect.pos + Vector2(final_src_rect.size.x, 0)) / tsize,
-		(final_src_rect.pos + final_src_rect.size) / tsize,
-		(final_src_rect.pos + Vector2(0, final_src_rect.size.y)) / tsize,
+		final_uv_rect.pos,
+		final_uv_rect.pos + Vector2(final_uv_rect.size.x, 0),
+		final_uv_rect.pos + final_uv_rect.size,
+		final_uv_rect.pos + Vector2(0, final_uv_rect.size.y),
 	};
 
 	if (is_flipped_h()) {
@@ -887,7 +897,7 @@ void AnimatedSprite3D::_draw() {
 	int axis = get_axis();
 	normal[axis] = 1.0;
 
-	RID mat = VS::get_singleton()->material_2d_get(get_draw_flag(FLAG_SHADED), get_draw_flag(FLAG_TRANSPARENT), get_draw_flag(FLAG_DOUBLE_SIDED), get_alpha_cut_mode() == ALPHA_CUT_DISCARD, get_alpha_cut_mode() == ALPHA_CUT_OPAQUE_PREPASS);
+	RID mat = VS::get_singleton()->material_2d_get(get_draw_flag(FLAG_SHADED), get_draw_flag(FLAG_TRANSPARENT), get_draw_flag(FLAG_DOUBLE_SIDED), get_draw_flag(FLAG_ONTOP), get_alpha_cut_mode() == ALPHA_CUT_DISCARD, get_alpha_cut_mode() == ALPHA_CUT_OPAQUE_PREPASS);
 	VS::get_singleton()->immediate_set_material(immediate, mat);
 
 	VS::get_singleton()->immediate_begin(immediate, VS::PRIMITIVE_TRIANGLE_FAN, texture->get_rid());
