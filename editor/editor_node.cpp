@@ -559,7 +559,7 @@ void EditorNode::_menu_confirm_current() {
 	_menu_option_confirm(current_option, true);
 }
 
-void EditorNode::_dialog_display_file_error(String p_file, Error p_error) {
+void EditorNode::_dialog_display_save_error(String p_file, Error p_error) {
 
 	if (p_error) {
 
@@ -579,6 +579,41 @@ void EditorNode::_dialog_display_file_error(String p_file, Error p_error) {
 			default: {
 
 				accept->set_text(TTR("Error while saving."));
+			} break;
+		}
+
+		accept->popup_centered_minsize();
+	}
+}
+
+void EditorNode::_dialog_display_load_error(String p_file, Error p_error) {
+
+	if (p_error) {
+
+		current_option = -1;
+		accept->get_ok()->set_text(TTR("I see.."));
+
+		switch (p_error) {
+
+			case ERR_CANT_OPEN: {
+
+				accept->set_text(vformat(TTR("Can't open '%s'."), p_file.get_file()));
+			} break;
+			case ERR_PARSE_ERROR: {
+
+				accept->set_text(vformat(TTR("Error while parsing '%s'."), p_file.get_file()));
+			} break;
+			case ERR_FILE_CORRUPT: {
+
+				accept->set_text(vformat(TTR("Unexpected end of file '%s'."), p_file.get_file()));
+			} break;
+			case ERR_FILE_NOT_FOUND: {
+
+				accept->set_text(vformat(TTR("Missing '%s' or its dependencies."), p_file.get_file()));
+			} break;
+			default: {
+
+				accept->set_text(vformat(TTR("Error while loading '%s'."), p_file.get_file()));
 			} break;
 		}
 
@@ -899,7 +934,7 @@ void EditorNode::_save_scene(String p_file, int idx) {
 		_update_scene_tabs();
 	} else {
 
-		_dialog_display_file_error(p_file, err);
+		_dialog_display_save_error(p_file, err);
 	}
 }
 
@@ -908,8 +943,10 @@ void EditorNode::_save_all_scenes() {
 	for (int i = 0; i < editor_data.get_edited_scene_count(); i++) {
 		Node *scene = editor_data.get_edited_scene_root(i);
 		if (scene && scene->get_filename() != "") {
-			// save in background if in the script editor
-			_save_scene_with_preview(scene->get_filename());
+			if (i != editor_data.get_edited_scene())
+				_save_scene(scene->get_filename(), i);
+			else
+				_save_scene_with_preview(scene->get_filename());
 		} // else: ignore new scenes
 	}
 
@@ -983,7 +1020,10 @@ void EditorNode::_dialog_action(String p_file) {
 			if (file->get_mode() == EditorFileDialog::MODE_SAVE_FILE) {
 
 				_save_default_environment();
-				_save_scene_with_preview(p_file);
+				if (scene_idx != editor_data.get_edited_scene())
+					_save_scene(p_file, scene_idx);
+				else
+					_save_scene_with_preview(p_file);
 
 				if (scene_idx != -1)
 					_discard_changes();
@@ -1660,8 +1700,10 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			Node *scene = editor_data.get_edited_scene_root(scene_idx);
 			if (scene && scene->get_filename() != "") {
 
-				// save in background if in the script editor
-				_save_scene_with_preview(scene->get_filename());
+				if (scene_idx != editor_data.get_edited_scene())
+					_save_scene(scene->get_filename(), scene_idx);
+				else
+					_save_scene_with_preview(scene->get_filename());
 
 				if (scene_idx != -1)
 					_discard_changes();
@@ -2183,14 +2225,19 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			update_menu->get_popup()->set_item_checked(0, true);
 			update_menu->get_popup()->set_item_checked(1, false);
 			OS::get_singleton()->set_low_processor_usage_mode(false);
-			EditorSettings::get_singleton()->set_project_metadata("editor_options", "update_mode", SETTINGS_UPDATE_ALWAYS);
+			EditorSettings::get_singleton()->set_project_metadata("editor_options", "update_always", true);
+
+			current_option = -1;
+			accept->get_ok()->set_text(TTR("I see.."));
+			accept->set_text(TTR("This option is deprecated. Situations where refresh must be forced are now considered a bug. Please report."));
+			accept->popup_centered_minsize();
 		} break;
 		case SETTINGS_UPDATE_CHANGES: {
 
 			update_menu->get_popup()->set_item_checked(0, false);
 			update_menu->get_popup()->set_item_checked(1, true);
 			OS::get_singleton()->set_low_processor_usage_mode(true);
-			EditorSettings::get_singleton()->set_project_metadata("editor_options", "update_mode", SETTINGS_UPDATE_CHANGES);
+			EditorSettings::get_singleton()->set_project_metadata("editor_options", "update_always", false);
 		} break;
 		case SETTINGS_UPDATE_SPINNER_HIDE: {
 
@@ -2778,13 +2825,11 @@ Error EditorNode::load_scene(const String &p_scene, bool p_ignore_broken_deps, b
 
 	dependency_errors.clear();
 
-	Ref<PackedScene> sdata = ResourceLoader::load(lpath, "", true);
+	Error err;
+	Ref<PackedScene> sdata = ResourceLoader::load(lpath, "", true, &err);
 	if (!sdata.is_valid()) {
 
-		current_option = -1;
-		accept->get_ok()->set_text(TTR("Ugh"));
-		accept->set_text(TTR("Error loading scene."));
-		accept->popup_centered_minsize();
+		_dialog_display_load_error(lpath, err);
 		opening_prev = false;
 
 		if (prev != -1) {
@@ -2841,10 +2886,7 @@ Error EditorNode::load_scene(const String &p_scene, bool p_ignore_broken_deps, b
 	if (!new_scene) {
 
 		sdata.unref();
-		current_option = -1;
-		accept->get_ok()->set_text(TTR("Ugh"));
-		accept->set_text(TTR("Error loading scene."));
-		accept->popup_centered_minsize();
+		_dialog_display_load_error(lpath, ERR_FILE_NOT_FOUND);
 		opening_prev = false;
 		if (prev != -1) {
 			set_current_scene(prev);
@@ -4950,9 +4992,9 @@ EditorNode::EditorNode() {
 	p->add_check_item(TTR("Update Changes"), SETTINGS_UPDATE_CHANGES);
 	p->add_separator();
 	p->add_check_item(TTR("Disable Update Spinner"), SETTINGS_UPDATE_SPINNER_HIDE);
-	int update_mode = EditorSettings::get_singleton()->get_project_metadata("editor_options", "update_mode", SETTINGS_UPDATE_CHANGES);
+	int update_always = EditorSettings::get_singleton()->get_project_metadata("editor_options", "update_always", false);
 	int hide_spinner = EditorSettings::get_singleton()->get_project_metadata("editor_options", "update_spinner_hide", false);
-	_menu_option(update_mode);
+	_menu_option(update_always ? SETTINGS_UPDATE_ALWAYS : SETTINGS_UPDATE_CHANGES);
 	if (hide_spinner) {
 		_menu_option(SETTINGS_UPDATE_SPINNER_HIDE);
 	}
