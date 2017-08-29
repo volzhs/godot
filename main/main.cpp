@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -69,7 +69,6 @@
 #include "core/io/file_access_zip.h"
 #include "core/io/stream_peer_ssl.h"
 #include "core/io/stream_peer_tcp.h"
-#include "core/os/thread.h"
 #include "main/input_default.h"
 #include "performance.h"
 #include "translation.h"
@@ -109,6 +108,8 @@ static bool force_lowdpi = false;
 static int init_screen = -1;
 static bool use_vsync = true;
 static bool editor = false;
+
+static OS::ProcessID allow_focus_steal_pid = 0;
 
 static String unescape_cmdline(const String &p_str) {
 
@@ -527,11 +528,10 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			} else {
 				goto error;
 			}
-		} else if (I->get() == "-epid") {
+		} else if (I->get() == "-allow_focus_steal_pid") {
 			if (I->next()) {
 
-				int editor_pid = I->next()->get().to_int();
-				Globals::get_singleton()->set("editor_pid", editor_pid);
+				allow_focus_steal_pid = I->next()->get().to_int64();
 				N = I->next()->next();
 			} else {
 				goto error;
@@ -841,7 +841,11 @@ error:
 	return ERR_INVALID_PARAMETER;
 }
 
-Error Main::setup2() {
+Error Main::setup2(Thread::ID p_main_tid_override) {
+
+	if (p_main_tid_override) {
+		Thread::_main_thread_id = p_main_tid_override;
+	}
 
 	OS::get_singleton()->initialize(video_mode, video_driver_idx, audio_driver_idx);
 	if (init_use_custom_pos) {
@@ -957,6 +961,10 @@ Error Main::setup2() {
 #ifdef TOOLS_ENABLED
 	EditorNode::register_editor_types();
 #endif
+
+	if (allow_focus_steal_pid) {
+		OS::get_singleton()->enable_for_stealing_focus(allow_focus_steal_pid);
+	}
 
 	MAIN_PRINT("Main: Load Scripts, Modules, Drivers");
 

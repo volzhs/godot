@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -431,7 +431,7 @@ void TextEdit::_notification(int p_what) {
 			int line_number_char_count = 0;
 
 			{
-				int lc = text.size() + 1;
+				int lc = text.size();
 				cache.line_number_w = 0;
 				while (lc) {
 					cache.line_number_w += 1;
@@ -458,7 +458,7 @@ void TextEdit::_notification(int p_what) {
 
 			int ascent = cache.font->get_ascent();
 
-			int visible_rows = get_visible_rows();
+			int visible_rows = get_visible_rows() + 1;
 
 			int tab_w = cache.font->get_char_size(' ').width * tab_size;
 
@@ -2037,6 +2037,13 @@ void TextEdit::_input_event(const InputEvent &p_input_event) {
 #endif
 						bool prev_char = false;
 						int cc = cursor.column;
+
+						if (cc == 0 && cursor.line > 0) {
+							cursor_set_line(cursor.line - 1);
+							cursor_set_column(text[cursor.line].length());
+							break;
+						}
+
 						while (cc > 0) {
 
 							bool ischar = _is_text_char(text[cursor.line][cc - 1]);
@@ -2094,6 +2101,13 @@ void TextEdit::_input_event(const InputEvent &p_input_event) {
 #endif
 						bool prev_char = false;
 						int cc = cursor.column;
+
+						if (cc == text[cursor.line].length() && cursor.line < text.size() - 1) {
+							cursor_set_line(cursor.line + 1);
+							cursor_set_column(0);
+							break;
+						}
+
 						while (cc < text[cursor.line].length()) {
 
 							bool ischar = _is_text_char(text[cursor.line][cc]);
@@ -2890,7 +2904,7 @@ void TextEdit::adjust_viewport_to_cursor() {
 		visible_rows -= ((h_scroll->get_combined_minimum_size().height - 1) / get_row_height());
 
 	if (cursor.line >= (cursor.line_ofs + visible_rows))
-		cursor.line_ofs = cursor.line - visible_rows + 1;
+		cursor.line_ofs = cursor.line - visible_rows;
 	if (cursor.line < cursor.line_ofs)
 		cursor.line_ofs = cursor.line;
 
@@ -3357,9 +3371,6 @@ void TextEdit::cut() {
 }
 
 void TextEdit::copy() {
-
-	if (!selection.active)
-		return;
 
 	if (!selection.active) {
 		String clipboard = _base_get_text(cursor.line, 0, cursor.line, text[cursor.line].length());

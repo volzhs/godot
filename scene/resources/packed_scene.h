@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -88,8 +88,8 @@ class SceneState : public Reference {
 
 	Vector<ConnectionData> connections;
 
-	Error _parse_node(Node *p_owner,Node *p_node,int p_parent_idx, Map<StringName,int> &name_map,HashMap<Variant,int,VariantHasher,VariantComparator> &variant_map,Map<Node*,int> &node_map,Map<Node*,int> &nodepath_map);
-	Error _parse_connections(Node *p_owner,Node *p_node, Map<StringName,int> &name_map,HashMap<Variant,int,VariantHasher,VariantComparator> &variant_map,Map<Node*,int> &node_map,Map<Node*,int> &nodepath_map);
+	Error _parse_node(Node *p_owner, Node *p_node, int p_parent_idx, Map<StringName, int> &name_map, HashMap<Variant, int, VariantHasher, VariantComparator> &variant_map, Map<Node *, int> &node_map, Map<Node *, int> &nodepath_map);
+	Error _parse_connections(Node *p_owner, Node *p_node, Map<StringName, int> &name_map, HashMap<Variant, int, VariantHasher, VariantComparator> &variant_map, Map<Node *, int> &node_map, Map<Node *, int> &nodepath_map);
 
 	String path;
 

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -136,8 +136,13 @@ int widechar_main(int argc, wchar_t **argv) {
 
 	Error err = Main::setup(argv_utf8[0], argc - 1, &argv_utf8[1]);
 
-	if (err != OK)
+	if (err != OK) {
+		for (int i = 0; i < argc; ++i) {
+			delete[] argv_utf8[i];
+		}
+		delete[] argv_utf8;
 		return 255;
+	}
 
 	if (Main::start())
 		os.run();

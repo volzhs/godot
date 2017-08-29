@@ -34,6 +34,9 @@ platform/android/java/assets
 .deps/*
 .dirstamp
 
+# Gprof output
+gmon.out
+
 # Vim temp files
 *.swo
 *.swp
@@ -43,6 +46,10 @@ platform/android/java/assets
 *.creator
 *.files
 *.includes
+
+# Eclipse CDT files
+.cproject
+.settings/
 
 # Misc
 .DS_Store

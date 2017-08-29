@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -141,7 +141,7 @@ void ColorRamp::set_offset(int pos, const float offset) {
 }
 
 float ColorRamp::get_offset(int pos) const {
-	if (points.size() > pos)
+	if (points.size() && points.size() > pos)
 		return points[pos].offset;
 	return 0; //TODO: Maybe throw some error instead?
 }
@@ -155,7 +155,7 @@ void ColorRamp::set_color(int pos, const Color &color) {
 }
 
 Color ColorRamp::get_color(int pos) const {
-	if (points.size() > pos)
+	if (points.size() && points.size() > pos)
 		return points[pos].color;
 	return Color(0, 0, 0, 1); //TODO: Maybe throw some error instead?
 }

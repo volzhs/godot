@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -1001,7 +1001,9 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_step(JNIEnv *env, job
 		Globals::get_singleton()->add_singleton(Globals::Singleton("JavaClassWrapper", java_class_wrapper));
 		_initialize_java_modules();
 
-		Main::setup2();
+		// Since Godot is initialized on the UI thread, _main_thread_id was set to that thread's id,
+		// but for Godot purposes, the main thread is the one running the game loop
+		Main::setup2(Thread::get_caller_ID());
 		++step;
 		suspend_mutex->unlock();
 		input_mutex->unlock();

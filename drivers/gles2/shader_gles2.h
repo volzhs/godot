@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -134,7 +134,7 @@ private:
 
 	struct VersionKeyHash {
 
-		static _FORCE_INLINE_ uint32_t hash( const VersionKey& p_key) { return HashMapHasherDefault::hash(p_key.key); };
+		static _FORCE_INLINE_ uint32_t hash(const VersionKey &p_key) { return HashMapHasherDefault::hash(p_key.key); };
 	};
 
 	//this should use a way more cachefriendly version..

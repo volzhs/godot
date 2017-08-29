@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -705,8 +705,10 @@ void SceneTreeEditor::set_selected(Node *p_node, bool p_emit_selected) {
 			selected = NULL;
 		_update_tree();
 		selected = p_node;
-		if (p_emit_selected)
-			emit_signal("node_selected");
+	}
+
+	if (p_emit_selected) {
+		emit_signal("node_selected");
 	}
 }
 

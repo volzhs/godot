@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -1124,9 +1124,9 @@ Vector<uint8_t> GDTokenizerBuffer::parse_code_string(const String &p_code) {
 
 	Vector<uint8_t> buf;
 
-	Map<StringName,int> identifier_map;
-	HashMap<Variant,int,VariantHasher,VariantComparator> constant_map;
-	Map<uint32_t,int> line_map;
+	Map<StringName, int> identifier_map;
+	HashMap<Variant, int, VariantHasher, VariantComparator> constant_map;
+	Map<uint32_t, int> line_map;
 	Vector<uint32_t> token_array;
 
 	GDTokenizerText tt;

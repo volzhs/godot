@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -1363,7 +1363,7 @@ Error Object::connect(const StringName &p_signal, Object *p_to_object, const Str
 
 	Signal::Target target(p_to_object->get_instance_ID(), p_to_method);
 	if (s->slot_map.has(target)) {
-		ERR_EXPLAIN("Signal '" + p_signal + "'' already connected to given method '" + p_to_method + "' in that object.");
+		ERR_EXPLAIN("Signal '" + p_signal + "' is already connected to given method '" + p_to_method + "' in that object.");
 		ERR_FAIL_COND_V(s->slot_map.has(target), ERR_INVALID_PARAMETER);
 	}
 

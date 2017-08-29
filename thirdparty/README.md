@@ -88,7 +88,7 @@ Files extracted from upstream source:
 ## libpng
 
 - Upstream: http://libpng.org/pub/png/libpng.html
-- Version: 1.6.31rc01
+- Version: 1.6.32
 - License: libpng/zlib
 
 Files extracted from upstream source:
@@ -97,6 +97,19 @@ Files extracted from upstream source:
   `example.c` and `pngtest.c`
 - the arm/ folder
 - `scripts/pnglibconf.h.prebuilt` as `pnglibconf.h`
+
+
+## libtheora
+
+- Upstream: https://www.theora.org
+- Version: 1.1.1
+- License: BSD-3-Clause
+
+Files extracted from upstream source:
+
+- all .c, .h in lib/
+- all .h files in include/theora/ as theora/
+- COPYING and LICENSE
 
 
 ## libvorbis
@@ -139,7 +152,8 @@ Files extracted from the upstream source:
 - contrib/minizip/{crypt.h,ioapi.{c,h},zip.{c,h},unzip.{c,h}}
 
 Important: Some files have Godot-made changes for use in core/io.
-TODO: Properly sync with version 1.2.4 and document changes.
+They are marked with `/* GODOT start */` and `/* GODOT end */`
+comments and a patch is provided in the minizip/ folder.
 
 
 ## misc
@@ -201,14 +215,14 @@ Collection of single-file libraries used in Godot components.
   * License: zlib
 - `stb_truetype.h`
   * Upstream: https://github.com/nothings/stb
-  * Version: 1.11
+  * Version: 1.17
   * License: Public Domain (Unlicense) or MIT
 
 
 ## openssl
 
 - Upstream: https://www.openssl.org
-- Version: 1.0.2h
+- Version: 1.0.2l
 - License: OpenSSL license / BSD-like
 
 Files extracted from the upstream source:
@@ -297,20 +311,6 @@ Files extracted from upstream source:
 Files extracted from upstream source:
 
 - all .cpp, .h and .inl files
->>>>>>> 8311a78... squish: Move to a module and split thirdparty lib
-
-
-## theora
-
-- Upstream: https://www.theora.org
-- Version: 1.1.1
-- License: BSD-3-Clause
-
-Files extracted from upstream source:
-
-- all .c, .h in lib/
-- all .h files in include/theora/ as theora/
-- COPYING and LICENSE
 
 
 ## zlib

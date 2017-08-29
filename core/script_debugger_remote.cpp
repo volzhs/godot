@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -129,8 +129,6 @@ void ScriptDebuggerRemote::debug(ScriptLanguage *p_script, bool p_can_continue) 
 		ERR_EXPLAIN("Script Debugger failed to connect, but being used anyway.");
 		ERR_FAIL();
 	}
-
-	OS::get_singleton()->enable_for_stealing_focus(Globals::get_singleton()->get("editor_pid"));
 
 	packet_peer_stream->put_var("debug_enter");
 	packet_peer_stream->put_var(2);

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -600,7 +600,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("2d_editor/pan_speed", 20);
 
 	set("game_window_placement/rect", 1);
-	hints["game_window_placement/rect"] = PropertyInfo(Variant::INT, "game_window_placement/rect", PROPERTY_HINT_ENUM, "Default,Centered,Custom Position,Force Maximized,Force Full Screen");
+	hints["game_window_placement/rect"] = PropertyInfo(Variant::INT, "game_window_placement/rect", PROPERTY_HINT_ENUM, "Top Left,Centered,Custom Position,Force Maximized,Force Fullscreen");
 	String screen_hints = TTR("Default (Same as Editor)");
 	for (int i = 0; i < OS::get_singleton()->get_screen_count(); i++) {
 		screen_hints += ",Monitor " + itos(i + 1);

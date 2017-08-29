@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -207,6 +207,8 @@ void NavigationMesh::_bind_methods() {
 	ObjectTypeDB::bind_method(_MD("get_polygon_count"), &NavigationMesh::get_polygon_count);
 	ObjectTypeDB::bind_method(_MD("get_polygon", "idx"), &NavigationMesh::get_polygon);
 	ObjectTypeDB::bind_method(_MD("clear_polygons"), &NavigationMesh::clear_polygons);
+
+	ObjectTypeDB::bind_method(_MD("create_from_mesh", "mesh"), &NavigationMesh::create_from_mesh);
 
 	ObjectTypeDB::bind_method(_MD("_set_polygons", "polygons"), &NavigationMesh::_set_polygons);
 	ObjectTypeDB::bind_method(_MD("_get_polygons"), &NavigationMesh::_get_polygons);
