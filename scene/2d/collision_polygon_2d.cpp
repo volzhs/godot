@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -79,11 +79,6 @@ void CollisionPolygon2D::_build_polygon() {
 Vector<Vector<Vector2> > CollisionPolygon2D::_decompose_in_convex() {
 
 	Vector<Vector<Vector2> > decomp;
-#if 0
-	//fast but imprecise triangulator, gave us problems
-	decomp = Geometry::decompose_polygon(polygon);
-#else
-
 	List<TriangulatorPoly> in_poly, out_poly;
 
 	TriangulatorPoly inp;
@@ -115,8 +110,6 @@ Vector<Vector<Vector2> > CollisionPolygon2D::_decompose_in_convex() {
 
 		idx++;
 	}
-
-#endif
 
 	return decomp;
 }

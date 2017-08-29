@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -44,6 +44,9 @@
 
 */
 
+//this will be removed, left for reference
+#if 0
+
 class Room : public VisualInstance {
 
 	GDCLASS(Room, VisualInstance);
@@ -77,5 +80,5 @@ public:
 	Room();
 	~Room();
 };
-
+#endif
 #endif // ROOM_INSTANCE_H

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -354,7 +354,7 @@ Particles2DEditorPlugin::Particles2DEditorPlugin(EditorNode *p_node) {
 	menu->get_popup()->add_separator();
 	menu->get_popup()->add_item(TTR("Load Emission Mask"), MENU_LOAD_EMISSION_MASK);
 	//	menu->get_popup()->add_item(TTR("Clear Emission Mask"), MENU_CLEAR_EMISSION_MASK);
-	menu->set_text("Particles");
+	menu->set_text(TTR("Particles"));
 	toolbar->add_child(menu);
 
 	file = memnew(EditorFileDialog);

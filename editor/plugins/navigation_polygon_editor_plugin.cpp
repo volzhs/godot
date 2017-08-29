@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -467,17 +467,6 @@ NavigationPolygonEditor::NavigationPolygonEditor(EditorNode *p_editor) {
 	create_nav = memnew(ConfirmationDialog);
 	add_child(create_nav);
 	create_nav->get_ok()->set_text(TTR("Create"));
-
-//add_constant_override("separation",0);
-
-#if 0
-	options = memnew( MenuButton );
-	add_child(options);
-	options->set_area_as_parent_rect();
-	options->set_text("Polygon");
-	//options->get_popup()->add_item("Parse BBCode",PARSE_BBCODE);
-	options->get_popup()->connect("id_pressed", this,"_menu_option");
-#endif
 
 	mode = MODE_EDIT;
 	wip_active = false;

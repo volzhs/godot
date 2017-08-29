@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -822,7 +822,7 @@ public:
 				}
 
 				Node *another = node->get_node(node_path);
-				if (!node) {
+				if (!another) {
 					r_error.error = Variant::CallError::CALL_ERROR_INVALID_METHOD;
 					r_error_str = "Path does not lead Node!";
 					return 0;
@@ -1596,7 +1596,7 @@ public:
 				}
 
 				Node *another = node->get_node(node_path);
-				if (!node) {
+				if (!another) {
 					r_error.error = Variant::CallError::CALL_ERROR_INVALID_METHOD;
 					r_error_str = "Path does not lead Node!";
 					return 0;
@@ -2241,7 +2241,7 @@ public:
 				}
 
 				Node *another = node->get_node(node_path);
-				if (!node) {
+				if (!another) {
 					r_error.error = Variant::CallError::CALL_ERROR_INVALID_METHOD;
 					r_error_str = RTR("Path does not lead Node!");
 					return 0;

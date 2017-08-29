@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -37,7 +37,6 @@
 #include "scene/gui/control.h"
 #include "scene/gui/text_edit.h"
 #include "servers/visual/shader_language.h"
-//#include "drivers/gles2/shader_compiler_gles2.h"
 
 typedef ShaderLanguage SL;
 

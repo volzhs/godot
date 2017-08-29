@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -47,7 +47,6 @@
 #include "servers/visual_server.h"
 
 class AudioDriverIphone;
-// class RasterizerGLES2;
 
 class OSIPhone : public OS_Unix {
 
@@ -66,9 +65,6 @@ private:
 	};
 
 	uint8_t supported_orientations;
-
-	//	Rasterizer *rasterizer;
-	//	RasterizerGLES2* rasterizer_gles22;
 
 	VisualServer *visual_server;
 	PhysicsServer *physics_server;

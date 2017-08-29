@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -45,8 +45,10 @@ int main(int argc, char *argv[]) {
 	getcwd(cwd, PATH_MAX);
 
 	Error err = Main::setup(argv[0], argc - 1, &argv[1]);
-	if (err != OK)
+	if (err != OK) {
+		free(cwd);
 		return 255;
+	}
 
 	if (Main::start())
 		os.run(); // it is actually the OS that decides how to run

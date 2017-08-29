@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -809,27 +809,27 @@ void EditorFileDialog::set_mode(Mode p_mode) {
 
 		case MODE_OPEN_FILE:
 			get_ok()->set_text(TTR("Open"));
-			set_title("Open a File");
+			set_title(TTR("Open a File"));
 			makedir->hide();
 			break;
 		case MODE_OPEN_FILES:
 			get_ok()->set_text(TTR("Open"));
-			set_title("Open File(s)");
+			set_title(TTR("Open File(s)"));
 			makedir->hide();
 			break;
 		case MODE_OPEN_DIR:
 			get_ok()->set_text(TTR("Open"));
-			set_title("Open a Directory");
+			set_title(TTR("Open a Directory"));
 			makedir->show();
 			break;
 		case MODE_OPEN_ANY:
 			get_ok()->set_text(TTR("Open"));
-			set_title("Open a File or Directory");
+			set_title(TTR("Open a File or Directory"));
 			makedir->show();
 			break;
 		case MODE_SAVE_FILE:
 			get_ok()->set_text(TTR("Save"));
-			set_title("Save a File");
+			set_title(TTR("Save a File"));
 			makedir->show();
 			break;
 	}

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -866,13 +866,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_initialize(JNIEnv *en
 
 	__android_log_print(ANDROID_LOG_INFO, "godot", "**SETUP");
 
-#if 0
-	char *args[]={"--test","render",NULL};
-	__android_log_print(ANDROID_LOG_INFO,"godot","pre asdasd setup...");
-	Error err  = Main::setup("apk",2,args,false);
-#else
 	Error err = Main::setup("apk", cmdlen, (char **)cmdline, false);
-#endif
 
 	if (err != OK) {
 		__android_log_print(ANDROID_LOG_INFO, "godot", "*****UNABLE TO SETUP");
@@ -1008,7 +1002,9 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_step(JNIEnv *env, job
 		ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("JavaClassWrapper", java_class_wrapper));
 		_initialize_java_modules();
 
-		Main::setup2();
+		// Since Godot is initialized on the UI thread, _main_thread_id was set to that thread's id,
+		// but for Godot purposes, the main thread is the one running the game loop
+		Main::setup2(Thread::get_caller_id());
 		++step;
 		suspend_mutex->unlock();
 		input_mutex->unlock();

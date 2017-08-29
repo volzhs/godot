@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -37,8 +37,6 @@
 
 //heh heh, godotsphir!! this shares no code and the design is completely different with previous projects i've done..
 //should scale better with hardware that supports instancing
-
-class BakedLightInstance;
 
 class GridMap : public Spatial {
 
@@ -96,21 +94,25 @@ class GridMap : public Spatial {
 			Transform xform;
 		};
 
-		struct ItemInstances {
-			Set<IndexKey> cells;
-			Ref<Mesh> mesh;
-			Ref<Shape> shape;
-			Ref<MultiMesh> multimesh;
-			RID multimesh_instance;
-			Ref<NavigationMesh> navmesh;
+		struct MultimeshInstance {
+			RID instance;
+			RID multimesh;
+			struct Item {
+				int index;
+				Transform transform;
+				IndexKey key;
+			};
+
+			Vector<Item> items; //tools only, for changing visibility
 		};
 
+		Vector<MultimeshInstance> multimesh_instances;
+		Set<IndexKey> cells;
 		RID collision_debug;
 		RID collision_debug_instance;
 
 		bool dirty;
 		RID static_body;
-		Map<int, ItemInstances> items;
 		Map<IndexKey, NavMesh> navmesh_ids;
 	};
 
@@ -120,7 +122,7 @@ class GridMap : public Spatial {
 			int16_t x;
 			int16_t y;
 			int16_t z;
-			int16_t area;
+			int16_t empty;
 		};
 
 		uint64_t key;
@@ -137,7 +139,7 @@ class GridMap : public Spatial {
 	Transform last_transform;
 
 	bool _in_tree;
-	float cell_size;
+	Vector3 cell_size;
 	int octant_size;
 	bool center_x, center_y, center_z;
 	float cell_scale;
@@ -148,35 +150,10 @@ class GridMap : public Spatial {
 	int clip_floor;
 	Vector3::Axis clip_axis;
 
-	/**
-	 * @brief An Area is something like a room: it has doors, and Octants can choose to belong to it.
-	 */
-	struct Area {
-
-		String name;
-		RID base_portal;
-		RID instance;
-		IndexKey from;
-		IndexKey to;
-		struct Portal {
-			Transform xform;
-			RID instance;
-			~Portal();
-		};
-		Vector<Portal> portals;
-		float portal_disable_distance;
-		Color portal_disable_color;
-		bool exterior_portal;
-
-		Area();
-		~Area();
-	};
-
 	Ref<MeshLibrary> theme;
 
 	Map<OctantKey, Octant *> octant_map;
 	Map<IndexKey, Cell> cell_map;
-	Map<int, Area *> area_map;
 
 	void _recreate_octant_data();
 
@@ -188,30 +165,24 @@ class GridMap : public Spatial {
 		float param[VS::LIGHT_PARAM_MAX];
 	};
 
-	_FORCE_INLINE_ int _find_area(const IndexKey &p_pos) const;
-
 	_FORCE_INLINE_ Vector3 _octant_get_offset(const OctantKey &p_key) const {
 
 		return Vector3(p_key.x, p_key.y, p_key.z) * cell_size * octant_size;
 	}
 
 	void _octant_enter_world(const OctantKey &p_key);
-	void _octant_enter_tree(const OctantKey &p_key);
 	void _octant_exit_world(const OctantKey &p_key);
-	void _octant_update(const OctantKey &p_key);
+	bool _octant_update(const OctantKey &p_key);
+	void _octant_clean_up(const OctantKey &p_key);
 	void _octant_transform(const OctantKey &p_key);
-	void _octant_clear_navmesh(const GridMap::OctantKey &);
 	bool awaiting_update;
 
-	void _queue_dirty_map();
-	void _update_dirty_map_callback();
+	void _queue_octants_dirty();
+	void _update_octants_callback();
 
 	void resource_changed(const RES &p_res);
 
-	void _update_areas();
-	void _update_area_instances();
-
-	void _clear_internal(bool p_keep_areas = false);
+	void _clear_internal();
 
 protected:
 	bool _set(const StringName &p_name, const Variant &p_value);
@@ -229,8 +200,8 @@ public:
 	void set_theme(const Ref<MeshLibrary> &p_theme);
 	Ref<MeshLibrary> get_theme() const;
 
-	void set_cell_size(float p_size);
-	float get_cell_size() const;
+	void set_cell_size(const Vector3 &p_size);
+	Vector3 get_cell_size() const;
 
 	void set_octant_size(int p_size);
 	int get_octant_size() const;
@@ -248,20 +219,6 @@ public:
 
 	void set_clip(bool p_enabled, bool p_clip_above = true, int p_floor = 0, Vector3::Axis p_axis = Vector3::AXIS_X);
 
-	Error create_area(int p_id, const Rect3 &p_area);
-	Rect3 area_get_bounds(int p_area) const;
-	void area_set_exterior_portal(int p_area, bool p_enable);
-	void area_set_name(int p_area, const String &p_name);
-	String area_get_name(int p_area) const;
-	bool area_is_exterior_portal(int p_area) const;
-	void area_set_portal_disable_distance(int p_area, float p_distance);
-	float area_get_portal_disable_distance(int p_area) const;
-	void area_set_portal_disable_color(int p_area, Color p_color);
-	Color area_get_portal_disable_color(int p_area) const;
-	void get_area_list(List<int> *p_areas) const;
-	void erase_area(int p_area);
-	int get_unused_area_id() const;
-
 	void set_cell_scale(float p_scale);
 	float get_cell_scale() const;
 
@@ -273,4 +230,4 @@ public:
 	~GridMap();
 };
 
-#endif // CUBE_GRID_MAP_H
+#endif // GRID_MAP_H

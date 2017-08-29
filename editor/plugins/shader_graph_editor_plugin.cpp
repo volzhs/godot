@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -27,9 +27,11 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "shader_graph_editor_plugin.h"
 
+// FIXME: Godot 3.0 broke compatibility with ShaderGraphEditorPlugin,
+// it needs to be ported to the new shader language.
 #if 0
+#include "shader_graph_editor_plugin.h"
 
 #include "canvas_item_editor_plugin.h"
 #include "os/keyboard.h"
@@ -539,22 +541,7 @@ void GraphCurveMapEdit::_plot_curve(const Vector2& p_a,const Vector2& p_b,const 
 		newy = CLAMP ((Math::round (y)), 0, ymax);
 
 		/* if this point is different than the last one...then draw it */
-		if ((lastx != newx) || (lasty != newy))
-		{
-#if 0
-			if(fix255)
-			{
-				/* use fixed array size (for the curve graph) */
-				cd->curve[cd->outline][newx] = newy;
-			}
-			else
-			{
-				/* use dynamic allocated curve_ptr (for the real curve) */
-				cd->curve_ptr[cd->outline][newx] = newy;
-
-				if(gb_debug) printf("outline: %d  cX: %d cY: %d\n", (int)cd->outline, (int)newx, (int)newy);
-			}
-#endif
+		if ((lastx != newx) || (lasty != newy)) {
 			draw_line(Vector2(lastx,ymax-lasty),Vector2(newx,ymax-newy),Color(0.8,0.8,0.8,0.8),2.0);
 		}
 

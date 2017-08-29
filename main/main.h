@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -34,6 +34,7 @@
 	@author Juan Linietsky <reduzio@gmail.com>
 */
 
+#include "core/os/thread.h"
 #include "error_list.h"
 #include "typedefs.h"
 
@@ -49,7 +50,7 @@ class Main {
 
 public:
 	static Error setup(const char *execpath, int argc, char *argv[], bool p_second_phase = true);
-	static Error setup2();
+	static Error setup2(Thread::ID p_main_tid_override = 0);
 	static bool start();
 	static bool iteration();
 	static void cleanup();

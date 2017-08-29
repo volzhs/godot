@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -63,17 +63,47 @@
 #define MIN_FOV 0.01
 #define MAX_FOV 179
 
-void SpatialEditorViewport::_update_camera() {
+void SpatialEditorViewport::_update_camera(float p_interp_delta) {
 	if (orthogonal) {
 		//camera->set_orthogonal(size.width*cursor.distance,get_znear(),get_zfar());
 		camera->set_orthogonal(2 * cursor.distance, 0.1, 8192);
 	} else
 		camera->set_perspective(get_fov(), get_znear(), get_zfar());
 
-	Transform camera_transform = to_camera_transform(cursor);
+	Transform new_transform = to_camera_transform(cursor);
+	Transform old_transform = camera->get_global_transform();
+	Transform transform;
 
-	if (camera->get_global_transform() != camera_transform) {
-		camera->set_global_transform(camera_transform);
+	bool disable_interp = (Input::get_singleton()->get_mouse_button_mask() & (2 | 4)) || Input::get_singleton()->is_key_pressed(KEY_SHIFT) || Input::get_singleton()->is_key_pressed(KEY_ALT) || Input::get_singleton()->is_key_pressed(KEY_CONTROL);
+
+	if (p_interp_delta && !disable_interp) {
+		//interpolate
+		float interp_speed = 14; //maybe should be made configuration
+		transform = old_transform.interpolate_with(new_transform, MIN(1.0, p_interp_delta * interp_speed));
+	} else {
+		transform = new_transform;
+	}
+
+	float tolerance = 0.0001;
+	bool equal = true;
+	for (int i = 0; i < 3; i++) {
+		if (transform.basis[i].distance_to(old_transform.basis[i]) > tolerance) {
+			equal = false;
+			break;
+		}
+	}
+
+	if (equal && transform.origin.distance_to(old_transform.origin) > tolerance) {
+		equal = false;
+	}
+
+	if (equal) {
+		transform = new_transform;
+	}
+
+	if (!equal || p_interp_delta == 0) {
+		//print_line(transform);
+		camera->set_global_transform(transform);
 		update_transform_gizmo_view();
 	}
 }
@@ -257,13 +287,11 @@ ObjectID SpatialEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, 
 	Vector<ObjectID> instances = VisualServer::get_singleton()->instances_cull_ray(pos, ray, get_tree()->get_root()->get_world()->get_scenario());
 	Set<Ref<SpatialEditorGizmo> > found_gizmos;
 
+	Node *edited_scene = get_tree()->get_edited_scene_root();
 	ObjectID closest = 0;
 	Spatial *item = NULL;
 	float closest_dist = 1e20;
 	int selected_handle = -1;
-
-	Vector<Spatial *> subscenes = Vector<Spatial *>();
-	Vector<Vector3> subscenes_positions = Vector<Vector3>();
 
 	for (int i = 0; i < instances.size(); i++) {
 
@@ -275,19 +303,6 @@ ObjectID SpatialEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, 
 		Ref<SpatialEditorGizmo> seg = spat->get_gizmo();
 
 		if ((!seg.is_valid()) || found_gizmos.has(seg)) {
-
-			Node *subscene_candidate = spat;
-			Vector3 source_click_spatial_pos = spat->get_global_transform().origin;
-
-			while ((subscene_candidate->get_owner() != NULL) && (subscene_candidate->get_owner() != editor->get_edited_scene()))
-				subscene_candidate = subscene_candidate->get_owner();
-
-			spat = Object::cast_to<Spatial>(subscene_candidate);
-			if (spat && (spat->get_filename() != "") && (subscene_candidate->get_owner() != NULL)) {
-				subscenes.push_back(spat);
-				subscenes_positions.push_back(source_click_spatial_pos);
-			}
-
 			continue;
 		}
 
@@ -307,30 +322,24 @@ ObjectID SpatialEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, 
 			continue;
 
 		if (dist < closest_dist) {
-			closest = instances[i];
-			closest_dist = dist;
-			selected_handle = handle;
-			item = spat;
+			//make sure that whathever is selected is editable
+			while (spat && spat != edited_scene && spat->get_owner() != edited_scene && !edited_scene->is_editable_instance(spat->get_owner())) {
+
+				spat = Object::cast_to<Spatial>(spat->get_owner());
+			}
+
+			if (spat) {
+				item = spat;
+				closest = spat->get_instance_id();
+				closest_dist = dist;
+				selected_handle = handle;
+			} else {
+				ERR_PRINT("Bug?");
+			}
 		}
 
 		//	if (editor_selection->is_selected(spat))
 		//		r_includes_current=true;
-	}
-
-	for (int idx_subscene = 0; idx_subscene < subscenes.size(); idx_subscene++) {
-
-		Spatial *subscene = subscenes.get(idx_subscene);
-		float dist = ray.cross(subscenes_positions.get(idx_subscene) - pos).length();
-
-		if ((dist < 0) || (dist > 1.2))
-			continue;
-
-		if (dist < closest_dist) {
-			closest = subscene->get_instance_id();
-			closest_dist = dist;
-			item = subscene;
-			selected_handle = -1;
-		}
 	}
 
 	if (!item)
@@ -1599,8 +1608,10 @@ Point2i SpatialEditorViewport::_get_warped_mouse_motion(const Ref<InputEventMous
 
 void SpatialEditorViewport::_update_freelook(real_t delta) {
 
-	if (!is_freelook_active())
+	if (!is_freelook_active()) {
+		freelook_velocity = Vector3();
 		return;
+	}
 
 	Vector3 forward = camera->get_transform().basis.xform(Vector3(0, 0, -1));
 	Vector3 right = camera->get_transform().basis.xform(Vector3(1, 0, 0));
@@ -1614,53 +1625,61 @@ void SpatialEditorViewport::_update_freelook(real_t delta) {
 	int key_down = Object::cast_to<InputEventKey>(ED_GET_SHORTCUT("spatial_editor/freelook_down")->get_shortcut().ptr())->get_scancode();
 	int key_speed_modifier = Object::cast_to<InputEventKey>(ED_GET_SHORTCUT("spatial_editor/freelook_speed_modifier")->get_shortcut().ptr())->get_scancode();
 
-	Vector3 velocity;
+	Vector3 direction;
 	bool pressed = false;
 	bool speed_modifier = false;
 
 	const Input &input = *Input::get_singleton();
 
 	if (input.is_key_pressed(key_left)) {
-		velocity -= right;
+		direction -= right;
 		pressed = true;
 	}
 	if (input.is_key_pressed(key_right)) {
-		velocity += right;
+		direction += right;
 		pressed = true;
 	}
 	if (input.is_key_pressed(key_forward)) {
-		velocity += forward;
+		direction += forward;
 		pressed = true;
 	}
 	if (input.is_key_pressed(key_backwards)) {
-		velocity -= forward;
+		direction -= forward;
 		pressed = true;
 	}
 	if (input.is_key_pressed(key_up)) {
-		velocity += up;
+		direction += up;
 		pressed = true;
 	}
 	if (input.is_key_pressed(key_down)) {
-		velocity -= up;
+		direction -= up;
 		pressed = true;
 	}
 	if (input.is_key_pressed(key_speed_modifier)) {
 		speed_modifier = true;
 	}
 
-	if (pressed) {
-		const EditorSettings &s = *EditorSettings::get_singleton();
-		const real_t base_speed = s.get("editors/3d/freelook_base_speed");
-		const real_t modifier_speed_factor = s.get("editors/3d/freelook_modifier_speed_factor");
+	const EditorSettings &s = *EditorSettings::get_singleton();
+	real_t inertia = s.get("editors/3d/freelook_inertia");
+	if (inertia < 0)
+		inertia = 0;
 
-		real_t speed = base_speed * cursor.distance;
-		if (speed_modifier)
-			speed *= modifier_speed_factor;
+	const real_t base_speed = s.get("editors/3d/freelook_base_speed");
+	const real_t modifier_speed_factor = s.get("editors/3d/freelook_modifier_speed_factor");
 
-		velocity.normalize();
+	real_t speed = base_speed * cursor.distance;
+	if (speed_modifier)
+		speed *= modifier_speed_factor;
 
-		cursor.pos += velocity * (speed * delta);
-	}
+	Vector3 instant_velocity = direction * speed;
+
+	// Higher inertia should increase "lag" (lerp with factor between 0 and 1)
+	// Inertia of zero should produce instant movement (lerp with factor of 1)
+	// Takes reference of 60fps for units, so that inertia of 1 gives approximate lerp factor of 0.5
+	real_t factor = 1.0 / (1.0 + inertia * delta * 60.f);
+	freelook_velocity = freelook_velocity.linear_interpolate(instant_velocity, CLAMP(factor, 0, 1));
+
+	cursor.pos += freelook_velocity * delta;
 }
 
 void SpatialEditorViewport::set_message(String p_message, float p_time) {
@@ -1678,7 +1697,7 @@ void SpatialEditorViewport::_notification(int p_what) {
 		set_process(visible);
 
 		if (visible)
-			_update_camera();
+			_update_camera(0);
 
 		call_deferred("update_transform_gizmo_view");
 	}
@@ -1710,7 +1729,7 @@ void SpatialEditorViewport::_notification(int p_what) {
 
 		_update_freelook(delta);
 
-		_update_camera();
+		_update_camera(get_process_delta_time());
 
 		Map<Node *, Object *> &selection = editor_selection->get_selection();
 
@@ -2483,7 +2502,7 @@ SpatialEditorViewport::SpatialEditorViewport(SpatialEditor *p_spatial_editor, Ed
 	preview_camera->set_toggle_mode(true);
 	preview_camera->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, -90 * EDSCALE);
 	preview_camera->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, 10 * EDSCALE);
-	preview_camera->set_text("preview");
+	preview_camera->set_text(TTR("preview"));
 	surface->add_child(preview_camera);
 	preview_camera->hide();
 	preview_camera->connect("toggled", this, "_toggle_camera_preview");
@@ -3576,21 +3595,6 @@ void SpatialEditor::_unhandled_key_input(Ref<InputEvent> p_event) {
 	if (!is_visible_in_tree() || get_viewport()->gui_has_modal_stack())
 		return;
 
-#if 0
-//i don't remember this being used, why was it here?
-	{
-
-		EditorNode *en = editor;
-		EditorPluginList *over_plugin_list = en->get_editor_plugins_over();
-
-		if (!over_plugin_list->empty() && over_plugin_list->forward_gui_input(p_event)) {
-
-			return; //ate the over input event
-		}
-
-	}
-#endif
-
 	Ref<InputEventKey> k = p_event;
 
 	if (k.is_valid()) {
@@ -3677,7 +3681,7 @@ void SpatialEditor::_request_gizmo(Object *p_obj) {
 	Spatial *sp = Object::cast_to<Spatial>(p_obj);
 	if (!sp)
 		return;
-	if (editor->get_edited_scene() && (sp == editor->get_edited_scene() || sp->get_owner() == editor->get_edited_scene() || editor->get_edited_scene()->is_editable_instance(sp->get_owner()))) {
+	if (editor->get_edited_scene() && (sp == editor->get_edited_scene() || (sp->get_owner() && editor->get_edited_scene()->is_a_parent_of(sp)))) {
 
 		Ref<SpatialEditorGizmo> seg;
 
@@ -3691,7 +3695,6 @@ void SpatialEditor::_request_gizmo(Object *p_obj) {
 		if (!seg.is_valid()) {
 			seg = gizmos->get_gizmo(sp);
 		}
-
 		if (seg.is_valid()) {
 			sp->set_gizmo(seg);
 		}
@@ -3829,7 +3832,7 @@ SpatialEditor::SpatialEditor(EditorNode *p_editor) {
 	tool_button[TOOL_MODE_SELECT]->set_pressed(true);
 	button_binds[0] = MENU_TOOL_SELECT;
 	tool_button[TOOL_MODE_SELECT]->connect("pressed", this, "_menu_item_pressed", button_binds);
-	tool_button[TOOL_MODE_SELECT]->set_tooltip("Select Mode (Q)\n" + keycode_get_string(KEY_MASK_CMD) + "Drag: Rotate\nAlt+Drag: Move\nAlt+RMB: Depth list selection");
+	tool_button[TOOL_MODE_SELECT]->set_tooltip(TTR("Select Mode (Q)\n") + keycode_get_string(KEY_MASK_CMD) + TTR("Drag: Rotate\nAlt+Drag: Move\nAlt+RMB: Depth list selection"));
 
 	tool_button[TOOL_MODE_MOVE] = memnew(ToolButton);
 

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -131,6 +131,7 @@ class ScriptEditor : public PanelContainer {
 		FILE_RELOAD_THEME,
 		FILE_SAVE_THEME,
 		FILE_SAVE_THEME_AS,
+		FILE_RUN,
 		FILE_CLOSE,
 		CLOSE_DOCS,
 		CLOSE_ALL,
@@ -344,13 +345,7 @@ public:
 	_FORCE_INLINE_ bool edit(const Ref<Script> &p_script, bool p_grab_focus = true) { return edit(p_script, -1, 0, p_grab_focus); }
 	bool edit(const Ref<Script> &p_script, int p_line, int p_col, bool p_grab_focus = true);
 
-	Dictionary get_state() const;
-	void set_state(const Dictionary &p_state);
-	void clear();
-
 	void get_breakpoints(List<String> *p_breakpoints);
-
-	//void swap_lines(TextEdit *tx, int line1, int line2);
 
 	void save_all_scripts();
 
@@ -397,10 +392,6 @@ public:
 	virtual bool handles(Object *p_object) const;
 	virtual void make_visible(bool p_visible);
 	virtual void selected_notify();
-
-	Dictionary get_state() const;
-	virtual void set_state(const Dictionary &p_state);
-	virtual void clear();
 
 	virtual void save_external_data();
 	virtual void apply_changes();

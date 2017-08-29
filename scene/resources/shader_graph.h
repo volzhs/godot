@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -30,6 +30,7 @@
 #ifndef SHADER_GRAPH_H
 #define SHADER_GRAPH_H
 
+// FIXME: Needs to be ported to the new 3.0 shader API
 #if 0
 #include "map.h"
 #include "scene/resources/shader.h"

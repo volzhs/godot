@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -33,7 +33,7 @@
 #include "math_2d.h"
 #include "rid.h"
 #include "scene/2d/canvas_item.h"
-#include "scene/gui/input_action.h"
+#include "scene/gui/shortcut.h"
 #include "scene/main/node.h"
 #include "scene/main/timer.h"
 #include "scene/resources/theme.h"

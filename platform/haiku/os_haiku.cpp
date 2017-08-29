@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -27,16 +27,15 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include <Screen.h>
+#include "os_haiku.h"
 
-#include "drivers/gles2/rasterizer_gles2.h"
+#include "drivers/gles3/rasterizer_gles3.h"
+#include "main/main.h"
 #include "servers/physics/physics_server_sw.h"
 #include "servers/visual/visual_server_raster.h"
 #include "servers/visual/visual_server_wrap_mt.h"
-//#include "servers/physics_2d/physics_2d_server_wrap_mt.h"
-#include "main/main.h"
 
-#include "os_haiku.h"
+#include <Screen.h>
 
 OS_Haiku::OS_Haiku() {
 #ifdef MEDIA_KIT_ENABLED

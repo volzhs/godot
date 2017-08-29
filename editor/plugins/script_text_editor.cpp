@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -1230,7 +1230,7 @@ void ScriptTextEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data
 		}
 
 		if (res->get_path().is_resource_file()) {
-			EditorNode::get_singleton()->show_warning("Only resources from filesystem can be dropped.");
+			EditorNode::get_singleton()->show_warning(TTR("Only resources from filesystem can be dropped."));
 			return;
 		}
 

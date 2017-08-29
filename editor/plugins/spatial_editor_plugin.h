@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -49,6 +49,7 @@ class SpatialEditorGizmo : public SpatialGizmo {
 	GDCLASS(SpatialEditorGizmo, SpatialGizmo);
 
 	bool selected;
+	bool instanced;
 
 public:
 	void set_selected(bool p_selected) { selected = p_selected; }
@@ -121,6 +122,7 @@ private:
 	float gizmo_scale;
 
 	bool freelook_active;
+	Vector3 freelook_velocity;
 
 	PanelContainer *info;
 	Label *info_label;
@@ -240,7 +242,7 @@ private:
 	void set_message(String p_message, float p_time = 5);
 
 	//
-	void _update_camera();
+	void _update_camera(float p_interp_delta);
 	Transform to_camera_transform(const Cursor &p_cursor) const;
 	void _draw();
 

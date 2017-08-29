@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -39,7 +39,8 @@
    If a portal is placed next (very close to) a similar, opposing portal, they automatically connect,
    otherwise, a portal connects to the parent room
 */
-
+//this will be redone and replaced by area portals, left for reference since a new class with this name will have to exist and want to reuse the gizmos
+#if 0
 class Portal : public VisualInstance {
 
 	GDCLASS(Portal, VisualInstance);
@@ -84,4 +85,5 @@ public:
 	~Portal();
 };
 
+#endif
 #endif

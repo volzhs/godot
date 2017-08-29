@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -35,7 +35,7 @@
 #include "core/io/config_file.h"
 #include "os/thread_safe.h"
 #include "resource.h"
-#include "scene/gui/input_action.h"
+#include "scene/gui/shortcut.h"
 #include "translation.h"
 
 class EditorPlugin;
@@ -179,6 +179,9 @@ public:
 
 #define EDITOR_DEF(m_var, m_val) _EDITOR_DEF(m_var, Variant(m_val))
 Variant _EDITOR_DEF(const String &p_var, const Variant &p_default);
+
+#define EDITOR_GET(m_var) _EDITOR_GET(m_var)
+Variant _EDITOR_GET(const String &p_var);
 
 #define ED_IS_SHORTCUT(p_name, p_ev) (EditorSettings::get_singleton()->is_shortcut(p_name, p_ev))
 Ref<ShortCut> ED_SHORTCUT(const String &p_path, const String &p_name, uint32_t p_keycode = 0);

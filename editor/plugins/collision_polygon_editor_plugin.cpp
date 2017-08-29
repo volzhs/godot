@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -48,6 +48,9 @@ void CollisionPolygonEditor::_notification(int p_what) {
 
 		} break;
 		case NOTIFICATION_PROCESS: {
+			if (!node) {
+				return;
+			}
 
 			if (node->get_depth() != prev_depth) {
 				_polygon_draw();
@@ -506,17 +509,6 @@ CollisionPolygonEditor::CollisionPolygonEditor(EditorNode *p_editor) {
 	add_child(button_edit);
 	button_edit->connect("pressed", this, "_menu_option", varray(MODE_EDIT));
 	button_edit->set_toggle_mode(true);
-
-//add_constant_override("separation",0);
-
-#if 0
-	options = memnew( MenuButton );
-	add_child(options);
-	options->set_area_as_parent_rect();
-	options->set_text("Polygon");
-	//options->get_popup()->add_item("Parse BBCode",PARSE_BBCODE);
-	options->get_popup()->connect("id_pressed", this,"_menu_option");
-#endif
 
 	mode = MODE_EDIT;
 	wip_active = false;

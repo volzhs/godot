@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -29,18 +29,15 @@
 /*************************************************************************/
 #include "scene_tree.h"
 
+#include "editor/editor_node.h"
+#include "io/marshalls.h"
+#include "io/resource_loader.h"
 #include "message_queue.h"
 #include "node.h"
 #include "os/keyboard.h"
 #include "os/os.h"
 #include "print_string.h"
 #include "project_settings.h"
-#include <stdio.h>
-//#include "servers/spatial_sound_2d_server.h"
-
-#include "editor/editor_node.h"
-#include "io/marshalls.h"
-#include "io/resource_loader.h"
 #include "scene/resources/material.h"
 #include "scene/resources/mesh.h"
 #include "scene/resources/packed_scene.h"
@@ -48,6 +45,8 @@
 #include "servers/physics_2d_server.h"
 #include "servers/physics_server.h"
 #include "viewport.h"
+
+#include <stdio.h>
 
 void SceneTreeTimer::_bind_methods() {
 
@@ -413,19 +412,7 @@ void SceneTree::input_event(const Ref<InputEvent> &p_event) {
 	root_lock++;
 
 	if (!input_handled) {
-
-#if 0
-		_call_input_pause("unhandled_input","_unhandled_input",ev);
-		//call_group(GROUP_CALL_REVERSE|GROUP_CALL_REALTIME|GROUP_CALL_MULIILEVEL,"unhandled_input","_unhandled_input",ev);
-		if (!input_handled && ev.type==InputEvent::KEY) {
-			_call_input_pause("unhandled_key_input","_unhandled_key_input",ev);
-			//call_group(GROUP_CALL_REVERSE|GROUP_CALL_REALTIME|GROUP_CALL_MULIILEVEL,"unhandled_key_input","_unhandled_key_input",ev);
-		}
-#else
-
 		call_group_flags(GROUP_CALL_REALTIME, "_viewports", "_vp_unhandled_input", ev); //special one for GUI, as controls use their own process check
-
-#endif
 		input_handled = true;
 		_flush_ugc();
 		root_lock--;
@@ -1401,8 +1388,11 @@ void SceneTree::_live_edit_create_node_func(const NodePath &p_parent, const Stri
 		Node *n2 = n->get_node(p_parent);
 
 		Node *no = Object::cast_to<Node>(ClassDB::instance(p_type));
-		no->set_name(p_name);
+		if (!no) {
+			continue;
+		}
 
+		no->set_name(p_name);
 		n2->add_child(no);
 	}
 }
@@ -1705,6 +1695,11 @@ Vector<int> SceneTree::get_network_connected_peers() const {
 
 	return ret;
 }
+
+int SceneTree::get_rpc_sender_id() const {
+	return rpc_sender_id;
+}
+
 void SceneTree::set_refuse_new_network_connections(bool p_refuse) {
 	ERR_FAIL_COND(!network_peer.is_valid());
 	network_peer->set_refuse_new_connections(p_refuse);
@@ -2099,7 +2094,9 @@ void SceneTree::_network_poll() {
 			ERR_PRINT("Error getting packet!");
 		}
 
+		rpc_sender_id = sender;
 		_network_process_packet(sender, packet, len);
+		rpc_sender_id = 0;
 
 		if (!network_peer.is_valid()) {
 			break; //it's also possible that a packet or RPC caused a disconnection, so also check here
@@ -2179,6 +2176,7 @@ void SceneTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_network_peer"), &SceneTree::has_network_peer);
 	ClassDB::bind_method(D_METHOD("get_network_connected_peers"), &SceneTree::get_network_connected_peers);
 	ClassDB::bind_method(D_METHOD("get_network_unique_id"), &SceneTree::get_network_unique_id);
+	ClassDB::bind_method(D_METHOD("get_rpc_sender_id"), &SceneTree::get_rpc_sender_id);
 	ClassDB::bind_method(D_METHOD("set_refuse_new_network_connections", "refuse"), &SceneTree::set_refuse_new_network_connections);
 	ClassDB::bind_method(D_METHOD("is_refusing_new_network_connections"), &SceneTree::is_refusing_new_network_connections);
 	ClassDB::bind_method(D_METHOD("_network_peer_connected"), &SceneTree::_network_peer_connected);
@@ -2263,6 +2261,7 @@ SceneTree::SceneTree() {
 	call_lock = 0;
 	root_lock = 0;
 	node_count = 0;
+	rpc_sender_id = 0;
 
 	//create with mainloop
 

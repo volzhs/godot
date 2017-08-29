@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -49,7 +49,6 @@ class VisualServer : public Object {
 
 	int mm_policy;
 
-	PoolVector<String> _shader_get_param_list(RID p_shader) const;
 	void _camera_set_orthogonal(RID p_camera, float p_size, float p_z_near, float p_z_far);
 	void _canvas_item_add_style_box(RID p_item, const Rect2 &p_rect, const Rect2 &p_source, RID p_texture, const Vector<float> &p_margins, const Color &p_modulate = Color(1, 1, 1));
 	Array _get_array_from_surface(uint32_t p_format, PoolVector<uint8_t> p_vertex_data, int p_vertex_len, PoolVector<uint8_t> p_index_data, int p_index_len) const;
@@ -421,23 +420,6 @@ public:
 	virtual void reflection_probe_set_enable_shadows(RID p_probe, bool p_enable) = 0;
 	virtual void reflection_probe_set_cull_mask(RID p_probe, uint32_t p_layers) = 0;
 
-	/* ROOM API */
-
-	virtual RID room_create() = 0;
-	virtual void room_add_bounds(RID p_room, const PoolVector<Vector2> &p_convex_polygon, float p_height, const Transform &p_transform) = 0;
-	virtual void room_clear_bounds(RID p_room) = 0;
-
-	/* PORTAL API */
-
-	// portals are only (x/y) points, forming a convex shape, which its clockwise
-	// order points outside. (z is 0);
-
-	virtual RID portal_create() = 0;
-	virtual void portal_set_shape(RID p_portal, const Vector<Point2> &p_shape) = 0;
-	virtual void portal_set_enabled(RID p_portal, bool p_enabled) = 0;
-	virtual void portal_set_disable_distance(RID p_portal, float p_distance) = 0;
-	virtual void portal_set_disabled_color(RID p_portal, const Color &p_color) = 0;
-
 	/* GI PROBE API */
 
 	virtual RID gi_probe_create() = 0;
@@ -709,8 +691,6 @@ public:
 		INSTANCE_PARTICLES,
 		INSTANCE_LIGHT,
 		INSTANCE_REFLECTION_PROBE,
-		INSTANCE_ROOM,
-		INSTANCE_PORTAL,
 		INSTANCE_GI_PROBE,
 		INSTANCE_MAX,
 		/*INSTANCE_BAKED_LIGHT_SAMPLER,*/
@@ -734,7 +714,6 @@ public:
 
 	virtual void instance_attach_skeleton(RID p_instance, RID p_skeleton) = 0;
 	virtual void instance_set_exterior(RID p_instance, bool p_enabled) = 0;
-	virtual void instance_set_room(RID p_instance, RID p_room) = 0;
 
 	virtual void instance_set_extra_visibility_margin(RID p_instance, real_t p_margin) = 0;
 
@@ -744,7 +723,6 @@ public:
 	virtual Vector<ObjectID> instances_cull_convex(const Vector<Plane> &p_convex, RID p_scenario = RID()) const = 0;
 
 	enum InstanceFlags {
-		INSTANCE_FLAG_VISIBLE_IN_ALL_ROOMS,
 		INSTANCE_FLAG_USE_BAKED_LIGHT,
 		INSTANCE_FLAG_MAX
 	};

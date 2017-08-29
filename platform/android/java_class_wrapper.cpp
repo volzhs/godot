@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -112,7 +112,7 @@ bool JavaClass::_call_method(JavaObject *p_instance, const StringName &p_method,
 
 						Ref<Reference> ref = *p_args[i];
 						if (!ref.is_null()) {
-							if (Object::cast_to<JavaObject>(ref)) {
+							if (Object::cast_to<JavaObject>(ref.ptr())) {
 
 								Ref<JavaObject> jo = ref;
 								//could be faster

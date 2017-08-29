@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -41,6 +41,9 @@
 #include <sys/types.h>
 
 class ThreadPosix : public Thread {
+
+	static pthread_key_t thread_id_key;
+	static ID next_thread_id;
 
 	pthread_t pthread;
 	pthread_attr_t pthread_attr;

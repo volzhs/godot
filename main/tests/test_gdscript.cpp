@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -1052,16 +1052,6 @@ MainLoop *test(TestType p_type) {
 		fw->store_buffer(buf.ptr(), buf.size());
 		memdelete(fw);
 	}
-
-#if 0
-	Parser parser;
-	Error err = parser.parse(code);
-	if (err) {
-		print_line("error:"+itos(parser.get_error_line())+":"+itos(parser.get_error_column())+":"+parser.get_error());
-	} else {
-		print_line("Parse O-K!");
-	}
-#endif
 
 	memdelete(fa);
 

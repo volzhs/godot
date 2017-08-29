@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -31,6 +31,8 @@
 
 #include "servers/visual_server.h"
 
+// FIXME: Left for reference for reimplementation using Area
+#if 0
 RID RoomBounds::get_rid() const {
 
 	return area;
@@ -64,3 +66,4 @@ RoomBounds::~RoomBounds() {
 
 	VisualServer::get_singleton()->free(area);
 }
+#endif

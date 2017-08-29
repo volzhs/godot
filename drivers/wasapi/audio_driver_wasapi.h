@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  editor_mesh_import_plugin.h                                          */
+/*  audio_driver_wasapi.h                                               */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -27,34 +27,63 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef EDITOR_MESH_IMPORT_PLUGIN_H
-#define EDITOR_MESH_IMPORT_PLUGIN_H
+#ifndef AUDIO_DRIVER_WASAPI_H
+#define AUDIO_DRIVER_WASAPI_H
 
-#if 0
-#include "editor/editor_import_export.h"
-#include "scene/resources/font.h"
+#ifdef WASAPI_ENABLED
 
-class EditorNode;
-class EditorMeshImportDialog;
+#include "core/os/mutex.h"
+#include "core/os/thread.h"
+#include "servers/audio_server.h"
 
-class EditorMeshImportPlugin : public EditorImportPlugin {
+#include <audioclient.h>
+#include <mmdeviceapi.h>
+#include <windows.h>
 
-	GDCLASS(EditorMeshImportPlugin,EditorImportPlugin);
+class AudioDriverWASAPI : public AudioDriver {
 
-	EditorMeshImportDialog *dialog;
+	HANDLE event;
+	IAudioClient *audio_client;
+	IAudioRenderClient *render_client;
+	Mutex *mutex;
+	Thread *thread;
 
+	UINT32 max_frames;
+	WORD format_tag;
+	WORD bits_per_sample;
+
+	Vector<int32_t> samples_in;
+
+	unsigned int buffer_size;
+	unsigned int channels;
+	int mix_rate;
+	int buffer_frames;
+
+	bool thread_exited;
+	mutable bool exit_thread;
+	bool active;
+
+	static void thread_func(void *p_udata);
+
+	Error init_device();
+	Error finish_device();
+	Error reopen();
 
 public:
+	virtual const char *get_name() const {
+		return "WASAPI";
+	}
 
-	virtual String get_name() const;
-	virtual String get_visible_name() const;
-	virtual void import_dialog(const String& p_from="");
-	virtual Error import(const String& p_path, const Ref<ResourceImportMetadata>& p_from);
-	void import_from_drop(const Vector<String>& p_drop, const String &p_dest_path);
+	virtual Error init();
+	virtual void start();
+	virtual int get_mix_rate() const;
+	virtual SpeakerMode get_speaker_mode() const;
+	virtual void lock();
+	virtual void unlock();
+	virtual void finish();
 
-
-	EditorMeshImportPlugin(EditorNode* p_editor);
+	AudioDriverWASAPI();
 };
 
+#endif // AUDIO_DRIVER_WASAPI_H
 #endif
-#endif // EDITOR_MESH_IMPORT_PLUGIN_H

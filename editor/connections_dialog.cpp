@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -113,33 +113,7 @@ void ConnectDialog::_tree_node_selected() {
 		make_callback->hide();
 	else
 		make_callback->show();
-#if 0
-	List<MethodInfo> methods;
-	current->get_method_list(&methods);
-	for (List<MethodInfo>::Element *E=methods.front();E;E=E->next()) {
 
-		if (E->get().name.length() && E->get().name[0]=='_')
-			continue; // hidden method, not show!
-
-		if (ClassDB::has_method(node->get_type(),"Node") || ClassDB::has_method(node->get_type(),"Control",true))
-			continue; //avoid too much unnecessary stuff
-
-		String method=E->get().name+"(";
-		for(int i=0;i<E->get().arguments.size();i++) {
-
-			if (i!=0)
-				method+=", ";
-			method+=Variant::get_type_name(E->get().arguments[i].type);
-			if (E->get().arguments[i].name.length()) {
-				method+=" ";
-				method+=E->get().arguments[i].name;
-			}
-		}
-		method+=")";
-
-		//dst_method_list->get_popup()->add_item(method);
-	}
-#endif
 	dst_path->set_text(node->get_path_to(current));
 }
 
@@ -800,7 +774,7 @@ ConnectionsDock::ConnectionsDock(EditorNode *p_editor) {
 	tree->set_v_size_flags(SIZE_EXPAND_FILL);
 
 	connect_button = memnew(Button);
-	connect_button->set_text("Connect");
+	connect_button->set_text(TTR("Connect"));
 	HBoxContainer *hb = memnew(HBoxContainer);
 	vbc->add_child(hb);
 	hb->add_spacer();

@@ -107,7 +107,7 @@ Files extracted from upstream source:
 ## libpng
 
 - Upstream: http://libpng.org/pub/png/libpng.html
-- Version: 1.6.31rc01
+- Version: 1.6.32
 - License: libpng/zlib
 
 Files extracted from upstream source:
@@ -127,6 +127,19 @@ Files extracted from upstream source:
 Files extracted from upstream source:
 
 TODO.
+
+
+## libtheora
+
+- Upstream: https://www.theora.org
+- Version: 1.1.1
+- License: BSD-3-Clause
+
+Files extracted from upstream source:
+
+- all .c, .h in lib/
+- all .h files in include/theora/ as theora/
+- COPYING and LICENSE
 
 
 ## libvorbis
@@ -247,18 +260,30 @@ Collection of single-file libraries used in Godot components.
   * License: zlib
 - `stb_truetype.h`
   * Upstream: https://github.com/nothings/stb
-  * Version: 1.11
+  * Version: 1.17
   * License: Public Domain (Unlicense) or MIT
 - `stb_vorbis.c`
   * Upstream: https://github.com/nothings/stb
-  * Version: 1.09
+  * Version: 1.11
   * License: Public Domain (Unlicense) or MIT
+
+
+## nanosvg
+
+- Upstream: https://github.com/memononen/nanosvg
+- Version: 9a74da4 (git)
+- License: zlib
+
+Files extracted from the upstream source:
+
+- All .h files in `src/`
+- LICENSE.txt
 
 
 ## openssl
 
 - Upstream: https://www.openssl.org
-- Version: 1.0.2h
+- Version: 1.0.2l
 - License: OpenSSL license / BSD-like
 
 Files extracted from the upstream source:
@@ -331,19 +356,6 @@ Files extracted from upstream source:
 - all .cpp, .h and .inl files
 
 
-## theora
-
-- Upstream: https://www.theora.org
-- Version: 1.1.1
-- License: BSD-3-Clause
-
-Files extracted from upstream source:
-
-- all .c, .h in lib/
-- all .h files in include/theora/ as theora/
-- COPYING and LICENSE
-
-
 ## tinyexr
 
 - Upstream: https://github.com/syoyo/tinyexr
@@ -369,13 +381,14 @@ Files extracted from upstream source:
 
 - all .c and .h files
 
+
 ## zstd
 
 - Upstream: https://github.com/facebook/zstd
-- Version: 1.3.0
+- Version: 1.3.1
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
 
-- all .c and .h under lib/
-- README.md, LICENSE, PATENTS
+- lib/{common/,compress/,decompress/,zstd.h}
+- README.md, LICENSE

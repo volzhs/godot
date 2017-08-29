@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -55,6 +55,44 @@ class EditorFileSystem;
 class EditorToolAddons;
 class ScriptEditor;
 
+class EditorInterface : public Node {
+	GDCLASS(EditorInterface, Node)
+protected:
+	static void _bind_methods();
+	static EditorInterface *singleton;
+
+	Array _make_mesh_previews(const Array &p_meshes, int p_preview_size);
+
+public:
+	static EditorInterface *get_singleton() { return singleton; }
+
+	Control *get_editor_viewport();
+	void edit_resource(const Ref<Resource> &p_resource);
+	void open_scene_from_path(const String &scene_path);
+	void reload_scene_from_path(const String &scene_path);
+
+	Node *get_edited_scene_root();
+	Array get_open_scenes() const;
+	ScriptEditor *get_script_editor();
+
+	void inspect_object(Object *p_obj, const String &p_for_property = String());
+
+	EditorSelection *get_selection();
+	//EditorImportExport *get_import_export();
+	EditorSettings *get_editor_settings();
+	EditorResourcePreview *get_resource_previewer();
+	EditorFileSystem *get_resource_file_system();
+
+	Control *get_base_control();
+
+	Error save_scene();
+	void save_scene_as(const String &p_scene, bool p_with_preview = true);
+
+	Vector<Ref<Texture> > make_mesh_previews(const Vector<Ref<Mesh> > &p_meshes, int p_preview_size);
+
+	EditorInterface();
+};
+
 class EditorPlugin : public Node {
 
 	GDCLASS(EditorPlugin, Node);
@@ -105,10 +143,6 @@ public:
 	void add_control_to_dock(DockSlot p_slot, Control *p_control);
 	void remove_control_from_docks(Control *p_control);
 	void remove_control_from_bottom_panel(Control *p_control);
-	Control *get_editor_viewport();
-	void edit_resource(const Ref<Resource> &p_resource);
-	void open_scene_from_path(const String &scene_path);
-	void reload_scene_from_path(const String &scene_path);
 
 	void add_tool_menu_item(const String &p_name, Object *p_handler, const String &p_callback, const Variant &p_ud = Variant());
 	void add_tool_submenu_item(const String &p_name, Object *p_submenu);
@@ -116,10 +150,6 @@ public:
 
 	void set_input_event_forwarding_always_enabled();
 	bool is_input_event_forwarding_always_enabled() { return input_event_forwarding_always_enabled; }
-
-	Node *get_edited_scene_root();
-	Array get_open_scenes() const;
-	ScriptEditor *get_script_editor();
 
 	void notify_main_screen_changed(const String &screen_name);
 	void notify_scene_changed(const Node *scn_root);
@@ -146,22 +176,14 @@ public:
 	virtual void get_window_layout(Ref<ConfigFile> p_layout);
 	virtual void edited_scene_changed() {} // if changes are pending in editor, apply them
 
-	void update_canvas();
+	EditorInterface *get_editor_interface();
 
-	virtual void inspect_object(Object *p_obj, const String &p_for_property = String());
+	void update_canvas();
 
 	void queue_save_layout() const;
 
-	Control *get_base_control();
-
 	void make_bottom_panel_item_visible(Control *p_item);
 	void hide_bottom_panel();
-
-	EditorSelection *get_selection();
-	//EditorImportExport *get_import_export();
-	EditorSettings *get_editor_settings();
-	EditorResourcePreview *get_resource_previewer();
-	EditorFileSystem *get_resource_file_system();
 
 	virtual void restore_global_state();
 	virtual void save_global_state();

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -29,13 +29,13 @@
 /*************************************************************************/
 #include "project_settings_editor.h"
 
-#include "editor_node.h"
-#include "global_constants.h"
-#include "os/keyboard.h"
-#include "project_settings.h"
+#include "core/global_constants.h"
+#include "core/os/keyboard.h"
+#include "core/project_settings.h"
+#include "core/translation.h"
+#include "editor/editor_node.h"
 #include "scene/gui/margin_container.h"
 #include "scene/gui/tab_container.h"
-#include "translation.h"
 
 ProjectSettingsEditor *ProjectSettingsEditor::singleton = NULL;
 
@@ -184,8 +184,6 @@ void ProjectSettingsEditor::_device_input_add() {
 	int idx = edit_idx;
 	Variant old_val = ProjectSettings::get_singleton()->get(name);
 	Array arr = old_val;
-	//	ie.device = device_id->get_value();
-	//	ie.type = add_type;
 
 	switch (add_type) {
 
@@ -619,7 +617,6 @@ void ProjectSettingsEditor::_update_actions() {
 			continue;
 
 		TreeItem *item = input_editor->create_item(root);
-		//item->set_cell_mode(0,TreeItem::CELL_MODE_CHECK);
 		item->set_text(0, name);
 		item->add_button(0, get_icon("Add", "EditorIcons"), 1, false, TTR("Add Event"));
 		if (!ProjectSettings::get_singleton()->get_input_presets().find(pi.name)) {
@@ -627,7 +624,6 @@ void ProjectSettingsEditor::_update_actions() {
 			item->set_editable(0, true);
 		}
 		item->set_custom_bg_color(0, get_color("prop_subsection", "Editor"));
-		//item->set_checked(0,pi.usage&PROPERTY_USAGE_CHECKED);
 
 		Array actions = ProjectSettings::get_singleton()->get(pi.name);
 
@@ -748,22 +744,10 @@ void ProjectSettingsEditor::_item_add() {
 	}
 
 	String catname = category->get_text().strip_edges();
-	/*if (!catname.is_valid_identifier()) {
-		message->set_text("Invalid Category.\nValid characters: a-z,A-Z,0-9 or _");
-		message->popup_centered(Size2(300,100));
-		return;
-	}*/
-
 	String propname = property->get_text().strip_edges();
-	/*if (!propname.is_valid_identifier()) {
-		message->set_text("Invalid Property.\nValid characters: a-z,A-Z,0-9 or _");
-		message->popup_centered(Size2(300,100));
-		return;
-	}*/
-
 	String name = catname != "" ? catname + "/" + propname : propname;
 
-	undo_redo->create_action("Add Global Property");
+	undo_redo->create_action(TTR("Add Global Property"));
 
 	undo_redo->add_do_property(ProjectSettings::get_singleton(), name, value);
 
@@ -790,7 +774,7 @@ void ProjectSettingsEditor::_item_del() {
 
 	String path = globals_editor->get_property_editor()->get_selected_path();
 	if (path == String()) {
-		EditorNode::get_singleton()->show_warning(TTR("Select an setting item first!"));
+		EditorNode::get_singleton()->show_warning(TTR("Select a setting item first!"));
 		return;
 	}
 
@@ -884,8 +868,7 @@ void ProjectSettingsEditor::_save() {
 
 void ProjectSettingsEditor::_settings_prop_edited(const String &p_name) {
 
-	String full_item = globals_editor->get_full_item_path(p_name);
-
+	// Method needed to discard the mandatory argument of the property_edited signal
 	_settings_changed();
 }
 
@@ -1391,12 +1374,6 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	tab_container = memnew(TabContainer);
 	tab_container->set_tab_align(TabContainer::ALIGN_LEFT);
 	add_child(tab_container);
-	//set_child_rect(tab_container);
-
-	//tab_container->set_anchor_and_margin(MARGIN_LEFT,ANCHOR_BEGIN, 15 );
-	//tab_container->set_anchor_and_margin(MARGIN_RIGHT,ANCHOR_END, 15 );
-	//tab_container->set_anchor_and_margin(MARGIN_TOP,ANCHOR_BEGIN, 15 );
-	//tab_container->set_anchor_and_margin(MARGIN_BOTTOM,ANCHOR_END, 35 );
 
 	VBoxContainer *props_base = memnew(VBoxContainer);
 	props_base->set_alignment(BoxContainer::ALIGN_BEGIN);
@@ -1480,20 +1457,6 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	globals_editor->get_property_editor()->connect("property_toggled", this, "_item_checked", varray(), CONNECT_DEFERRED);
 	globals_editor->get_property_editor()->connect("property_edited", this, "_settings_prop_edited");
 
-	/*
-	Button *save = memnew( Button );
-	props_base->add_child(save);
-
-	save->set_anchor(MARGIN_LEFT,ANCHOR_END);
-	save->set_anchor(MARGIN_RIGHT,ANCHOR_END);
-	save->set_anchor(MARGIN_TOP,ANCHOR_END);
-	save->set_anchor(MARGIN_BOTTOM,ANCHOR_END);
-	save->set_begin( Point2(80,28) );
-	save->set_end( Point2(10,20) );
-	save->set_text("Save");
-	save->connect("pressed",this,"_save");
-*/
-
 	Button *del = memnew(Button);
 	hbc->add_child(del);
 	del->set_text(TTR("Delete"));
@@ -1506,16 +1469,6 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	popup_copy_to_feature->set_disabled(true);
 	add_prop_bar->add_child(popup_copy_to_feature);
 
-	/*List<StringName> ep;
-	EditorImportExport::get_singleton()->get_export_platforms(&ep);
-	ep.sort_custom<StringName::AlphCompare>();
-
-	for(List<StringName>::Element *E=ep.front();E;E=E->next()) {
-
-		popup_copy_to_feature->get_popup()->add_item( E->get() );
-
-	}*/
-
 	popup_copy_to_feature->get_popup()->connect("id_pressed", this, "_copy_to_platform");
 	popup_copy_to_feature->get_popup()->connect("about_to_show", this, "_copy_to_platform_about_to_show");
 
@@ -1524,7 +1477,6 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 
 	message = memnew(ConfirmationDialog);
 	add_child(message);
-	//message->get_cancel()->hide();
 	message->set_hide_on_ok(true);
 
 	Control *input_base = memnew(Control);
@@ -1591,7 +1543,6 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 
 	hbc = memnew(HBoxContainer);
 	device_input->add_child(hbc);
-	//device_input->set_child_rect(hbc);
 
 	VBoxContainer *vbc_left = memnew(VBoxContainer);
 	hbc->add_child(vbc_left);
@@ -1616,18 +1567,6 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	device_index = memnew(OptionButton);
 	vbc_right->add_child(device_index);
 
-	/*
-	save = memnew( Button );
-	input_base->add_child(save);
-	save->set_anchor(MARGIN_LEFT,ANCHOR_END);
-	save->set_anchor(MARGIN_RIGHT,ANCHOR_END);
-	save->set_anchor(MARGIN_TOP,ANCHOR_END);
-	save->set_anchor(MARGIN_BOTTOM,ANCHOR_END);
-	save->set_begin( Point2(80,28) );
-	save->set_end( Point2(10,20) );
-	save->set_text("Save");
-	save->connect("pressed",this,"_save");
-*/
 	setting = false;
 
 	//translations
@@ -1739,14 +1678,4 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	add_child(timer);
 
 	updating_translations = false;
-
-	/*
-	Control * es = memnew( Control );
-	es->set_name("Export");
-	tab_container->add_child(es);
-	export_settings = memnew( ProjectExportSettings );
-	es->add_child(export_settings);
-	export_settings->set_area_as_parent_rect();
-	export_settings->set_anchor_and_margin(MARGIN_BOTTOM,ANCHOR_END, 35 );
-*/
 }

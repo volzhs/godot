@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -76,15 +76,12 @@ public:
 	~VisualInstance();
 };
 
-class BakedLight;
-
 class GeometryInstance : public VisualInstance {
 
 	GDCLASS(GeometryInstance, VisualInstance);
 
 public:
 	enum Flags {
-		FLAG_VISIBLE_IN_ALL_ROOMS = VS::INSTANCE_FLAG_VISIBLE_IN_ALL_ROOMS,
 		FLAG_USE_BAKED_LIGHT = VS::INSTANCE_FLAG_USE_BAKED_LIGHT,
 		FLAG_MAX = VS::INSTANCE_FLAG_MAX,
 	};

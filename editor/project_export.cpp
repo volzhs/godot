@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -35,7 +35,6 @@
 #include "io/image_loader.h"
 #include "io/resource_loader.h"
 #include "io/resource_saver.h"
-#include "io_plugins/editor_texture_import_plugin.h"
 #include "os/dir_access.h"
 #include "os/file_access.h"
 #include "os/os.h"
@@ -913,8 +912,8 @@ ProjectExportDialog::ProjectExportDialog() {
 
 	updating = false;
 
-	get_ok()->set_text("Export PCK/Zip");
-	export_button = add_button("Export Project", !OS::get_singleton()->get_swap_ok_cancel(), "export");
+	get_ok()->set_text(TTR("Export PCK/Zip"));
+	export_button = add_button(TTR("Export Project"), !OS::get_singleton()->get_swap_ok_cancel(), "export");
 
 	export_pck_zip = memnew(FileDialog);
 	export_pck_zip->add_filter("*.zip ; ZIP File");

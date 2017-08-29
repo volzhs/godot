@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -341,6 +341,11 @@ int Image::get_width() const {
 int Image::get_height() const {
 
 	return height;
+}
+
+Vector2 Image::get_size() const {
+
+	return Vector2(width, height);
 }
 
 bool Image::has_mipmaps() const {
@@ -2215,6 +2220,7 @@ void Image::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_width"), &Image::get_width);
 	ClassDB::bind_method(D_METHOD("get_height"), &Image::get_height);
+	ClassDB::bind_method(D_METHOD("get_size"), &Image::get_size);
 	ClassDB::bind_method(D_METHOD("has_mipmaps"), &Image::has_mipmaps);
 	ClassDB::bind_method(D_METHOD("get_format"), &Image::get_format);
 	ClassDB::bind_method(D_METHOD("get_data"), &Image::get_data);

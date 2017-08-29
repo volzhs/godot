@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -27,11 +27,13 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
+// FIXME: Disabled as (according to reduz) users were complaining that it gets in the way
+// Waiting for PropertyEditor rewrite (planned for 3.1) to be refactored.
+#if 0
 #include "material_editor_plugin.h"
 
 #include "scene/main/viewport.h"
-
-#if 0
 
 void MaterialEditor::_gui_input(InputEvent p_event) {
 

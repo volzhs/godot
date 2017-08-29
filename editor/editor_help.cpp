@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -294,7 +294,6 @@ EditorHelpSearch::EditorHelpSearch() {
 	VBoxContainer *vbc = memnew(VBoxContainer);
 	add_child(vbc);
 
-	HBoxContainer *sb_hb = memnew(HBoxContainer);
 	search_box = memnew(LineEdit);
 	vbc->add_child(search_box);
 	search_box->connect("text_changed", this, "_text_changed");
@@ -530,49 +529,6 @@ void EditorHelp::_search(const String &) {
 
 	prev_search = stext;
 }
-
-#if 0
-void EditorHelp::_button_pressed(int p_idx) {
-
-	if (p_idx==PAGE_CLASS_LIST) {
-
-		//edited_class->set_pressed(false);
-		//class_list_button->set_pressed(true);
-		//tabs->set_current_tab(PAGE_CLASS_LIST);
-
-	} else if (p_idx==PAGE_CLASS_DESC) {
-
-		//edited_class->set_pressed(true);
-		//class_list_button->set_pressed(false);
-		//tabs->set_current_tab(PAGE_CLASS_DESC);
-
-	} else if (p_idx==PAGE_CLASS_PREV) {
-
-		if (history_pos<2)
-			return;
-		history_pos--;
-		ERR_FAIL_INDEX(history_pos-1,history.size());
-		_goto_desc(history[history_pos-1].c,false,history[history_pos-1].scroll);
-		_update_history_buttons();
-
-
-	} else if (p_idx==PAGE_CLASS_NEXT) {
-
-		if (history_pos>=history.size())
-			return;
-
-		history_pos++;
-		ERR_FAIL_INDEX(history_pos-1,history.size());
-		_goto_desc(history[history_pos-1].c,false,history[history_pos-1].scroll);
-		_update_history_buttons();
-
-	} else if (p_idx==PAGE_SEARCH) {
-
-		_search("");
-	}
-}
-
-#endif
 
 void EditorHelp::_class_list_select(const String &p_select) {
 
@@ -893,6 +849,8 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 
 		for (int i = 0; i < methods.size(); i++) {
 
+			bool is_vararg = methods[i].qualifiers.find("vararg") != -1;
+
 			class_desc->push_cell();
 
 			method_line[methods[i].name] = class_desc->get_line_count() - 2; //gets overridden if description
@@ -916,7 +874,7 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 			if (methods[i].description != "")
 				class_desc->pop();
 			class_desc->push_color(EditorSettings::get_singleton()->get("text_editor/highlighting/symbol_color"));
-			class_desc->add_text(methods[i].arguments.size() ? "( " : "(");
+			class_desc->add_text(methods[i].arguments.size() || is_vararg ? "( " : "(");
 			class_desc->pop();
 			for (int j = 0; j < methods[i].arguments.size(); j++) {
 				class_desc->push_color(EditorSettings::get_singleton()->get("text_editor/highlighting/text_color"));
@@ -936,17 +894,18 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 				class_desc->pop();
 			}
 
-			if (methods[i].qualifiers.find("vararg") != -1) {
+			if (is_vararg) {
 				class_desc->push_color(EditorSettings::get_singleton()->get("text_editor/highlighting/text_color"));
-				class_desc->add_text(",");
+				if (methods[i].arguments.size())
+					class_desc->add_text(", ");
 				class_desc->push_color(EditorSettings::get_singleton()->get("text_editor/highlighting/symbol_color"));
-				class_desc->add_text(" ... ");
+				class_desc->add_text("...");
 				class_desc->pop();
 				class_desc->pop();
 			}
 
 			class_desc->push_color(EditorSettings::get_singleton()->get("text_editor/highlighting/symbol_color"));
-			class_desc->add_text(methods[i].arguments.size() ? " )" : ")");
+			class_desc->add_text(methods[i].arguments.size() || is_vararg ? " )" : ")");
 			class_desc->pop();
 			if (methods[i].qualifiers != "") {
 
@@ -1313,6 +1272,8 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 
 		for (int i = 0; i < methods.size(); i++) {
 
+			bool is_vararg = methods[i].qualifiers.find("vararg") != -1;
+
 			method_line[methods[i].name] = class_desc->get_line_count() - 2;
 
 			class_desc->push_font(doc_code_font);
@@ -1323,7 +1284,7 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 			_add_text(methods[i].name);
 			class_desc->pop();
 			class_desc->push_color(EditorSettings::get_singleton()->get("text_editor/highlighting/symbol_color"));
-			class_desc->add_text(methods[i].arguments.size() ? "( " : "(");
+			class_desc->add_text(methods[i].arguments.size() || is_vararg ? "( " : "(");
 			class_desc->pop();
 			for (int j = 0; j < methods[i].arguments.size(); j++) {
 				class_desc->push_color(EditorSettings::get_singleton()->get("text_editor/highlighting/text_color"));
@@ -1343,8 +1304,18 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 				class_desc->pop();
 			}
 
+			if (is_vararg) {
+				class_desc->push_color(EditorSettings::get_singleton()->get("text_editor/highlighting/text_color"));
+				if (methods[i].arguments.size())
+					class_desc->add_text(", ");
+				class_desc->push_color(EditorSettings::get_singleton()->get("text_editor/highlighting/symbol_color"));
+				class_desc->add_text("...");
+				class_desc->pop();
+				class_desc->pop();
+			}
+
 			class_desc->push_color(EditorSettings::get_singleton()->get("text_editor/highlighting/symbol_color"));
-			class_desc->add_text(methods[i].arguments.size() ? " )" : ")");
+			class_desc->add_text(methods[i].arguments.size() || is_vararg ? " )" : ")");
 			class_desc->pop();
 			if (methods[i].qualifiers != "") {
 

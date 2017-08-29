@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -58,21 +58,6 @@ public:
 	Reference();
 	~Reference();
 };
-
-#if 0
-class RefBase {
-protected:
-	void ref_inc(Reference *p_reference);
-	bool ref_dec(Reference *p_reference);
-	Reference *first_ref(Reference *p_reference);
-	Reference * get_reference_from_ref(const RefBase &p_base);
-	virtual Reference * get_reference() const=0;
-	char * get_refptr_data(const RefPtr &p_refptr) const;
-public:
-
-	virtual ~RefBase() {}
-};
-#endif
 
 template <class T>
 class Ref {
@@ -151,20 +136,10 @@ public:
 		return refptr;
 	};
 
-#if 0
-	// go to RefPtr
-	operator RefPtr() const {
-
-		return get_ref_ptr();
-	}
-#endif
-
-#if 1
 	operator Variant() const {
 
 		return Variant(get_ref_ptr());
 	}
-#endif
 
 	void operator=(const Ref &p_from) {
 

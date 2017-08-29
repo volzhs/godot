@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -1319,22 +1319,6 @@ void GDFunction::debug_get_stack_member_state(int p_line, List<Pair<StringName, 
 	}
 }
 
-#if 0
-void GDFunction::clear() {
-
-	name=StringName();
-	constants.clear();
-	_stack_size=0;
-	code.clear();
-	_constants_ptr=NULL;
-	_constant_count=0;
-	_global_names_ptr=NULL;
-	_global_names_count=0;
-	_code_ptr=NULL;
-	_code_size=0;
-
-}
-#endif
 GDFunction::GDFunction()
 	: function_list(this) {
 
@@ -1434,7 +1418,7 @@ Variant GDFunctionState::_signal_callback(const Variant **p_args, int p_argcount
 	// If the return value is a GDFunctionState reference,
 	// then the function did yield again after resuming.
 	if (ret.is_ref()) {
-		GDFunctionState *gdfs = Object::cast_to<GDFunctionState>((Object *)&ret);
+		GDFunctionState *gdfs = Object::cast_to<GDFunctionState>(ret);
 		if (gdfs && gdfs->function == function)
 			completed = false;
 	}
@@ -1490,7 +1474,7 @@ Variant GDFunctionState::resume(const Variant &p_arg) {
 	// If the return value is a GDFunctionState reference,
 	// then the function did yield again after resuming.
 	if (ret.is_ref()) {
-		GDFunctionState *gdfs = Object::cast_to<GDFunctionState>((Object *)&ret);
+		GDFunctionState *gdfs = Object::cast_to<GDFunctionState>(ret);
 		if (gdfs && gdfs->function == function)
 			completed = false;
 	}

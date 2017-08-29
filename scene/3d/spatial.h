@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -47,6 +47,7 @@ public:
 	virtual void clear() = 0;
 	virtual void redraw() = 0;
 	virtual void free() = 0;
+	virtual bool can_draw() const = 0;
 
 	SpatialGizmo();
 };

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -97,6 +97,7 @@ public:
 	EditorScriptPreviewPlugin();
 };
 
+// FIXME: Needs to be rewritten for AudioStream in Godot 3.0+
 #if 0
 class EditorSamplePreviewPlugin : public EditorResourcePreviewGenerator {
 public:
@@ -106,8 +107,8 @@ public:
 
 	EditorSamplePreviewPlugin();
 };
-
 #endif
+
 class EditorMeshPreviewPlugin : public EditorResourcePreviewGenerator {
 
 	GDCLASS(EditorMeshPreviewPlugin, EditorResourcePreviewGenerator)

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -608,16 +608,6 @@ void AnimationPlayer::_animation_update_transforms() {
 
 		ERR_CONTINUE(pa->accum_pass != accum_pass);
 
-#if 1
-		/*		switch(pa->special) {
-
-
-			case SP_NONE: pa->object->set(pa->prop,pa->value_accum); break; //you are not speshul
-			case SP_NODE2D_POS: static_cast<Node2D*>(pa->object)->set_position(pa->value_accum); break;
-			case SP_NODE2D_ROT: static_cast<Node2D*>(pa->object)->set_rot(Math::deg2rad(pa->value_accum)); break;
-			case SP_NODE2D_SCALE: static_cast<Node2D*>(pa->object)->set_scale(pa->value_accum); break;
-		}*/
-
 		switch (pa->special) {
 
 			case SP_NONE: {
@@ -657,18 +647,12 @@ void AnimationPlayer::_animation_update_transforms() {
 				static_cast<Node2D *>(pa->object)->set_scale(pa->value_accum);
 			} break;
 		}
-#else
-
-		pa->object->set(pa->prop, pa->value_accum);
-#endif
 	}
 
 	cache_update_prop_size = 0;
 }
 
 void AnimationPlayer::_animation_process(float p_delta) {
-
-	//bool any_active=false;
 
 	if (playback.current.from) {
 

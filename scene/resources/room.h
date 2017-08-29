@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -36,6 +36,9 @@
 	@author Juan Linietsky <reduzio@gmail.com>
 */
 
+//left for reference but will be removed when portals are reimplemented using Area
+#if 0
+
 class RoomBounds : public Resource {
 
 	GDCLASS(RoomBounds, Resource);
@@ -57,4 +60,5 @@ public:
 	~RoomBounds();
 };
 
+#endif
 #endif // ROOM_H

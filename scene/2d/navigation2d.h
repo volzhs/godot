@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -153,9 +153,7 @@ class Navigation2D : public Node2D {
 	float cell_size;
 	Map<int, NavMesh> navpoly_map;
 	int last_id;
-#if 0
-	void _clip_path(Vector<Vector2>& path,Polygon *from_poly, const Vector2& p_to_point, Polygon* p_to_poly);
-#endif
+
 protected:
 	static void _bind_methods();
 

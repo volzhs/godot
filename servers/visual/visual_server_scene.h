@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -54,6 +54,8 @@ public:
 	uint64_t render_pass;
 
 	static VisualServerScene *singleton;
+
+// FIXME: Kept as reference for future implementation
 #if 0
 	struct Portal {
 
@@ -137,38 +139,6 @@ public:
 	virtual void camera_set_environment(RID p_camera, RID p_env);
 	virtual void camera_set_use_vertical_aspect(RID p_camera, bool p_enable);
 
-	/*
-
-	struct RoomInfo {
-
-		Transform affine_inverse;
-		Room *room;
-		List<Instance*> owned_geometry_instances;
-		List<Instance*> owned_portal_instances;
-		List<Instance*> owned_room_instances;
-		List<Instance*> owned_light_instances; //not used, but just for the sake of it
-		Set<Instance*> disconnected_child_portals;
-		Set<Instance*> owned_autoroom_geometry;
-		uint64_t last_visited_pass;
-		RoomInfo() { last_visited_pass=0; }
-
-	};
-
-	struct InstancePortal {
-
-		Portal *portal;
-		Set<Instance*> candidate_set;
-		Instance *connected;
-		uint64_t last_visited_pass;
-
-		Plane plane_cache;
-		Vector<Vector3> transformed_point_cache;
-
-
-		PortalInfo() { connected=NULL; last_visited_pass=0;}
-	};
-*/
-
 	/* SCENARIO API */
 
 	struct Instance;
@@ -236,10 +206,6 @@ public:
 		float lod_end_hysteresis;
 		RID lod_instance;
 
-		Instance *room;
-		SelfList<Instance> room_item;
-		bool visible_in_all_rooms;
-
 		uint64_t last_render_pass;
 		uint64_t last_frame_pass;
 
@@ -263,7 +229,7 @@ public:
 		}
 
 		Instance()
-			: scenario_item(this), update_item(this), room_item(this) {
+			: scenario_item(this), update_item(this) {
 
 			octree_id = 0;
 			scenario = NULL;
@@ -280,9 +246,6 @@ public:
 			lod_end = 0;
 			lod_begin_hysteresis = 0;
 			lod_end_hysteresis = 0;
-
-			room = NULL;
-			visible_in_all_rooms = false;
 
 			last_render_pass = 0;
 			last_frame_pass = 0;
@@ -496,7 +459,6 @@ public:
 
 	virtual void instance_attach_skeleton(RID p_instance, RID p_skeleton);
 	virtual void instance_set_exterior(RID p_instance, bool p_enabled);
-	virtual void instance_set_room(RID p_instance, RID p_room);
 
 	virtual void instance_set_extra_visibility_margin(RID p_instance, real_t p_margin);
 

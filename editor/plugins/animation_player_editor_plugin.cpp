@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -367,10 +367,6 @@ void AnimationPlayerEditor::_animation_save_in_path(const Ref<Resource> &p_resou
 	int flg = 0;
 	if (EditorSettings::get_singleton()->get("filesystem/on_save/compress_binary_resources"))
 		flg |= ResourceSaver::FLAG_COMPRESS;
-	/*
-	if (EditorSettings::get_singleton()->get("filesystem/on_save/save_paths_as_relative"))
-		flg |= ResourceSaver::FLAG_RELATIVE_PATHS;
-	*/
 
 	String path = ProjectSettings::get_singleton()->localize_path(p_path);
 	Error err = ResourceSaver::save(path, p_resource, flg | ResourceSaver::FLAG_REPLACE_SUBRESOURCE_PATHS);
@@ -380,7 +376,6 @@ void AnimationPlayerEditor::_animation_save_in_path(const Ref<Resource> &p_resou
 		accept->popup_centered_minsize();
 		return;
 	}
-	//EditorFileSystem::get_singleton()->update_file(path,p_resource->get_type());
 
 	((Resource *)p_resource.ptr())->set_path(path);
 	editor->emit_signal("resource_saved", p_resource);
@@ -970,71 +965,6 @@ void AnimationPlayerEditor::_list_changed() {
 	if (is_visible_in_tree())
 		_update_player();
 }
-#if 0
-void AnimationPlayerEditor::_editor_store() {
-
-	if (animation->get_item_count()==0)
-		return;
-	String current = animation->get_item_text(animation->get_selected());
-	Ref<Animation> anim =  player->get_animation(current);
-
-	if (key_editor->get_current_animation()==anim)
-		return; //already there
-
-
-	undo_redo->create_action("Store anim in editor");
-	undo_redo->add_do_method(key_editor,"set_animation",anim);
-	undo_redo->add_undo_method(key_editor,"remove_animation",anim);
-	undo_redo->commit_action();
-}
-
-void AnimationPlayerEditor::_editor_load(){
-
-	Ref<Animation> anim = key_editor->get_current_animation();
-	if (anim.is_null())
-		return;
-
-	String existing = player->find_animation(anim);
-	if (existing!="") {
-		_select_anim_by_name(existing);
-		return; //already has
-	}
-
-	int count=1;
-	String base=anim->get_name();
-	bool noname=false;
-	if (base=="") {
-		base="New Anim";
-		noname=true;
-	}
-
-	while(true) {
-		String attempt  = base;
-		if (count>1)
-			attempt+=" ("+itos(count)+")";
-		if (player->has_animation(attempt)) {
-			count++;
-			continue;
-		}
-		base=attempt;
-		break;
-	}
-
-	if (noname)
-		anim->set_name(base);
-
-	undo_redo->create_action("Add Animation From Editor");
-	undo_redo->add_do_method(player,"add_animation",base,anim);
-	undo_redo->add_undo_method(player,"remove_animation",base);
-	undo_redo->add_do_method(this,"_animation_player_changed",player);
-	undo_redo->add_undo_method(this,"_animation_player_changed",player);
-	undo_redo->commit_action();
-
-	_select_anim_by_name(base);
-
-
-}
-#endif
 
 void AnimationPlayerEditor::_animation_key_editor_anim_len_changed(float p_len) {
 
@@ -1395,7 +1325,6 @@ AnimationPlayerEditor::AnimationPlayerEditor(EditorNode *p_editor) {
 
 	error_dialog = memnew(ConfirmationDialog);
 	error_dialog->get_ok()->set_text(TTR("Close"));
-	//error_dialog->get_cancel()->set_text("Close");
 	error_dialog->set_text(TTR("Error!"));
 	add_child(error_dialog);
 

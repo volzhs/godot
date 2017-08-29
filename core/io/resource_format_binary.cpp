@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -28,12 +28,14 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "resource_format_binary.h"
-#include "image.h"
-#include "io/file_access_compressed.h"
-#include "io/marshalls.h"
-#include "os/dir_access.h"
-#include "project_settings.h"
-#include "version.h"
+
+#include "core/image.h"
+#include "core/io/file_access_compressed.h"
+#include "core/io/marshalls.h"
+#include "core/os/dir_access.h"
+#include "core/project_settings.h"
+#include "core/version.h"
+
 //#define print_bl(m_what) print_line(m_what)
 #define print_bl(m_what)
 
@@ -1715,54 +1717,6 @@ void ResourceFormatSaverBinaryInstance::_find_resources(const Variant &p_variant
 		default: {}
 	}
 }
-#if 0
-Error ResourceFormatSaverBinary::_save_obj(const Object *p_object,SavedObject *so) {
-
-	//use classic way
-	List<PropertyInfo> property_list;
-	p_object->get_property_list( &property_list );
-
-	for(List<PropertyInfo>::Element *E=property_list.front();E;E=E->next()) {
-
-		if (skip_editor && E->get().name.begins_with("__editor"))
-			continue;
-		if (E->get().usage&PROPERTY_USAGE_STORAGE || (bundle_resources && E->get().usage&PROPERTY_USAGE_BUNDLE)) {
-
-			SavedObject::SavedProperty sp;
-			sp.name_idx=get_string_index(E->get().name);
-			sp.value = p_object->get(E->get().name);
-			_find_resources(sp.value);
-			so->properties.push_back(sp);
-		}
-	}
-
-	return OK;
-
-}
-
-
-
-Error ResourceFormatSaverBinary::save(const Object *p_object,const Variant &p_meta) {
-
-	ERR_FAIL_COND_V(!f,ERR_UNCONFIGURED);
-	ERR_EXPLAIN("write_object should supply either an object, a meta, or both");
-	ERR_FAIL_COND_V(!p_object && p_meta.get_type()==Variant::NIL, ERR_INVALID_PARAMETER);
-
-	SavedObject *so = memnew( SavedObject );
-
-	if (p_object)
-		so->type=p_object->get_type();
-
-	_find_resources(p_meta);
-	so->meta=p_meta;
-	Error err = _save_obj(p_object,so);
-	ERR_FAIL_COND_V( err, ERR_INVALID_DATA );
-
-	saved_objects.push_back(so);
-
-	return OK;
-}
-#endif
 
 void ResourceFormatSaverBinaryInstance::save_unicode_string(const String &p_string) {
 
@@ -1798,7 +1752,6 @@ Error ResourceFormatSaverBinaryInstance::save(const String &p_path, const RES &p
 	}
 
 	ERR_FAIL_COND_V(err, err);
-	FileAccessRef _fref(f);
 
 	relative_paths = p_flags & ResourceSaver::FLAG_RELATIVE_PATHS;
 	skip_editor = p_flags & ResourceSaver::FLAG_OMIT_EDITOR_PROPERTIES;
@@ -1810,7 +1763,6 @@ Error ResourceFormatSaverBinaryInstance::save(const String &p_path, const RES &p
 		takeover_paths = false;
 
 	local_path = p_path.get_base_dir();
-	//bin_meta_idx = get_string_index("__bin_meta__"); //is often used, so create
 
 	_find_resources(p_resource, true);
 
@@ -1836,7 +1788,6 @@ Error ResourceFormatSaverBinaryInstance::save(const String &p_path, const RES &p
 		return ERR_CANT_CREATE;
 	}
 
-	//f->store_32(saved_resources.size()+external_resources.size()); // load steps -not needed
 	save_unicode_string(p_resource->get_class());
 	uint64_t md_at = f->get_pos();
 	f->store_64(0); //offset to impoty metadata
@@ -1875,7 +1826,6 @@ Error ResourceFormatSaverBinaryInstance::save(const String &p_path, const RES &p
 
 	f->store_32(strings.size()); //string table size
 	for (int i = 0; i < strings.size(); i++) {
-		//print_bl("saving string: "+strings[i]);
 		save_unicode_string(strings[i]);
 	}
 
@@ -1944,9 +1894,8 @@ Error ResourceFormatSaverBinaryInstance::save(const String &p_path, const RES &p
 	}
 
 	Vector<uint64_t> ofs_table;
-	//int saved_idx=0;
-	//now actually save the resources
 
+	//now actually save the resources
 	for (List<ResourceData>::Element *E = resources.front(); E; E = E->next()) {
 
 		ResourceData &rd = E->get();

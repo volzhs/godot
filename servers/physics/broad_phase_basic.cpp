@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -30,17 +30,14 @@
 #include "broad_phase_basic.h"
 #include "list.h"
 #include "print_string.h"
-BroadPhaseSW::ID BroadPhaseBasic::create(CollisionObjectSW *p_object_, int p_subindex) {
+BroadPhaseSW::ID BroadPhaseBasic::create(CollisionObjectSW *p_object, int p_subindex) {
 
-	if (p_object_ == NULL) {
-
-		ERR_FAIL_COND_V(p_object_ == NULL, 0);
-	}
+	ERR_FAIL_COND_V(p_object == NULL, NULL);
 
 	current++;
 
 	Element e;
-	e.owner = p_object_;
+	e.owner = p_object;
 	e._static = false;
 	e.subindex = p_subindex;
 

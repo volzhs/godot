@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -30,21 +30,38 @@
 #ifndef EDITOR_NODE_H
 #define EDITOR_NODE_H
 
-#include "editor/call_dialog.h"
 #include "editor/connections_dialog.h"
 #include "editor/create_dialog.h"
 #include "editor/editor_about.h"
 #include "editor/editor_data.h"
+#include "editor/editor_export.h"
+#include "editor/editor_log.h"
+#include "editor/editor_name_dialog.h"
 #include "editor/editor_path.h"
+#include "editor/editor_plugin.h"
+#include "editor/editor_resource_preview.h"
 #include "editor/editor_run.h"
+#include "editor/editor_run_native.h"
+#include "editor/editor_run_script.h"
+#include "editor/editor_scale.h"
+#include "editor/editor_sub_scene.h"
 #include "editor/export_template_manager.h"
+#include "editor/fileserver/editor_file_server.h"
 #include "editor/filesystem_dock.h"
 #include "editor/groups_editor.h"
 #include "editor/import_dock.h"
 #include "editor/node_dock.h"
+#include "editor/pane_drag.h"
+#include "editor/progress_dialog.h"
+#include "editor/project_export.h"
+#include "editor/project_settings_editor.h"
 #include "editor/property_editor.h"
+#include "editor/quick_open.h"
 #include "editor/reparent_dialog.h"
+#include "editor/run_settings_dialog.h"
+#include "editor/scene_tree_dock.h"
 #include "editor/scene_tree_editor.h"
+#include "editor/script_create_dialog.h"
 #include "editor/settings_config_dialog.h"
 #include "scene/gui/center_container.h"
 #include "scene/gui/control.h"
@@ -56,38 +73,12 @@
 #include "scene/gui/separator.h"
 #include "scene/gui/split_container.h"
 #include "scene/gui/tab_container.h"
+#include "scene/gui/tabs.h"
 #include "scene/gui/texture_progress.h"
 #include "scene/gui/tool_button.h"
 #include "scene/gui/tree.h"
-
-#include "editor/pane_drag.h"
-
-#include "editor/editor_log.h"
-#include "editor/editor_run_script.h"
-#include "editor/project_export.h"
-#include "editor/project_settings_editor.h"
-#include "editor/resources_dock.h"
-#include "editor/run_settings_dialog.h"
-#include "editor/scene_tree_dock.h"
-#include "editor/script_create_dialog.h"
-
-#include "editor/editor_name_dialog.h"
-#include "editor/editor_plugin.h"
-#include "editor/editor_run_native.h"
-#include "editor/editor_sub_scene.h"
-#include "editor/project_export.h"
-#include "editor/quick_open.h"
-#include "editor_export.h"
-#include "editor_reimport_dialog.h"
-#include "scene/gui/tabs.h"
-
-#include "editor_resource_preview.h"
-#include "fileserver/editor_file_server.h"
 #include "scene/gui/viewport_container.h"
 
-#include "progress_dialog.h"
-
-#include "editor_scale.h"
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */
@@ -138,7 +129,6 @@ private:
 		FILE_OPEN_OLD_SCENE,
 		FILE_QUICK_OPEN_SCENE,
 		FILE_QUICK_OPEN_SCRIPT,
-		FILE_RUN_SCRIPT,
 		FILE_OPEN_PREV,
 		FILE_CLOSE,
 		FILE_CLOSE_ALL_AND_QUIT,
@@ -170,7 +160,6 @@ private:
 		RUN_SETTINGS,
 		RUN_PROJECT_MANAGER,
 		RUN_FILE_SERVER,
-		//RUN_DEPLOY_DUMB_CLIENTS,
 		RUN_LIVE_DEBUG,
 		RUN_DEBUG_COLLISONS,
 		RUN_DEBUG_NAVIGATION,
@@ -181,7 +170,6 @@ private:
 		SETTINGS_UPDATE_SPINNER_HIDE,
 		SETTINGS_EXPORT_PREFERENCES,
 		SETTINGS_PREFERENCES,
-		SETTINGS_OPTIMIZED_PRESETS,
 		SETTINGS_LAYOUT_SAVE,
 		SETTINGS_LAYOUT_DELETE,
 		SETTINGS_LAYOUT_DEFAULT,
@@ -189,9 +177,6 @@ private:
 		SETTINGS_PICK_MAIN_SCENE,
 		SETTINGS_TOGGLE_FULLSCREN,
 		SETTINGS_HELP,
-		SOURCES_REIMPORT,
-		DEPENDENCY_LOAD_CHANGED_IMAGES,
-		DEPENDENCY_UPDATE_IMPORTED,
 		SCENE_TAB_CLOSE,
 
 		HELP_CLASSES,
@@ -209,10 +194,7 @@ private:
 		TOOL_MENU_BASE = 1000
 	};
 
-	//Node *edited_scene; //scene being edited
 	Viewport *scene_root; //root of the scene being edited
-
-	//Ref<ResourceImportMetadata> scene_import_metadata;
 
 	PanelContainer *scene_root_parent;
 	Control *theme_base;
@@ -247,7 +229,6 @@ private:
 	HBoxContainer *bottom_hb;
 	Control *vp_base;
 	PaneDrag *pd;
-	//PaneDrag *pd_anim;
 
 	CenterContainer *play_cc;
 	HBoxContainer *menu_hb;
@@ -269,19 +250,16 @@ private:
 	ToolButton *play_custom_scene_button;
 	ToolButton *search_button;
 	TextureProgress *audio_vu;
-	//MenuButton *fileserver_menu;
 
 	RichTextLabel *load_errors;
 	AcceptDialog *load_error_dialog;
 
-	//Control *scene_root_base;
 	Ref<Theme> theme;
 
 	PopupMenu *recent_scenes;
 	Button *property_back;
 	Button *property_forward;
 	SceneTreeDock *scene_tree_dock;
-	//ResourcesDock *resources_dock;
 	PropertyEditor *property_editor;
 	NodeDock *node_dock;
 	ImportDock *import_dock;
@@ -294,7 +272,6 @@ private:
 
 	CreateDialog *create_dialog;
 
-	//CallDialog *call_dialog;
 	ConfirmationDialog *confirmation;
 	ConfirmationDialog *save_confirmation;
 	ConfirmationDialog *import_confirmation;
@@ -308,7 +285,6 @@ private:
 	PopupMenu *editor_layouts;
 	EditorNameDialog *layout_dialog;
 
-	//OptimizedPresetsDialog *optimized_presets;
 	EditorSettingsDialog *settings_config_dialog;
 	RunSettingsDialog *run_settings_dialog;
 	ProjectSettingsEditor *project_settings;
@@ -342,8 +318,6 @@ private:
 	HBoxContainer *main_editor_button_vb;
 	Vector<ToolButton *> main_editor_buttons;
 	Vector<EditorPlugin *> editor_table;
-
-	//	EditorReImportDialog *reimport_dialog;
 
 	ProgressDialog *progress_dialog;
 	BackgroundProgress *progress_hb;
@@ -402,7 +376,6 @@ private:
 	EditorData editor_data;
 	EditorRun editor_run;
 	EditorSelection *editor_selection;
-	//	ProjectExport *project_export;
 	ProjectExportDialog *project_export;
 	EditorResourcePreview *resource_preview;
 
@@ -420,6 +393,8 @@ private:
 	HBoxContainer *bottom_panel_hb;
 	VBoxContainer *bottom_panel_vb;
 
+	EditorInterface *editor_interface;
+
 	void _bottom_panel_switch(bool p_enable, int p_idx);
 
 	String external_file;
@@ -432,7 +407,6 @@ private:
 	void _dialog_display_file_error(String p_file, Error p_error);
 
 	int current_option;
-	//void _animation_visibility_toggle();
 	void _resource_created();
 	void _resource_selected(const RES &p_res, const String &p_property = "");
 	void _menu_option(int p_option);
@@ -448,7 +422,6 @@ private:
 
 	void _fs_changed();
 	void _sources_changed(bool p_exist);
-	void _imported(Node *p_node);
 
 	void _node_renamed();
 	void _editor_select_next();
@@ -489,7 +462,6 @@ private:
 	void _update_recent_scenes();
 	void _open_recent_scene(int p_idx);
 	void _dropped_files(const Vector<String> &p_files, int p_screen);
-	//void _open_recent_scene_confirm();
 	String _recent_scene;
 
 	bool convert_old;
@@ -499,8 +471,6 @@ private:
 	static void _load_error_notify(void *p_ud, const String &p_text);
 
 	bool has_main_screen() const { return true; }
-
-	bool _find_editing_changed_scene(Node *p_from);
 
 	String import_reload_fn;
 
@@ -578,7 +548,6 @@ private:
 	void _save_docks_to_config(Ref<ConfigFile> p_layout, const String &p_section);
 	void _load_docks_from_config(Ref<ConfigFile> p_layout, const String &p_section);
 	void _update_dock_slots_visibility();
-	void _update_top_menu_visibility();
 
 	void _update_layouts_menu();
 	void _layout_menu_option(int p_id);
@@ -699,10 +668,6 @@ public:
 	static EditorLog *get_log() { return singleton->log; }
 	Control *get_viewport();
 
-	//void animation_editor_make_visible(bool p_visible);
-	//void hide_animation_player_editors();
-	//void animation_panel_make_visible(bool p_visible);
-
 	void set_edited_scene(Node *p_scene);
 
 	Node *get_edited_scene() { return editor_data.get_edited_scene_root(); }
@@ -762,7 +727,12 @@ public:
 	static void progress_task_step_bg(const String &p_task, int p_step = -1);
 	static void progress_end_task_bg(const String &p_task);
 
-	void save_scene(String p_file) { _save_scene(p_file); }
+	void save_scene_to_path(String p_file, bool p_with_preview = true) {
+		if (p_with_preview)
+			_save_scene_with_preview(p_file);
+		else
+			_save_scene(p_file);
+	}
 
 	bool is_scene_in_use(const String &p_path);
 
@@ -853,4 +823,4 @@ struct EditorProgressBG {
 	~EditorProgressBG() { EditorNode::progress_end_task_bg(task); }
 };
 
-#endif
+#endif // EDITOR_NODE_H

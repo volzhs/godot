@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -529,8 +529,8 @@ void ThemeEditor::_theme_menu_cbk(int p_option) {
 
 	} else if (p_option == POPUP_CLASS_REMOVE) {
 
-		add_del_dialog->set_title("Remove All Items");
-		add_del_dialog->get_ok()->set_text("Remove All");
+		add_del_dialog->set_title(TTR("Remove All Items"));
+		add_del_dialog->get_ok()->set_text(TTR("Remove All"));
 		add_del_dialog->popup_centered(Size2(240, 85) * EDSCALE);
 
 		base_theme = Theme::get_default();

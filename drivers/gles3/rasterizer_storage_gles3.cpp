@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -4852,35 +4852,6 @@ float RasterizerStorageGLES3::reflection_probe_get_origin_max_distance(RID p_pro
 	ERR_FAIL_COND_V(!reflection_probe, 0);
 
 	return reflection_probe->max_distance;
-}
-
-/* ROOM API */
-
-RID RasterizerStorageGLES3::room_create() {
-
-	return RID();
-}
-void RasterizerStorageGLES3::room_add_bounds(RID p_room, const PoolVector<Vector2> &p_convex_polygon, float p_height, const Transform &p_transform) {
-}
-void RasterizerStorageGLES3::room_clear_bounds(RID p_room) {
-}
-
-/* PORTAL API */
-
-// portals are only (x/y) points, forming a convex shape, which its clockwise
-// order points outside. (z is 0);
-
-RID RasterizerStorageGLES3::portal_create() {
-
-	return RID();
-}
-void RasterizerStorageGLES3::portal_set_shape(RID p_portal, const Vector<Point2> &p_shape) {
-}
-void RasterizerStorageGLES3::portal_set_enabled(RID p_portal, bool p_enabled) {
-}
-void RasterizerStorageGLES3::portal_set_disable_distance(RID p_portal, float p_distance) {
-}
-void RasterizerStorageGLES3::portal_set_disabled_color(RID p_portal, const Color &p_color) {
 }
 
 RID RasterizerStorageGLES3::gi_probe_create() {

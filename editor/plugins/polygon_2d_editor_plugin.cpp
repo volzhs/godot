@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -402,6 +402,11 @@ bool Polygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 			cpoint = canvas_item_editor->snap_point(cpoint);
 			edited_point_pos = node->get_global_transform().affine_inverse().xform(cpoint);
 
+			Vector<Vector2> poly = Variant(node->get_polygon());
+			ERR_FAIL_INDEX_V(edited_point, poly.size(), false);
+			poly[edited_point] = edited_point_pos - node->get_offset();
+			node->set_polygon(Variant(poly));
+
 			canvas_item_editor->get_viewport_control()->update();
 		}
 	}
@@ -424,6 +429,23 @@ void Polygon2DEditor::_canvas_draw() {
 
 	Transform2D xform = canvas_item_editor->get_canvas_transform() * node->get_global_transform();
 	Ref<Texture> handle = get_icon("EditorHandle", "EditorIcons");
+
+	if (edited_point >= 0 && EDITOR_DEF("editors/poly_editor/show_previous_outline", true)) {
+
+		const Color col = node->get_color().contrasted();
+		const int n = pre_move_edit.size();
+		for (int i = 0; i < n; i++) {
+
+			Vector2 p, p2;
+			p = pre_move_edit[i] + node->get_offset();
+			p2 = pre_move_edit[(i + 1) % n] + node->get_offset();
+
+			Vector2 point = xform.xform(p);
+			Vector2 next_point = xform.xform(p2);
+
+			vpc->draw_line(point, next_point, col, 2);
+		}
+	}
 
 	for (int i = 0; i < poly.size(); i++) {
 
@@ -769,17 +791,6 @@ Polygon2DEditor::Polygon2DEditor(EditorNode *p_editor) {
 	button_uv = memnew(ToolButton);
 	add_child(button_uv);
 	button_uv->connect("pressed", this, "_menu_option", varray(MODE_EDIT_UV));
-
-//add_constant_override("separation",0);
-
-#if 0
-	options = memnew( MenuButton );
-	add_child(options);
-	options->set_area_as_parent_rect();
-	options->set_text("Polygon");
-	//options->get_popup()->add_item("Parse BBCode",PARSE_BBCODE);
-	options->get_popup()->connect("id_pressed", this,"_menu_option");
-#endif
 
 	mode = MODE_EDIT;
 	wip_active = false;

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -218,7 +218,7 @@ private:
 				unzFile pkg = unzOpen2(zip_path.utf8().get_data(), &io);
 				if (!pkg) {
 
-					dialog_error->set_text("Error opening package file, not in zip format.");
+					dialog_error->set_text(TTR("Error opening package file, not in zip format."));
 					return;
 				}
 
@@ -805,7 +805,8 @@ void ProjectManager::_load_recent_projects() {
 				Error err = img->load(appicon.replace_first("res://", path + "/"));
 				if (err == OK) {
 
-					img->resize(64, 64);
+					Ref<Texture> default_icon = get_icon("DefaultProjectIcon", "EditorIcons");
+					img->resize(default_icon->get_width(), default_icon->get_height());
 					Ref<ImageTexture> it = memnew(ImageTexture);
 					it->create_from_image(img);
 					icon = it;
@@ -1388,9 +1389,6 @@ ProjectManager::ProjectManager() {
 	if (EditorSettings::get_singleton()->get("filesystem/directories/autoscan_project_path")) {
 		_scan_begin(EditorSettings::get_singleton()->get("filesystem/directories/autoscan_project_path"));
 	}
-
-	//get_ok()->set_text("Open");
-	//get_ok()->set_text("Exit");
 
 	last_clicked = "";
 

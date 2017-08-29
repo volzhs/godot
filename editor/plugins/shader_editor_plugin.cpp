@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -29,20 +29,17 @@
 /*************************************************************************/
 #include "shader_editor_plugin.h"
 
+#include "core/io/resource_loader.h"
+#include "core/io/resource_saver.h"
+#include "core/os/keyboard.h"
+#include "core/os/os.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "editor/property_editor.h"
-#include "io/resource_loader.h"
-#include "io/resource_saver.h"
-#include "os/keyboard.h"
-#include "os/os.h"
 #include "scene/resources/shader_graph.h"
 #include "servers/visual/shader_types.h"
-#include "spatial_editor_plugin.h"
 
-/*** SETTINGS EDITOR ****/
-
-/*** SCRIPT EDITOR ****/
+/*** SHADER SCRIPT EDITOR ****/
 
 Ref<Shader> ShaderTextEditor::get_edited_shader() const {
 
@@ -255,9 +252,6 @@ void ShaderEditor::_menu_option(int p_option) {
 
 			current->get_find_replace_bar()->popup_replace();
 		} break;
-		//case SEARCH_LOCATE_SYMBOL: {
-
-		//} break;
 		case SEARCH_GOTO_LINE: {
 
 			goto_line_dialog->popup_find_line(current->get_text_edit());
@@ -275,90 +269,6 @@ void ShaderEditor::_notification(int p_what) {
 		Ref<StyleBox> style = get_stylebox("panel", "Panel");
 		style->draw(ci, Rect2(Point2(), get_size()));
 	}
-}
-
-Dictionary ShaderEditor::get_state() const {
-#if 0
-	apply_shaders();
-
-	Dictionary state;
-
-	Array paths;
-	int open=-1;
-
-	for(int i=0;i<tab_container->get_child_count();i++) {
-
-		ShaderTextEditor *ste = tab_container->Object::cast_to<ShaderTextEditor>(get_child(i));
-		if (!ste)
-			continue;
-
-
-		Ref<Shader> shader = ste->get_edited_shader();
-		if (shader->get_path()!="" && shader->get_path().find("local://")==-1 && shader->get_path().find("::")==-1) {
-
-			paths.push_back(shader->get_path());
-		} else {
-
-
-			const Node *owner = _find_node_with_shader(get_root_node(),shader.get_ref_ptr());
-			if (owner)
-				paths.push_back(owner->get_path());
-
-		}
-
-		if (i==tab_container->get_current_tab())
-			open=i;
-	}
-
-	if (paths.size())
-		state["sources"]=paths;
-	if (open!=-1)
-		state["current"]=open;
-
-
-	return state;
-#endif
-	return Dictionary();
-}
-void ShaderEditor::set_state(const Dictionary &p_state) {
-#if 0
-	print_line("setting state..");
-	if (!p_state.has("sources"))
-		return; //bleh
-
-	Array sources = p_state["sources"];
-	for(int i=0;i<sources.size();i++) {
-
-		Variant source=sources[i];
-
-		Ref<Shader> shader;
-
-		if (source.get_type()==Variant::NODE_PATH) {
-
-			print_line("cain find owner at path "+String(source));
-			Node *owner=get_root_node()->get_node(source);
-			if (!owner)
-				continue;
-
-			shader = owner->get_shader();
-		} else if (source.get_type()==Variant::STRING) {
-
-			print_line("loading at path "+String(source));
-			shader = ResourceLoader::load(source,"Shader");
-		}
-
-		print_line("found shader at "+String(source)+"? - "+itos(shader.is_null()));
-		if (shader.is_null()) //ah well..
-			continue;
-
-		get_scene()->get_root_node()->call("_resource_selected",shader);
-	}
-
-	if (p_state.has("current"))
-	tab_container->set_current_tab(p_state["current"]);
-#endif
-}
-void ShaderEditor::clear() {
 }
 
 void ShaderEditor::_params_changed() {
@@ -520,20 +430,6 @@ void ShaderEditorPlugin::make_visible(bool p_visible) {
 void ShaderEditorPlugin::selected_notify() {
 
 	shader_editor->ensure_select_current();
-}
-
-Dictionary ShaderEditorPlugin::get_state() const {
-
-	return shader_editor->get_state();
-}
-
-void ShaderEditorPlugin::set_state(const Dictionary &p_state) {
-
-	shader_editor->set_state(p_state);
-}
-void ShaderEditorPlugin::clear() {
-
-	shader_editor->clear();
 }
 
 void ShaderEditorPlugin::save_external_data() {
