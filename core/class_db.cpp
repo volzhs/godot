@@ -46,11 +46,6 @@
 
 #ifdef DEBUG_METHODS_ENABLED
 
-ParamDef::ParamDef(const Variant &p_variant)
-	: used(true),
-	  val(p_variant) {
-}
-
 MethodDefinition D_METHOD(const char *p_name) {
 
 	MethodDefinition md;
@@ -539,8 +534,9 @@ void ClassDB::get_method_list(StringName p_class, List<MethodInfo> *p_methods, b
 			}
 
 			minfo.return_val = method->get_return_info();
-
 			minfo.flags = method->get_hint_flags();
+			minfo.default_arguments = method->get_default_arguments();
+
 			p_methods->push_back(minfo);
 		}
 

@@ -54,6 +54,7 @@ class EditorFileSystemDirectory : public Object {
 		StringName type;
 		uint64_t modified_time;
 		uint64_t import_modified_time;
+		bool import_valid;
 		Vector<String> deps;
 		bool verified; //used for checking changes
 	};
@@ -83,6 +84,7 @@ public:
 	String get_file_path(int p_idx) const;
 	StringName get_file_type(int p_idx) const;
 	Vector<String> get_file_deps(int p_idx) const;
+	bool get_file_import_is_valid(int p_idx) const;
 
 	EditorFileSystemDirectory *get_parent();
 
@@ -153,6 +155,7 @@ class EditorFileSystem : public Node {
 		uint64_t modification_time;
 		uint64_t import_modification_time;
 		Vector<String> deps;
+		bool import_valid;
 	};
 
 	HashMap<String, FileCache> file_cache;
