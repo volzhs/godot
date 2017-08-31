@@ -204,7 +204,7 @@ class EditorExportAndroid : public EditorExportPlatform {
 		String id;
 		String name;
 		String description;
-		int release;
+		int api_level;
 	};
 
 	struct APKExportData {
@@ -278,7 +278,7 @@ class EditorExportAndroid : public EditorExportPlatform {
 							if (ea->devices[j].id == ldevices[i]) {
 								d.description = ea->devices[j].description;
 								d.name = ea->devices[j].name;
-								d.release = ea->devices[j].release;
+								d.api_level = ea->devices[j].api_level;
 							}
 						}
 
@@ -299,7 +299,7 @@ class EditorExportAndroid : public EditorExportPlatform {
 							String vendor;
 							String device;
 							d.description + "Device ID: " + d.id + "\n";
-							d.release = 0;
+							d.api_level = 0;
 							for (int j = 0; j < props.size(); j++) {
 
 								String p = props[j];
@@ -310,9 +310,9 @@ class EditorExportAndroid : public EditorExportPlatform {
 								} else if (p.begins_with("ro.build.display.id=")) {
 									d.description += "Build: " + p.get_slice("=", 1).strip_edges() + "\n";
 								} else if (p.begins_with("ro.build.version.release=")) {
-									const String release_str = p.get_slice("=", 1).strip_edges();
-									d.description += "Release: " + release_str + "\n";
-									d.release = release_str.to_int();
+									d.description += "Release: " + p.get_slice("=", 1).strip_edges() + "\n";
+								} else if (p.begins_with("ro.build.version.sdk=")) {
+									d.api_level = p.get_slice("=", 1).to_int();
 								} else if (p.begins_with("ro.product.cpu.abi=")) {
 									d.description += "CPU: " + p.get_slice("=", 1).strip_edges() + "\n";
 								} else if (p.begins_with("ro.product.manufacturer=")) {
@@ -468,11 +468,36 @@ class EditorExportAndroid : public EditorExportPlatform {
 		return zipfi;
 	}
 
-	static Error save_apk_file(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total) {
+	static Set<String> get_abis() {
+		Set<String> abis;
+		abis.insert("armeabi");
+		abis.insert("armeabi-v7a");
+		abis.insert("arm64-v8a");
+		abis.insert("x86");
+		abis.insert("x86_64");
+		abis.insert("mips");
+		abis.insert("mips64");
+		return abis;
+	}
 
+	static Error save_apk_file(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total) {
 		APKExportData *ed = (APKExportData *)p_userdata;
 		String dst_path = p_path;
-		dst_path = dst_path.replace_first("res://", "assets/");
+		static Set<String> android_abis = get_abis();
+
+		if (dst_path.ends_with(".so")) {
+			String abi = dst_path.get_base_dir().get_file().strip_edges(); // parent dir name
+			if (android_abis.has(abi)) {
+				dst_path = "lib/" + abi + "/" + dst_path.get_file();
+			} else {
+				String err = "Dynamic libraries must be located in the folder named after Android ABI they were compiled for. " +
+							 p_path + " does not follow this convention.";
+				ERR_PRINT(err.utf8().get_data());
+				return ERR_FILE_BAD_PATH;
+			}
+		} else {
+			dst_path = dst_path.replace_first("res://", "assets/");
+		}
 
 		zip_fileinfo zipfi = get_zip_fileinfo();
 
@@ -1073,7 +1098,11 @@ public:
 		//export_temp
 		ep.step("Exporting APK", 0);
 
-		p_debug_flags |= DEBUG_FLAG_REMOTE_DEBUG_LOCALHOST;
+		const bool use_remote = (p_debug_flags & DEBUG_FLAG_REMOTE_DEBUG) || (p_debug_flags & DEBUG_FLAG_DUMB_CLIENT);
+		const bool use_reverse = devices[p_device].api_level >= 21;
+
+		if (use_reverse)
+			p_debug_flags |= DEBUG_FLAG_REMOTE_DEBUG_LOCALHOST;
 
 		String export_to = EditorSettings::get_singleton()->get_settings_path() + "/tmp/tmpexport.apk";
 		Error err = export_project(p_preset, true, export_to, p_debug_flags);
@@ -1119,40 +1148,54 @@ public:
 			return ERR_CANT_CREATE;
 		}
 
-		if (p_debug_flags & DEBUG_FLAG_REMOTE_DEBUG) {
+		if (use_remote) {
+			if (use_reverse) {
 
-			args.clear();
-			args.push_back("-s");
-			args.push_back(devices[p_device].id);
-			args.push_back("reverse");
-			args.push_back("--remove-all");
-			OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
+				static const char *const msg = "** Device API >= 21; debugging over USB **";
+				EditorNode::get_singleton()->get_log()->add_message(msg);
+				print_line(String(msg).to_upper());
 
-			int dbg_port = EditorSettings::get_singleton()->get("network/debug/remote_port");
-			args.clear();
-			args.push_back("-s");
-			args.push_back(devices[p_device].id);
-			args.push_back("reverse");
-			args.push_back("tcp:" + itos(dbg_port));
-			args.push_back("tcp:" + itos(dbg_port));
+				args.clear();
+				args.push_back("-s");
+				args.push_back(devices[p_device].id);
+				args.push_back("reverse");
+				args.push_back("--remove-all");
+				OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
 
-			OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
-			print_line("Reverse result: " + itos(rv));
-		}
+				if (p_debug_flags & DEBUG_FLAG_REMOTE_DEBUG) {
 
-		if (p_debug_flags & DEBUG_FLAG_DUMB_CLIENT) {
+					int dbg_port = EditorSettings::get_singleton()->get("network/debug/remote_port");
+					args.clear();
+					args.push_back("-s");
+					args.push_back(devices[p_device].id);
+					args.push_back("reverse");
+					args.push_back("tcp:" + itos(dbg_port));
+					args.push_back("tcp:" + itos(dbg_port));
 
-			int fs_port = EditorSettings::get_singleton()->get("filesystem/file_server/port");
+					OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
+					print_line("Reverse result: " + itos(rv));
+				}
 
-			args.clear();
-			args.push_back("-s");
-			args.push_back(devices[p_device].id);
-			args.push_back("reverse");
-			args.push_back("tcp:" + itos(fs_port));
-			args.push_back("tcp:" + itos(fs_port));
+				if (p_debug_flags & DEBUG_FLAG_DUMB_CLIENT) {
 
-			err = OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
-			print_line("Reverse result2: " + itos(rv));
+					int fs_port = EditorSettings::get_singleton()->get("filesystem/file_server/port");
+
+					args.clear();
+					args.push_back("-s");
+					args.push_back(devices[p_device].id);
+					args.push_back("reverse");
+					args.push_back("tcp:" + itos(fs_port));
+					args.push_back("tcp:" + itos(fs_port));
+
+					err = OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
+					print_line("Reverse result2: " + itos(rv));
+				}
+			} else {
+
+				static const char *const msg = "** Device API < 21; debugging over Wi-Fi **";
+				EditorNode::get_singleton()->get_log()->add_message(msg);
+				print_line(String(msg).to_upper());
+			}
 		}
 
 		ep.step("Running on Device..", 3);
@@ -1162,7 +1205,7 @@ public:
 		args.push_back("shell");
 		args.push_back("am");
 		args.push_back("start");
-		if ((bool)EditorSettings::get_singleton()->get("export/android/force_system_user") && devices[p_device].release >= 17) { // Multi-user introduced in Android 17
+		if ((bool)EditorSettings::get_singleton()->get("export/android/force_system_user") && devices[p_device].api_level >= 17) { // Multi-user introduced in Android 17
 			args.push_back("--user");
 			args.push_back("0");
 		}
@@ -1375,15 +1418,15 @@ public:
 				}
 			}
 
-			if (file == "lib/x86/libgodot_android.so" && !export_x86) {
+			if (file == "lib/x86/*.so" && !export_x86) {
 				skip = true;
 			}
 
-			if (file.match("lib/armeabi*/libgodot_android.so") && !export_arm) {
+			if (file.match("lib/armeabi*/*.so") && !export_arm) {
 				skip = true;
 			}
 
-			if (file.match("lib/arm64*/libgodot_android.so") && !export_arm64) {
+			if (file.match("lib/arm64*/*.so") && !export_arm64) {
 				skip = true;
 			}
 

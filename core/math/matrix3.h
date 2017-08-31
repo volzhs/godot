@@ -81,8 +81,7 @@ public:
 	Vector3 get_rotation() const;
 	void get_rotation_axis_angle(Vector3 &p_axis, real_t &p_angle) const;
 
-	void set_rotation_euler(const Vector3 &p_euler);
-	void set_rotation_axis_angle(const Vector3 &p_axis, real_t p_angle);
+	Vector3 rotref_posscale_decomposition(Basis &rotref) const;
 
 	Vector3 get_euler_xyz() const;
 	void set_euler_xyz(const Vector3 &p_euler);
@@ -99,7 +98,6 @@ public:
 	Basis scaled(const Vector3 &p_scale) const;
 
 	Vector3 get_scale() const;
-	void set_scale(const Vector3 &p_scale);
 
 	// transposed dot products
 	_FORCE_INLINE_ real_t tdotx(const Vector3 &v) const {
@@ -132,6 +130,7 @@ public:
 	void set_orthogonal_index(int p_index);
 
 	bool is_orthogonal() const;
+	bool is_diagonal() const;
 	bool is_rotation() const;
 
 	operator String() const;

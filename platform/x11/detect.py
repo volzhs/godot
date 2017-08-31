@@ -74,7 +74,9 @@ def configure(env):
     ## Build type
 
     if (env["target"] == "release"):
-        env.Prepend(CCFLAGS=['-Ofast'])
+        # -O3 -ffast-math is identical to -Ofast. We need to split it out so we can selectively disable
+        # -ffast-math in code for which it generates wrong results.
+        env.Prepend(CCFLAGS=['-O3', '-ffast-math'])
         if (env["debug_release"] == "yes"):
             env.Prepend(CCFLAGS=['-g2'])
 
@@ -187,6 +189,11 @@ def configure(env):
         list_of_x86 = ['x86_64', 'x86', 'i386', 'i586']
         if any(platform.machine() in s for s in list_of_x86):
             env["x86_libtheora_opt_gcc"] = True
+
+    # On Linux wchar_t should be 32-bits
+    # 16-bit library shouldn't be required due to compiler optimisations
+    if (env['builtin_pcre2'] == 'no'):
+        env.ParseConfig('pkg-config libpcre2-32 --cflags --libs')
 
     ## Flags
 

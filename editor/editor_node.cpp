@@ -296,6 +296,35 @@ void EditorNode::_notification(int p_what) {
 			scene_tabs->set_min_width(0);
 		}
 		_update_scene_tabs();
+
+		//_update_icons
+		for (int i = 0; i < singleton->main_editor_buttons.size(); i++) {
+			main_editor_buttons[i]->set_icon(gui_base->get_icon(singleton->main_editor_buttons[i]->get_name(), "EditorIcons"));
+		}
+		play_button->set_icon(gui_base->get_icon("MainPlay", "EditorIcons"));
+		play_scene_button->set_icon(gui_base->get_icon("PlayScene", "EditorIcons"));
+		play_custom_scene_button->set_icon(gui_base->get_icon("PlayCustom", "EditorIcons"));
+		pause_button->set_icon(gui_base->get_icon("Pause", "EditorIcons"));
+		stop_button->set_icon(gui_base->get_icon("Stop", "EditorIcons"));
+
+		prev_scene->set_icon(gui_base->get_icon("PrevScene", "EditorIcons"));
+		distraction_free->set_icon(gui_base->get_icon("DistractionFree", "EditorIcons"));
+
+		resource_new_button->set_icon(gui_base->get_icon("New", "EditorIcons"));
+		resource_load_button->set_icon(gui_base->get_icon("Load", "EditorIcons"));
+		resource_save_button->set_icon(gui_base->get_icon("Save", "EditorIcons"));
+
+		property_back->set_icon(gui_base->get_icon("Back", "EditorIcons"));
+		property_forward->set_icon(gui_base->get_icon("Forward", "EditorIcons"));
+		editor_history_menu->set_icon(gui_base->get_icon("History", "EditorIcons"));
+
+		search_button->set_icon(gui_base->get_icon("Search", "EditorIcons"));
+		object_menu->set_icon(gui_base->get_icon("Tools", "EditorIcons"));
+		// clear_button->set_icon(gui_base->get_icon("Close", "EditorIcons")); dont have access to that node. needs to become a class property
+		update_menu->set_icon(gui_base->get_icon("Collapse", "EditorIcons"));
+		dock_tab_move_left->set_icon(theme->get_icon("Back", "EditorIcons"));
+		dock_tab_move_right->set_icon(theme->get_icon("Forward", "EditorIcons"));
+		update_menu->set_icon(gui_base->get_icon("Progress1", "EditorIcons"));
 	}
 }
 
@@ -4773,6 +4802,38 @@ EditorNode::EditorNode() {
 	prev_scene->set_position(Point2(3, 24));
 	prev_scene->hide();
 
+	accept = memnew(AcceptDialog);
+	gui_base->add_child(accept);
+	accept->connect("confirmed", this, "_menu_confirm_current");
+
+	project_export = memnew(ProjectExportDialog);
+	gui_base->add_child(project_export);
+
+	dependency_error = memnew(DependencyErrorDialog);
+	gui_base->add_child(dependency_error);
+
+	dependency_fixer = memnew(DependencyEditor);
+	gui_base->add_child(dependency_fixer);
+
+	settings_config_dialog = memnew(EditorSettingsDialog);
+	gui_base->add_child(settings_config_dialog);
+
+	project_settings = memnew(ProjectSettingsEditor(&editor_data));
+	gui_base->add_child(project_settings);
+
+	run_settings_dialog = memnew(RunSettingsDialog);
+	gui_base->add_child(run_settings_dialog);
+
+	export_template_manager = memnew(ExportTemplateManager);
+	gui_base->add_child(export_template_manager);
+
+	about = memnew(EditorAbout);
+	about->get_logo()->set_texture(gui_base->get_icon("Logo", "EditorIcons"));
+	gui_base->add_child(about);
+
+	warning = memnew(AcceptDialog);
+	gui_base->add_child(warning);
+
 	ED_SHORTCUT("editor/next_tab", TTR("Next tab"), KEY_MASK_CMD + KEY_TAB);
 	ED_SHORTCUT("editor/prev_tab", TTR("Previous tab"), KEY_MASK_CMD + KEY_MASK_SHIFT + KEY_TAB);
 	ED_SHORTCUT("editor/filter_files", TTR("Filter Files.."), KEY_MASK_ALT + KEY_MASK_CMD + KEY_P);
@@ -4917,7 +4978,7 @@ EditorNode::EditorNode() {
 	play_cc->set_margin(MARGIN_TOP, 5);
 
 	play_button_panel = memnew(PanelContainer);
-	play_button_panel->add_style_override("panel", gui_base->get_stylebox("PlayButtonPanel", "EditorStyles"));
+	// play_button_panel->add_style_override("panel", gui_base->get_stylebox("PlayButtonPanel", "EditorStyles"));
 	play_cc->add_child(play_button_panel);
 
 	HBoxContainer *play_hb = memnew(HBoxContainer);
@@ -5196,38 +5257,6 @@ EditorNode::EditorNode() {
 	gui_base->add_child(save_confirmation);
 	save_confirmation->connect("confirmed", this, "_menu_confirm_current");
 	save_confirmation->connect("custom_action", this, "_discard_changes");
-
-	accept = memnew(AcceptDialog);
-	gui_base->add_child(accept);
-	accept->connect("confirmed", this, "_menu_confirm_current");
-
-	project_export = memnew(ProjectExportDialog);
-	gui_base->add_child(project_export);
-
-	dependency_error = memnew(DependencyErrorDialog);
-	gui_base->add_child(dependency_error);
-
-	dependency_fixer = memnew(DependencyEditor);
-	gui_base->add_child(dependency_fixer);
-
-	settings_config_dialog = memnew(EditorSettingsDialog);
-	gui_base->add_child(settings_config_dialog);
-
-	project_settings = memnew(ProjectSettingsEditor(&editor_data));
-	gui_base->add_child(project_settings);
-
-	run_settings_dialog = memnew(RunSettingsDialog);
-	gui_base->add_child(run_settings_dialog);
-
-	export_template_manager = memnew(ExportTemplateManager);
-	gui_base->add_child(export_template_manager);
-
-	about = memnew(EditorAbout);
-	about->get_logo()->set_texture(gui_base->get_icon("Logo", "EditorIcons"));
-	gui_base->add_child(about);
-
-	warning = memnew(AcceptDialog);
-	gui_base->add_child(warning);
 
 	file_templates = memnew(FileDialog);
 	file_templates->set_title(TTR("Import Templates From ZIP File"));

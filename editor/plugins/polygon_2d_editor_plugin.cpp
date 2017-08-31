@@ -402,10 +402,13 @@ bool Polygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 			cpoint = canvas_item_editor->snap_point(cpoint);
 			edited_point_pos = node->get_global_transform().affine_inverse().xform(cpoint);
 
-			Vector<Vector2> poly = Variant(node->get_polygon());
-			ERR_FAIL_INDEX_V(edited_point, poly.size(), false);
-			poly[edited_point] = edited_point_pos - node->get_offset();
-			node->set_polygon(Variant(poly));
+			if (!wip_active) {
+
+				Vector<Vector2> poly = Variant(node->get_polygon());
+				ERR_FAIL_INDEX_V(edited_point, poly.size(), false);
+				poly[edited_point] = edited_point_pos - node->get_offset();
+				node->set_polygon(Variant(poly));
+			}
 
 			canvas_item_editor->get_viewport_control()->update();
 		}
@@ -430,7 +433,7 @@ void Polygon2DEditor::_canvas_draw() {
 	Transform2D xform = canvas_item_editor->get_canvas_transform() * node->get_global_transform();
 	Ref<Texture> handle = get_icon("EditorHandle", "EditorIcons");
 
-	if (edited_point >= 0 && EDITOR_DEF("editors/poly_editor/show_previous_outline", true)) {
+	if (!wip_active && edited_point >= 0 && EDITOR_DEF("editors/poly_editor/show_previous_outline", true)) {
 
 		const Color col = node->get_color().contrasted();
 		const int n = pre_move_edit.size();
@@ -720,6 +723,10 @@ void Polygon2DEditor::edit(Node *p_collision_polygon) {
 	if (p_collision_polygon) {
 
 		node = Object::cast_to<Polygon2D>(p_collision_polygon);
+		//Enable the pencil tool if the polygon is empty
+		if (node->get_polygon().size() == 0) {
+			_menu_option(MODE_CREATE);
+		}
 		if (!canvas_item_editor->get_viewport_control()->is_connected("draw", this, "_canvas_draw"))
 			canvas_item_editor->get_viewport_control()->connect("draw", this, "_canvas_draw");
 
