@@ -1,9 +1,9 @@
 /*************************************************************************/
-/*  math_fieldwise.h                                                     */
+/*  test_ordered_hash_map.h                                              */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                      https://godotengine.org                          */
+/*                    http://www.godotengine.org                         */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -27,15 +27,12 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef MATH_FIELDWISE_H
-#define MATH_FIELDWISE_H
+#ifndef TEST_ORDERED_HASH_MAP_H
+#define TEST_ORDERED_HASH_MAP_H
 
-#ifdef TOOLS_ENABLED
+namespace TestOrderedHashMap {
 
-#include "core/variant.h"
+MainLoop *test();
+}
 
-Variant fieldwise_assign(const Variant &p_target, const Variant &p_source, const String &p_field);
-
-#endif // TOOLS_ENABLED
-
-#endif // MATH_FIELDWISE_H
+#endif
