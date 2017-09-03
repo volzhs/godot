@@ -2586,7 +2586,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 				}
 
 				bool index_valid = false;
-				DataType member_type;
+				DataType member_type = TYPE_VOID;
 
 				switch (expr->get_datatype()) {
 					case TYPE_BVEC2:
@@ -2953,7 +2953,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 			if (expression[next_op + 1].is_op) {
 				// this is not invalid and can really appear
 				// but it becomes invalid anyway because no binary op
-				// can be followed by an unary op in a valid combination,
+				// can be followed by a unary op in a valid combination,
 				// due to how precedence works, unaries will always disappear first
 
 				_set_error("Parser bug..");
@@ -3349,7 +3349,7 @@ Error ShaderLanguage::_parse_shader(const Map<StringName, FunctionInfo> &p_funct
 	Token tk = _get_token();
 
 	if (tk.type != TK_SHADER_TYPE) {
-		_set_error("Expected 'shader_type' at the begining of shader.");
+		_set_error("Expected 'shader_type' at the beginning of shader.");
 		return ERR_PARSE_ERROR;
 	}
 

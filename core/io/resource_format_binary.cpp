@@ -102,7 +102,7 @@ StringName ResourceInteractiveLoaderBinary::_get_string() {
 
 	uint32_t id = f->get_32();
 	if (id & 0x80000000) {
-		uint32_t len = id & 0x7FFFFFFF;
+		int len = id & 0x7FFFFFFF;
 		if (len > str_buf.size()) {
 			str_buf.resize(len);
 		}
@@ -336,9 +336,9 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant &r_v) {
 				} break;
 				case OBJECT_EXTERNAL_RESOURCE_INDEX: {
 					//new file format, just refers to an index in the external list
-					uint32_t erindex = f->get_32();
+					int erindex = f->get_32();
 
-					if (erindex >= external_resources.size()) {
+					if (erindex < 0 || erindex >= external_resources.size()) {
 						WARN_PRINT("Broken external resource! (index out of size");
 						r_v = Variant();
 					} else {
@@ -878,7 +878,7 @@ void ResourceInteractiveLoaderBinary::open(FileAccess *p_f) {
 	if (ver_format > FORMAT_VERSION || ver_major > VERSION_MAJOR) {
 
 		f->close();
-		ERR_EXPLAIN("File Format '" + itos(FORMAT_VERSION) + "." + itos(ver_major) + "." + itos(ver_minor) + "' is too new! Please upgrade to a a new engine version: " + local_path);
+		ERR_EXPLAIN("File Format '" + itos(FORMAT_VERSION) + "." + itos(ver_major) + "." + itos(ver_minor) + "' is too new! Please upgrade to a new engine version: " + local_path);
 		ERR_FAIL();
 	}
 
@@ -1117,6 +1117,9 @@ Error ResourceFormatLoaderBinary::rename_dependencies(const String &p_path, cons
 			memdelete(f);
 		}
 		ERR_FAIL_COND_V(!fw, ERR_CANT_CREATE);
+
+		uint8_t magic[4] = { 'R', 'S', 'R', 'C' };
+		fw->store_buffer(magic, 4);
 	}
 
 	bool big_endian = f->get_32();
@@ -1178,7 +1181,7 @@ Error ResourceFormatLoaderBinary::rename_dependencies(const String &p_path, cons
 
 		memdelete(f);
 		memdelete(fw);
-		ERR_EXPLAIN("File Format '" + itos(FORMAT_VERSION) + "." + itos(ver_major) + "." + itos(ver_minor) + "' is too new! Please upgrade to a a new engine version: " + local_path);
+		ERR_EXPLAIN("File Format '" + itos(FORMAT_VERSION) + "." + itos(ver_major) + "." + itos(ver_minor) + "' is too new! Please upgrade to a new engine version: " + local_path);
 		ERR_FAIL_V(ERR_FILE_UNRECOGNIZED);
 	}
 

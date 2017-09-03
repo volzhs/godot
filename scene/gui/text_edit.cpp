@@ -430,7 +430,7 @@ void TextEdit::_notification(int p_what) {
 				double dist = sqrt(target_y * target_y);
 				double vel = ((target_y / dist) * v_scroll_speed) * get_fixed_process_delta_time();
 
-				if (vel >= dist) {
+				if (Math::abs(vel) >= dist) {
 					v_scroll->set_value(target_v_scroll);
 					scrolling = false;
 					set_fixed_process(false);
@@ -4531,7 +4531,7 @@ String TextEdit::get_word_at_pos(const Vector2 &p_pos) const {
 		bool symbol = beg < s.length() && _is_symbol(s[beg]); //not sure if right but most editors behave like this
 
 		bool inside_quotes = false;
-		int qbegin, qend;
+		int qbegin = 0, qend = 0;
 		for (int i = 0; i < s.length(); i++) {
 			if (s[i] == '"') {
 				if (inside_quotes) {

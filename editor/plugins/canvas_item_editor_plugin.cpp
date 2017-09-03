@@ -409,7 +409,7 @@ bool CanvasItemEditor::_is_part_of_subscene(CanvasItem *p_item) {
 	return item_owner && item_owner != scene_node && p_item != scene_node && item_owner->get_filename() != "";
 }
 
-void CanvasItemEditor::_find_canvas_items_at_pos(const Point2 &p_pos, Node *p_node, const Transform2D &p_parent_xform, const Transform2D &p_canvas_xform, Vector<_SelectResult> &r_items, unsigned int limit) {
+void CanvasItemEditor::_find_canvas_items_at_pos(const Point2 &p_pos, Node *p_node, const Transform2D &p_parent_xform, const Transform2D &p_canvas_xform, Vector<_SelectResult> &r_items, int limit) {
 	if (!p_node)
 		return;
 	if (Object::cast_to<Viewport>(p_node))
@@ -1881,7 +1881,7 @@ void CanvasItemEditor::_viewport_draw() {
 	if (snap_show_grid) {
 		//Draw the grid
 		Size2 s = viewport->get_size();
-		int last_cell;
+		int last_cell = 0;
 		Transform2D xform = transform.affine_inverse();
 
 		Vector2 grid_offset;
@@ -2257,17 +2257,17 @@ void CanvasItemEditor::_notification(int p_what) {
 				anchors[MARGIN_RIGHT] = Object::cast_to<Control>(canvas_item)->get_anchor(MARGIN_RIGHT);
 				anchors[MARGIN_TOP] = Object::cast_to<Control>(canvas_item)->get_anchor(MARGIN_TOP);
 				anchors[MARGIN_BOTTOM] = Object::cast_to<Control>(canvas_item)->get_anchor(MARGIN_BOTTOM);
-			}
 
-			if (r != se->prev_rect || xform != se->prev_xform || pivot != se->prev_pivot || anchors[MARGIN_LEFT] != se->prev_anchors[MARGIN_LEFT] || anchors[MARGIN_RIGHT] != se->prev_anchors[MARGIN_RIGHT] || anchors[MARGIN_TOP] != se->prev_anchors[MARGIN_TOP] || anchors[MARGIN_BOTTOM] != se->prev_anchors[MARGIN_BOTTOM]) {
-				viewport->update();
-				se->prev_rect = r;
-				se->prev_xform = xform;
-				se->prev_pivot = pivot;
-				se->prev_anchors[MARGIN_LEFT] = anchors[MARGIN_LEFT];
-				se->prev_anchors[MARGIN_RIGHT] = anchors[MARGIN_RIGHT];
-				se->prev_anchors[MARGIN_TOP] = anchors[MARGIN_TOP];
-				se->prev_anchors[MARGIN_BOTTOM] = anchors[MARGIN_BOTTOM];
+				if (r != se->prev_rect || xform != se->prev_xform || pivot != se->prev_pivot || anchors[MARGIN_LEFT] != se->prev_anchors[MARGIN_LEFT] || anchors[MARGIN_RIGHT] != se->prev_anchors[MARGIN_RIGHT] || anchors[MARGIN_TOP] != se->prev_anchors[MARGIN_TOP] || anchors[MARGIN_BOTTOM] != se->prev_anchors[MARGIN_BOTTOM]) {
+					viewport->update();
+					se->prev_rect = r;
+					se->prev_xform = xform;
+					se->prev_pivot = pivot;
+					se->prev_anchors[MARGIN_LEFT] = anchors[MARGIN_LEFT];
+					se->prev_anchors[MARGIN_RIGHT] = anchors[MARGIN_RIGHT];
+					se->prev_anchors[MARGIN_TOP] = anchors[MARGIN_TOP];
+					se->prev_anchors[MARGIN_BOTTOM] = anchors[MARGIN_BOTTOM];
+				}
 			}
 		}
 

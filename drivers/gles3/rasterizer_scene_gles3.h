@@ -244,7 +244,7 @@ public:
 
 		GLuint fbo_id[6];
 		GLuint cubemap;
-		int size;
+		uint32_t size;
 	};
 
 	Vector<ShadowCubeMap> shadow_cubemaps;
@@ -531,7 +531,7 @@ public:
 	virtual void environment_set_fog(RID p_env, bool p_enable, float p_begin, float p_end, RID p_gradient_texture);
 
 	virtual void environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_in, float p_fade_out, float p_depth_tolerance, bool p_roughness);
-	virtual void environment_set_ssao(RID p_env, bool p_enable, float p_radius, float p_radius2, float p_intensity2, float p_intensity, float p_bias, float p_light_affect, const Color &p_color, bool p_blur);
+	virtual void environment_set_ssao(RID p_env, bool p_enable, float p_radius, float p_intensity, float p_radius2, float p_intensity2, float p_bias, float p_light_affect, const Color &p_color, bool p_blur);
 
 	virtual void environment_set_tonemap(RID p_env, VS::EnvironmentToneMapper p_tone_mapper, float p_exposure, float p_white, bool p_auto_exposure, float p_min_luminance, float p_max_luminance, float p_auto_exp_speed, float p_auto_exp_scale);
 
@@ -645,17 +645,25 @@ public:
 			MAX_LIGHTS = 4096,
 			MAX_REFLECTIONS = 1024,
 
-			SORT_KEY_DEPTH_LAYER_SHIFT = 60,
+			SORT_KEY_PRIORITY_SHIFT = 56,
+			SORT_KEY_PRIORITY_MASK = 0xFF,
+			//depth layer for opaque (56-52)
+			SORT_KEY_OPAQUE_DEPTH_LAYER_SHIFT = 52,
+			SORT_KEY_OPAQUE_DEPTH_LAYER_MASK = 0xF,
 //64 bits unsupported in MSVC
-#define SORT_KEY_UNSHADED_FLAG (uint64_t(1) << 59)
-#define SORT_KEY_NO_DIRECTIONAL_FLAG (uint64_t(1) << 58)
-#define SORT_KEY_GI_PROBES_FLAG (uint64_t(1) << 57)
-#define SORT_KEY_VERTEX_LIT_FLAG (uint64_t(1) << 56)
-			SORT_KEY_SHADING_SHIFT = 56,
+#define SORT_KEY_UNSHADED_FLAG (uint64_t(1) << 51)
+#define SORT_KEY_NO_DIRECTIONAL_FLAG (uint64_t(1) << 50)
+#define SORT_KEY_GI_PROBES_FLAG (uint64_t(1) << 49)
+#define SORT_KEY_VERTEX_LIT_FLAG (uint64_t(1) << 48)
+			SORT_KEY_SHADING_SHIFT = 48,
 			SORT_KEY_SHADING_MASK = 15,
-			SORT_KEY_MATERIAL_INDEX_SHIFT = 40,
-			SORT_KEY_GEOMETRY_INDEX_SHIFT = 20,
-			SORT_KEY_GEOMETRY_TYPE_SHIFT = 15,
+			//48-32 material index
+			SORT_KEY_MATERIAL_INDEX_SHIFT = 32,
+			//32-12 geometry index
+			SORT_KEY_GEOMETRY_INDEX_SHIFT = 12,
+			//bits 12-8 geometry type
+			SORT_KEY_GEOMETRY_TYPE_SHIFT = 8,
+			//bits 0-7 for flags
 			SORT_KEY_CULL_DISABLED_FLAG = 4,
 			SORT_KEY_SKELETON_FLAG = 2,
 			SORT_KEY_MIRROR_FLAG = 1
@@ -721,16 +729,22 @@ public:
 			}
 		}
 
-		struct SortByReverseDepth {
+		struct SortByReverseDepthAndPriority {
 
 			_FORCE_INLINE_ bool operator()(const Element *A, const Element *B) const {
-				return A->instance->depth > B->instance->depth;
+				uint32_t layer_A = uint32_t(A->sort_key >> SORT_KEY_PRIORITY_SHIFT);
+				uint32_t layer_B = uint32_t(B->sort_key >> SORT_KEY_PRIORITY_SHIFT);
+				if (layer_A == layer_B) {
+					return A->instance->depth > B->instance->depth;
+				} else {
+					return layer_A < layer_B;
+				}
 			}
 		};
 
-		void sort_by_reverse_depth(bool p_alpha) { //used for alpha
+		void sort_by_reverse_depth_and_priority(bool p_alpha) { //used for alpha
 
-			SortArray<Element *, SortByReverseDepth> sorter;
+			SortArray<Element *, SortByReverseDepthAndPriority> sorter;
 			if (p_alpha) {
 				sorter.sort(&elements[max_elements - alpha_element_count], alpha_element_count);
 			} else {

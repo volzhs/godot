@@ -2958,7 +2958,7 @@ void SpatialEditor::update_transform_gizmo() {
 	gizmo.transform.origin = pcenter;
 	gizmo.transform.basis = gizmo_basis;
 
-	for (int i = 0; i < VIEWPORTS_COUNT; i++) {
+	for (uint32_t i = 0; i < VIEWPORTS_COUNT; i++) {
 		viewports[i]->update_transform_gizmo_view();
 	}
 }
@@ -3108,7 +3108,7 @@ void SpatialEditor::set_state(const Dictionary &p_state) {
 		Array vp = d["viewports"];
 		ERR_FAIL_COND(vp.size() > 4);
 
-		for (int i = 0; i < VIEWPORTS_COUNT; i++) {
+		for (uint32_t i = 0; i < VIEWPORTS_COUNT; i++) {
 			viewports[i]->set_state(vp[i]);
 		}
 	}
@@ -3505,7 +3505,7 @@ void SpatialEditor::_init_indicators() {
 
 		gizmo_hl = Ref<SpatialMaterial>(memnew(SpatialMaterial));
 		gizmo_hl->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
-		gizmo_hl->set_flag(SpatialMaterial::FLAG_ONTOP, true);
+		gizmo_hl->set_on_top_of_alpha();
 		gizmo_hl->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
 		gizmo_hl->set_albedo(Color(1, 1, 1, gizmo_alph + 0.2f));
 		gizmo_hl->set_cull_mode(SpatialMaterial::CULL_DISABLED);
@@ -3518,7 +3518,7 @@ void SpatialEditor::_init_indicators() {
 
 			Ref<SpatialMaterial> mat = memnew(SpatialMaterial);
 			mat->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
-			mat->set_flag(SpatialMaterial::FLAG_ONTOP, true);
+			mat->set_on_top_of_alpha();
 			mat->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
 			Color col;
 			col[i] = 1.0;
@@ -3613,7 +3613,7 @@ void SpatialEditor::_init_indicators() {
 
 				Ref<SpatialMaterial> plane_mat = memnew(SpatialMaterial);
 				plane_mat->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
-				plane_mat->set_flag(SpatialMaterial::FLAG_ONTOP, true);
+				plane_mat->set_on_top_of_alpha();
 				plane_mat->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
 				plane_mat->set_cull_mode(SpatialMaterial::CULL_DISABLED);
 				Color col;
@@ -3852,15 +3852,15 @@ void SpatialEditor::_toggle_maximize_view(Object *p_viewport) {
 
 	if (!maximized) {
 
-		for (int i = 0; i < VIEWPORTS_COUNT; i++) {
-			if (i == index)
+		for (uint32_t i = 0; i < VIEWPORTS_COUNT; i++) {
+			if (i == (uint32_t)index)
 				viewports[i]->set_area_as_parent_rect();
 			else
 				viewports[i]->hide();
 		}
 	} else {
 
-		for (int i = 0; i < VIEWPORTS_COUNT; i++)
+		for (uint32_t i = 0; i < VIEWPORTS_COUNT; i++)
 			viewports[i]->show();
 
 		if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT)))
@@ -3904,7 +3904,7 @@ void SpatialEditor::clear() {
 	settings_znear->set_value(EDITOR_DEF("editors/3d/default_z_near", 0.1));
 	settings_zfar->set_value(EDITOR_DEF("editors/3d/default_z_far", 1500.0));
 
-	for (int i = 0; i < VIEWPORTS_COUNT; i++) {
+	for (uint32_t i = 0; i < VIEWPORTS_COUNT; i++) {
 		viewports[i]->reset();
 	}
 
@@ -3917,7 +3917,7 @@ void SpatialEditor::clear() {
 		}
 	}
 
-	for (int i = 0; i < VIEWPORTS_COUNT; i++) {
+	for (uint32_t i = 0; i < VIEWPORTS_COUNT; i++) {
 
 		viewports[i]->view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(SpatialEditorViewport::VIEW_AUDIO_LISTENER), i == 0);
 		viewports[i]->viewport->set_as_audio_listener(i == 0);
@@ -4074,7 +4074,7 @@ SpatialEditor::SpatialEditor(EditorNode *p_editor) {
 	viewport_base = memnew(SpatialEditorViewportContainer);
 	shader_split->add_child(viewport_base);
 	viewport_base->set_v_size_flags(SIZE_EXPAND_FILL);
-	for (int i = 0; i < VIEWPORTS_COUNT; i++) {
+	for (uint32_t i = 0; i < VIEWPORTS_COUNT; i++) {
 
 		viewports[i] = memnew(SpatialEditorViewport(this, editor, i));
 		viewports[i]->connect("toggle_maximize_view", this, "_toggle_maximize_view");

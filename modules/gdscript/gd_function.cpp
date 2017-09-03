@@ -290,8 +290,8 @@ Variant GDFunction::call(GDInstance *p_instance, const Variant **p_args, int p_a
 
 #ifdef DEBUG_ENABLED
 
-	uint64_t function_start_time;
-	uint64_t function_call_time;
+	uint64_t function_start_time = 0;
+	uint64_t function_call_time = 0;
 
 	if (GDScriptLanguage::get_singleton()->profiling) {
 		function_start_time = OS::get_singleton()->get_ticks_usec();
@@ -691,7 +691,7 @@ Variant GDFunction::call(GDInstance *p_instance, const Variant **p_args, int p_a
 				}
 
 #ifdef DEBUG_ENABLED
-				uint64_t call_time;
+				uint64_t call_time = 0;
 
 				if (GDScriptLanguage::get_singleton()->profiling) {
 					call_time = OS::get_singleton()->get_ticks_usec();
@@ -1026,7 +1026,7 @@ Variant GDFunction::call(GDInstance *p_instance, const Variant **p_args, int p_a
 			}
 			case OPCODE_ITERATE_BEGIN: {
 
-				CHECK_SPACE(8); //space for this an regular iterate
+				CHECK_SPACE(8); //space for this a regular iterate
 
 				GET_VARIANT_PTR(counter, 1);
 				GET_VARIANT_PTR(container, 2);

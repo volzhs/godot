@@ -48,14 +48,22 @@ class Material : public Resource {
 
 	RID material;
 	Ref<Material> next_pass;
+	int render_priority;
 
 protected:
 	_FORCE_INLINE_ RID _get_material() const { return material; }
 	static void _bind_methods();
 
 public:
+	enum {
+		RENDER_PRIORITY_MAX = VS::MATERIAL_RENDER_PRIORITY_MAX,
+		RENDER_PRIORITY_MIN = VS::MATERIAL_RENDER_PRIORITY_MIN,
+	};
 	void set_next_pass(const Ref<Material> &p_pass);
 	Ref<Material> get_next_pass() const;
+
+	void set_render_priority(int p_priority);
+	int get_render_priority() const;
 
 	virtual RID get_rid() const;
 	Material();
@@ -156,13 +164,14 @@ public:
 	enum Flags {
 		FLAG_UNSHADED,
 		FLAG_USE_VERTEX_LIGHTING,
-		FLAG_ONTOP,
+		FLAG_DISABLE_DEPTH_TEST,
 		FLAG_ALBEDO_FROM_VERTEX_COLOR,
 		FLAG_SRGB_VERTEX_COLOR,
 		FLAG_USE_POINT_SIZE,
 		FLAG_FIXED_SIZE,
 		FLAG_UV1_USE_TRIPLANAR,
 		FLAG_UV2_USE_TRIPLANAR,
+		FLAG_TRIPLANAR_USE_WORLD,
 		FLAG_AO_ON_UV2,
 		FLAG_USE_ALPHA_SCISSOR,
 		FLAG_MAX
@@ -208,7 +217,7 @@ private:
 			uint64_t blend_mode : 2;
 			uint64_t depth_draw_mode : 2;
 			uint64_t cull_mode : 2;
-			uint64_t flags : 11;
+			uint64_t flags : 12;
 			uint64_t detail_blend_mode : 2;
 			uint64_t diffuse_mode : 3;
 			uint64_t specular_mode : 2;
@@ -510,6 +519,8 @@ public:
 
 	void set_alpha_scissor_threshold(float p_treshold);
 	float get_alpha_scissor_threshold() const;
+
+	void set_on_top_of_alpha();
 
 	void set_metallic_texture_channel(TextureChannel p_channel);
 	TextureChannel get_metallic_texture_channel() const;

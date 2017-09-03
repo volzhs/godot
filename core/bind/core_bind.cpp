@@ -568,7 +568,7 @@ Dictionary _OS::get_time(bool utc) const {
 }
 
 /**
- *  Get a epoch time value from a dictionary of time values
+ *  Get an epoch time value from a dictionary of time values
  *  @p datetime must be populated with the following keys:
  *    day, hour, minute, month, second, year. (dst is ignored).
  *
@@ -1705,7 +1705,7 @@ Variant _File::get_var() const {
 	ERR_FAIL_COND_V(!f, Variant());
 	uint32_t len = get_32();
 	PoolVector<uint8_t> buff = get_buffer(len);
-	ERR_FAIL_COND_V(buff.size() != len, Variant());
+	ERR_FAIL_COND_V((uint32_t)buff.size() != len, Variant());
 
 	PoolVector<uint8_t>::Read r = buff.read();
 

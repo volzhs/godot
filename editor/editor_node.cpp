@@ -1373,7 +1373,7 @@ void EditorNode::_edit_current() {
 	uint32_t current = editor_history.get_current();
 	Object *current_obj = current > 0 ? ObjectDB::get_instance(current) : NULL;
 
-	property_back->set_disabled(editor_history.is_at_begining());
+	property_back->set_disabled(editor_history.is_at_beginning());
 	property_forward->set_disabled(editor_history.is_at_end());
 
 	this->current = current_obj;
@@ -4889,7 +4889,6 @@ EditorNode::EditorNode() {
 	pm_export->set_name("Export");
 	p->add_child(pm_export);
 	p->add_submenu_item(TTR("Convert To.."), "Export");
-	pm_export->add_separator();
 	pm_export->add_shortcut(ED_SHORTCUT("editor/convert_to_MeshLibrary", TTR("MeshLibrary..")), FILE_EXPORT_MESH_LIBRARY);
 	pm_export->add_shortcut(ED_SHORTCUT("editor/convert_to_TileSet", TTR("TileSet..")), FILE_EXPORT_TILESET);
 	pm_export->connect("id_pressed", this, "_menu_option");

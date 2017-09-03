@@ -535,7 +535,11 @@ void ClassDB::get_method_list(StringName p_class, List<MethodInfo> *p_methods, b
 
 			minfo.return_val = method->get_return_info();
 			minfo.flags = method->get_hint_flags();
-			minfo.default_arguments = method->get_default_arguments();
+
+			for (int i = 0; i < method->get_argument_count(); i++) {
+				if (method->has_default_argument(i))
+					minfo.default_arguments.push_back(method->get_default_argument(i));
+			}
 
 			p_methods->push_back(minfo);
 		}
