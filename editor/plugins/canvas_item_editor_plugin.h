@@ -324,6 +324,7 @@ class CanvasItemEditor : public VBoxContainer {
 	bool updating_scroll;
 	void _update_scroll(float);
 	void _update_scrollbars();
+	void _update_cursor();
 	void incbeg(float &beg, float &end, float inc, float minsize, bool p_symmetric);
 	void incend(float &beg, float &end, float inc, float minsize, bool p_symmetric);
 
@@ -459,7 +460,7 @@ class CanvasItemEditorViewport : public Control {
 	EditorNode *editor;
 	EditorData *editor_data;
 	CanvasItemEditor *canvas;
-	Node2D *preview;
+	Node2D *preview_node;
 	AcceptDialog *accept;
 	WindowDialog *selector;
 	Label *selector_label;
