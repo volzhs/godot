@@ -1503,6 +1503,7 @@ TileMapEditor::TileMapEditor(EditorNode *p_editor) {
 	toolbar = memnew(HBoxContainer);
 	toolbar->set_h_size_flags(SIZE_EXPAND_FILL);
 	toolbar->set_alignment(BoxContainer::ALIGN_END);
+	toolbar->hide();
 	CanvasItemEditor::get_singleton()->add_control_to_menu_panel(toolbar);
 
 	// Tile position
@@ -1527,8 +1528,6 @@ TileMapEditor::TileMapEditor(EditorNode *p_editor) {
 	p->connect("item_pressed", this, "_menu_option");
 
 	toolbar->add_child(options);
-
-	toolbar->add_child(memnew(VSeparator));
 
 	transp = memnew(ToolButton);
 	transp->set_toggle_mode(true);
