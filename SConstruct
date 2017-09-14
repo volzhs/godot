@@ -168,6 +168,7 @@ opts.Add('builtin_libwebp', "Use the builtin libwebp library (yes/no)", 'yes')
 opts.Add('builtin_openssl', "Use the builtin openssl library (yes/no)", 'yes')
 opts.Add('builtin_opus', "Use the builtin opus library (yes/no)", 'yes')
 opts.Add('builtin_pcre2', "Use the builtin pcre2 library (yes/no)", 'yes')
+opts.Add('builtin_recast', "Use the builtin recast library (yes/no)", 'yes')
 opts.Add('builtin_squish', "Use the builtin squish library (yes/no)", 'yes')
 opts.Add('builtin_zlib', "Use the builtin zlib library (yes/no)", 'yes')
 
@@ -289,7 +290,9 @@ if selected_platform in platform_list:
     if (env["warnings"] == 'yes'):
         print("WARNING: warnings=yes is deprecated; assuming warnings=all")
 
+    env.msvc = 0
     if (os.name == "nt" and os.getenv("VCINSTALLDIR") and (platform_arg == "windows" or platform_arg == "uwp")): # MSVC, needs to stand out of course
+        env.msvc = 1
         disable_nonessential_warnings = ['/wd4267', '/wd4244', '/wd4305', '/wd4800'] # Truncations, narrowing conversions...
         if (env["warnings"] == 'extra'):
             env.Append(CCFLAGS=['/Wall']) # Implies /W4
@@ -352,6 +355,7 @@ if selected_platform in platform_list:
     sys.modules.pop('detect')
 
     env.module_list = []
+    env.doc_class_path={}
 
     for x in module_list:
         if env['module_' + x + '_enabled'] != "yes":
@@ -363,6 +367,15 @@ if selected_platform in platform_list:
         if (config.can_build(selected_platform)):
             config.configure(env)
             env.module_list.append(x)
+	    try:
+		 doc_classes = config.get_doc_classes()
+		 doc_path = config.get_doc_path()
+		 for c in doc_classes:
+		     env.doc_class_path[c]="modules/"+x+"/"+doc_path
+	    except:
+		pass
+
+
         sys.path.remove(tmppath)
         sys.modules.pop('config')
 
@@ -411,6 +424,16 @@ if selected_platform in platform_list:
     # Microsoft Visual Studio Project Generation
     if (env['vsproj']) == "yes":
         methods.generate_vs_project(env, GetOption("num_jobs"))
+
+    # Check for the existence of headers
+    conf = Configure(env)
+    if ("check_c_headers" in env):
+        for header in env["check_c_headers"]:
+            if (conf.CheckCHeader(header[0])):
+                if (env.msvc):
+                    env.Append(CCFLAGS=['/D' + header[1]])
+                else:
+                    env.Append(CCFLAGS=['-D' + header[1]])
 
 else:
 

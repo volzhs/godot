@@ -50,7 +50,6 @@ void Node::_notification(int p_notification) {
 
 				Variant time = get_process_delta_time();
 				const Variant *ptr[1] = { &time };
-				Variant::CallError err;
 				get_script_instance()->call_multilevel(SceneStringNames::get_singleton()->_process, ptr, 1);
 			}
 		} break;
@@ -60,7 +59,6 @@ void Node::_notification(int p_notification) {
 
 				Variant time = get_fixed_process_delta_time();
 				const Variant *ptr[1] = { &time };
-				Variant::CallError err;
 				get_script_instance()->call_multilevel(SceneStringNames::get_singleton()->_fixed_process, ptr, 1);
 			}
 
@@ -134,7 +132,6 @@ void Node::_notification(int p_notification) {
 					set_fixed_process(true);
 				}
 
-				Variant::CallError err;
 				get_script_instance()->call_multilevel_reversed(SceneStringNames::get_singleton()->_ready, NULL, 0);
 			}
 			//emit_signal(SceneStringNames::get_singleton()->enter_tree);
@@ -209,7 +206,6 @@ void Node::_propagate_enter_tree() {
 
 	if (get_script_instance()) {
 
-		Variant::CallError err;
 		get_script_instance()->call_multilevel_reversed(SceneStringNames::get_singleton()->_enter_tree, NULL, 0);
 	}
 
@@ -273,7 +269,6 @@ void Node::_propagate_exit_tree() {
 
 	if (get_script_instance()) {
 
-		Variant::CallError err;
 		get_script_instance()->call_multilevel(SceneStringNames::get_singleton()->_exit_tree, NULL, 0);
 	}
 	emit_signal(SceneStringNames::get_singleton()->tree_exited);
@@ -2117,7 +2112,15 @@ Node *Node::_duplicate(int p_flags) const {
 		if (!(p_flags & DUPLICATE_SCRIPTS) && name == "script/script")
 			continue;
 
-		node->set(name, get(name));
+		Variant value = get(name);
+		// Duplicate dictionaries and arrays, mainly needed for __meta__
+		if (value.get_type() == Variant::DICTIONARY) {
+			value = Dictionary(value).copy();
+		} else if (value.get_type() == Variant::ARRAY) {
+			value = Array(value).duplicate();
+		}
+
+		node->set(name, value);
 	}
 
 	node->set_name(get_name());
@@ -2199,7 +2202,16 @@ void Node::_duplicate_and_reown(Node *p_new_parent, const Map<Node *, Node *> &p
 		if (!(E->get().usage & PROPERTY_USAGE_STORAGE))
 			continue;
 		String name = E->get().name;
-		node->set(name, get(name));
+
+		Variant value = get(name);
+		// Duplicate dictionaries and arrays, mainly needed for __meta__
+		if (value.get_type() == Variant::DICTIONARY) {
+			value = Dictionary(value).copy();
+		} else if (value.get_type() == Variant::ARRAY) {
+			value = Array(value).duplicate();
+		}
+
+		node->set(name, value);
 	}
 
 	node->set_name(get_name());
@@ -2657,7 +2669,7 @@ void Node::_bind_methods() {
 	GLOBAL_DEF("node/name_casing", NAME_CASING_PASCAL_CASE);
 	ProjectSettings::get_singleton()->set_custom_property_info("node/name_casing", PropertyInfo(Variant::INT, "node/name_casing", PROPERTY_HINT_ENUM, "PascalCase,camelCase,snake_case"));
 
-	ClassDB::bind_method(D_METHOD("_add_child_below_node", "node", "child_node", "legible_unique_name"), &Node::add_child_below_node, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("add_child_below_node", "node", "child_node", "legible_unique_name"), &Node::add_child_below_node, DEFVAL(false));
 
 	ClassDB::bind_method(D_METHOD("set_name", "name"), &Node::set_name);
 	ClassDB::bind_method(D_METHOD("get_name"), &Node::get_name);

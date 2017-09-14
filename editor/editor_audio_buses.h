@@ -52,16 +52,23 @@ class EditorAudioBus : public PanelContainer {
 
 	GDCLASS(EditorAudioBus, PanelContainer)
 
-	bool prev_active;
-	float peak_l;
-	float peak_r;
-
 	Ref<Texture> disabled_vu;
 	LineEdit *track_name;
 	MenuButton *bus_options;
 	VSlider *slider;
-	TextureProgress *vu_l;
-	TextureProgress *vu_r;
+
+	int cc;
+
+	struct {
+		bool prev_active;
+
+		float peak_l;
+		float peak_r;
+
+		TextureProgress *vu_l;
+		TextureProgress *vu_r;
+	} channel[4];
+
 	TextureRect *scale;
 	OptionButton *send;
 
@@ -158,6 +165,7 @@ class EditorAudioBuses : public VBoxContainer {
 
 	void _delete_bus(Object *p_which);
 	void _duplicate_bus(int p_which);
+	void _reset_bus_volume(Object *p_which);
 
 	void _request_drop_end();
 	void _drop_at_index(int p_bus, int p_index);

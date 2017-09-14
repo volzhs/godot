@@ -574,10 +574,10 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("interface/theme/icon_and_font_color", 0);
 	hints["interface/theme/icon_and_font_color"] = PropertyInfo(Variant::INT, "interface/theme/icon_and_font_color", PROPERTY_HINT_ENUM, "Auto,Dark,Light", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 	set("interface/theme/base_color", Color::html("#323b4f"));
-	hints["interface/theme/highlight_color"] = PropertyInfo(Variant::COLOR, "interface/theme/highlight_color", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-	set("interface/theme/highlight_color", Color::html("#699ce8"));
+	hints["interface/theme/accent_color"] = PropertyInfo(Variant::COLOR, "interface/theme/accent_color", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	set("interface/theme/accent_color", Color::html("#699ce8"));
 	hints["interface/theme/base_color"] = PropertyInfo(Variant::COLOR, "interface/theme/base_color", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-	set("interface/theme/contrast", 0.2);
+	set("interface/theme/contrast", 0.25);
 	hints["interface/theme/contrast"] = PropertyInfo(Variant::REAL, "interface/theme/contrast", PROPERTY_HINT_RANGE, "0.01, 1, 0.01");
 	set("interface/theme/highlight_tabs", false);
 	set("interface/theme/border_size", 1);
@@ -676,9 +676,15 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("editors/3d/warped_mouse_panning", true);
 
 	set("editors/3d/orbit_sensitivity", 0.4);
-	set("editors/3d/freelook_inertia", 3);
 
-	set("editors/3d/freelook_base_speed", 1);
+	set("editors/3d/orbit_inertia", 0.2);
+	hints["editors/3d/orbit_inertia"] = PropertyInfo(Variant::REAL, "editors/3d/orbit_inertia", PROPERTY_HINT_RANGE, "0.0, 1, 0.01");
+
+	set("editors/3d/freelook_inertia", 0.2);
+	hints["editors/3d/freelook_inertia"] = PropertyInfo(Variant::REAL, "editors/3d/freelook_inertia", PROPERTY_HINT_RANGE, "0.0, 1, 0.01");
+
+	set("editors/3d/freelook_base_speed", 0.5);
+	hints["editors/3d/freelook_base_speed"] = PropertyInfo(Variant::REAL, "editors/3d/freelook_base_speed", PROPERTY_HINT_RANGE, "0.0, 10, 0.1");
 
 	set("editors/3d/freelook_activation_modifier", 0);
 	hints["editors/3d/freelook_activation_modifier"] = PropertyInfo(Variant::INT, "editors/3d/freelook_activation_modifier", PROPERTY_HINT_ENUM, "None,Shift,Alt,Meta,Ctrl");
@@ -723,6 +729,9 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	hints["docks/filesystem/display_mode"] = PropertyInfo(Variant::INT, "docks/filesystem/display_mode", PROPERTY_HINT_ENUM, "Thumbnails,List");
 	set("docks/filesystem/thumbnail_size", 64);
 	hints["docks/filesystem/thumbnail_size"] = PropertyInfo(Variant::INT, "docks/filesystem/thumbnail_size", PROPERTY_HINT_RANGE, "32,128,16");
+	set("docks/filesystem/display_mode", 0);
+	hints["docks/filesystem/display_mode"] = PropertyInfo(Variant::INT, "docks/filesystem/display_mode", PROPERTY_HINT_ENUM, "Thumbnails,List");
+	set("docks/filesystem/always_show_folders", true);
 
 	set("editors/animation/autorename_animation_tracks", true);
 	set("editors/animation/confirm_insert_track", true);

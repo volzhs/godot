@@ -143,11 +143,7 @@ void FileSystemDock::_notification(int p_what) {
 			//button_instance->set_icon( get_icon("Add","EditorIcons"));
 			//button_open->set_icon( get_icon("Folder","EditorIcons"));
 			button_back->set_icon(get_icon("Filesystem", "EditorIcons"));
-			if (display_mode == DISPLAY_THUMBNAILS) {
-				button_display_mode->set_icon(get_icon("FileList", "EditorIcons"));
-			} else {
-				button_display_mode->set_icon(get_icon("FileThumbnail", "EditorIcons"));
-			}
+			_update_file_display_toggle_button();
 			button_display_mode->connect("pressed", this, "_change_file_display");
 			//file_options->set_icon( get_icon("Tools","EditorIcons"));
 			files->connect("item_activated", this, "_select_file");
@@ -204,19 +200,12 @@ void FileSystemDock::_notification(int p_what) {
 			button_reload->set_icon(get_icon("Reload", "EditorIcons"));
 			button_favorite->set_icon(get_icon("Favorites", "EditorIcons"));
 			button_back->set_icon(get_icon("Filesystem", "EditorIcons"));
-			if (display_mode == DISPLAY_THUMBNAILS) {
-				button_display_mode->set_icon(get_icon("FileList", "EditorIcons"));
-			} else {
-				button_display_mode->set_icon(get_icon("FileThumbnail", "EditorIcons"));
-			}
+			_update_file_display_toggle_button();
 
 			search_box->add_icon_override("right_icon", get_icon("Search", "EditorIcons"));
 
 			button_hist_next->set_icon(get_icon("Forward", "EditorIcons"));
 			button_hist_prev->set_icon(get_icon("Back", "EditorIcons"));
-
-			Theme::get_default()->clear_icon("ResizedFolder", "EditorIcons");
-			Theme::get_default()->clear_icon("ResizedFile", "EditorIcons");
 
 			if (new_mode != display_mode) {
 				set_display_mode(new_mode);
@@ -354,15 +343,22 @@ void FileSystemDock::_thumbnail_done(const String &p_path, const Ref<Texture> &p
 	}
 }
 
-void FileSystemDock::_change_file_display() {
+void FileSystemDock::_update_file_display_toggle_button() {
 
 	if (button_display_mode->is_pressed()) {
 		display_mode = DISPLAY_LIST;
 		button_display_mode->set_icon(get_icon("FileThumbnail", "EditorIcons"));
+		button_display_mode->set_tooltip(TTR("View items as a grid of thumbnails"));
 	} else {
 		display_mode = DISPLAY_THUMBNAILS;
 		button_display_mode->set_icon(get_icon("FileList", "EditorIcons"));
+		button_display_mode->set_tooltip(TTR("View items as a list"));
 	}
+}
+
+void FileSystemDock::_change_file_display() {
+
+	_update_file_display_toggle_button();
 
 	EditorSettings::get_singleton()->set("docks/filesystem/display_mode", display_mode);
 
@@ -426,8 +422,10 @@ void FileSystemDock::_update_files(bool p_keep_selection) {
 	Ref<Texture> file_thumbnail;
 	Ref<Texture> file_thumbnail_broken;
 
+	bool always_show_folders = EditorSettings::get_singleton()->get("docks/filesystem/always_show_folders");
+
 	bool use_thumbnails = (display_mode == DISPLAY_THUMBNAILS);
-	bool use_folders = search_box->get_text().length() == 0 && split_mode;
+	bool use_folders = search_box->get_text().length() == 0 && (split_mode || always_show_folders);
 
 	if (use_thumbnails) { //thumbnails
 
@@ -437,39 +435,15 @@ void FileSystemDock::_update_files(bool p_keep_selection) {
 		files->set_max_text_lines(2);
 		files->set_fixed_icon_size(Size2(thumbnail_size, thumbnail_size));
 
-		if (!has_icon("ResizedFolder", "EditorIcons")) {
-			Ref<ImageTexture> folder = get_icon("FolderBig", "EditorIcons");
-			Ref<Image> img = folder->get_data();
-			img = img->duplicate();
-			img->resize(thumbnail_size, thumbnail_size);
-			Ref<ImageTexture> resized_folder = Ref<ImageTexture>(memnew(ImageTexture));
-			resized_folder->create_from_image(img, 0);
-			Theme::get_default()->set_icon("ResizedFolder", "EditorIcons", resized_folder);
+		if (thumbnail_size < 64) {
+			folder_thumbnail = get_icon("FolderMediumThumb", "EditorIcons");
+			file_thumbnail = get_icon("FileMediumThumb", "EditorIcons");
+			file_thumbnail_broken = get_icon("FileDeadMediumThumb", "EditorIcons");
+		} else {
+			folder_thumbnail = get_icon("FolderBigThumb", "EditorIcons");
+			file_thumbnail = get_icon("FileBigThumb", "EditorIcons");
+			file_thumbnail_broken = get_icon("FileDeadBigThumb", "EditorIcons");
 		}
-
-		folder_thumbnail = get_icon("ResizedFolder", "EditorIcons");
-
-		if (!has_icon("ResizedFile", "EditorIcons")) {
-			Ref<ImageTexture> file = get_icon("FileBig", "EditorIcons");
-			Ref<Image> img = file->get_data();
-			img->resize(thumbnail_size, thumbnail_size);
-			Ref<ImageTexture> resized_file = Ref<ImageTexture>(memnew(ImageTexture));
-			resized_file->create_from_image(img, 0);
-			Theme::get_default()->set_icon("ResizedFile", "EditorIcons", resized_file);
-		}
-
-		if (!has_icon("ResizedFileBroken", "EditorIcons")) {
-			Ref<ImageTexture> file = get_icon("FileBigBroken", "EditorIcons");
-			Ref<Image> img = file->get_data();
-			img->resize(thumbnail_size, thumbnail_size);
-			Ref<ImageTexture> resized_file = Ref<ImageTexture>(memnew(ImageTexture));
-			resized_file->create_from_image(img, 0);
-			Theme::get_default()->set_icon("ResizedFileBroken", "EditorIcons", resized_file);
-		}
-
-		file_thumbnail = get_icon("ResizedFile", "EditorIcons");
-
-		file_thumbnail_broken = get_icon("ResizedFileBroken", "EditorIcons");
 	} else {
 
 		files->set_icon_mode(ItemList::ICON_MODE_LEFT);

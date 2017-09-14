@@ -39,10 +39,13 @@ void EditorAudioBus::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_READY) {
 
-		vu_l->set_under_texture(get_icon("BusVuEmpty", "EditorIcons"));
-		vu_l->set_progress_texture(get_icon("BusVuFull", "EditorIcons"));
-		vu_r->set_under_texture(get_icon("BusVuEmpty", "EditorIcons"));
-		vu_r->set_progress_texture(get_icon("BusVuFull", "EditorIcons"));
+		for (int i = 0; i < cc; i++) {
+			channel[i].vu_l->set_under_texture(get_icon("BusVuEmpty", "EditorIcons"));
+			channel[i].vu_l->set_progress_texture(get_icon("BusVuFull", "EditorIcons"));
+			channel[i].vu_r->set_under_texture(get_icon("BusVuEmpty", "EditorIcons"));
+			channel[i].vu_r->set_progress_texture(get_icon("BusVuFull", "EditorIcons"));
+			channel[i].prev_active = true;
+		}
 		scale->set_texture(get_icon("BusVuDb", "EditorIcons"));
 
 		disabled_vu = get_icon("BusVuFrozen", "EditorIcons");
@@ -53,7 +56,6 @@ void EditorAudioBus::_notification(int p_what) {
 
 		bus_options->set_icon(get_icon("GuiMiniTabMenu", "EditorIcons"));
 
-		prev_active = true;
 		update_bus();
 		set_process(true);
 	}
@@ -67,60 +69,52 @@ void EditorAudioBus::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_PROCESS) {
 
-		float real_peak[2] = { -100, -100 };
-		bool activity_found = false;
-
-		int cc = 0;
-		switch (AudioServer::get_singleton()->get_speaker_mode()) {
-			case AudioServer::SPEAKER_MODE_STEREO: cc = 1; break;
-			case AudioServer::SPEAKER_SURROUND_51: cc = 4; break;
-			case AudioServer::SPEAKER_SURROUND_71: cc = 5; break;
-			default:
-				ERR_PRINT("Unknown speaker_mode");
-				break;
-		}
-
 		for (int i = 0; i < cc; i++) {
+			float real_peak[2] = { -100, -100 };
+			bool activity_found = false;
+
 			if (AudioServer::get_singleton()->is_bus_channel_active(get_index(), i)) {
 				activity_found = true;
 				real_peak[0] = MAX(real_peak[0], AudioServer::get_singleton()->get_bus_peak_volume_left_db(get_index(), i));
 				real_peak[1] = MAX(real_peak[1], AudioServer::get_singleton()->get_bus_peak_volume_right_db(get_index(), i));
 			}
-		}
 
-		if (real_peak[0] > peak_l) {
-			peak_l = real_peak[0];
-		} else {
-			peak_l -= get_process_delta_time() * 60.0;
-		}
-
-		if (real_peak[1] > peak_r) {
-			peak_r = real_peak[1];
-		} else {
-			peak_r -= get_process_delta_time() * 60.0;
-		}
-
-		vu_l->set_value(peak_l);
-		vu_r->set_value(peak_r);
-
-		if (activity_found != prev_active) {
-			if (activity_found) {
-				vu_l->set_over_texture(Ref<Texture>());
-				vu_r->set_over_texture(Ref<Texture>());
+			if (real_peak[0] > channel[i].peak_l) {
+				channel[i].peak_l = real_peak[0];
 			} else {
-				vu_l->set_over_texture(disabled_vu);
-				vu_r->set_over_texture(disabled_vu);
+				channel[i].peak_l -= get_process_delta_time() * 60.0;
 			}
 
-			prev_active = activity_found;
+			if (real_peak[1] > channel[i].peak_r) {
+				channel[i].peak_r = real_peak[1];
+			} else {
+				channel[i].peak_r -= get_process_delta_time() * 60.0;
+			}
+
+			channel[i].vu_l->set_value(channel[i].peak_l);
+			channel[i].vu_r->set_value(channel[i].peak_r);
+
+			if (activity_found != channel[i].prev_active) {
+				if (activity_found) {
+					channel[i].vu_l->set_over_texture(Ref<Texture>());
+					channel[i].vu_r->set_over_texture(Ref<Texture>());
+				} else {
+					channel[i].vu_l->set_over_texture(disabled_vu);
+					channel[i].vu_r->set_over_texture(disabled_vu);
+				}
+
+				channel[i].prev_active = activity_found;
+			}
 		}
 	}
 
 	if (p_what == NOTIFICATION_VISIBILITY_CHANGED) {
 
-		peak_l = -100;
-		peak_r = -100;
-		prev_active = true;
+		for (int i = 0; i < 4; i++) {
+			channel[i].peak_l = -100;
+			channel[i].peak_r = -100;
+			channel[i].prev_active = true;
+		}
 
 		set_process(is_visible_in_tree());
 	}
@@ -414,7 +408,10 @@ void EditorAudioBus::_gui_input(const Ref<InputEvent> &p_event) {
 
 void EditorAudioBus::_bus_popup_pressed(int p_option) {
 
-	if (p_option == 1) {
+	if (p_option == 2) {
+		// Reset volume
+		emit_signal("vol_reset_request");
+	} else if (p_option == 1) {
 		emit_signal("delete_request");
 	} else if (p_option == 0) {
 		//duplicate
@@ -617,6 +614,7 @@ void EditorAudioBus::_bind_methods() {
 
 	ADD_SIGNAL(MethodInfo("duplicate_request"));
 	ADD_SIGNAL(MethodInfo("delete_request"));
+	ADD_SIGNAL(MethodInfo("vol_reset_request"));
 	ADD_SIGNAL(MethodInfo("drop_end_request"));
 	ADD_SIGNAL(MethodInfo("dropped"));
 }
@@ -679,19 +677,24 @@ EditorAudioBus::EditorAudioBus(EditorAudioBuses *p_buses) {
 
 	slider->connect("value_changed", this, "_volume_db_changed");
 	hb->add_child(slider);
-	vu_l = memnew(TextureProgress);
-	vu_l->set_fill_mode(TextureProgress::FILL_BOTTOM_TO_TOP);
-	hb->add_child(vu_l);
-	vu_l->set_min(-80);
-	vu_l->set_max(24);
-	vu_l->set_step(0.1);
 
-	vu_r = memnew(TextureProgress);
-	vu_r->set_fill_mode(TextureProgress::FILL_BOTTOM_TO_TOP);
-	hb->add_child(vu_r);
-	vu_r->set_min(-80);
-	vu_r->set_max(24);
-	vu_r->set_step(0.1);
+	cc = AudioServer::get_singleton()->get_channel_count();
+
+	for (int i = 0; i < cc; i++) {
+		channel[i].vu_l = memnew(TextureProgress);
+		channel[i].vu_l->set_fill_mode(TextureProgress::FILL_BOTTOM_TO_TOP);
+		hb->add_child(channel[i].vu_l);
+		channel[i].vu_l->set_min(-80);
+		channel[i].vu_l->set_max(24);
+		channel[i].vu_l->set_step(0.1);
+
+		channel[i].vu_r = memnew(TextureProgress);
+		channel[i].vu_r->set_fill_mode(TextureProgress::FILL_BOTTOM_TO_TOP);
+		hb->add_child(channel[i].vu_r);
+		channel[i].vu_r->set_min(-80);
+		channel[i].vu_r->set_max(24);
+		channel[i].vu_r->set_step(0.1);
+	}
 
 	scale = memnew(TextureRect);
 	hb->add_child(scale);
@@ -742,6 +745,7 @@ EditorAudioBus::EditorAudioBus(EditorAudioBuses *p_buses) {
 	bus_popup = bus_options->get_popup();
 	bus_popup->add_item(TTR("Duplicate"));
 	bus_popup->add_item(TTR("Delete"));
+	bus_popup->add_item(TTR("Reset Volume"));
 	bus_popup->connect("index_pressed", this, "_bus_popup_pressed");
 
 	delete_effect_popup = memnew(PopupMenu);
@@ -790,6 +794,7 @@ void EditorAudioBuses::_update_buses() {
 		bus_hb->add_child(audio_bus);
 		audio_bus->connect("delete_request", this, "_delete_bus", varray(audio_bus), CONNECT_DEFERRED);
 		audio_bus->connect("duplicate_request", this, "_duplicate_bus", varray(), CONNECT_DEFERRED);
+		audio_bus->connect("vol_reset_request", this, "_reset_bus_volume", varray(audio_bus), CONNECT_DEFERRED);
 		audio_bus->connect("drop_end_request", this, "_request_drop_end");
 		audio_bus->connect("dropped", this, "_drop_at_index", varray(), CONNECT_DEFERRED);
 	}
@@ -914,6 +919,20 @@ void EditorAudioBuses::_duplicate_bus(int p_which) {
 		ur->add_do_method(AudioServer::get_singleton(), "set_bus_effect_enabled", add_at_pos, i, AudioServer::get_singleton()->is_bus_effect_enabled(p_which, i));
 	}
 	ur->add_undo_method(AudioServer::get_singleton(), "remove_bus", add_at_pos);
+	ur->add_do_method(this, "_update_buses");
+	ur->add_undo_method(this, "_update_buses");
+	ur->commit_action();
+}
+
+void EditorAudioBuses::_reset_bus_volume(Object *p_which) {
+
+	EditorAudioBus *bus = Object::cast_to<EditorAudioBus>(p_which);
+	int index = bus->get_index();
+
+	UndoRedo *ur = EditorNode::get_singleton()->get_undo_redo();
+	ur->create_action(TTR("Reset Bus Volume"));
+	ur->add_do_method(AudioServer::get_singleton(), "set_bus_volume_db", index, 0.f);
+	ur->add_undo_method(AudioServer::get_singleton(), "set_bus_volume_db", index, AudioServer::get_singleton()->get_bus_volume_db(index));
 	ur->add_do_method(this, "_update_buses");
 	ur->add_undo_method(this, "_update_buses");
 	ur->commit_action();
@@ -1063,6 +1082,7 @@ void EditorAudioBuses::_bind_methods() {
 	ClassDB::bind_method("_load_default_layout", &EditorAudioBuses::_load_default_layout);
 	ClassDB::bind_method("_new_layout", &EditorAudioBuses::_new_layout);
 	ClassDB::bind_method("_duplicate_bus", &EditorAudioBuses::_duplicate_bus);
+	ClassDB::bind_method("_reset_bus_volume", &EditorAudioBuses::_reset_bus_volume);
 
 	ClassDB::bind_method("_file_dialog_callback", &EditorAudioBuses::_file_dialog_callback);
 }

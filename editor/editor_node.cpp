@@ -84,6 +84,7 @@
 #include "editor/plugins/mesh_editor_plugin.h"
 #include "editor/plugins/mesh_instance_editor_plugin.h"
 #include "editor/plugins/multimesh_editor_plugin.h"
+#include "editor/plugins/navigation_mesh_editor_plugin.h"
 #include "editor/plugins/navigation_polygon_editor_plugin.h"
 #include "editor/plugins/particles_2d_editor_plugin.h"
 #include "editor/plugins/particles_editor_plugin.h"
@@ -412,7 +413,6 @@ void EditorNode::_fs_changed() {
 		}
 
 		if (changed.size()) {
-			int idx = 0;
 			for (List<Ref<Resource> >::Element *E = changed.front(); E; E = E->next()) {
 				E->get()->reload_from_file();
 			}
@@ -1997,6 +1997,8 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			int cur_idx = editor_data.get_edited_scene();
 			_remove_edited_scene();
 			Error err = load_scene(filename);
+			if (err != OK)
+				ERR_PRINT("Failed to load scene");
 			editor_data.move_edited_scene_to_index(cur_idx);
 			get_undo_redo()->clear_history();
 			scene_tabs->set_current_tab(cur_idx);
@@ -3607,13 +3609,6 @@ void EditorNode::_update_dock_slots_visibility() {
 		right_r_vsplit,
 	};
 
-	HSplitContainer *h_splits[4] = {
-		left_l_hsplit,
-		left_r_hsplit,
-		main_hsplit,
-		right_hsplit,
-	};
-
 	if (!docks_visible) {
 
 		for (int i = 0; i < DOCK_SLOT_MAX; i++) {
@@ -4134,7 +4129,7 @@ Variant EditorNode::drag_resource(const Ref<Resource> &p_res, Control *p_from) {
 
 	{
 		//todo make proper previews
-		Ref<ImageTexture> pic = gui_base->get_icon("FileBig", "EditorIcons");
+		Ref<ImageTexture> pic = gui_base->get_icon("FileBigThumb", "EditorIcons");
 		Ref<Image> img = pic->get_data();
 		img = img->duplicate();
 		img->resize(48, 48); //meh
@@ -4878,6 +4873,7 @@ EditorNode::EditorNode() {
 	gui_base->add_child(dependency_fixer);
 
 	settings_config_dialog = memnew(EditorSettingsDialog);
+	// settings_config_dialog->add_style_override("panel", gui_base->get_stylebox("EditorSettingsDialog", "EditorStyles"));
 	gui_base->add_child(settings_config_dialog);
 
 	project_settings = memnew(ProjectSettingsEditor(&editor_data));
@@ -5035,7 +5031,7 @@ EditorNode::EditorNode() {
 	p->add_icon_item(gui_base->get_icon("Instance", "EditorIcons"), TTR("Issue Tracker"), HELP_ISSUES);
 	p->add_icon_item(gui_base->get_icon("Instance", "EditorIcons"), TTR("Community"), HELP_COMMUNITY);
 	p->add_separator();
-	p->add_icon_item(gui_base->get_icon("GodotDocs", "EditorIcons"), TTR("About"), HELP_ABOUT);
+	p->add_icon_item(gui_base->get_icon("Godot", "EditorIcons"), TTR("About"), HELP_ABOUT);
 
 	play_cc = memnew(CenterContainer);
 	play_cc->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
@@ -5445,6 +5441,7 @@ EditorNode::EditorNode() {
 	add_editor_plugin(memnew(TextureEditorPlugin(this)));
 	add_editor_plugin(memnew(MeshEditorPlugin(this)));
 	add_editor_plugin(memnew(AudioBusesEditorPlugin(audio_bus_editor)));
+	add_editor_plugin(memnew(NavigationMeshEditorPlugin(this)));
 
 	// FIXME: Disabled as (according to reduz) users were complaining that it gets in the way
 	// Waiting for PropertyEditor rewrite (planned for 3.1) to be refactored.

@@ -484,7 +484,7 @@ VERTEX_SHADER_CODE
 
 	vec3 directional_diffuse = vec3(0.0);
 	vec3 directional_specular = vec3(0.0);
-        light_compute(normal_interp,-light_direction_attenuation.xyz,-normalize( vertex_interp ),light_color_energy.rgb,roughness,directional_diffuse,directional_specular);
+	light_compute(normal_interp,-light_direction_attenuation.xyz,-normalize( vertex_interp ),light_color_energy.rgb,roughness,directional_diffuse,directional_specular);
 
 	float diff_avg = dot(diffuse_light_interp.rgb,vec3(0.33333));
 	float diff_dir_avg = dot(directional_diffuse,vec3(0.33333));
@@ -935,17 +935,26 @@ LIGHT_SHADER_CODE
 #elif defined(DIFFUSE_BURLEY)
 
 	{
-		float NdotL = dot(L, N);
-		float NdotV = dot(N, V);
-		float VdotH = dot(N, normalize(L+V));
+
+
+		vec3 H = normalize(V + L);
+		float NoL = max(0.0,dot(N, L));
+		float VoH = max(0.0,dot(L, H));
+		float NoV = max(0.0,dot(N, V));
+
+		float FD90 = 0.5 + 2.0 * VoH * VoH * roughness;
+		float FdV = 1.0 + (FD90 - 1.0) * pow( 1.0 - NoV, 5.0 );
+		float FdL = 1.0 + (FD90 - 1.0) * pow( 1.0 - NoL, 5.0 );
+		light_amount = ( (1.0 / M_PI) * FdV * FdL );
+/*
 		float energyBias = mix(roughness, 0.0, 0.5);
 		float energyFactor = mix(roughness, 1.0, 1.0 / 1.51);
-		float fd90 = energyBias + 2.0 * VdotH * VdotH * roughness;
+		float fd90 = energyBias + 2.0 * VoH * VoH * roughness;
 		float f0 = 1.0;
-		float lightScatter = f0 + (fd90 - f0) * pow(1.0 - NdotL, 5.0);
-		float viewScatter = f0 + (fd90 - f0) * pow(1.0 - NdotV, 5.0);
+		float lightScatter = f0 + (fd90 - f0) * pow(1.0 - NoL, 5.0);
+		float viewScatter = f0 + (fd90 - f0) * pow(1.0 - NoV, 5.0);
 
-		light_amount = lightScatter * viewScatter * energyFactor;
+		light_amount = lightScatter * viewScatter * energyFactor;*/
 	}
 #else
 	//lambert
@@ -1697,9 +1706,16 @@ FRAGMENT_SHADER_CODE
 
 	vec3 light_attenuation=vec3(1.0);
 
+	float depth_z = -vertex.z;
 #ifdef LIGHT_DIRECTIONAL_SHADOW
 
-	if (gl_FragCoord.w > shadow_split_offsets.w) {
+#ifdef LIGHT_USE_PSSM4
+	if (depth_z < shadow_split_offsets.w) {
+#elif defined(LIGHT_USE_PSSM2)
+	if (depth_z < shadow_split_offsets.y) {
+#else
+	if (depth_z < shadow_split_offsets.x) {
+#endif //LIGHT_USE_PSSM4
 
 	vec3 pssm_coord;
 	float pssm_fade=0.0;
@@ -1708,17 +1724,15 @@ FRAGMENT_SHADER_CODE
 	float pssm_blend;
 	vec3 pssm_coord2;
 	bool use_blend=true;
-	vec3 light_pssm_split_inv = 1.0/shadow_split_offsets.xyz;
-	float w_inv = 1.0/gl_FragCoord.w;
 #endif
 
 
 #ifdef LIGHT_USE_PSSM4
 
 
-	if (gl_FragCoord.w > shadow_split_offsets.y) {
+	if (depth_z < shadow_split_offsets.y) {
 
-		if (gl_FragCoord.w > shadow_split_offsets.x) {
+		if (depth_z < shadow_split_offsets.x) {
 
 			highp vec4 splane=(shadow_matrix1 * vec4(vertex,1.0));
 			pssm_coord=splane.xyz/splane.w;
@@ -1728,7 +1742,7 @@ FRAGMENT_SHADER_CODE
 
 			splane=(shadow_matrix2 * vec4(vertex,1.0));
 			pssm_coord2=splane.xyz/splane.w;
-			pssm_blend=smoothstep(0.0,light_pssm_split_inv.x,w_inv);
+			pssm_blend=smoothstep(0.0,shadow_split_offsets.x,depth_z);
 #endif
 
 		} else {
@@ -1739,14 +1753,14 @@ FRAGMENT_SHADER_CODE
 #if defined(LIGHT_USE_PSSM_BLEND)
 			splane=(shadow_matrix3 * vec4(vertex,1.0));
 			pssm_coord2=splane.xyz/splane.w;
-			pssm_blend=smoothstep(light_pssm_split_inv.x,light_pssm_split_inv.y,w_inv);
+			pssm_blend=smoothstep(shadow_split_offsets.x,shadow_split_offsets.y,depth_z);
 #endif
 
 		}
 	} else {
 
 
-		if (gl_FragCoord.w > shadow_split_offsets.z) {
+		if (depth_z < shadow_split_offsets.z) {
 
 			highp vec4 splane=(shadow_matrix3 * vec4(vertex,1.0));
 			pssm_coord=splane.xyz/splane.w;
@@ -1754,13 +1768,14 @@ FRAGMENT_SHADER_CODE
 #if defined(LIGHT_USE_PSSM_BLEND)
 			splane=(shadow_matrix4 * vec4(vertex,1.0));
 			pssm_coord2=splane.xyz/splane.w;
-			pssm_blend=smoothstep(light_pssm_split_inv.y,light_pssm_split_inv.z,w_inv);
+			pssm_blend=smoothstep(shadow_split_offsets.y,shadow_split_offsets.z,depth_z);
 #endif
 
 		} else {
+
 			highp vec4 splane=(shadow_matrix4 * vec4(vertex,1.0));
 			pssm_coord=splane.xyz/splane.w;
-			pssm_fade = smoothstep(shadow_split_offsets.z,shadow_split_offsets.w,gl_FragCoord.w);
+			pssm_fade = smoothstep(shadow_split_offsets.z,shadow_split_offsets.w,depth_z);
 
 #if defined(LIGHT_USE_PSSM_BLEND)
 			use_blend=false;
@@ -1776,7 +1791,7 @@ FRAGMENT_SHADER_CODE
 
 #ifdef LIGHT_USE_PSSM2
 
-	if (gl_FragCoord.w > shadow_split_offsets.x) {
+	if (depth_z < shadow_split_offsets.x) {
 
 		highp vec4 splane=(shadow_matrix1 * vec4(vertex,1.0));
 		pssm_coord=splane.xyz/splane.w;
@@ -1786,13 +1801,13 @@ FRAGMENT_SHADER_CODE
 
 		splane=(shadow_matrix2 * vec4(vertex,1.0));
 		pssm_coord2=splane.xyz/splane.w;
-		pssm_blend=smoothstep(0.0,light_pssm_split_inv.x,w_inv);
+		pssm_blend=smoothstep(0.0,shadow_split_offsets.x,depth_z);
 #endif
 
 	} else {
 		highp vec4 splane=(shadow_matrix2 * vec4(vertex,1.0));
 		pssm_coord=splane.xyz/splane.w;
-		pssm_fade = smoothstep(shadow_split_offsets.x,shadow_split_offsets.y,gl_FragCoord.w);
+		pssm_fade = smoothstep(shadow_split_offsets.x,shadow_split_offsets.y,depth_z);
 #if defined(LIGHT_USE_PSSM_BLEND)
 		use_blend=false;
 
@@ -1833,6 +1848,7 @@ FRAGMENT_SHADER_CODE
 
 
 	}
+
 
 #endif //LIGHT_DIRECTIONAL_SHADOW
 

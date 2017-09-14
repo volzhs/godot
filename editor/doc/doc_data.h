@@ -70,7 +70,6 @@ public:
 		String name;
 		String type;
 		String enumeration;
-		String brief_description;
 		String description;
 		String setter, getter;
 		bool operator<(const PropertyDoc &p_prop) const {
@@ -85,6 +84,8 @@ public:
 		String category;
 		String brief_description;
 		String description;
+		String tutorials;
+		String demos;
 		Vector<MethodDoc> methods;
 		Vector<MethodDoc> signals;
 		Vector<ConstantDoc> constants;
@@ -101,8 +102,9 @@ public:
 	void merge_from(const DocData &p_data);
 	void remove_from(const DocData &p_data);
 	void generate(bool p_basic_types = false);
-	Error load(const String &p_path);
-	Error save(const String &p_path);
+	Error load_classes(const String &p_dir);
+	static Error erase_classes(const String &p_dir);
+	Error save_classes(const String &p_default_path, const Map<String, String> &p_class_path);
 
 	Error load_compressed(const uint8_t *p_data, int p_compressed_size, int p_uncompressed_size);
 };

@@ -954,6 +954,9 @@ Vector3 ConvexPolygonShapeSW::get_moment_of_inertia(real_t p_mass) const {
 void ConvexPolygonShapeSW::_setup(const Vector<Vector3> &p_vertices) {
 
 	Error err = QuickHull::build(p_vertices, mesh);
+	if (err != OK)
+		ERR_PRINT("Failed to build QuickHull");
+
 	Rect3 _aabb;
 
 	for (int i = 0; i < mesh.vertices.size(); i++) {
@@ -1208,8 +1211,6 @@ void ConcavePolygonShapeSW::_cull_segment(int p_idx, _SegmentCullParams *p_param
 				p_params->min_d = d;
 				p_params->result = res;
 				p_params->normal = Plane(vertices[0], vertices[1], vertices[2]).normal;
-				if (p_params->normal.dot(p_params->dir) > 0)
-					p_params->normal = -p_params->normal;
 				p_params->collisions++;
 			}
 		}

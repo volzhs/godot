@@ -580,7 +580,8 @@ void CanvasItemEditor::_key_move(const Vector2 &p_dir, bool p_snap, KeyMoveMODE 
 
 		} else { // p_move_mode==MOVE_LOCAL_BASE || p_move_mode==MOVE_LOCAL_WITH_ROT
 
-			if (Node2D *node_2d = Object::cast_to<Node2D>(canvas_item)) {
+			Node2D *node_2d = Object::cast_to<Node2D>(canvas_item);
+			if (node_2d) {
 
 				if (p_move_mode == MOVE_LOCAL_WITH_ROT) {
 					Transform2D m;
@@ -589,9 +590,10 @@ void CanvasItemEditor::_key_move(const Vector2 &p_dir, bool p_snap, KeyMoveMODE 
 				}
 				node_2d->set_position(node_2d->get_position() + drag);
 
-			} else if (Control *control = Object::cast_to<Control>(canvas_item)) {
-
-				control->set_position(control->get_position() + drag);
+			} else {
+				Control *control = Object::cast_to<Control>(canvas_item);
+				if (control)
+					control->set_position(control->get_position() + drag);
 			}
 		}
 	}
@@ -742,7 +744,8 @@ float CanvasItemEditor::_anchor_snap(float p_anchor, bool *p_snapped, float p_op
 	float radius = 0.05 / zoom;
 	float basic_anchors[3] = { 0.0, 0.5, 1.0 };
 	for (int i = 0; i < 3; i++) {
-		if ((dist = fabs(p_anchor - basic_anchors[i])) < radius) {
+		dist = fabs(p_anchor - basic_anchors[i]);
+		if (dist < radius) {
 			if (!snapped || dist <= dist_min) {
 				p_anchor = basic_anchors[i];
 				dist_min = dist;
@@ -750,7 +753,8 @@ float CanvasItemEditor::_anchor_snap(float p_anchor, bool *p_snapped, float p_op
 			}
 		}
 	}
-	if (p_opposite_anchor >= 0 && (dist = fabs(p_anchor - p_opposite_anchor)) < radius) {
+	dist = fabs(p_anchor - p_opposite_anchor);
+	if (p_opposite_anchor >= 0 && dist < radius) {
 		if (!snapped || dist <= dist_min) {
 			p_anchor = p_opposite_anchor;
 			dist_min = dist;
@@ -1515,7 +1519,7 @@ void CanvasItemEditor::_viewport_gui_input(const Ref<InputEvent> &p_event) {
 		}
 
 		if (drag == DRAG_NONE) {
-			if ((m->get_button_mask() & BUTTON_MASK_LEFT && tool == TOOL_PAN) || m->get_button_mask() & BUTTON_MASK_MIDDLE || (m->get_button_mask() & BUTTON_MASK_LEFT && Input::get_singleton()->is_key_pressed(KEY_SPACE))) {
+			if (((m->get_button_mask() & BUTTON_MASK_LEFT) && tool == TOOL_PAN) || (m->get_button_mask() & BUTTON_MASK_MIDDLE) || ((m->get_button_mask() & BUTTON_MASK_LEFT) && Input::get_singleton()->is_key_pressed(KEY_SPACE))) {
 				// Pan the viewport
 				Point2i relative;
 				if (bool(EditorSettings::get_singleton()->get("editors/2d/warped_mouse_panning"))) {
@@ -2269,6 +2273,8 @@ void CanvasItemEditor::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_FIXED_PROCESS) {
 
+		EditorNode::get_singleton()->get_scene_root()->set_snap_controls_to_pixels(GLOBAL_GET("gui/common/snap_controls_to_pixels"));
+
 		List<Node *> &selection = editor_selection->get_selected_node_list();
 
 		bool all_control = true;
@@ -2295,19 +2301,24 @@ void CanvasItemEditor::_notification(int p_what) {
 			Rect2 r = canvas_item->get_item_rect();
 			Transform2D xform = canvas_item->get_transform();
 
-			float anchors[4];
-			Vector2 pivot;
+			if (r != se->prev_rect || xform != se->prev_xform) {
+				viewport->update();
+				se->prev_rect = r;
+				se->prev_xform = xform;
+			}
+
 			if (Object::cast_to<Control>(canvas_item)) {
+				float anchors[4];
+				Vector2 pivot;
+
 				pivot = Object::cast_to<Control>(canvas_item)->get_pivot_offset();
 				anchors[MARGIN_LEFT] = Object::cast_to<Control>(canvas_item)->get_anchor(MARGIN_LEFT);
 				anchors[MARGIN_RIGHT] = Object::cast_to<Control>(canvas_item)->get_anchor(MARGIN_RIGHT);
 				anchors[MARGIN_TOP] = Object::cast_to<Control>(canvas_item)->get_anchor(MARGIN_TOP);
 				anchors[MARGIN_BOTTOM] = Object::cast_to<Control>(canvas_item)->get_anchor(MARGIN_BOTTOM);
 
-				if (r != se->prev_rect || xform != se->prev_xform || pivot != se->prev_pivot || anchors[MARGIN_LEFT] != se->prev_anchors[MARGIN_LEFT] || anchors[MARGIN_RIGHT] != se->prev_anchors[MARGIN_RIGHT] || anchors[MARGIN_TOP] != se->prev_anchors[MARGIN_TOP] || anchors[MARGIN_BOTTOM] != se->prev_anchors[MARGIN_BOTTOM]) {
+				if (pivot != se->prev_pivot || anchors[MARGIN_LEFT] != se->prev_anchors[MARGIN_LEFT] || anchors[MARGIN_RIGHT] != se->prev_anchors[MARGIN_RIGHT] || anchors[MARGIN_TOP] != se->prev_anchors[MARGIN_TOP] || anchors[MARGIN_BOTTOM] != se->prev_anchors[MARGIN_BOTTOM]) {
 					viewport->update();
-					se->prev_rect = r;
-					se->prev_xform = xform;
 					se->prev_pivot = pivot;
 					se->prev_anchors[MARGIN_LEFT] = anchors[MARGIN_LEFT];
 					se->prev_anchors[MARGIN_RIGHT] = anchors[MARGIN_RIGHT];

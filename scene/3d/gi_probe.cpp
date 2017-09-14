@@ -696,22 +696,6 @@ void GIProbe::_plot_face(int p_idx, int p_level, int p_x, int p_y, int p_z, cons
 		p_baker->bake_cells[p_idx].normal[2] += normal_accum.z;
 		p_baker->bake_cells[p_idx].alpha += alpha;
 
-		static const Vector3 side_normals[6] = {
-			Vector3(-1, 0, 0),
-			Vector3(1, 0, 0),
-			Vector3(0, -1, 0),
-			Vector3(0, 1, 0),
-			Vector3(0, 0, -1),
-			Vector3(0, 0, 1),
-		};
-
-		/*
-		for(int i=0;i<6;i++) {
-			if (normal.dot(side_normals[i])>CMP_EPSILON) {
-				p_baker->bake_cells[p_idx].used_sides|=(1<<i);
-			}
-		}*/
-
 	} else {
 		//go down
 
@@ -1092,7 +1076,7 @@ void GIProbe::_plot_mesh(const Transform &p_xform, Ref<Mesh> &p_mesh, Baker *p_b
 void GIProbe::_find_meshes(Node *p_at_node, Baker *p_baker) {
 
 	MeshInstance *mi = Object::cast_to<MeshInstance>(p_at_node);
-	if (mi && mi->get_flag(GeometryInstance::FLAG_USE_BAKED_LIGHT)) {
+	if (mi && mi->get_flag(GeometryInstance::FLAG_USE_BAKED_LIGHT) && mi->is_visible_in_tree()) {
 		Ref<Mesh> mesh = mi->get_mesh();
 		if (mesh.is_valid()) {
 
@@ -1113,25 +1097,29 @@ void GIProbe::_find_meshes(Node *p_at_node, Baker *p_baker) {
 		}
 	}
 
-	if (Spatial *s = Object::cast_to<Spatial>(p_at_node)) {
+	Spatial *s = Object::cast_to<Spatial>(p_at_node);
+	if (s) {
 
-		Array meshes = p_at_node->call("get_meshes");
-		for (int i = 0; i < meshes.size(); i += 2) {
+		if (s->is_visible_in_tree()) {
 
-			Transform mxf = meshes[i];
-			Ref<Mesh> mesh = meshes[i + 1];
-			if (!mesh.is_valid())
-				continue;
+			Array meshes = p_at_node->call("get_meshes");
+			for (int i = 0; i < meshes.size(); i += 2) {
 
-			Rect3 aabb = mesh->get_aabb();
+				Transform mxf = meshes[i];
+				Ref<Mesh> mesh = meshes[i + 1];
+				if (!mesh.is_valid())
+					continue;
 
-			Transform xf = get_global_transform().affine_inverse() * (s->get_global_transform() * mxf);
+				Rect3 aabb = mesh->get_aabb();
 
-			if (Rect3(-extents, extents * 2).intersects(xf.xform(aabb))) {
-				Baker::PlotMesh pm;
-				pm.local_xform = xf;
-				pm.mesh = mesh;
-				p_baker->mesh_list.push_back(pm);
+				Transform xf = get_global_transform().affine_inverse() * (s->get_global_transform() * mxf);
+
+				if (Rect3(-extents, extents * 2).intersects(xf.xform(aabb))) {
+					Baker::PlotMesh pm;
+					pm.local_xform = xf;
+					pm.mesh = mesh;
+					p_baker->mesh_list.push_back(pm);
+				}
 			}
 		}
 	}

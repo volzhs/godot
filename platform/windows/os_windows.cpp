@@ -164,6 +164,8 @@ const char *OS_Windows::get_audio_driver_name(int p_driver) const {
 
 void OS_Windows::initialize_core() {
 
+	crash_handler.initialize();
+
 	last_button_state = 0;
 
 	//RedirectIOToConsole();
@@ -887,12 +889,32 @@ static int QueryDpiForMonitor(HMONITOR hmon, _MonitorDpiType dpiType = MDT_Defau
 	return (dpiX + dpiY) / 2;
 }
 
+typedef enum _SHC_PROCESS_DPI_AWARENESS {
+	SHC_PROCESS_DPI_UNAWARE = 0,
+	SHC_PROCESS_SYSTEM_DPI_AWARE = 1,
+	SHC_PROCESS_PER_MONITOR_DPI_AWARE = 2
+} SHC_PROCESS_DPI_AWARENESS;
+
 void OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int p_audio_driver) {
 
 	main_loop = NULL;
 	outside = true;
 	window_has_focus = true;
 	WNDCLASSEXW wc;
+
+	if (is_hidpi_allowed()) {
+		HMODULE Shcore = LoadLibraryW(L"Shcore.dll");
+
+		if (Shcore != NULL) {
+			typedef HRESULT(WINAPI * SetProcessDpiAwareness_t)(SHC_PROCESS_DPI_AWARENESS);
+
+			SetProcessDpiAwareness_t SetProcessDpiAwareness = (SetProcessDpiAwareness_t)GetProcAddress(Shcore, "SetProcessDpiAwareness");
+
+			if (SetProcessDpiAwareness) {
+				SetProcessDpiAwareness(SHC_PROCESS_SYSTEM_DPI_AWARE);
+			}
+		}
+	}
 
 	video_mode = p_desired;
 	//printf("**************** desired %s, mode %s\n", p_desired.fullscreen?"true":"false", video_mode.fullscreen?"true":"false");
@@ -996,7 +1018,16 @@ void OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int 
 		video_mode.fullscreen = false;
 	} else {
 
-		if (!(hWnd = CreateWindowExW(dwExStyle, L"Engine", L"", dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, (GetSystemMetrics(SM_CXSCREEN) - WindowRect.right) / 2, (GetSystemMetrics(SM_CYSCREEN) - WindowRect.bottom) / 2, WindowRect.right - WindowRect.left, WindowRect.bottom - WindowRect.top, NULL, NULL, hInstance, NULL))) {
+		hWnd = CreateWindowExW(
+				dwExStyle,
+				L"Engine", L"",
+				dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+				(GetSystemMetrics(SM_CXSCREEN) - WindowRect.right) / 2,
+				(GetSystemMetrics(SM_CYSCREEN) - WindowRect.bottom) / 2,
+				WindowRect.right - WindowRect.left,
+				WindowRect.bottom - WindowRect.top,
+				NULL, NULL, hInstance, NULL);
+		if (!hWnd) {
 			MessageBoxW(NULL, L"Window Creation Error.", L"ERROR", MB_OK | MB_ICONEXCLAMATION);
 			return; // Return FALSE
 		}
@@ -2337,6 +2368,14 @@ int OS_Windows::get_power_percent_left() {
 bool OS_Windows::_check_internal_feature_support(const String &p_feature) {
 
 	return p_feature == "pc" || p_feature == "s3tc";
+}
+
+void OS_Windows::disable_crash_handler() {
+	crash_handler.disable();
+}
+
+bool OS_Windows::is_disable_crash_handler() const {
+	return crash_handler.is_disabled();
 }
 
 OS_Windows::OS_Windows(HINSTANCE _hInstance) {

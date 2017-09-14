@@ -69,6 +69,7 @@ struct CameraMatrix {
 	real_t get_z_near() const;
 	real_t get_aspect() const;
 	real_t get_fov() const;
+	bool is_orthogonal() const;
 
 	Vector<Plane> get_projection_planes(const Transform &p_transform) const;
 

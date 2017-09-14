@@ -35,7 +35,6 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-
 	int first_arg = 1;
 	const char *dbg_arg = "-NSDocumentRevisionsDebugMode";
 	printf("arguments\n");
@@ -73,6 +72,13 @@ int main(int argc, char **argv) {
 			free(pathinfo);
 		}
 	}
+
+#ifdef DEBUG_ENABLED
+	// lets report the path we made current after all that
+	char cwd[4096];
+	getcwd(cwd, 4096);
+	printf("Current path: %s\n", cwd);
+#endif
 
 	OS_OSX os;
 

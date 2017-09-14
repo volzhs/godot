@@ -910,6 +910,8 @@ OS::VideoMode OS_OSX::get_default_video_mode() const {
 
 void OS_OSX::initialize_core() {
 
+	crash_handler.initialize();
+
 	OS_Unix::initialize_core();
 
 	DirAccess::make_default<DirAccessOSX>(DirAccess::ACCESS_RESOURCES);
@@ -1736,6 +1738,17 @@ String OS_OSX::get_executable_path() const {
 	}
 }
 
+String OS_OSX::get_resource_dir() const {
+	// start with our executable path
+	String path = get_executable_path();
+
+	int pos = path.find_last("/Contents/MacOS/");
+	if (pos < 0)
+		return OS::get_resource_dir();
+
+	return path.substr(0, pos) + "/Contents/Resources/";
+}
+
 // Returns string representation of keys, if they are printable.
 //
 static NSString *createStringForKeys(const CGKeyCode *keyCode, int length) {
@@ -2010,4 +2023,12 @@ OS_OSX::OS_OSX() {
 
 bool OS_OSX::_check_internal_feature_support(const String &p_feature) {
 	return p_feature == "pc" || p_feature == "s3tc";
+}
+
+void OS_OSX::disable_crash_handler() {
+	crash_handler.disable();
+}
+
+bool OS_OSX::is_disable_crash_handler() const {
+	return crash_handler.is_disabled();
 }

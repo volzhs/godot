@@ -131,7 +131,6 @@ void CameraMatrix::set_perspective(real_t p_fovy_degrees, real_t p_aspect, real_
 
 void CameraMatrix::set_for_hmd(int p_eye, real_t p_aspect, real_t p_intraocular_dist, real_t p_display_width, real_t p_display_to_lens, real_t p_oversample, real_t p_z_near, real_t p_z_far) {
 	// we first calculate our base frustum on our values without taking our lens magnification into account.
-	real_t display_to_eye = 2.0 * p_display_to_lens;
 	real_t f1 = (p_intraocular_dist * 0.5) / p_display_to_lens;
 	real_t f2 = ((p_display_width - p_intraocular_dist) * 0.5) / p_display_to_lens;
 	real_t f3 = (p_display_width / 4.0) / p_display_to_lens;
@@ -265,74 +264,25 @@ void CameraMatrix::get_viewport_size(real_t &r_width, real_t &r_height) const {
 
 bool CameraMatrix::get_endpoints(const Transform &p_transform, Vector3 *p_8points) const {
 
-	const real_t *matrix = (const real_t *)this->matrix;
+	Vector<Plane> planes = get_projection_planes(Transform());
+	const Planes intersections[8][3] = {
+		{ PLANE_FAR, PLANE_LEFT, PLANE_TOP },
+		{ PLANE_FAR, PLANE_LEFT, PLANE_BOTTOM },
+		{ PLANE_FAR, PLANE_RIGHT, PLANE_TOP },
+		{ PLANE_FAR, PLANE_RIGHT, PLANE_BOTTOM },
+		{ PLANE_NEAR, PLANE_LEFT, PLANE_TOP },
+		{ PLANE_NEAR, PLANE_LEFT, PLANE_BOTTOM },
+		{ PLANE_NEAR, PLANE_RIGHT, PLANE_TOP },
+		{ PLANE_NEAR, PLANE_RIGHT, PLANE_BOTTOM },
+	};
 
-	///////--- Near Plane ---///////
-	Plane near_plane = Plane(matrix[3] + matrix[2],
-			matrix[7] + matrix[6],
-			matrix[11] + matrix[10],
-			-matrix[15] - matrix[14]);
-	near_plane.normalize();
+	for (int i = 0; i < 8; i++) {
 
-	///////--- Far Plane ---///////
-	Plane far_plane = Plane(matrix[2] - matrix[3],
-			matrix[6] - matrix[7],
-			matrix[10] - matrix[11],
-			matrix[15] - matrix[14]);
-	far_plane.normalize();
-
-	///////--- Right Plane ---///////
-	Plane right_plane = Plane(matrix[0] - matrix[3],
-			matrix[4] - matrix[7],
-			matrix[8] - matrix[11],
-			-matrix[15] + matrix[12]);
-	right_plane.normalize();
-
-	///////--- Top Plane ---///////
-	Plane top_plane = Plane(matrix[1] - matrix[3],
-			matrix[5] - matrix[7],
-			matrix[9] - matrix[11],
-			-matrix[15] + matrix[13]);
-	top_plane.normalize();
-
-	Vector3 near_endpoint_left, near_endpoint_right;
-	Vector3 far_endpoint_left, far_endpoint_right;
-
-	bool res = near_plane.intersect_3(right_plane, top_plane, &near_endpoint_right);
-	ERR_FAIL_COND_V(!res, false);
-
-	res = far_plane.intersect_3(right_plane, top_plane, &far_endpoint_right);
-	ERR_FAIL_COND_V(!res, false);
-
-	if ((matrix[8] == 0) && (matrix[9] == 0)) {
-		near_endpoint_left = near_endpoint_right;
-		near_endpoint_left.x = -near_endpoint_left.x;
-
-		far_endpoint_left = far_endpoint_right;
-		far_endpoint_left.x = -far_endpoint_left.x;
-	} else {
-		///////--- Left Plane ---///////
-		Plane left_plane = Plane(matrix[0] + matrix[3],
-				matrix[4] + matrix[7],
-				matrix[8] + matrix[11],
-				-matrix[15] - matrix[12]);
-		left_plane.normalize();
-
-		res = near_plane.intersect_3(left_plane, top_plane, &near_endpoint_left);
+		Vector3 point;
+		bool res = planes[intersections[i][0]].intersect_3(planes[intersections[i][1]], planes[intersections[i][2]], &point);
 		ERR_FAIL_COND_V(!res, false);
-
-		res = far_plane.intersect_3(left_plane, top_plane, &far_endpoint_left);
-		ERR_FAIL_COND_V(!res, false);
+		p_8points[i] = p_transform.xform(point);
 	}
-
-	p_8points[0] = p_transform.xform(Vector3(near_endpoint_right.x, near_endpoint_right.y, near_endpoint_right.z));
-	p_8points[1] = p_transform.xform(Vector3(near_endpoint_right.x, -near_endpoint_right.y, near_endpoint_right.z));
-	p_8points[2] = p_transform.xform(Vector3(near_endpoint_left.x, near_endpoint_left.y, near_endpoint_left.z));
-	p_8points[3] = p_transform.xform(Vector3(near_endpoint_left.x, -near_endpoint_left.y, near_endpoint_left.z));
-	p_8points[4] = p_transform.xform(Vector3(far_endpoint_right.x, far_endpoint_right.y, far_endpoint_right.z));
-	p_8points[5] = p_transform.xform(Vector3(far_endpoint_right.x, -far_endpoint_right.y, far_endpoint_right.z));
-	p_8points[6] = p_transform.xform(Vector3(far_endpoint_left.x, far_endpoint_left.y, far_endpoint_left.z));
-	p_8points[7] = p_transform.xform(Vector3(far_endpoint_left.x, -far_endpoint_left.y, far_endpoint_left.z));
 
 	return true;
 }
@@ -608,6 +558,11 @@ int CameraMatrix::get_pixels_per_meter(int p_for_pixel_width) const {
 	Vector3 result = xform(Vector3(1, 0, -1));
 
 	return int((result.x * 0.5 + 0.5) * p_for_pixel_width);
+}
+
+bool CameraMatrix::is_orthogonal() const {
+
+	return matrix[3][3] == 1.0;
 }
 
 real_t CameraMatrix::get_fov() const {
