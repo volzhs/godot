@@ -36,7 +36,7 @@
 #include "io/resource_saver.h"
 #include "os/dir_access.h"
 #include "os/file_access.h"
-#include "os/power.h"
+#include "os/os.h"
 #include "os/semaphore.h"
 #include "os/thread.h"
 
@@ -97,6 +97,14 @@ protected:
 	static _OS *singleton;
 
 public:
+	enum PowerState {
+		POWERSTATE_UNKNOWN, /**< cannot determine power status */
+		POWERSTATE_ON_BATTERY, /**< Not plugged in, running on the battery */
+		POWERSTATE_NO_BATTERY, /**< Plugged in, no battery available */
+		POWERSTATE_CHARGING, /**< Plugged in, charging battery */
+		POWERSTATE_CHARGED /**< Plugged in, battery charged */
+	};
+
 	enum Weekday {
 		DAY_SUNDAY,
 		DAY_MONDAY,
@@ -312,6 +320,7 @@ public:
 	_OS();
 };
 
+VARIANT_ENUM_CAST(_OS::PowerState);
 VARIANT_ENUM_CAST(_OS::Weekday);
 VARIANT_ENUM_CAST(_OS::Month);
 VARIANT_ENUM_CAST(_OS::SystemDir);

@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  power.h                                                              */
+/*  gd_native_library_editor.h                                           */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -27,16 +27,29 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+#ifndef GD_NATIVE_LIBRARY_EDITOR_H
+#define GD_NATIVE_LIBRARY_EDITOR_H
 
-#ifndef CORE_OS_POWER_H_
-#define CORE_OS_POWER_H_
+#ifdef TOOLS_ENABLED
+#include "editor/editor_file_system.h"
+#include "editor/project_settings_editor.h"
 
-typedef enum {
-	POWERSTATE_UNKNOWN, /**< cannot determine power status */
-	POWERSTATE_ON_BATTERY, /**< Not plugged in, running on the battery */
-	POWERSTATE_NO_BATTERY, /**< Plugged in, no battery available */
-	POWERSTATE_CHARGING, /**< Plugged in, charging battery */
-	POWERSTATE_CHARGED /**< Plugged in, battery charged */
-} PowerState;
+class GDNativeLibraryEditor : public VBoxContainer {
+	Tree *libraries;
 
-#endif /* CORE_OS_POWER_H_ */
+	bool updating;
+	void _update_libraries();
+
+	void _find_gdnative_singletons(EditorFileSystemDirectory *p_dir, const Set<String> &enabled_list);
+	void _item_edited();
+
+protected:
+	void _notification(int p_what);
+	static void _bind_methods();
+
+public:
+	GDNativeLibraryEditor();
+};
+
+#endif
+#endif // GD_NATIVE_LIBRARY_EDITOR_H

@@ -36,6 +36,10 @@
 #include "project_settings.h"
 #include "scene/main/viewport.h"
 
+#ifdef TOOLS_ENABLED
+#include "editor/editor_scale.h"
+#endif
+
 #define TAB_PIXELS
 
 static bool _is_text_char(CharType c) {
@@ -729,13 +733,16 @@ void TextEdit::_notification(int p_what) {
 					VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg, ofs_y, xmargin_end - xmargin_beg, get_row_height()), cache.mark_color);
 				}
 
-				if (text.is_breakpoint(line)) {
-
-					VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg, ofs_y, xmargin_end - xmargin_beg, get_row_height()), cache.breakpoint_color);
-				}
-
 				if (line == cursor.line) {
 					VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(0, ofs_y, xmargin_end, get_row_height()), cache.current_line_color);
+				}
+
+				if (text.is_breakpoint(line) && !draw_breakpoint_gutter) {
+#ifdef TOOLS_ENABLED
+					VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg, ofs_y + get_row_height() - EDSCALE, xmargin_end - xmargin_beg, EDSCALE), cache.breakpoint_color);
+#else
+					VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg, ofs_y, xmargin_end - xmargin_beg, get_row_height()), cache.breakpoint_color);
+#endif
 				}
 
 				// draw breakpoint marker
@@ -2793,11 +2800,11 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 						int ini = selection.from_line;
 						int end = selection.to_line;
 						for (int i = ini; i <= end; i++) {
-							if (text[i][0] == '#')
+							if (get_line(i).begins_with("#"))
 								_remove_text(i, 0, i, 1);
 						}
 					} else {
-						if (text[cursor.line][0] == '#')
+						if (get_line(cursor.line).begins_with("#"))
 							_remove_text(cursor.line, 0, cursor.line, 1);
 					}
 					update();

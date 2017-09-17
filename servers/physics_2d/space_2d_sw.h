@@ -71,6 +71,12 @@ public:
 	};
 
 private:
+	struct ExcludedShapeSW {
+		Shape2DSW *local_shape;
+		const CollisionObject2DSW *against_object;
+		int against_shape_index;
+	};
+
 	uint64_t elapsed_time[ELAPSED_TIME_MAX];
 
 	Physics2DDirectSpaceStateSW *direct_access;

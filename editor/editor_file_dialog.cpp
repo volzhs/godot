@@ -107,8 +107,6 @@ void EditorFileDialog::_notification(int p_what) {
 		fav_down->set_icon(get_icon("MoveDown", "EditorIcons"));
 		fav_rm->set_icon(get_icon("RemoveSmall", "EditorIcons"));
 
-		Theme::get_default()->clear_icon("ResizedFile", "EditorIcons");
-		Theme::get_default()->clear_icon("ResizedFolder", "EditorIcons");
 		update_file_list();
 	}
 }
@@ -1198,6 +1196,9 @@ void EditorFileDialog::_bind_methods() {
 	BIND_ENUM_CONSTANT(ACCESS_RESOURCES);
 	BIND_ENUM_CONSTANT(ACCESS_USERDATA);
 	BIND_ENUM_CONSTANT(ACCESS_FILESYSTEM);
+
+	BIND_ENUM_CONSTANT(DISPLAY_THUMBNAILS);
+	BIND_ENUM_CONSTANT(DISPLAY_LIST);
 }
 
 void EditorFileDialog::set_show_hidden_files(bool p_show) {

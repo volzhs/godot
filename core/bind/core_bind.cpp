@@ -440,8 +440,8 @@ bool _OS::is_vsync_enabled() const {
 	return OS::get_singleton()->is_vsync_enabled();
 }
 
-PowerState _OS::get_power_state() {
-	return OS::get_singleton()->get_power_state();
+_OS::PowerState _OS::get_power_state() {
+	return _OS::PowerState(OS::get_singleton()->get_power_state());
 }
 
 int _OS::get_power_seconds_left() {

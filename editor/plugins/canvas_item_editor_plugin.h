@@ -58,6 +58,8 @@ public:
 	Vector2 prev_pivot;
 	float prev_anchors[4];
 
+	Transform2D pre_drag_xform;
+
 	CanvasItemEditorSelectedItem() { prev_rot = 0; }
 };
 
@@ -315,7 +317,7 @@ class CanvasItemEditor : public VBoxContainer {
 	void _prepare_drag(const Point2 &p_click_pos);
 	DragType _get_anchor_handle_drag_type(const Point2 &p_click, Vector2 &r_point);
 
-	float _anchor_snap(float anchor, bool *snapped = NULL, float p_opposite_anchor = -1);
+	float _anchor_snap(float p_anchor, bool *p_snapped = NULL, float p_opposite_anchor = -1);
 	Vector2 _anchor_to_position(Control *p_control, Vector2 anchor);
 	Vector2 _position_to_anchor(Control *p_control, Vector2 position);
 

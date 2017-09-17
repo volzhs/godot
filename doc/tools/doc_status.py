@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 import re
 import math
@@ -220,6 +221,21 @@ class ClassStatus:
     def generate_for_class(c):
         status = ClassStatus()
         status.name = c.attrib['name']
+
+        # setgets  do not count
+        methods = []
+        for tag in list(c):
+            if tag.tag in ['methods']:
+                for sub_tag in list(tag):
+                    methods.append(sub_tag.find('name'))
+            if tag.tag in ['members']:
+                for sub_tag in list(tag):
+                    try:
+                        methods.remove(sub_tag.find('setter'))
+                        methods.remove(sub_tag.find('getter'))
+                    except:
+                        pass
+
         for tag in list(c):
 
             if tag.tag == 'brief_description':
@@ -230,12 +246,15 @@ class ClassStatus:
 
             elif tag.tag in ['methods', 'signals']:
                 for sub_tag in list(tag):
-                    descr = sub_tag.find('description')
-                    status.progresses[tag.tag].increment(len(descr.text.strip()) > 0)
-
+                    if sub_tag.find('name') in methods or tag.tag == 'signals':
+                        descr = sub_tag.find('description')
+                        status.progresses[tag.tag].increment(len(descr.text.strip()) > 0)
             elif tag.tag in ['constants', 'members']:
                 for sub_tag in list(tag):
                     status.progresses[tag.tag].increment(len(sub_tag.text.strip()) > 0)
+
+            elif tag.tag in ['tutorials', 'demos']:
+                pass  # Ignore those tags for now
 
             elif tag.tag in ['theme_items']:
                 pass  # Ignore those tags, since they seem to lack description at all
@@ -252,6 +271,7 @@ class ClassStatus:
 
 input_file_list = []
 input_class_list = []
+merged_file = ""
 
 for arg in sys.argv[1:]:
     if arg.startswith('--'):
@@ -259,8 +279,10 @@ for arg in sys.argv[1:]:
     elif arg.startswith('-'):
         for f in arg[1:]:
             flags[f] = not flags[f]
-    elif arg.endswith('.xml'):
-        input_file_list.append(arg)
+    elif os.path.isdir(arg):
+        for f in os.listdir(arg):
+            if f.endswith('.xml'):
+                input_file_list.append(os.path.join(arg, f));
     else:
         input_class_list.append(arg)
 
@@ -287,10 +309,9 @@ if flags['u']:
 
 if len(input_file_list) < 1 or flags['h']:
     if not flags['h']:
-        print(color('section', 'Invalid usage') + ': At least one classes.xml file is required')
-    print(color('section', 'Usage') + ': doc_status.py [flags] <classes.xml> [class names]')
+        print(color('section', 'Invalid usage') + ': Please specify a classes directory')
+    print(color('section', 'Usage') + ': doc_status.py [flags] <classes_dir> [class names]')
     print('\t< and > signify required parameters, while [ and ] signify optional parameters.')
-    print('\tNote that you can give more than one classes file, in which case they will be merged on-the-fly.')
     print(color('section', 'Available flags') + ':')
     possible_synonym_list = list(long_flags)
     possible_synonym_list.sort()
@@ -327,11 +348,10 @@ for file in input_file_list:
 
     version = doc.attrib['version']
 
-    for c in list(doc):
-        if c.attrib['name'] in class_names:
-            continue
-        class_names.append(c.attrib['name'])
-        classes[c.attrib['name']] = c
+    if doc.attrib['name'] in class_names:
+        continue
+    class_names.append(doc.attrib['name'])
+    classes[doc.attrib['name']] = doc
 
 class_names.sort()
 
@@ -344,7 +364,7 @@ if len(input_class_list) < 1:
 ################################################################################
 
 table = [table_column_names]
-table_row_chars = '+- '
+table_row_chars = '| - '
 table_column_chars = '|'
 
 total_status = ClassStatus('Total')
@@ -406,7 +426,7 @@ for row in table:
 
 divider_string = table_row_chars[0]
 for cell_i in range(len(table[0])):
-    divider_string += table_row_chars[1] * (table_column_sizes[cell_i] + 2) + table_row_chars[0]
+    divider_string += table_row_chars[1] + table_row_chars[2] * (table_column_sizes[cell_i]) + table_row_chars[1] + table_row_chars[0]
 print(divider_string)
 
 for row_i, row in enumerate(table):
@@ -414,9 +434,9 @@ for row_i, row in enumerate(table):
     for cell_i, cell in enumerate(row):
         padding_needed = table_column_sizes[cell_i] - nonescape_len(cell) + 2
         if cell_i == 0:
-            row_string += table_row_chars[2] + cell + table_row_chars[2] * (padding_needed - 1)
+            row_string += table_row_chars[3] + cell + table_row_chars[3] * (padding_needed - 1)
         else:
-            row_string += table_row_chars[2] * math.floor(padding_needed / 2) + cell + table_row_chars[2] * math.ceil((padding_needed / 2))
+            row_string += table_row_chars[3] * math.floor(padding_needed / 2) + cell + table_row_chars[3] * math.ceil((padding_needed / 2))
         row_string += table_column_chars
 
     print(row_string)
