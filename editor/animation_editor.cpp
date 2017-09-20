@@ -2898,10 +2898,6 @@ void AnimationKeyEditor::_notification(int p_what) {
 			zoomicon->set_custom_minimum_size(Size2(24 * EDSCALE, 0));
 			zoomicon->set_stretch_mode(TextureRect::STRETCH_KEEP_CENTERED);
 
-			menu_add_track->get_popup()->add_icon_item(get_icon("KeyValue", "EditorIcons"), "Add Normal Track", ADD_TRACK_MENU_ADD_VALUE_TRACK);
-			menu_add_track->get_popup()->add_icon_item(get_icon("KeyXform", "EditorIcons"), "Add Transform Track", ADD_TRACK_MENU_ADD_TRANSFORM_TRACK);
-			menu_add_track->get_popup()->add_icon_item(get_icon("KeyCall", "EditorIcons"), "Add Call Func Track", ADD_TRACK_MENU_ADD_CALL_TRACK);
-
 			menu_track->set_icon(get_icon("Tools", "EditorIcons"));
 			menu_track->get_popup()->add_item(TTR("Scale Selection"), TRACK_MENU_SCALE);
 			menu_track->get_popup()->add_item(TTR("Scale From Cursor"), TRACK_MENU_SCALE_PIVOT);
@@ -3817,6 +3813,9 @@ AnimationKeyEditor::AnimationKeyEditor() {
 	hb->add_child(menu_add_track);
 	menu_add_track->get_popup()->connect("id_pressed", this, "_menu_add_track");
 	menu_add_track->set_tooltip(TTR("Add new tracks."));
+	menu_add_track->get_popup()->add_icon_item(get_icon("KeyValue", "EditorIcons"), "Add Normal Track", ADD_TRACK_MENU_ADD_VALUE_TRACK);
+	menu_add_track->get_popup()->add_icon_item(get_icon("KeyXform", "EditorIcons"), "Add Transform Track", ADD_TRACK_MENU_ADD_TRANSFORM_TRACK);
+	menu_add_track->get_popup()->add_icon_item(get_icon("KeyCall", "EditorIcons"), "Add Call Func Track", ADD_TRACK_MENU_ADD_CALL_TRACK);
 
 	move_up_button = memnew(ToolButton);
 	hb->add_child(move_up_button);
@@ -3934,7 +3933,7 @@ AnimationKeyEditor::AnimationKeyEditor() {
 	key_editor_tab = memnew(TabContainer);
 	key_editor_tab->set_tab_align(TabContainer::ALIGN_LEFT);
 	hb->add_child(key_editor_tab);
-	key_editor_tab->set_custom_minimum_size(Size2(200, 0));
+	key_editor_tab->set_custom_minimum_size(Size2(200, 0) * EDSCALE);
 
 	key_editor = memnew(PropertyEditor);
 	key_editor->set_area_as_parent_rect();
@@ -4051,8 +4050,6 @@ AnimationKeyEditor::AnimationKeyEditor() {
 	cleanup_dialog->get_ok()->set_text(TTR("Clean-Up"));
 
 	cleanup_dialog->connect("confirmed", this, "_menu_track", varray(TRACK_MENU_CLEAN_UP_CONFIRM));
-
-	add_constant_override("separation", get_constant("separation", "VBoxContainer"));
 
 	track_editor->set_clip_contents(true);
 }

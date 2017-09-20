@@ -70,6 +70,7 @@ typedef PoolVector<Color> PoolColorArray;
 
 class Variant {
 public:
+	// If this changes the table in variant_op must be updated
 	enum Type {
 
 		NIL,
@@ -288,6 +289,7 @@ public:
 
 	Variant(const IP_Address &p_address);
 
+	// If this changes the table in variant_op must be updated
 	enum Operator {
 
 		//comparation
@@ -299,7 +301,7 @@ public:
 		OP_GREATER_EQUAL,
 		//mathematic
 		OP_ADD,
-		OP_SUBSTRACT,
+		OP_SUBTRACT,
 		OP_MULTIPLY,
 		OP_DIVIDE,
 		OP_NEGATE,
@@ -388,7 +390,7 @@ public:
 	uint32_t hash() const;
 
 	bool hash_compare(const Variant &p_variant) const;
-	bool booleanize(bool &valid) const;
+	bool booleanize() const;
 
 	void static_assign(const Variant &p_variant);
 	static void get_constructor_list(Variant::Type p_type, List<MethodInfo> *p_list);

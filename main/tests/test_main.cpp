@@ -37,6 +37,7 @@
 #include "test_image.h"
 #include "test_io.h"
 #include "test_math.h"
+#include "test_oa_hash_map.h"
 #include "test_ordered_hash_map.h"
 #include "test_physics.h"
 #include "test_physics_2d.h"
@@ -56,6 +57,7 @@ const char **tests_get_names() {
 		"io",
 		"shaderlang",
 		"physics",
+		"oa_hash_map",
 		NULL
 	};
 
@@ -87,6 +89,11 @@ MainLoop *test_main(String p_test, const List<String> &p_args) {
 	if (p_test == "render") {
 
 		return TestRender::test();
+	}
+
+	if (p_test == "oa_hash_map") {
+
+		return TestOAHashMap::test();
 	}
 
 #ifndef _3D_DISABLED

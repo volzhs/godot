@@ -234,12 +234,15 @@ void GDAPI godot_method_bind_ptrcall(godot_method_bind *p_method_bind, godot_obj
 godot_variant GDAPI godot_method_bind_call(godot_method_bind *p_method_bind, godot_object *p_instance, const godot_variant **p_args, const int p_arg_count, godot_variant_call_error *p_call_error);
 ////// Script API
 
+struct godot_gdnative_api_struct; // Forward declaration
+
 typedef struct {
 	godot_bool in_editor;
 	uint64_t core_api_hash;
 	uint64_t editor_api_hash;
 	uint64_t no_api_hash;
 	godot_object *gd_native_library; // pointer to GDNativeLibrary that is being initialized
+	const struct godot_gdnative_api_struct *api_struct;
 } godot_gdnative_init_options;
 
 typedef struct {
