@@ -29,6 +29,7 @@
 /*************************************************************************/
 #include "node.h"
 
+#include "core/core_string_names.h"
 #include "instance_placeholder.h"
 #include "io/resource_loader.h"
 #include "message_queue.h"
@@ -2104,12 +2105,22 @@ Node *Node::_duplicate(int p_flags) const {
 
 	get_property_list(&plist);
 
+	StringName script_property_name = CoreStringNames::get_singleton()->_script;
+
+	if (p_flags & DUPLICATE_SCRIPTS) {
+		bool is_valid = false;
+		Variant script = get(script_property_name, &is_valid);
+		if (is_valid) {
+			node->set(script_property_name, script);
+		}
+	}
+
 	for (List<PropertyInfo>::Element *E = plist.front(); E; E = E->next()) {
 
 		if (!(E->get().usage & PROPERTY_USAGE_STORAGE))
 			continue;
 		String name = E->get().name;
-		if (!(p_flags & DUPLICATE_SCRIPTS) && name == "script/script")
+		if (name == script_property_name)
 			continue;
 
 		Variant value = get(name);
@@ -2572,8 +2583,11 @@ void Node::print_stray_nodes() {
 
 void Node::queue_delete() {
 
-	ERR_FAIL_COND(!is_inside_tree());
-	get_tree()->queue_delete(this);
+	if (is_inside_tree()) {
+		get_tree()->queue_delete(this);
+	} else {
+		SceneTree::get_singleton()->queue_delete(this);
+	}
 }
 
 Array Node::_get_children() const {
