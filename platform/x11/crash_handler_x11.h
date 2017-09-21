@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  CustomSSLSocketFactory.java                                          */
+/*  crash_handler_x11.h                                                  */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -27,45 +27,21 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-package org.godotengine.godot.utils;
-import java.io.IOException;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
+#ifndef CRASH_HANDLER_X11_H
+#define CRASH_HANDLER_X11_H
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
+class CrashHandler {
 
-import org.apache.http.conn.ssl.SSLSocketFactory;
+	bool disabled;
 
+public:
+	void initialize();
 
-/**
- * 
- * @author Luis Linietsky <luis.linietsky@gmail.com>
- */
-public class CustomSSLSocketFactory extends SSLSocketFactory {
-    SSLContext sslContext = SSLContext.getInstance("TLS");
+	void disable();
+	bool is_disabled() const { return disabled; };
 
-    public CustomSSLSocketFactory(KeyStore truststore) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        super(truststore);
+	CrashHandler();
+	~CrashHandler();
+};
 
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
-        tmf.init(truststore);
-
-        sslContext.init(null, tmf.getTrustManagers(), null);
-    }
-
-    @Override
-    public Socket createSocket(Socket socket, String host, int port, boolean autoClose) throws IOException, UnknownHostException {
-        return sslContext.getSocketFactory().createSocket(socket, host, port, autoClose);
-    }
-
-    @Override
-    public Socket createSocket() throws IOException {
-        return sslContext.getSocketFactory().createSocket();
-    }
-}
+#endif

@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  CustomSSLSocketFactory.java                                          */
+/*  crash_handler_win.h                                                  */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -27,45 +27,30 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-package org.godotengine.godot.utils;
-import java.io.IOException;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
+#ifndef CRASH_HANDLER_WIN_H
+#define CRASH_HANDLER_WIN_H
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
+#include <windows.h>
 
-import org.apache.http.conn.ssl.SSLSocketFactory;
+// Crash handler exception only enabled with MSVC
+#if defined(DEBUG_ENABLED) && defined(MSVC)
+#define CRASH_HANDLER_EXCEPTION 1
 
+extern DWORD CrashHandlerException(EXCEPTION_POINTERS *ep);
+#endif
 
-/**
- * 
- * @author Luis Linietsky <luis.linietsky@gmail.com>
- */
-public class CustomSSLSocketFactory extends SSLSocketFactory {
-    SSLContext sslContext = SSLContext.getInstance("TLS");
+class CrashHandler {
 
-    public CustomSSLSocketFactory(KeyStore truststore) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        super(truststore);
+	bool disabled;
 
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
-        tmf.init(truststore);
+public:
+	void initialize();
 
-        sslContext.init(null, tmf.getTrustManagers(), null);
-    }
+	void disable();
+	bool is_disabled() const { return disabled; };
 
-    @Override
-    public Socket createSocket(Socket socket, String host, int port, boolean autoClose) throws IOException, UnknownHostException {
-        return sslContext.getSocketFactory().createSocket(socket, host, port, autoClose);
-    }
+	CrashHandler();
+	~CrashHandler();
+};
 
-    @Override
-    public Socket createSocket() throws IOException {
-        return sslContext.getSocketFactory().createSocket();
-    }
-}
+#endif
