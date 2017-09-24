@@ -61,6 +61,7 @@ layout(location=12) in highp vec4 instance_custom_data;
 layout(std140) uniform SceneData { //ubo:0
 
 	highp mat4 projection_matrix;
+	highp mat4 inv_projection_matrix;
 	highp mat4 camera_inverse_matrix;
 	highp mat4 camera_matrix;
 
@@ -643,6 +644,7 @@ FRAGMENT_SHADER_GLOBALS
 layout(std140) uniform SceneData {
 
 	highp mat4 projection_matrix;
+	highp mat4 inv_projection_matrix;
 	highp mat4 camera_inverse_matrix;
 	highp mat4 camera_matrix;
 
@@ -887,7 +889,7 @@ float GTR1(float NdotH, float a)
 
 
 
-void light_compute(vec3 N, vec3 L,vec3 V,vec3 B, vec3 T,vec3 light_color,vec3 diffuse_color, vec3 transmission,  float specular_blob_intensity, float roughness, float rim,float rim_tint, float clearcoat, float clearcoat_gloss,float anisotropy,inout vec3 diffuse, inout vec3 specular) {
+void light_compute(vec3 N, vec3 L,vec3 V,vec3 B, vec3 T,vec3 light_color,vec3 attenuation,vec3 diffuse_color, vec3 transmission,  float specular_blob_intensity, float roughness, float rim,float rim_tint, float clearcoat, float clearcoat_gloss,float anisotropy,inout vec3 diffuse, inout vec3 specular) {
 
 #if defined(USE_LIGHT_SHADER_CODE)
 //light is written by the light shader
@@ -962,9 +964,9 @@ LIGHT_SHADER_CODE
 #endif
 
 #if defined(TRANSMISSION_USED)
-	diffuse += light_color * diffuse_color * mix(vec3(light_amount),vec3(1.0),transmission);
+	diffuse += light_color * diffuse_color * mix(vec3(light_amount),vec3(1.0),transmission) * attenuation;
 #else
-	diffuse += light_color * diffuse_color * light_amount;
+	diffuse += light_color * diffuse_color * light_amount * attenuation;
 #endif
 
 
@@ -985,14 +987,14 @@ LIGHT_SHADER_CODE
 		vec3 H = normalize(V + L);
 		float dotNH = max(dot(N,H), 0.0 );
 		float intensity = pow( dotNH, (1.0-roughness) * 256.0);
-		specular += light_color * intensity * specular_blob_intensity;
+		specular += light_color * intensity * specular_blob_intensity * attenuation;
 
 #elif defined(SPECULAR_PHONG)
 
 		 vec3 R = normalize(-reflect(L,N));
 		 float dotNV = max(0.0,dot(R,V));
 		 float intensity = pow( dotNV, (1.0-roughness) * 256.0);
-		 specular += light_color * intensity * specular_blob_intensity;
+		 specular += light_color * intensity * specular_blob_intensity * attenuation;
 
 #elif defined(SPECULAR_TOON)
 
@@ -1001,7 +1003,7 @@ LIGHT_SHADER_CODE
 		float mid = 1.0-roughness;
 		mid*=mid;
 		float intensity = smoothstep(mid-roughness*0.5,mid+roughness*0.5,dotNV) * mid;
-		diffuse += light_color * intensity * specular_blob_intensity; //write to diffuse, as in toon shading you generally want no reflection
+		diffuse += light_color * intensity * specular_blob_intensity * attenuation; //write to diffuse, as in toon shading you generally want no reflection
 
 #elif defined(SPECULAR_DISABLED)
 		//none..
@@ -1045,7 +1047,7 @@ LIGHT_SHADER_CODE
 
 		float speci = dotNL * D * F * vis;
 
-		specular += speci * light_color * specular_blob_intensity;
+		specular += speci * light_color * specular_blob_intensity * attenuation;
 #endif
 
 #if defined(LIGHT_USE_CLEARCOAT)
@@ -1191,7 +1193,7 @@ void light_process_omni(int idx, vec3 vertex, vec3 eye_vec,vec3 normal,vec3 bino
 		light_attenuation*=mix(omni_lights[idx].shadow_color_contact.rgb,vec3(1.0),shadow);
 	}
 
-	light_compute(normal,normalize(light_rel_vec),eye_vec,binormal,tangent,omni_lights[idx].light_color_energy.rgb*light_attenuation,albedo,transmission,omni_lights[idx].light_params.z*p_blob_intensity,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
+	light_compute(normal,normalize(light_rel_vec),eye_vec,binormal,tangent,omni_lights[idx].light_color_energy.rgb,light_attenuation,albedo,transmission,omni_lights[idx].light_params.z*p_blob_intensity,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
 
 }
 
@@ -1225,7 +1227,7 @@ void light_process_spot(int idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 bi
 		light_attenuation*=mix(spot_lights[idx].shadow_color_contact.rgb,vec3(1.0),shadow);
 	}
 
-	light_compute(normal,normalize(light_rel_vec),eye_vec,binormal,tangent,spot_lights[idx].light_color_energy.rgb*light_attenuation,albedo,transmission,spot_lights[idx].light_params.z*p_blob_intensity,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
+	light_compute(normal,normalize(light_rel_vec),eye_vec,binormal,tangent,spot_lights[idx].light_color_energy.rgb,light_attenuation,albedo,transmission,spot_lights[idx].light_params.z*p_blob_intensity,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
 
 }
 
@@ -1534,6 +1536,7 @@ void main() {
 
 #if defined(ENABLE_AO)
 	float ao=1.0;
+	float ao_light_affect=0.0;
 #endif
 
 	float alpha = 1.0;
@@ -1857,7 +1860,7 @@ FRAGMENT_SHADER_CODE
 	specular_light*=mix(vec3(1.0),light_attenuation,specular_light_interp.a);
 
 #else
-	light_compute(normal,-light_direction_attenuation.xyz,eye_vec,binormal,tangent,light_color_energy.rgb*light_attenuation,albedo,transmission,light_params.z*specular_blob_intensity,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
+	light_compute(normal,-light_direction_attenuation.xyz,eye_vec,binormal,tangent,light_color_energy.rgb,light_attenuation,albedo,transmission,light_params.z*specular_blob_intensity,roughness,rim,rim_tint,clearcoat,clearcoat_gloss,anisotropy,diffuse_light,specular_light);
 #endif
 
 
@@ -1918,7 +1921,11 @@ FRAGMENT_SHADER_CODE
 
 #if defined(ENABLE_AO)
 	ambient_light*=ao;
+	ao_light_affect = mix(1.0,ao,ao_light_affect);
+	specular_light*=ao_light_affect;
+	diffuse_light*=ao_light_affect;
 #endif
+
 
 
 	//energu conservation

@@ -145,7 +145,7 @@ void AudioStreamPlayer2D::_notification(int p_what) {
 				if (!area2d->is_overriding_audio_bus())
 					continue;
 
-				StringName bus_name = area2d->get_audio_bus();
+				StringName bus_name = area2d->get_audio_bus_name();
 				bus_index = AudioServer::get_singleton()->thread_find_bus_index(bus_name);
 				break;
 			}
@@ -284,10 +284,10 @@ bool AudioStreamPlayer2D::is_playing() const {
 	return false;
 }
 
-float AudioStreamPlayer2D::get_position() {
+float AudioStreamPlayer2D::get_playback_position() {
 
 	if (stream_playback.is_valid()) {
-		return stream_playback->get_position();
+		return stream_playback->get_playback_position();
 	}
 
 	return 0;
@@ -395,7 +395,7 @@ void AudioStreamPlayer2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("stop"), &AudioStreamPlayer2D::stop);
 
 	ClassDB::bind_method(D_METHOD("is_playing"), &AudioStreamPlayer2D::is_playing);
-	ClassDB::bind_method(D_METHOD("get_position"), &AudioStreamPlayer2D::get_position);
+	ClassDB::bind_method(D_METHOD("get_playback_position"), &AudioStreamPlayer2D::get_playback_position);
 
 	ClassDB::bind_method(D_METHOD("set_bus", "bus"), &AudioStreamPlayer2D::set_bus);
 	ClassDB::bind_method(D_METHOD("get_bus"), &AudioStreamPlayer2D::get_bus);

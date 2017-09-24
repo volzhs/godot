@@ -558,7 +558,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("interface/source_font_size", 14);
 	hints["interface/source_font_size"] = PropertyInfo(Variant::INT, "interface/source_font_size", PROPERTY_HINT_RANGE, "8,96,1", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 	set("interface/custom_font", "");
-	hints["interface/custom_font"] = PropertyInfo(Variant::STRING, "interface/custom_font", PROPERTY_HINT_GLOBAL_FILE, "*.font", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	hints["interface/custom_font"] = PropertyInfo(Variant::STRING, "interface/custom_font", PROPERTY_HINT_GLOBAL_FILE, "*.font,*.tres,*.res", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 	set("interface/dim_editor_on_dialog_popup", true);
 	set("interface/dim_amount", 0.6f);
 	hints["interface/dim_amount"] = PropertyInfo(Variant::REAL, "interface/dim_amount", PROPERTY_HINT_RANGE, "0,1,0.01", PROPERTY_USAGE_DEFAULT);
@@ -645,7 +645,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	hints["text_editor/cursor/caret_blink_speed"] = PropertyInfo(Variant::REAL, "text_editor/cursor/caret_blink_speed", PROPERTY_HINT_RANGE, "0.1, 10, 0.1");
 
 	set("text_editor/theme/font", "");
-	hints["text_editor/theme/font"] = PropertyInfo(Variant::STRING, "text_editor/theme/font", PROPERTY_HINT_GLOBAL_FILE, "*.font");
+	hints["text_editor/theme/font"] = PropertyInfo(Variant::STRING, "text_editor/theme/font", PROPERTY_HINT_GLOBAL_FILE, "*.font,*.tres,*.res");
 	set("text_editor/completion/auto_brace_complete", false);
 	set("text_editor/files/restore_scripts_on_load", true);
 	set("text_editor/completion/complete_file_paths", true);
@@ -672,7 +672,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	hints["editors/3d/navigation/zoom_style"] = PropertyInfo(Variant::INT, "editors/3d/navigation/zoom_style", PROPERTY_HINT_ENUM, "Vertical, Horizontal");
 
 	set("editors/3d/navigation/emulate_3_button_mouse", false);
-	set("editors/3d/navigation/orbit_modifier", 3);
+	set("editors/3d/navigation/orbit_modifier", 0);
 	hints["editors/3d/navigation/orbit_modifier"] = PropertyInfo(Variant::INT, "editors/3d/navigation/orbit_modifier", PROPERTY_HINT_ENUM, "None,Shift,Alt,Meta,Ctrl");
 	set("editors/3d/navigation/pan_modifier", 1);
 	hints["editors/3d/navigation/pan_modifier"] = PropertyInfo(Variant::INT, "editors/3d/navigation/pan_modifier", PROPERTY_HINT_ENUM, "None,Shift,Alt,Meta,Ctrl");
@@ -690,18 +690,18 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	hints["editors/3d/navigation_feel/orbit_inertia"] = PropertyInfo(Variant::REAL, "editors/3d/navigation_feel/orbit_inertia", PROPERTY_HINT_RANGE, "0.0, 1, 0.01");
 	set("editors/3d/navigation_feel/translation_inertia", 0.15);
 	hints["editors/3d/navigation_feel/translation_inertia"] = PropertyInfo(Variant::REAL, "editors/3d/navigation_feel/translation_inertia", PROPERTY_HINT_RANGE, "0.0, 1, 0.01");
-	set("editors/3d/navigation_feel/zoom_inertia", 0.1);
+	set("editors/3d/navigation_feel/zoom_inertia", 0.075);
 	hints["editors/3d/navigation_feel/zoom_inertia"] = PropertyInfo(Variant::REAL, "editors/3d/navigation_feel/zoom_inertia", PROPERTY_HINT_RANGE, "0.0, 1, 0.01");
-	set("editors/3d/navigation_feel/manipulation_orbit_inertia", 0.1);
+	set("editors/3d/navigation_feel/manipulation_orbit_inertia", 0.075);
 	hints["editors/3d/navigation_feel/manipulation_orbit_inertia"] = PropertyInfo(Variant::REAL, "editors/3d/navigation_feel/manipulation_orbit_inertia", PROPERTY_HINT_RANGE, "0.0, 1, 0.01");
-	set("editors/3d/navigation_feel/manipulation_translation_inertia", 0.1);
+	set("editors/3d/navigation_feel/manipulation_translation_inertia", 0.075);
 	hints["editors/3d/navigation_feel/manipulation_translation_inertia"] = PropertyInfo(Variant::REAL, "editors/3d/navigation_feel/manipulation_translation_inertia", PROPERTY_HINT_RANGE, "0.0, 1, 0.01");
 
 	// freelook
 	set("editors/3d/freelook/freelook_inertia", 0.1);
 	hints["editors/3d/freelook/freelook_inertia"] = PropertyInfo(Variant::REAL, "editors/3d/freelook/freelook_inertia", PROPERTY_HINT_RANGE, "0.0, 1, 0.01");
-	set("editors/3d/freelook/freelook_base_speed", 0.5);
-	hints["editors/3d/freelook/freelook_base_speed"] = PropertyInfo(Variant::REAL, "editors/3d/freelook/freelook_base_speed", PROPERTY_HINT_RANGE, "0.0, 10, 0.1");
+	set("editors/3d/freelook/freelook_base_speed", 0.1);
+	hints["editors/3d/freelook/freelook_base_speed"] = PropertyInfo(Variant::REAL, "editors/3d/freelook/freelook_base_speed", PROPERTY_HINT_RANGE, "0.0, 10, 0.01");
 	set("editors/3d/freelook/freelook_activation_modifier", 0);
 	hints["editors/3d/freelook/freelook_activation_modifier"] = PropertyInfo(Variant::INT, "editors/3d/freelook/freelook_activation_modifier", PROPERTY_HINT_ENUM, "None,Shift,Alt,Meta,Ctrl");
 	set("editors/3d/freelook/freelook_modifier_speed_factor", 3.0);

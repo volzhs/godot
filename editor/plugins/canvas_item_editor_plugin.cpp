@@ -2595,12 +2595,12 @@ void CanvasItemEditor::_draw_locks_and_groups(Node *p_node, const Transform2D &p
 	}
 
 	if (ci) {
-		Ref<Texture> lock = get_icon("Lock", "EditorIcons");
+		Ref<Texture> lock = get_icon("LockViewport", "EditorIcons");
 		if (p_node->has_meta("_edit_lock_")) {
 			lock->draw(viewport_ci, transform_ci.xform(Point2(0, 0)));
 		}
 
-		Ref<Texture> group = get_icon("Group", "EditorIcons");
+		Ref<Texture> group = get_icon("GroupViewport", "EditorIcons");
 		if (ci->has_meta("_edit_group_")) {
 			Vector2 ofs = transform_ci.xform(Point2(0, 0));
 			if (ci->has_meta("_edit_lock_"))
@@ -2693,7 +2693,8 @@ void CanvasItemEditor::_draw_viewport() {
 	_draw_grid();
 	_draw_selection();
 	_draw_axis();
-	_draw_locks_and_groups(editor->get_edited_scene(), transform);
+	if (editor->get_edited_scene())
+		_draw_locks_and_groups(editor->get_edited_scene(), transform);
 
 	RID ci = viewport->get_canvas_item();
 	VisualServer::get_singleton()->canvas_item_add_set_transform(ci, Transform2D());
@@ -3709,6 +3710,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 
 	viewport_base = memnew(Control);
 	palette_split->add_child(viewport_base);
+	viewport_base->set_clip_contents(true);
 	viewport_base->connect("draw", this, "_draw_viewport_base");
 	viewport_base->connect("gui_input", this, "_viewport_base_gui_input");
 	viewport_base->set_focus_mode(FOCUS_ALL);
