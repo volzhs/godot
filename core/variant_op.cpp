@@ -334,6 +334,13 @@ bool Variant::booleanize() const {
 		DEFAULT_OP_ARRAY_OP_BODY(m_prefix, m_op_name, m_name, m_type, !=, !=, true, false, false) \
 	}
 
+#define DEFAULT_OP_ARRAY_NEQ(m_prefix, m_op_name, m_name, m_type)                                \
+	CASE_TYPE(m_prefix, m_op_name, m_name) {                                                     \
+		if (p_b.type == NIL)                                                                     \
+			_RETURN(true)                                                                        \
+		DEFAULT_OP_ARRAY_OP_BODY(m_prefix, m_op_name, m_name, m_type, !=, ==, true, true, false) \
+	}
+
 #define DEFAULT_OP_ARRAY_LT(m_prefix, m_op_name, m_name, m_type) \
 	DEFAULT_OP_ARRAY_OP(m_prefix, m_op_name, m_name, m_type, <, !=, false, a_len < array_b.size(), true)
 
@@ -555,14 +562,13 @@ void Variant::evaluate(const Operator &p_op, const Variant &p_a,
 			DEFAULT_OP_STR_NULL(math, OP_NOT_EQUAL, NODE_PATH, !=, NodePath);
 			DEFAULT_OP_LOCALMEM_NULL(math, OP_NOT_EQUAL, _RID, !=, RID);
 
-			CASE_TYPE(math, OP_NOT_EQUAL, POOL_BYTE_ARRAY);
-			CASE_TYPE(math, OP_NOT_EQUAL, POOL_INT_ARRAY);
-			CASE_TYPE(math, OP_NOT_EQUAL, POOL_REAL_ARRAY);
-			CASE_TYPE(math, OP_NOT_EQUAL, POOL_STRING_ARRAY);
-			CASE_TYPE(math, OP_NOT_EQUAL, POOL_VECTOR2_ARRAY);
-			CASE_TYPE(math, OP_NOT_EQUAL, POOL_VECTOR3_ARRAY);
-			CASE_TYPE(math, OP_NOT_EQUAL, POOL_COLOR_ARRAY);
-			_RETURN_FAIL;
+			DEFAULT_OP_ARRAY_NEQ(math, OP_NOT_EQUAL, POOL_BYTE_ARRAY, uint8_t);
+			DEFAULT_OP_ARRAY_NEQ(math, OP_NOT_EQUAL, POOL_INT_ARRAY, int);
+			DEFAULT_OP_ARRAY_NEQ(math, OP_NOT_EQUAL, POOL_REAL_ARRAY, real_t);
+			DEFAULT_OP_ARRAY_NEQ(math, OP_NOT_EQUAL, POOL_STRING_ARRAY, String);
+			DEFAULT_OP_ARRAY_NEQ(math, OP_NOT_EQUAL, POOL_VECTOR2_ARRAY, Vector2);
+			DEFAULT_OP_ARRAY_NEQ(math, OP_NOT_EQUAL, POOL_VECTOR3_ARRAY, Vector3);
+			DEFAULT_OP_ARRAY_NEQ(math, OP_NOT_EQUAL, POOL_COLOR_ARRAY, Color);
 		}
 
 		SWITCH_OP(math, OP_LESS, p_a.type) {
@@ -1513,7 +1519,7 @@ void Variant::set_named(const StringName &p_index, const Variant &p_value, bool 
 
 		} break;
 		default: {
-			set(p_index.operator String(), p_value, r_valid);
+			set(p_index.operator String(), p_value, &valid);
 		} break;
 	}
 
@@ -1693,6 +1699,7 @@ Variant Variant::get_named(const StringName &p_index, bool *r_valid) const {
 	if (r_valid) {
 		*r_valid = false;
 	}
+	return Variant();
 }
 
 #define DEFAULT_OP_ARRAY_CMD(m_name, m_type, skip_test, cmd)                             \
