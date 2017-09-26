@@ -1065,7 +1065,7 @@ void ScriptEditorDebugger::start() {
 
 	int remote_port = (int)EditorSettings::get_singleton()->get("network/debug/remote_port");
 	if (server->listen(remote_port) != OK) {
-		EditorNode::get_log()->add_message(String("** Error listening on port ") + itos(remote_port) + String(" **"));
+		EditorNode::get_log()->add_message(String("Error listening on port ") + itos(remote_port), true);
 		return;
 	}
 	set_process(true);
@@ -1622,7 +1622,7 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 	tabs->add_style_override("panel", editor->get_gui_base()->get_stylebox("DebuggerPanel", "EditorStyles"));
 	tabs->add_style_override("tab_fg", editor->get_gui_base()->get_stylebox("DebuggerTabFG", "EditorStyles"));
 	tabs->add_style_override("tab_bg", editor->get_gui_base()->get_stylebox("DebuggerTabBG", "EditorStyles"));
-	tabs->set_area_as_parent_rect();
+	tabs->set_anchors_and_margins_preset(Control::PRESET_WIDE);
 	add_child(tabs);
 
 	{ //debugger

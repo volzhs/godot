@@ -334,6 +334,7 @@ EditorSettingsDialog::EditorSettingsDialog() {
 	property_editor->get_property_editor()->set_use_filter(true);
 	property_editor->register_search_box(search_box);
 	property_editor->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+	property_editor->get_property_editor()->set_undo_redo(EditorNode::get_singleton()->get_undo_redo());
 	vbc->add_child(property_editor);
 	property_editor->get_property_editor()->connect("property_edited", this, "_settings_property_edited");
 
@@ -374,7 +375,7 @@ EditorSettingsDialog::EditorSettingsDialog() {
 
 	l = memnew(Label);
 	l->set_text(TTR("Press a Key.."));
-	l->set_area_as_parent_rect();
+	l->set_anchors_and_margins_preset(Control::PRESET_WIDE);
 	l->set_align(Label::ALIGN_CENTER);
 	l->set_margin(MARGIN_TOP, 20);
 	l->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_BEGIN, 30);
