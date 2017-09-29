@@ -589,7 +589,7 @@ vec3 textureDualParaboloid(sampler2DArray p_tex, vec3 p_vec,float p_roughness) {
 	norm.xy=norm.xy * vec2(0.5,0.25) + vec2(0.5,0.25);
 
 	// we need to lie the derivatives (normg) and assume that DP side is always the same
-	// to get proper texure filtering
+	// to get proper texture filtering
 	vec2 normg=norm.xy;
 	if (norm.z>0.0) {
 		norm.y=0.5-norm.y+0.5;
@@ -894,6 +894,10 @@ void light_compute(vec3 N, vec3 L,vec3 V,vec3 B, vec3 T,vec3 light_color,vec3 at
 #if defined(USE_LIGHT_SHADER_CODE)
 //light is written by the light shader
 
+	vec3 normal = N;
+	vec3 albedo = diffuse_color;
+	vec3 light = L;
+	vec3 view = V;
 
 LIGHT_SHADER_CODE
 
@@ -916,6 +920,7 @@ LIGHT_SHADER_CODE
 #elif defined(DIFFUSE_OREN_NAYAR)
 
 	{
+		// see http://mimosa-pudica.net/improved-oren-nayar.html
 		float LdotV = dot(L, V);
 		float NdotL = dot(L, N);
 		float NdotV = dot(N, V);
@@ -924,10 +929,10 @@ LIGHT_SHADER_CODE
 		float t = mix(1.0, max(NdotL, NdotV), step(0.0, s));
 
 		float sigma2 = roughness * roughness;
-		vec3 A = 1.0 + sigma2 * (diffuse_color / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
+		vec3 A = 1.0 + sigma2 * (- 0.5 / (sigma2 + 0.33) + 0.17*diffuse_color / (sigma2 + 0.13) );
 		float B = 0.45 * sigma2 / (sigma2 + 0.09);
 
-		light_amount = max(0.0, NdotL) * (A + vec3(B) * s / t) / M_PI;
+		light_amount = diffuse_color * dotNL * (A + vec3(B) * s / t) / M_PI;
 	}
 
 #elif defined(DIFFUSE_TOON)
@@ -941,12 +946,12 @@ LIGHT_SHADER_CODE
 
 		vec3 H = normalize(V + L);
 		float NoL = max(0.0,dot(N, L));
-		float VoH = max(0.0,dot(L, H));
+		float LoH = max(0.0,dot(L, H));
 		float NoV = max(0.0,dot(N, V));
 
-		float FD90 = 0.5 + 2.0 * VoH * VoH * roughness;
-		float FdV = 1.0 + (FD90 - 1.0) * pow( 1.0 - NoV, 5.0 );
-		float FdL = 1.0 + (FD90 - 1.0) * pow( 1.0 - NoL, 5.0 );
+		float FD90 = 0.5 + 2.0 * LoH * LoH * roughness;
+		float FdV = 1.0 + (FD90 - 1.0) * SchlickFresnel(NoV);
+		float FdL = 1.0 + (FD90 - 1.0) * SchlickFresnel(NoL);
 		light_amount = ( (1.0 / M_PI) * FdV * FdL );
 /*
 		float energyBias = mix(roughness, 0.0, 0.5);
