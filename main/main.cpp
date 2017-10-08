@@ -231,7 +231,6 @@ void Main::print_help(const char *p_binary) {
 }
 
 Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_phase) {
-
 	RID_OwnerBase::init_rid();
 
 	OS::get_singleton()->initialize_core();
@@ -253,6 +252,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	input_map = memnew(InputMap);
 
 	register_core_settings(); //here globals is present
+
+	OS::get_singleton()->initialize_logger();
 
 	translation_server = memnew(TranslationServer);
 	performance = memnew(Performance);
@@ -725,7 +726,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 #ifdef TOOLS_ENABLED
 
-	if (main_args.size() == 0 && (!ProjectSettings::get_singleton()->has("application/run/main_loop_type")) && (!ProjectSettings::get_singleton()->has("application/run/main_scene") || String(ProjectSettings::get_singleton()->get("application/run/main_scene")) == ""))
+	if (main_args.size() == 0 && (!ProjectSettings::get_singleton()->has_setting("application/run/main_loop_type")) && (!ProjectSettings::get_singleton()->has_setting("application/run/main_scene") || String(ProjectSettings::get_singleton()->get("application/run/main_scene")) == ""))
 		use_custom_res = false; //project manager (run without arguments)
 
 #endif
@@ -738,21 +739,21 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	//if (video_driver == "") // useless for now, so removing
 	//	video_driver = GLOBAL_DEF("display/driver/name", Variant((const char *)OS::get_singleton()->get_video_driver_name(0)));
 
-	if (!force_res && use_custom_res && globals->has("display/window/size/width"))
+	if (!force_res && use_custom_res && globals->has_setting("display/window/size/width"))
 		video_mode.width = globals->get("display/window/size/width");
-	if (!force_res && use_custom_res && globals->has("display/window/size/height"))
+	if (!force_res && use_custom_res && globals->has_setting("display/window/size/height"))
 		video_mode.height = globals->get("display/window/size/height");
-	if (!editor && ((globals->has("display/window/dpi/allow_hidpi") && !globals->get("display/window/dpi/allow_hidpi")) || force_lowdpi)) {
+	if (!editor && ((globals->has_setting("display/window/dpi/allow_hidpi") && !globals->get("display/window/dpi/allow_hidpi")) || force_lowdpi)) {
 		OS::get_singleton()->_allow_hidpi = false;
 	}
-	if (use_custom_res && globals->has("display/window/size/fullscreen"))
+	if (use_custom_res && globals->has_setting("display/window/size/fullscreen"))
 		video_mode.fullscreen = globals->get("display/window/size/fullscreen");
-	if (use_custom_res && globals->has("display/window/size/resizable"))
+	if (use_custom_res && globals->has_setting("display/window/size/resizable"))
 		video_mode.resizable = globals->get("display/window/size/resizable");
-	if (use_custom_res && globals->has("display/window/size/borderless"))
+	if (use_custom_res && globals->has_setting("display/window/size/borderless"))
 		video_mode.borderless_window = globals->get("display/window/size/borderless");
 
-	if (!force_res && use_custom_res && globals->has("display/window/size/test_width") && globals->has("display/window/size/test_height")) {
+	if (!force_res && use_custom_res && globals->has_setting("display/window/size/test_width") && globals->has_setting("display/window/size/test_height")) {
 		int tw = globals->get("display/window/size/test_width");
 		int th = globals->get("display/window/size/test_height");
 		if (tw > 0 && th > 0) {
@@ -773,6 +774,9 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	GLOBAL_DEF("rendering/quality/intended_usage/framebuffer_allocation", 2);
 	GLOBAL_DEF("rendering/quality/intended_usage/framebuffer_allocation.mobile", 3);
 
+	if (editor) {
+		OS::get_singleton()->_allow_hidpi = true; //editors always in hidpi
+	}
 	Engine::get_singleton()->_pixel_snap = GLOBAL_DEF("rendering/quality/2d/use_pixel_snap", false);
 	OS::get_singleton()->_keep_screen_on = GLOBAL_DEF("display/window/energy_saving/keep_screen_on", true);
 	if (rtm == -1) {
@@ -1574,7 +1578,7 @@ uint32_t Main::frame = 0;
 bool Main::force_redraw_requested = false;
 
 //for performance metrics
-static uint64_t fixed_process_max = 0;
+static uint64_t physics_process_max = 0;
 static uint64_t idle_process_max = 0;
 
 bool Main::iteration() {
@@ -1597,7 +1601,7 @@ bool Main::iteration() {
 		return false;
 	*/
 
-	uint64_t fixed_process_ticks = 0;
+	uint64_t physics_process_ticks = 0;
 	uint64_t idle_process_ticks = 0;
 
 	frame += ticks_elapsed;
@@ -1615,7 +1619,7 @@ bool Main::iteration() {
 
 	int iters = 0;
 
-	Engine::get_singleton()->_in_fixed = true;
+	Engine::get_singleton()->_in_physics = true;
 
 	while (time_accum > frame_slice) {
 
@@ -1642,13 +1646,13 @@ bool Main::iteration() {
 		time_accum -= frame_slice;
 		message_queue->flush();
 
-		fixed_process_ticks = MAX(fixed_process_ticks, OS::get_singleton()->get_ticks_usec() - fixed_begin); // keep the largest one for reference
-		fixed_process_max = MAX(OS::get_singleton()->get_ticks_usec() - fixed_begin, fixed_process_max);
+		physics_process_ticks = MAX(physics_process_ticks, OS::get_singleton()->get_ticks_usec() - fixed_begin); // keep the largest one for reference
+		physics_process_max = MAX(OS::get_singleton()->get_ticks_usec() - fixed_begin, physics_process_max);
 		iters++;
-		Engine::get_singleton()->_fixed_frames++;
+		Engine::get_singleton()->_physics_frames++;
 	}
 
-	Engine::get_singleton()->_in_fixed = false;
+	Engine::get_singleton()->_in_physics = false;
 
 	uint64_t idle_begin = OS::get_singleton()->get_ticks_usec();
 
@@ -1684,7 +1688,7 @@ bool Main::iteration() {
 
 	if (script_debugger) {
 		if (script_debugger->is_profiling()) {
-			script_debugger->profiling_set_frame_times(USEC_TO_SEC(frame_time), USEC_TO_SEC(idle_process_ticks), USEC_TO_SEC(fixed_process_ticks), frame_slice);
+			script_debugger->profiling_set_frame_times(USEC_TO_SEC(frame_time), USEC_TO_SEC(idle_process_ticks), USEC_TO_SEC(physics_process_ticks), frame_slice);
 		}
 		script_debugger->idle_poll();
 	}
@@ -1700,9 +1704,9 @@ bool Main::iteration() {
 
 		Engine::get_singleton()->_fps = frames;
 		performance->set_process_time(USEC_TO_SEC(idle_process_max));
-		performance->set_fixed_process_time(USEC_TO_SEC(fixed_process_max));
+		performance->set_physics_process_time(USEC_TO_SEC(physics_process_max));
 		idle_process_max = 0;
-		fixed_process_max = 0;
+		physics_process_max = 0;
 
 		frame %= 1000000;
 		frames = 0;

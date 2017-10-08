@@ -189,7 +189,16 @@ for k in platform_opts.keys():
         opts.Add(o)
 
 for x in module_list:
-    opts.Add(BoolVariable('module_' + x + '_enabled', "Enable module '%s'" % (x, ), True))
+    module_enabled = True
+    tmppath = "./modules/" + x
+    sys.path.append(tmppath)
+    import config
+    enabled_attr = getattr(config, "is_enabled", None)
+    if (callable(enabled_attr) and not config.is_enabled()):
+        module_enabled = False
+    sys.path.remove(tmppath)
+    sys.modules.pop('config')
+    opts.Add(BoolVariable('module_' + x + '_enabled', "Enable module '%s'" % (x, ), module_enabled))
 
 opts.Update(env_base)  # update environment
 Help(opts.GenerateHelpText(env_base))  # generate help
@@ -236,7 +245,7 @@ if selected_platform in platform_list:
         env = detect.create(env_base)
     else:
         env = env_base.Clone()
-    
+
     if env['dev']:
         env["warnings"] = "all"
         env['verbose'] = True
@@ -424,6 +433,7 @@ if selected_platform in platform_list:
 
     # Microsoft Visual Studio Project Generation
     if env['vsproj']:
+        env['CPPPATH'] = [Dir(path) for path in env['CPPPATH']]
         methods.generate_vs_project(env, GetOption("num_jobs"))
 
     # Check for the existence of headers

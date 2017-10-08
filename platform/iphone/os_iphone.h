@@ -32,6 +32,7 @@
 #ifndef OS_IPHONE_H
 #define OS_IPHONE_H
 
+#include "drivers/coreaudio/audio_driver_coreaudio.h"
 #include "drivers/unix/os_unix.h"
 #include "os/input.h"
 
@@ -45,8 +46,6 @@
 #include "servers/physics_2d/physics_2d_server_wrap_mt.h"
 #include "servers/visual/rasterizer.h"
 #include "servers/visual_server.h"
-
-class AudioDriverIphone;
 
 class OSIPhone : public OS_Unix {
 
@@ -70,7 +69,7 @@ private:
 	PhysicsServer *physics_server;
 	Physics2DServer *physics_2d_server;
 
-	AudioDriverIphone *audio_driver;
+	AudioDriverCoreAudio audio_driver;
 
 #ifdef GAME_CENTER_ENABLED
 	GameCenter *game_center;
@@ -91,6 +90,7 @@ private:
 
 	virtual VideoMode get_default_video_mode() const;
 
+	virtual void initialize_logger();
 	virtual void initialize_core();
 	virtual void initialize(const VideoMode &p_desired, int p_video_driver, int p_audio_driver);
 
@@ -124,6 +124,8 @@ private:
 
 	InputDefault *input;
 
+	int virtual_keyboard_height;
+
 public:
 	bool iterate();
 
@@ -133,6 +135,7 @@ public:
 	void mouse_move(int p_idx, int p_prev_x, int p_prev_y, int p_x, int p_y, bool p_use_as_mouse);
 	void touches_cancelled();
 	void key(uint32_t p_key, bool p_pressed);
+	void set_virtual_keyboard_height(int p_height);
 
 	int set_base_framebuffer(int p_fb);
 
@@ -168,6 +171,7 @@ public:
 	virtual bool has_virtual_keyboard() const;
 	virtual void show_virtual_keyboard(const String &p_existing_text, const Rect2 &p_screen_rect = Rect2());
 	virtual void hide_virtual_keyboard();
+	virtual int get_virtual_keyboard_height() const;
 
 	virtual void set_cursor_shape(CursorShape p_shape);
 

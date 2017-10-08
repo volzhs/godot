@@ -1010,7 +1010,7 @@ void CodeTextEditor::_reset_zoom() {
 	Ref<DynamicFont> font = text_editor->get_font("font"); // reset source font size to default
 
 	if (font.is_valid()) {
-		EditorSettings::get_singleton()->set("interface/source_font_size", 14);
+		EditorSettings::get_singleton()->set("interface/editor/source_font_size", 14);
 		font->set_size(14);
 	}
 }
@@ -1025,8 +1025,9 @@ void CodeTextEditor::_text_changed() {
 
 	if (text_editor->is_insert_text_operation()) {
 		code_complete_timer->start();
-		idle->start();
 	}
+
+	idle->start();
 }
 
 void CodeTextEditor::_code_complete_timer_timeout() {
@@ -1066,7 +1067,7 @@ void CodeTextEditor::_font_resize_timeout() {
 	if (font.is_valid()) {
 		int new_size = CLAMP(font->get_size() + font_resize_val, 8 * EDSCALE, 96 * EDSCALE);
 		if (new_size != font->get_size()) {
-			EditorSettings::get_singleton()->set("interface/source_font_size", new_size / EDSCALE);
+			EditorSettings::get_singleton()->set("interface/editor/source_font_size", new_size / EDSCALE);
 			font->set_size(new_size);
 		}
 
@@ -1197,17 +1198,9 @@ CodeTextEditor::CodeTextEditor() {
 	text_editor->set_brace_matching(true);
 	text_editor->set_auto_indent(true);
 
-	MarginContainer *status_mc = memnew(MarginContainer);
-	add_child(status_mc);
-	status_mc->set("custom_constants/margin_left", 2);
-	status_mc->set("custom_constants/margin_top", 5);
-	status_mc->set("custom_constants/margin_right", 2);
-	status_mc->set("custom_constants/margin_bottom", 1);
-
 	HBoxContainer *status_bar = memnew(HBoxContainer);
-	status_mc->add_child(status_bar);
+	add_child(status_bar);
 	status_bar->set_h_size_flags(SIZE_EXPAND_FILL);
-	status_bar->add_child(memnew(Label)); //to keep the height if the other labels are not visible
 
 	idle = memnew(Timer);
 	add_child(idle);
@@ -1226,7 +1219,10 @@ CodeTextEditor::CodeTextEditor() {
 	error->set_clip_text(true); //do not change, or else very long errors can push the whole container to the right
 	error->set_valign(Label::VALIGN_CENTER);
 	error->add_color_override("font_color", EditorNode::get_singleton()->get_gui_base()->get_color("error_color", "Editor"));
+	error->add_font_override("font", EditorNode::get_singleton()->get_gui_base()->get_font("status_source", "EditorFonts"));
 	error->set_h_size_flags(SIZE_EXPAND_FILL); //required for it to display, given now it's clipping contents, do not touch
+
+	status_bar->add_child(memnew(Label)); //to keep the height if the other labels are not visible
 
 	Label *line_txt = memnew(Label);
 	status_bar->add_child(line_txt);
@@ -1234,6 +1230,7 @@ CodeTextEditor::CodeTextEditor() {
 	line_txt->set_valign(Label::VALIGN_CENTER);
 	line_txt->set_v_size_flags(SIZE_FILL);
 	line_txt->set_text(TTR("Line:"));
+	line_txt->add_font_override("font", EditorNode::get_singleton()->get_gui_base()->get_font("status_source", "EditorFonts"));
 
 	line_nb = memnew(Label);
 	status_bar->add_child(line_nb);
@@ -1242,6 +1239,8 @@ CodeTextEditor::CodeTextEditor() {
 	line_nb->set_autowrap(true); // workaround to prevent resizing the label on each change, do not touch
 	line_nb->set_clip_text(true); // workaround to prevent resizing the label on each change, do not touch
 	line_nb->set_custom_minimum_size(Size2(40, 1) * EDSCALE);
+	line_nb->set_align(Label::ALIGN_RIGHT);
+	line_nb->add_font_override("font", EditorNode::get_singleton()->get_gui_base()->get_font("status_source", "EditorFonts"));
 
 	Label *col_txt = memnew(Label);
 	status_bar->add_child(col_txt);
@@ -1249,6 +1248,7 @@ CodeTextEditor::CodeTextEditor() {
 	col_txt->set_valign(Label::VALIGN_CENTER);
 	col_txt->set_v_size_flags(SIZE_FILL);
 	col_txt->set_text(TTR("Col:"));
+	col_txt->add_font_override("font", EditorNode::get_singleton()->get_gui_base()->get_font("status_source", "EditorFonts"));
 
 	col_nb = memnew(Label);
 	status_bar->add_child(col_nb);
@@ -1257,6 +1257,9 @@ CodeTextEditor::CodeTextEditor() {
 	col_nb->set_autowrap(true); // workaround to prevent resizing the label on each change, do not touch
 	col_nb->set_clip_text(true); // workaround to prevent resizing the label on each change, do not touch
 	col_nb->set_custom_minimum_size(Size2(40, 1) * EDSCALE);
+	col_nb->set_align(Label::ALIGN_RIGHT);
+	col_nb->set("custom_constants/margin_right", 0);
+	col_nb->add_font_override("font", EditorNode::get_singleton()->get_gui_base()->get_font("status_source", "EditorFonts"));
 
 	text_editor->connect("gui_input", this, "_text_editor_gui_input");
 	text_editor->connect("cursor_changed", this, "_line_col_changed");

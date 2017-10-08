@@ -649,8 +649,8 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 		metric.frame_number = p_data[0];
 		metric.frame_time = p_data[1];
 		metric.idle_time = p_data[2];
-		metric.fixed_time = p_data[3];
-		metric.fixed_frame_time = p_data[4];
+		metric.physics_time = p_data[3];
+		metric.physics_frame_time = p_data[4];
 		int frame_data_amount = p_data[6];
 		int frame_function_amount = p_data[7];
 
@@ -664,9 +664,9 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 			item.calls = 1;
 			item.line = 0;
 			item.name = "Fixed Time";
-			item.total = metric.fixed_time;
+			item.total = metric.physics_time;
 			item.self = item.total;
-			item.signature = "fixed_time";
+			item.signature = "physics_time";
 
 			frame_time.items.push_back(item);
 
@@ -678,9 +678,9 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 			frame_time.items.push_back(item);
 
 			item.name = "Fixed Frame Time";
-			item.total = metric.fixed_frame_time;
+			item.total = metric.physics_frame_time;
 			item.self = item.total;
-			item.signature = "fixed_frame_time";
+			item.signature = "physics_frame_time";
 
 			frame_time.items.push_back(item);
 
@@ -1045,6 +1045,8 @@ void ScriptEditorDebugger::_notification(int p_what) {
 			tabs->add_style_override("panel", editor->get_gui_base()->get_stylebox("DebuggerPanel", "EditorStyles"));
 			tabs->add_style_override("tab_fg", editor->get_gui_base()->get_stylebox("DebuggerTabFG", "EditorStyles"));
 			tabs->add_style_override("tab_bg", editor->get_gui_base()->get_stylebox("DebuggerTabBG", "EditorStyles"));
+			tabs->set_margin(MARGIN_LEFT, -EditorNode::get_singleton()->get_gui_base()->get_stylebox("BottomPanelDebuggerOverride", "EditorStyles")->get_margin(MARGIN_LEFT));
+			tabs->set_margin(MARGIN_RIGHT, EditorNode::get_singleton()->get_gui_base()->get_stylebox("BottomPanelDebuggerOverride", "EditorStyles")->get_margin(MARGIN_RIGHT));
 		} break;
 	}
 }
@@ -1622,7 +1624,10 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 	tabs->add_style_override("panel", editor->get_gui_base()->get_stylebox("DebuggerPanel", "EditorStyles"));
 	tabs->add_style_override("tab_fg", editor->get_gui_base()->get_stylebox("DebuggerTabFG", "EditorStyles"));
 	tabs->add_style_override("tab_bg", editor->get_gui_base()->get_stylebox("DebuggerTabBG", "EditorStyles"));
+
 	tabs->set_anchors_and_margins_preset(Control::PRESET_WIDE);
+	tabs->set_margin(MARGIN_LEFT, -editor->get_gui_base()->get_stylebox("BottomPanelDebuggerOverride", "EditorStyles")->get_margin(MARGIN_LEFT));
+	tabs->set_margin(MARGIN_RIGHT, editor->get_gui_base()->get_stylebox("BottomPanelDebuggerOverride", "EditorStyles")->get_margin(MARGIN_RIGHT));
 	add_child(tabs);
 
 	{ //debugger

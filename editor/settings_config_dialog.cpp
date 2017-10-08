@@ -59,7 +59,7 @@ void EditorSettingsDialog::_settings_property_edited(const String &p_name) {
 	if (full_name == "text_editor/theme/color_theme") {
 		property_editor->get_property_editor()->update_tree();
 	} else if (full_name == "interface/theme/accent_color" || full_name == "interface/theme/base_color" || full_name == "interface/theme/contrast") {
-		EditorSettings::get_singleton()->set_manually("interface/theme/preset", 5); // set preset to Custom
+		EditorSettings::get_singleton()->set_manually("interface/theme/preset", 6); // set preset to Custom
 	}
 }
 
@@ -93,7 +93,7 @@ void EditorSettingsDialog::popup_edit_settings() {
 	_update_shortcuts();
 
 	// Restore valid window bounds or pop up at default size.
-	if (EditorSettings::get_singleton()->has("interface/dialogs/editor_settings_bounds")) {
+	if (EditorSettings::get_singleton()->has_setting("interface/dialogs/editor_settings_bounds")) {
 		popup(EditorSettings::get_singleton()->get("interface/dialogs/editor_settings_bounds"));
 	} else {
 		popup_centered_ratio(0.7);

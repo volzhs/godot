@@ -453,6 +453,11 @@ int _OS::get_power_percent_left() {
 	return OS::get_singleton()->get_power_percent_left();
 }
 
+bool _OS::has_feature(const String &p_feature) const {
+
+	return OS::get_singleton()->has_feature(p_feature);
+}
+
 /*
 enum Weekday {
 	DAY_SUNDAY,
@@ -755,6 +760,11 @@ bool _OS::can_draw() const {
 	return OS::get_singleton()->can_draw();
 }
 
+bool _OS::is_userfs_persistent() const {
+
+	return OS::get_singleton()->is_userfs_persistent();
+}
+
 int _OS::get_processor_count() const {
 
 	return OS::get_singleton()->get_processor_count();
@@ -856,6 +866,10 @@ void _OS::show_virtual_keyboard(const String &p_existing_text) {
 
 void _OS::hide_virtual_keyboard() {
 	OS::get_singleton()->hide_virtual_keyboard();
+}
+
+int _OS::get_virtual_keyboard_height() {
+	return OS::get_singleton()->get_virtual_keyboard_height();
 }
 
 void _OS::print_all_resources(const String &p_to_file) {
@@ -1051,6 +1065,7 @@ void _OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_model_name"), &_OS::get_model_name);
 
 	ClassDB::bind_method(D_METHOD("can_draw"), &_OS::can_draw);
+	ClassDB::bind_method(D_METHOD("is_userfs_persistent"), &_OS::is_userfs_persistent);
 	ClassDB::bind_method(D_METHOD("is_stdout_verbose"), &_OS::is_stdout_verbose);
 
 	ClassDB::bind_method(D_METHOD("can_use_threads"), &_OS::can_use_threads);
@@ -1064,6 +1079,7 @@ void _OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_virtual_keyboard"), &_OS::has_virtual_keyboard);
 	ClassDB::bind_method(D_METHOD("show_virtual_keyboard", "existing_text"), &_OS::show_virtual_keyboard, DEFVAL(""));
 	ClassDB::bind_method(D_METHOD("hide_virtual_keyboard"), &_OS::hide_virtual_keyboard);
+	ClassDB::bind_method(D_METHOD("get_virtual_keyboard_height"), &_OS::get_virtual_keyboard_height);
 	ClassDB::bind_method(D_METHOD("print_resources_in_use", "short"), &_OS::print_resources_in_use, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("print_all_resources", "tofile"), &_OS::print_all_resources, DEFVAL(""));
 
@@ -1098,6 +1114,8 @@ void _OS::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_use_vsync", "enable"), &_OS::set_use_vsync);
 	ClassDB::bind_method(D_METHOD("is_vsync_enabled"), &_OS::is_vsync_enabled);
+
+	ClassDB::bind_method(D_METHOD("has_feature", "tag_name"), &_OS::has_feature);
 
 	ClassDB::bind_method(D_METHOD("get_power_state"), &_OS::get_power_state);
 	ClassDB::bind_method(D_METHOD("get_power_seconds_left"), &_OS::get_power_seconds_left);
@@ -2557,8 +2575,8 @@ Dictionary _Engine::get_version_info() const {
 	return Engine::get_singleton()->get_version_info();
 }
 
-bool _Engine::is_in_fixed_frame() const {
-	return Engine::get_singleton()->is_in_fixed_frame();
+bool _Engine::is_in_physics_frame() const {
+	return Engine::get_singleton()->is_in_physics_frame();
 }
 
 void _Engine::set_editor_hint(bool p_enabled) {
@@ -2588,7 +2606,7 @@ void _Engine::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_version_info"), &_Engine::get_version_info);
 
-	ClassDB::bind_method(D_METHOD("is_in_fixed_frame"), &_Engine::is_in_fixed_frame);
+	ClassDB::bind_method(D_METHOD("is_in_physics_frame"), &_Engine::is_in_physics_frame);
 
 	ClassDB::bind_method(D_METHOD("set_editor_hint", "enabled"), &_Engine::set_editor_hint);
 	ClassDB::bind_method(D_METHOD("is_editor_hint"), &_Engine::is_editor_hint);

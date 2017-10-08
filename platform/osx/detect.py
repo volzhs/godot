@@ -62,7 +62,7 @@ def configure(env):
 
     ## Compiler configuration
 
-    if (not os.environ.has_key("OSXCROSS_ROOT")): # regular native build
+    if "OSXCROSS_ROOT" not in os.environ: # regular native build
         if (env["bits"] == "fat"):
             env.Append(CCFLAGS=['-arch', 'i386', '-arch', 'x86_64'])
             env.Append(LINKFLAGS=['-arch', 'i386', '-arch', 'x86_64'])
@@ -103,7 +103,7 @@ def configure(env):
     ## Flags
 
     env.Append(CPPPATH=['#platform/osx'])
-    env.Append(CPPFLAGS=['-DOSX_ENABLED', '-DUNIX_ENABLED', '-DGLES2_ENABLED', '-DAPPLE_STYLE_KEYS'])
+    env.Append(CPPFLAGS=['-DOSX_ENABLED', '-DUNIX_ENABLED', '-DGLES2_ENABLED', '-DAPPLE_STYLE_KEYS', '-DCOREAUDIO_ENABLED'])
     env.Append(LINKFLAGS=['-framework', 'Cocoa', '-framework', 'Carbon', '-framework', 'OpenGL', '-framework', 'AGL', '-framework', 'AudioUnit', '-framework', 'CoreAudio', '-lz', '-framework', 'IOKit', '-framework', 'ForceFeedback'])
     env.Append(LIBS=['pthread'])
 

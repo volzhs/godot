@@ -40,15 +40,8 @@
 const String init_symbol = "godot_gdnative_init";
 const String terminate_symbol = "godot_gdnative_terminate";
 
-#define GDAPI_FUNC(name, ret_type, ...) name,
-#define GDAPI_FUNC_VOID(name, ...) name,
-
-const godot_gdnative_api_struct api_struct = {
-	GODOT_GDNATIVE_API_FUNCTIONS
-};
-
-#undef GDAPI_FUNC
-#undef GDAPI_FUNC_VOID
+// Defined in gdnative_api_struct.gen.cpp
+extern const godot_gdnative_api_struct api_struct;
 
 String GDNativeLibrary::platform_names[NUM_PLATFORMS + 1] = {
 	"X11_32bit",
@@ -110,6 +103,7 @@ GDNativeLibrary::~GDNativeLibrary() {
 void GDNativeLibrary::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_library_path", "platform", "path"), &GDNativeLibrary::set_library_path);
 	ClassDB::bind_method(D_METHOD("get_library_path", "platform"), &GDNativeLibrary::get_library_path);
+	ClassDB::bind_method(D_METHOD("get_active_library_path"), &GDNativeLibrary::get_active_library_path);
 
 	ClassDB::bind_method(D_METHOD("is_singleton_gdnative"), &GDNativeLibrary::is_singleton_gdnative);
 	ClassDB::bind_method(D_METHOD("set_singleton_gdnative", "singleton"), &GDNativeLibrary::set_singleton_gdnative);
@@ -268,6 +262,7 @@ bool GDNative::initialize() {
 	options.editor_api_hash = ClassDB::get_api_hash(ClassDB::API_EDITOR);
 	options.no_api_hash = ClassDB::get_api_hash(ClassDB::API_NONE);
 	options.gd_native_library = (godot_object *)(get_library().ptr());
+	options.active_library_path = (godot_string *)&path;
 
 	library_init_fpointer(&options);
 

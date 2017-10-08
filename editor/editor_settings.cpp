@@ -195,7 +195,17 @@ void EditorSettings::_get_property_list(List<PropertyInfo> *p_list) const {
 	p_list->push_back(PropertyInfo(Variant::ARRAY, "shortcuts", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR)); //do not edit
 }
 
-bool EditorSettings::has(String p_var) const {
+void EditorSettings::set_setting(const String &p_setting, const Variant &p_value) {
+	_THREAD_SAFE_METHOD_
+	set(p_setting, p_value);
+}
+
+Variant EditorSettings::get_setting(const String &p_setting) const {
+	_THREAD_SAFE_METHOD_
+	return get(p_setting);
+}
+
+bool EditorSettings::has_setting(String p_var) const {
 
 	_THREAD_SAFE_METHOD_
 
@@ -218,7 +228,7 @@ void EditorSettings::raise_order(const String &p_name) {
 
 Variant _EDITOR_DEF(const String &p_var, const Variant &p_default) {
 
-	if (EditorSettings::get_singleton()->has(p_var))
+	if (EditorSettings::get_singleton()->has_setting(p_var))
 		return EditorSettings::get_singleton()->get(p_var);
 	EditorSettings::get_singleton()->set(p_var, p_default);
 	EditorSettings::get_singleton()->set_initial_value(p_var, p_default);
@@ -228,7 +238,7 @@ Variant _EDITOR_DEF(const String &p_var, const Variant &p_default) {
 
 Variant _EDITOR_GET(const String &p_var) {
 
-	ERR_FAIL_COND_V(!EditorSettings::get_singleton()->has(p_var), Variant())
+	ERR_FAIL_COND_V(!EditorSettings::get_singleton()->has_setting(p_var), Variant())
 	return EditorSettings::get_singleton()->get(p_var);
 }
 
@@ -453,7 +463,7 @@ String EditorSettings::get_settings_path() const {
 
 void EditorSettings::setup_language() {
 
-	String lang = get("interface/editor_language");
+	String lang = get("interface/editor/editor_language");
 	if (lang == "en")
 		return; //none to do
 
@@ -471,8 +481,8 @@ void EditorSettings::setup_network() {
 	IP::get_singleton()->get_local_addresses(&local_ip);
 	String lip = "127.0.0.1";
 	String hint;
-	String current = has("network/debug/remote_host") ? get("network/debug/remote_host") : "";
-	int port = has("network/debug/remote_port") ? (int)get("network/debug/remote_port") : 6007;
+	String current = has_setting("network/debug/remote_host") ? get("network/debug/remote_host") : "";
+	int port = has_setting("network/debug/remote_port") ? (int)get("network/debug/remote_port") : 6007;
 
 	for (List<IP_Address>::Element *E = local_ip.front(); E; E = E->next()) {
 
@@ -555,32 +565,32 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 			best = "en";
 		}
 
-		_initial_set("interface/editor_language", best);
-		hints["interface/editor_language"] = PropertyInfo(Variant::STRING, "interface/editor_language", PROPERTY_HINT_ENUM, lang_hint, PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+		_initial_set("interface/editor/editor_language", best);
+		hints["interface/editor/editor_language"] = PropertyInfo(Variant::STRING, "interface/editor/editor_language", PROPERTY_HINT_ENUM, lang_hint, PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 	}
 
-	_initial_set("interface/hidpi_mode", 0);
-	hints["interface/hidpi_mode"] = PropertyInfo(Variant::INT, "interface/hidpi_mode", PROPERTY_HINT_ENUM, "Auto,VeryLoDPI,LoDPI,MidDPI,HiDPI", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-	_initial_set("interface/show_script_in_scene_tabs", false);
-	_initial_set("interface/font_size", 14);
-	hints["interface/font_size"] = PropertyInfo(Variant::INT, "interface/font_size", PROPERTY_HINT_RANGE, "10,40,1", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-	_initial_set("interface/source_font_size", 14);
-	hints["interface/source_font_size"] = PropertyInfo(Variant::INT, "interface/source_font_size", PROPERTY_HINT_RANGE, "8,96,1", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-	_initial_set("interface/custom_font", "");
-	hints["interface/custom_font"] = PropertyInfo(Variant::STRING, "interface/custom_font", PROPERTY_HINT_GLOBAL_FILE, "*.font,*.tres,*.res", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-	_initial_set("interface/dim_editor_on_dialog_popup", true);
-	_initial_set("interface/dim_amount", 0.6f);
-	hints["interface/dim_amount"] = PropertyInfo(Variant::REAL, "interface/dim_amount", PROPERTY_HINT_RANGE, "0,1,0.01", PROPERTY_USAGE_DEFAULT);
-	_initial_set("interface/dim_transition_time", 0.08f);
-	hints["interface/dim_transition_time"] = PropertyInfo(Variant::REAL, "interface/dim_transition_time", PROPERTY_HINT_RANGE, "0,1,0.001", PROPERTY_USAGE_DEFAULT);
+	_initial_set("interface/editor/hidpi_mode", 0);
+	hints["interface/editor/hidpi_mode"] = PropertyInfo(Variant::INT, "interface/editor/hidpi_mode", PROPERTY_HINT_ENUM, "Auto,VeryLoDPI,LoDPI,MidDPI,HiDPI", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	_initial_set("interface/editor/show_script_in_scene_tabs", false);
+	_initial_set("interface/editor/font_size", 14);
+	hints["interface/editor/font_size"] = PropertyInfo(Variant::INT, "interface/editor/font_size", PROPERTY_HINT_RANGE, "10,40,1", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	_initial_set("interface/editor/source_font_size", 14);
+	hints["interface/editor/source_font_size"] = PropertyInfo(Variant::INT, "interface/editor/source_font_size", PROPERTY_HINT_RANGE, "8,96,1", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	_initial_set("interface/editor/custom_font", "");
+	hints["interface/editor/custom_font"] = PropertyInfo(Variant::STRING, "interface/editor/custom_font", PROPERTY_HINT_GLOBAL_FILE, "*.font,*.tres,*.res", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	_initial_set("interface/editor/dim_editor_on_dialog_popup", true);
+	_initial_set("interface/editor/dim_amount", 0.6f);
+	hints["interface/editor/dim_amount"] = PropertyInfo(Variant::REAL, "interface/editor/dim_amount", PROPERTY_HINT_RANGE, "0,1,0.01", PROPERTY_USAGE_DEFAULT);
+	_initial_set("interface/editor/dim_transition_time", 0.08f);
+	hints["interface/editor/dim_transition_time"] = PropertyInfo(Variant::REAL, "interface/editor/dim_transition_time", PROPERTY_HINT_RANGE, "0,1,0.001", PROPERTY_USAGE_DEFAULT);
 
-	_initial_set("interface/separate_distraction_mode", false);
+	_initial_set("interface/editor/separate_distraction_mode", false);
 
-	_initial_set("interface/save_each_scene_on_quit", true); // Regression
-	_initial_set("interface/quit_confirmation", true);
+	_initial_set("interface/editor/save_each_scene_on_quit", true); // Regression
+	_initial_set("interface/editor/quit_confirmation", true);
 
 	_initial_set("interface/theme/preset", 0);
-	hints["interface/theme/preset"] = PropertyInfo(Variant::INT, "interface/theme/preset", PROPERTY_HINT_ENUM, "Default,Grey,Godot 2,Arc,Light,Custom", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	hints["interface/theme/preset"] = PropertyInfo(Variant::INT, "interface/theme/preset", PROPERTY_HINT_ENUM, "Default,Grey,Godot 2,Arc,Light,Alien,Custom", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 	_initial_set("interface/theme/icon_and_font_color", 0);
 	hints["interface/theme/icon_and_font_color"] = PropertyInfo(Variant::INT, "interface/theme/icon_and_font_color", PROPERTY_HINT_ENUM, "Auto,Dark,Light", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 	_initial_set("interface/theme/base_color", Color::html("#323b4f"));
@@ -610,7 +620,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	hints["filesystem/directories/default_project_path"] = PropertyInfo(Variant::STRING, "filesystem/directories/default_project_path", PROPERTY_HINT_GLOBAL_DIR);
 	_initial_set("filesystem/directories/default_project_export_path", "");
 	hints["global/default_project_export_path"] = PropertyInfo(Variant::STRING, "global/default_project_export_path", PROPERTY_HINT_GLOBAL_DIR);
-	_initial_set("interface/show_script_in_scene_tabs", false);
+	_initial_set("interface/editor/show_script_in_scene_tabs", false);
 
 	_initial_set("text_editor/theme/color_theme", "Adaptive");
 	hints["text_editor/theme/color_theme"] = PropertyInfo(Variant::STRING, "text_editor/theme/color_theme", PROPERTY_HINT_ENUM, "Adaptive,Default");
@@ -668,7 +678,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	_initial_set("editors/grid_map/pick_distance", 5000.0);
 
 	_initial_set("editors/3d/grid_color", Color::html("808080"));
-	hints["editors/3d/grid_color"] = PropertyInfo(Variant::COLOR, "editors/3d/grid_color", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	hints["editors/3d/grid_color"] = PropertyInfo(Variant::COLOR, "editors/3d/grid_color", PROPERTY_HINT_COLOR_NO_ALPHA, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 
 	_initial_set("editors/3d/default_fov", 55.0);
 	_initial_set("editors/3d/default_z_near", 0.1);
@@ -989,7 +999,7 @@ void EditorSettings::load_text_editor_theme() {
 		String val = cf->get_value("color_theme", key);
 
 		// don't load if it's not already there!
-		if (has("text_editor/highlighting/" + key)) {
+		if (has_setting("text_editor/highlighting/" + key)) {
 
 			// make sure it is actually a color
 			if (val.is_valid_html_color() && key.find("color") >= 0) {
@@ -1193,6 +1203,10 @@ void EditorSettings::set_initial_value(const StringName &p_name, const Variant &
 }
 
 void EditorSettings::_bind_methods() {
+
+	ClassDB::bind_method(D_METHOD("has_setting", "name"), &EditorSettings::has_setting);
+	ClassDB::bind_method(D_METHOD("set_setting", "name", "value"), &EditorSettings::set_setting);
+	ClassDB::bind_method(D_METHOD("get_setting", "name"), &EditorSettings::get_setting);
 
 	ClassDB::bind_method(D_METHOD("erase", "property"), &EditorSettings::erase);
 	ClassDB::bind_method(D_METHOD("get_settings_path"), &EditorSettings::get_settings_path);

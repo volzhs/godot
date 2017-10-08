@@ -1109,7 +1109,7 @@ void VisualScriptConstant::_bind_methods() {
 	}
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "type", PROPERTY_HINT_ENUM, argt), "set_constant_type", "get_constant_type");
-	ADD_PROPERTY(PropertyInfo(Variant::NIL, "value"), "set_constant_value", "get_constant_value");
+	ADD_PROPERTY(PropertyInfo(Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NIL_IS_VARIANT), "set_constant_value", "get_constant_value");
 }
 
 class VisualScriptNodeInstanceConstant : public VisualScriptNodeInstance {
@@ -1598,7 +1598,7 @@ VisualScriptNodeInstance *VisualScriptClassConstant::instance(VisualScriptInstan
 
 void VisualScriptClassConstant::_validate_property(PropertyInfo &property) const {
 
-	if (property.name == "constant/constant") {
+	if (property.name == "constant") {
 
 		List<String> constants;
 		ClassDB::get_integer_constant_list(base_type, &constants, true);
@@ -1727,7 +1727,7 @@ VisualScriptNodeInstance *VisualScriptBasicTypeConstant::instance(VisualScriptIn
 
 void VisualScriptBasicTypeConstant::_validate_property(PropertyInfo &property) const {
 
-	if (property.name == "constant/constant") {
+	if (property.name == "constant") {
 
 		List<StringName> constants;
 		Variant::get_numeric_constants_for_type(type, &constants);
@@ -2689,7 +2689,7 @@ VisualScriptNodeInstance *VisualScriptCustomNode::instance(VisualScriptInstance 
 }
 
 void VisualScriptCustomNode::_script_changed() {
-	ports_changed_notify();
+	call_deferred("ports_changed_notify");
 }
 
 void VisualScriptCustomNode::_bind_methods() {

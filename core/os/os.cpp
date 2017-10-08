@@ -62,20 +62,20 @@ void OS::debug_break(){
 	// something
 };
 
-void OS::print_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, ErrorType p_type) {
-
-	const char *err_type = "**ERROR**";
-	switch (p_type) {
-		case ERR_ERROR: err_type = "**ERROR**"; break;
-		case ERR_WARNING: err_type = "**WARNING**"; break;
-		case ERR_SCRIPT: err_type = "**SCRIPT ERROR**"; break;
-		case ERR_SHADER: err_type = "**SHADER ERROR**"; break;
-		default: ERR_PRINT("Unknown error type"); break;
+void OS::_set_logger(Logger *p_logger) {
+	if (_logger) {
+		memdelete(_logger);
 	}
+	_logger = p_logger;
+}
 
-	if (p_rationale && *p_rationale)
-		print("%s: %s\n ", err_type, p_rationale);
-	print("%s: At: %s:%i:%s() - %s\n", err_type, p_file, p_line, p_function, p_code);
+void OS::initialize_logger() {
+	_set_logger(memnew(StdLogger));
+}
+
+void OS::print_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, Logger::ErrorType p_type) {
+
+	_logger->log_error(p_function, p_file, p_line, p_code, p_rationale, p_type);
 }
 
 void OS::print(const char *p_format, ...) {
@@ -83,17 +83,16 @@ void OS::print(const char *p_format, ...) {
 	va_list argp;
 	va_start(argp, p_format);
 
-	vprint(p_format, argp);
+	_logger->logv(p_format, argp, false);
 
 	va_end(argp);
 };
 
 void OS::printerr(const char *p_format, ...) {
-
 	va_list argp;
 	va_start(argp, p_format);
 
-	vprint(p_format, argp, true);
+	_logger->logv(p_format, argp, true);
 
 	va_end(argp);
 };
@@ -192,6 +191,10 @@ void OS::show_virtual_keyboard(const String &p_existing_text, const Rect2 &p_scr
 }
 
 void OS::hide_virtual_keyboard() {
+}
+
+int OS::get_virtual_keyboard_height() const {
+	return 0;
 }
 
 void OS::print_all_resources(String p_to_file) {
@@ -495,7 +498,7 @@ int OS::get_power_percent_left() {
 	return -1;
 }
 
-bool OS::check_feature_support(const String &p_feature) {
+bool OS::has_feature(const String &p_feature) {
 
 	if (p_feature == get_name())
 		return true;
@@ -506,6 +509,13 @@ bool OS::check_feature_support(const String &p_feature) {
 	if (p_feature == "release")
 		return true;
 #endif
+
+	if (sizeof(void *) == 8 && p_feature == "64") {
+		return true;
+	}
+	if (sizeof(void *) == 4 && p_feature == "32") {
+		return true;
+	}
 
 	if (_check_internal_feature_support(p_feature))
 		return true;
@@ -531,11 +541,14 @@ OS::OS() {
 
 	_render_thread_mode = RENDER_THREAD_SAFE;
 
-	_allow_hidpi = true;
+	_allow_hidpi = false;
 	_stack_bottom = (void *)(&stack_bottom);
+
+	_logger = NULL;
+	_set_logger(memnew(StdLogger));
 }
 
 OS::~OS() {
-
+	memdelete(_logger);
 	singleton = NULL;
 }
