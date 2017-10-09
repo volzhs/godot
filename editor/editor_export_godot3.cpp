@@ -36,7 +36,11 @@
 
 static const char *globals_renames[][2] = {
 	/* [application] */
-	// no change
+	{ "application/main_scene", "application/run/main_scene" },
+	{ "application/main_loop_type", "application/run/main_loop_type" },
+	{ "application/disable_stdout", "application/run/disable_stdout" },
+	{ "application/disable_stderr", "application/run/disable_stderr" },
+	{ "application/frame_delay_msec", "application/run/frame_delay_msec" },
 
 	/* [debug] */
 	{ "debug/profiler_max_functions", "debug/profiler/max_functions" },
@@ -1275,7 +1279,7 @@ void EditorExportGodot3::_save_text(const String &p_path, ExportData &resource) 
 
 	for (Map<int, ExportData::Dependency>::Element *E = resource.dependencies.front(); E; E = E->next()) {
 
-		f->store_line("[ext_resource path=\"" + E->get().path + "\" type=\"" + E->get().type + "\" id=" + itos(E->key()) + "]");
+		f->store_line("[ext_resource path=\"" + resource_replace_map[E->get().path] + "\" type=\"" + E->get().type + "\" id=" + itos(E->key()) + "]");
 	}
 
 	for (int i = 0; i < resource.resources.size(); i++) {
@@ -1875,7 +1879,7 @@ void EditorExportGodot3::_save_binary(const String &p_path, ExportData &resource
 	for (Map<int, ExportData::Dependency>::Element *E = resource.dependencies.front(); E; E = E->next()) {
 
 		save_unicode_string(E->get().type, f.operator->());
-		save_unicode_string(E->get().path, f.operator->());
+		save_unicode_string(resource_replace_map[E->get().path], f.operator->());
 	}
 
 	// save internal resource table
@@ -1947,6 +1951,11 @@ void EditorExportGodot3::_save_config(const String &p_path) {
 		}
 	}
 
+	String str = "{\n\"flags/filter\": " + String(GLOBAL_DEF("image_loader/filter", true) ? "true" : "false");
+	str += ",\n\"flags/mipmaps\": " + String(GLOBAL_DEF("image_loader/gen_mipmaps", true) ? "true" : "false");
+	str += "\n}";
+	new_cfg.set_value("importer_defaults", "texture", str);
+
 	// Write the collected ConfigFile manually - we need to use _get_property_as_text()
 	// above, so we can't rely on ConfigFile.save() to properly store the raw strings.
 	FileAccessRef f = FileAccess::open(p_path.plus_file("project.godot"), FileAccess::WRITE);
@@ -2014,6 +2023,10 @@ Error EditorExportGodot3::export_godot3(const String &p_path) {
 
 		String file = E->get();
 		String file_local = file.replace("res://", "");
+
+		resource_replace_map[file] = file;
+		resource_replace_map[file_local] = file_local;
+
 		if (xml_extensions.has(file.extension().to_lower())) {
 			if (ResourceLoader::get_resource_type(file) == "PackedScene") {
 				resource_replace_map[file] = file.basename() + ".tscn";
@@ -2022,6 +2035,11 @@ Error EditorExportGodot3::export_godot3(const String &p_path) {
 				resource_replace_map[file] = file.basename() + ".tres";
 				resource_replace_map[file_local] = file_local.basename() + ".tres";
 			}
+		}
+
+		if (file.extension().to_lower() == "fnt") {
+			resource_replace_map[file] = file.basename() + ".font";
+			resource_replace_map[file_local] = file_local.basename() + ".font";
 		}
 	}
 
@@ -2042,6 +2060,10 @@ Error EditorExportGodot3::export_godot3(const String &p_path) {
 		bool repack = false;
 
 		target_path = p_path.plus_file(path.replace("res://", ""));
+
+		if (extension == "fnt") {
+			target_path = target_path.basename() + ".font";
+		}
 
 		progress.step(target_path.get_file(), idx++);
 
