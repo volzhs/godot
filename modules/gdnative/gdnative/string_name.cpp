@@ -1,9 +1,9 @@
 /*************************************************************************/
-/*  godot_iphone.cpp                                                     */
+/*  string_name.cpp                                                           */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                      https://godotengine.org                          */
+/*                    http://www.godotengine.org                         */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -27,65 +27,65 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "main/main.h"
-#include "os_iphone.h"
-#include "ustring.h"
+#include "gdnative/string_name.h"
 
-#include <stdio.h>
+#include "core/string_db.h"
+#include "core/ustring.h"
+
 #include <string.h>
-#include <unistd.h>
 
-static OSIPhone *os = NULL;
-
+#ifdef __cplusplus
 extern "C" {
-int add_path(int p_argc, char **p_args);
-int add_cmdline(int p_argc, char **p_args);
-};
+#endif
 
-int iphone_main(int, int, int, char **, String);
+void _string_name_api_anchor() {
+}
 
-int iphone_main(int width, int height, int argc, char **argv, String data_dir) {
+void GDAPI godot_string_name_new(godot_string_name *r_dest, const godot_string *p_name) {
+	StringName *dest = (StringName *)r_dest;
+	const String *name = (const String *)p_name;
+	memnew_placement(dest, StringName(*name));
+}
 
-	int len = strlen(argv[0]);
+void GDAPI godot_string_name_new_data(godot_string_name *r_dest, const char *p_name) {
+	StringName *dest = (StringName *)r_dest;
+	memnew_placement(dest, StringName(p_name));
+}
 
-	while (len--) {
-		if (argv[0][len] == '/') break;
-	}
+godot_string GDAPI godot_string_name_get_name(const godot_string_name *p_self) {
+	godot_string ret;
+	const StringName *self = (const StringName *)p_self;
+	memnew_placement(&ret, String(*self));
+	return ret;
+}
 
-	if (len >= 0) {
-		char path[512];
-		memcpy(path, argv[0], len > sizeof(path) ? sizeof(path) : len);
-		path[len] = 0;
-		printf("Path: %s\n", path);
-		chdir(path);
-	}
+uint32_t GDAPI godot_string_name_get_hash(const godot_string_name *p_self) {
+	const StringName *self = (const StringName *)p_self;
+	return self->hash();
+}
 
-	printf("godot_iphone %s\n", argv[0]);
-	char cwd[512];
-	getcwd(cwd, sizeof(cwd));
-	printf("cwd %s\n", cwd);
-	os = new OSIPhone(width, height, data_dir);
+const void GDAPI *godot_string_name_get_data_unique_pointer(const godot_string_name *p_self) {
+	const StringName *self = (const StringName *)p_self;
+	return self->data_unique_pointer();
+}
 
-	char *fargv[64];
-	for (int i = 0; i < argc; i++) {
-		fargv[i] = argv[i];
-	};
-	fargv[argc] = NULL;
-	argc = add_path(argc, fargv);
-	argc = add_cmdline(argc, fargv);
+godot_bool GDAPI godot_string_name_operator_equal(const godot_string_name *p_self, const godot_string_name *p_other) {
+	const StringName *self = (const StringName *)p_self;
+	const StringName *other = (const StringName *)p_other;
+	return self == other;
+}
 
-	printf("os created\n");
-	Error err = Main::setup(fargv[0], argc - 1, &fargv[1], false);
-	printf("setup %i\n", err);
-	if (err != OK)
-		return 255;
+godot_bool GDAPI godot_string_name_operator_less(const godot_string_name *p_self, const godot_string_name *p_other) {
+	const StringName *self = (const StringName *)p_self;
+	const StringName *other = (const StringName *)p_other;
+	return self < other;
+}
 
-	return 0;
-};
+void GDAPI godot_string_name_destroy(godot_string_name *p_self) {
+	StringName *self = (StringName *)p_self;
+	self->~StringName();
+}
 
-void iphone_finish() {
-
-	printf("iphone_finish\n");
-	Main::cleanup();
-	delete os;
-};
+#ifdef __cplusplus
+}
+#endif
