@@ -705,9 +705,9 @@ MonoArray *PoolColorArray_to_mono_array(const PoolColorArray &p_array) {
 		real_t *raw = (real_t *)mono_array_addr_with_size(ret, sizeof(real_t) * 4, i);
 		const Color &elem = p_array[i];
 		raw[0] = elem.r;
-		raw[4] = elem.g;
-		raw[8] = elem.b;
-		raw[12] = elem.a;
+		raw[1] = elem.g;
+		raw[2] = elem.b;
+		raw[3] = elem.a;
 #endif
 	}
 
@@ -719,7 +719,7 @@ PoolColorArray mono_array_to_PoolColorArray(MonoArray *p_array) {
 	int length = mono_array_length(p_array);
 
 	for (int i = 0; i < length; i++) {
-		real_t *raw_elem = mono_array_get(p_array, real_t *, i);
+		real_t *raw_elem = (real_t *)mono_array_addr_with_size(p_array, sizeof(real_t) * 4, i);
 		MARSHALLED_IN(Color, raw_elem, elem);
 		ret.push_back(elem);
 	}
@@ -737,7 +737,7 @@ MonoArray *PoolVector2Array_to_mono_array(const PoolVector2Array &p_array) {
 		real_t *raw = (real_t *)mono_array_addr_with_size(ret, sizeof(real_t) * 2, i);
 		const Vector2 &elem = p_array[i];
 		raw[0] = elem.x;
-		raw[4] = elem.y;
+		raw[1] = elem.y;
 #endif
 	}
 
@@ -749,7 +749,7 @@ PoolVector2Array mono_array_to_PoolVector2Array(MonoArray *p_array) {
 	int length = mono_array_length(p_array);
 
 	for (int i = 0; i < length; i++) {
-		real_t *raw_elem = mono_array_get(p_array, real_t *, i);
+		real_t *raw_elem = (real_t *)mono_array_addr_with_size(p_array, sizeof(real_t) * 2, i);
 		MARSHALLED_IN(Vector2, raw_elem, elem);
 		ret.push_back(elem);
 	}
@@ -767,8 +767,8 @@ MonoArray *PoolVector3Array_to_mono_array(const PoolVector3Array &p_array) {
 		real_t *raw = (real_t *)mono_array_addr_with_size(ret, sizeof(real_t) * 3, i);
 		const Vector3 &elem = p_array[i];
 		raw[0] = elem.x;
-		raw[4] = elem.y;
-		raw[8] = elem.z;
+		raw[1] = elem.y;
+		raw[2] = elem.z;
 #endif
 	}
 
@@ -780,7 +780,7 @@ PoolVector3Array mono_array_to_PoolVector3Array(MonoArray *p_array) {
 	int length = mono_array_length(p_array);
 
 	for (int i = 0; i < length; i++) {
-		real_t *raw_elem = mono_array_get(p_array, real_t *, i);
+		real_t *raw_elem = (real_t *)mono_array_addr_with_size(p_array, sizeof(real_t) * 3, i);
 		MARSHALLED_IN(Vector3, raw_elem, elem);
 		ret.push_back(elem);
 	}
