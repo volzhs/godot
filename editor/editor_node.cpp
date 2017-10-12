@@ -1603,7 +1603,12 @@ void EditorNode::_edit_current() {
 
 	if (main_plugin) {
 
-		if (main_plugin != editor_plugin_screen) {
+		// special case if use of external editor is true
+		if (main_plugin->get_name() == "Script" && bool(EditorSettings::get_singleton()->get("external_editor/use_external_editor"))){
+			main_plugin->edit(current_obj);
+		}
+
+		else if (main_plugin != editor_plugin_screen) {
 
 			// update screen main_plugin
 
@@ -5077,7 +5082,7 @@ void EditorNode::_bind_methods() {
 
 void EditorNode::_export_godot3_path(const String &p_path) {
 
-	Error err = export_godot3.export_godot3(p_path);
+	Error err = export_godot3.export_godot3(p_path, export_godot3_dialog_convert_scripts->is_pressed());
 	if (err != OK) {
 		show_warning("Error exporting to Godot 3.0");
 	}
@@ -6345,6 +6350,10 @@ EditorNode::EditorNode() {
 	export_godot3_dialog = memnew(FileDialog);
 	export_godot3_dialog->set_access(FileDialog::ACCESS_FILESYSTEM);
 	export_godot3_dialog->set_mode(FileDialog::MODE_OPEN_DIR);
+	export_godot3_dialog_convert_scripts = memnew(CheckButton);
+	export_godot3_dialog_convert_scripts->set_text(TTR("Convert scripts (experimental)"));
+	export_godot3_dialog_convert_scripts->set_pressed(false);
+	export_godot3_dialog->get_vbox()->add_child(export_godot3_dialog_convert_scripts);
 	gui_base->add_child(export_godot3_dialog);
 	export_godot3_dialog->connect("dir_selected", this, "_export_godot3_path");
 

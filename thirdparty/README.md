@@ -39,7 +39,7 @@ Use UI font if exists, because it has tight vertial metrix and good for UI.
 ## freetype
 
 - Upstream: https://www.freetype.org
-- Version: 2.8
+- Version: 2.8.1
 - License: FreeType License (BSD-like)
 
 Files extracted from upstream source:
@@ -102,7 +102,7 @@ Files extracted from upstream source:
 ## libpng
 
 - Upstream: http://libpng.org/pub/png/libpng.html
-- Version: 1.6.32
+- Version: 1.6.33
 - License: libpng/zlib
 
 Files extracted from upstream source:
