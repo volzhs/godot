@@ -5231,6 +5231,13 @@
       ]
     },
     {
+      "name": "godot_arvr_register_interface",
+      "return_type": "void",
+      "arguments": [
+        ["const godot_arvr_interface_gdnative *", "p_interface"]
+      ]
+    },
+    {
       "name": "godot_arvr_get_worldscale",
       "return_type": "godot_real",
       "arguments": []
