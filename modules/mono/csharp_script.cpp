@@ -41,6 +41,7 @@
 #include "editor/csharp_project.h"
 #include "editor/editor_node.h"
 #include "editor/godotsharp_editor.h"
+#include "utils/string_utils.h"
 #endif
 
 #include "godotsharp_dirs.h"
@@ -48,7 +49,7 @@
 #include "mono_gd/gd_mono_marshal.h"
 #include "signal_awaiter_utils.h"
 
-#define CACHED_STRING_NAME(m_var) (CSharpLanguage::get_singleton()->string_names.m_var)
+#define CACHED_STRING_NAME(m_var) (CSharpLanguage::get_singleton()->get_string_names().m_var)
 
 static bool _create_project_solution_if_needed() {
 
@@ -295,20 +296,88 @@ bool CSharpLanguage::has_named_classes() const {
 	return true;
 }
 
-String CSharpLanguage::make_function(const String &p_class, const String &p_name, const PoolStringArray &p_args) const {
+static String variant_type_to_managed_name(const String &p_var_type_name) {
 
+	if (p_var_type_name.empty())
+		return "object";
+
+	if (!ClassDB::class_exists(p_var_type_name)) {
+		Variant::Type var_types[] = {
+			Variant::BOOL,
+			Variant::INT,
+			Variant::REAL,
+			Variant::STRING,
+			Variant::VECTOR2,
+			Variant::RECT2,
+			Variant::VECTOR3,
+			Variant::TRANSFORM2D,
+			Variant::PLANE,
+			Variant::QUAT,
+			Variant::RECT3,
+			Variant::BASIS,
+			Variant::TRANSFORM,
+			Variant::COLOR,
+			Variant::NODE_PATH,
+			Variant::_RID
+		};
+
+		for (int i = 0; i < sizeof(var_types) / sizeof(Variant::Type); i++) {
+			if (p_var_type_name == Variant::get_type_name(var_types[i]))
+				return p_var_type_name;
+		}
+
+		if (p_var_type_name == "String")
+			return "string"; // I prefer this one >:[
+
+		// TODO these will be rewritten later into custom containers
+
+		if (p_var_type_name == "Array")
+			return "object[]";
+
+		if (p_var_type_name == "Dictionary")
+			return "Dictionary<object, object>";
+
+		if (p_var_type_name == "PoolByteArray")
+			return "byte[]";
+		if (p_var_type_name == "PoolIntArray")
+			return "int[]";
+		if (p_var_type_name == "PoolRealArray")
+			return "float[]";
+		if (p_var_type_name == "PoolStringArray")
+			return "string[]";
+		if (p_var_type_name == "PoolVector2Array")
+			return "Vector2[]";
+		if (p_var_type_name == "PoolVector3Array")
+			return "Vector3[]";
+		if (p_var_type_name == "PoolColorArray")
+			return "Color[]";
+
+		return "object";
+	}
+
+	return p_var_type_name;
+}
+
+String CSharpLanguage::make_function(const String &p_class, const String &p_name, const PoolStringArray &p_args) const {
+#ifdef TOOLS_ENABLED
 	// FIXME
-	// Due to Godot's API limitation this just appends the function to the end of the file
-	// Another limitation is that the parameter types are not specified, so we must use System.Object
+	// - Due to Godot's API limitation this just appends the function to the end of the file
+	// - Use fully qualified name if there is ambiguity
 	String s = "private void " + p_name + "(";
 	for (int i = 0; i < p_args.size(); i++) {
+		const String &arg = p_args[i];
+
 		if (i > 0)
 			s += ", ";
-		s += "object " + p_args[i];
+
+		s += variant_type_to_managed_name(arg.get_slice(":", 1)) + " " + escape_csharp_keyword(arg.get_slice(":", 0));
 	}
 	s += ")\n{\n    // Replace with function body\n}\n";
 
 	return s;
+#else
+	return String();
+#endif
 }
 
 void CSharpLanguage::frame() {
@@ -903,46 +972,6 @@ Variant CSharpInstance::call(const StringName &p_method, const Variant **p_args,
 			} else {
 				return Variant();
 			}
-		} else if (p_method == CACHED_STRING_NAME(_awaited_signal_callback)) {
-			// shitty hack..
-			// TODO move to its own function, thx
-
-			if (p_argcount < 1) {
-				r_error.error = Variant::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
-				r_error.argument = 1;
-				return Variant();
-			}
-
-			Ref<SignalAwaiterHandle> awaiter = *p_args[p_argcount - 1];
-
-			if (awaiter.is_null()) {
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
-				r_error.argument = p_argcount - 1;
-				r_error.expected = Variant::OBJECT;
-				return Variant();
-			}
-
-			awaiter->set_completed(true);
-
-			int extra_argc = p_argcount - 1;
-			MonoArray *extra_args = mono_array_new(SCRIPTS_DOMAIN, CACHED_CLASS_RAW(MonoObject), extra_argc);
-
-			for (int i = 0; i < extra_argc; i++) {
-				MonoObject *boxed = GDMonoMarshal::variant_to_mono_object(*p_args[i]);
-				mono_array_set(extra_args, MonoObject *, i, boxed);
-			}
-
-			GDMonoUtils::GodotObject__AwaitedSignalCallback thunk = CACHED_METHOD_THUNK(GodotObject, _AwaitedSignalCallback);
-
-			MonoObject *ex = NULL;
-			thunk(mono_object, &extra_args, awaiter->get_target(), &ex);
-
-			if (ex) {
-				mono_print_unhandled_exception(ex);
-				ERR_FAIL_V(Variant());
-			}
-
-			return Variant();
 		}
 
 		top = top->get_parent_class();
@@ -1392,12 +1421,15 @@ bool CSharpScript::can_instance() const {
 
 #ifdef TOOLS_ENABLED
 	if (Engine::get_singleton()->is_editor_hint()) {
-		if (_create_project_solution_if_needed()) {
-			CSharpProject::add_item(GodotSharpDirs::get_project_csproj_path(),
-					"Compile",
-					ProjectSettings::get_singleton()->globalize_path(get_path()));
-		} else {
-			ERR_PRINTS("Cannot add " + get_path() + " to the C# project because it could not be created.");
+
+		if (get_path().find("::") == -1) { // Ignore if built-in script. Can happen if the file is deleted...
+			if (_create_project_solution_if_needed()) {
+				CSharpProject::add_item(GodotSharpDirs::get_project_csproj_path(),
+						"Compile",
+						ProjectSettings::get_singleton()->globalize_path(get_path()));
+			} else {
+				ERR_PRINTS("Cannot add " + get_path() + " to the C# project because it could not be created.");
+			}
 		}
 	}
 #endif
@@ -1915,7 +1947,7 @@ bool ResourceFormatSaverCSharpScript::recognize(const RES &p_resource) const {
 
 CSharpLanguage::StringNameCache::StringNameCache() {
 
-	_awaited_signal_callback = StaticCString::create("_AwaitedSignalCallback");
+	_signal_callback = StaticCString::create("_signal_callback");
 	_set = StaticCString::create("_set");
 	_get = StaticCString::create("_get");
 	_notification = StaticCString::create("_notification");
