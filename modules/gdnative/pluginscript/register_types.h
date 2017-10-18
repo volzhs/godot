@@ -1,9 +1,9 @@
 /*************************************************************************/
-/*  settings_config_dialog.h                                             */
+/*  register_types.h                                                     */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                      https://godotengine.org                          */
+/*                    http://www.godotengine.org                         */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -27,69 +27,5 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef SETTINGS_CONFIG_DIALOG_H
-#define SETTINGS_CONFIG_DIALOG_H
-
-#include "property_editor.h"
-#include "scene/gui/rich_text_label.h"
-#include "scene/gui/tab_container.h"
-
-class EditorSettingsDialog : public AcceptDialog {
-
-	GDCLASS(EditorSettingsDialog, AcceptDialog);
-
-	bool updating;
-
-	TabContainer *tabs;
-
-	LineEdit *search_box;
-	LineEdit *shortcut_search_box;
-	ToolButton *clear_button;
-	ToolButton *shortcut_clear_button;
-	SectionedPropertyEditor *property_editor;
-
-	Timer *timer;
-
-	UndoRedo *undo_redo;
-	Tree *shortcuts;
-
-	ConfirmationDialog *press_a_key;
-	Label *press_a_key_label;
-	Ref<InputEventKey> last_wait_for_key;
-	String shortcut_configured;
-	String shortcut_filter;
-
-	virtual void cancel_pressed();
-	virtual void ok_pressed();
-
-	void _settings_changed();
-	void _settings_property_edited(const String &p_name);
-	void _settings_save();
-
-	void _unhandled_input(const Ref<InputEvent> &p_event);
-	void _notification(int p_what);
-
-	void _press_a_key_confirm();
-	void _wait_for_key(const Ref<InputEvent> &p_event);
-
-	void _clear_shortcut_search_box();
-	void _clear_search_box();
-
-	void _filter_shortcuts(const String &p_filter);
-
-	void _update_shortcuts();
-	void _shortcut_button_pressed(Object *p_item, int p_column, int p_idx);
-
-	static void _undo_redo_callback(void *p_self, const String &p_name);
-
-protected:
-	static void _bind_methods();
-
-public:
-	void popup_edit_settings();
-
-	EditorSettingsDialog();
-	~EditorSettingsDialog();
-};
-
-#endif // SETTINGS_CONFIG_DIALOG_H
+void register_pluginscript_types();
+void unregister_pluginscript_types();

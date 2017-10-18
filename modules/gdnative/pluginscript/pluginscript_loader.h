@@ -1,9 +1,9 @@
 /*************************************************************************/
-/*  settings_config_dialog.h                                             */
+/*  pluginscript_loader.h                                                */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                      https://godotengine.org                          */
+/*                    http://www.godotengine.org                         */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -27,69 +27,36 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef SETTINGS_CONFIG_DIALOG_H
-#define SETTINGS_CONFIG_DIALOG_H
 
-#include "property_editor.h"
-#include "scene/gui/rich_text_label.h"
-#include "scene/gui/tab_container.h"
+#ifndef PYTHONSCRIPT_PY_LOADER_H
+#define PYTHONSCRIPT_PY_LOADER_H
 
-class EditorSettingsDialog : public AcceptDialog {
+// Godot imports
+#include "core/script_language.h"
+#include "io/resource_loader.h"
+#include "io/resource_saver.h"
 
-	GDCLASS(EditorSettingsDialog, AcceptDialog);
+class PluginScriptLanguage;
 
-	bool updating;
-
-	TabContainer *tabs;
-
-	LineEdit *search_box;
-	LineEdit *shortcut_search_box;
-	ToolButton *clear_button;
-	ToolButton *shortcut_clear_button;
-	SectionedPropertyEditor *property_editor;
-
-	Timer *timer;
-
-	UndoRedo *undo_redo;
-	Tree *shortcuts;
-
-	ConfirmationDialog *press_a_key;
-	Label *press_a_key_label;
-	Ref<InputEventKey> last_wait_for_key;
-	String shortcut_configured;
-	String shortcut_filter;
-
-	virtual void cancel_pressed();
-	virtual void ok_pressed();
-
-	void _settings_changed();
-	void _settings_property_edited(const String &p_name);
-	void _settings_save();
-
-	void _unhandled_input(const Ref<InputEvent> &p_event);
-	void _notification(int p_what);
-
-	void _press_a_key_confirm();
-	void _wait_for_key(const Ref<InputEvent> &p_event);
-
-	void _clear_shortcut_search_box();
-	void _clear_search_box();
-
-	void _filter_shortcuts(const String &p_filter);
-
-	void _update_shortcuts();
-	void _shortcut_button_pressed(Object *p_item, int p_column, int p_idx);
-
-	static void _undo_redo_callback(void *p_self, const String &p_name);
-
-protected:
-	static void _bind_methods();
+class ResourceFormatLoaderPluginScript : public ResourceFormatLoader {
+	PluginScriptLanguage *_language;
 
 public:
-	void popup_edit_settings();
-
-	EditorSettingsDialog();
-	~EditorSettingsDialog();
+	ResourceFormatLoaderPluginScript(PluginScriptLanguage *language);
+	virtual RES load(const String &p_path, const String &p_original_path = "", Error *r_error = NULL);
+	virtual void get_recognized_extensions(List<String> *p_extensions) const;
+	virtual bool handles_type(const String &p_type) const;
+	virtual String get_resource_type(const String &p_path) const;
 };
 
-#endif // SETTINGS_CONFIG_DIALOG_H
+class ResourceFormatSaverPluginScript : public ResourceFormatSaver {
+	PluginScriptLanguage *_language;
+
+public:
+	ResourceFormatSaverPluginScript(PluginScriptLanguage *language);
+	virtual Error save(const String &p_path, const RES &p_resource, uint32_t p_flags = 0);
+	virtual void get_recognized_extensions(const RES &p_resource, List<String> *p_extensions) const;
+	virtual bool recognize(const RES &p_resource) const;
+};
+
+#endif // PYTHONSCRIPT_PY_LOADER_H
