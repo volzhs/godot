@@ -1454,7 +1454,7 @@ void EditorNode::_edit_current() {
 			}
 		} else if (current_res->get_path().is_resource_file()) {
 			if (FileAccess::exists(current_res->get_path() + ".import")) {
-				editable_warning = TTR("This resource was imported, so it's not editable. Change it's settings in the import panel and re-import.");
+				editable_warning = TTR("This resource was imported, so it's not editable. Change its settings in the import panel and then re-import.");
 			}
 		}
 	} else if (is_node) {
@@ -5541,6 +5541,10 @@ EditorNode::EditorNode() {
 		Ref<SpatialMaterialConversionPlugin> spatial_mat_convert;
 		spatial_mat_convert.instance();
 		resource_conversion_plugins.push_back(spatial_mat_convert);
+
+		Ref<ParticlesMaterialConversionPlugin> particles_mat_convert;
+		particles_mat_convert.instance();
+		resource_conversion_plugins.push_back(particles_mat_convert);
 	}
 	circle_step_msec = OS::get_singleton()->get_ticks_msec();
 	circle_step_frame = Engine::get_singleton()->get_frames_drawn();
@@ -5691,12 +5695,12 @@ void EditorPluginList::edit(Object *p_object) {
 	}
 }
 
-bool EditorPluginList::forward_gui_input(const Transform2D &p_canvas_xform, const Ref<InputEvent> &p_event) {
+bool EditorPluginList::forward_gui_input(const Ref<InputEvent> &p_event) {
 
 	bool discard = false;
 
 	for (int i = 0; i < plugins_list.size(); i++) {
-		if (plugins_list[i]->forward_canvas_gui_input(p_canvas_xform, p_event)) {
+		if (plugins_list[i]->forward_canvas_gui_input(p_event)) {
 			discard = true;
 		}
 	}
@@ -5720,10 +5724,10 @@ bool EditorPluginList::forward_spatial_gui_input(Camera *p_camera, const Ref<Inp
 	return discard;
 }
 
-void EditorPluginList::forward_draw_over_canvas(const Transform2D &p_canvas_xform, Control *p_canvas) {
+void EditorPluginList::forward_draw_over_canvas(Control *p_canvas) {
 
 	for (int i = 0; i < plugins_list.size(); i++) {
-		plugins_list[i]->forward_draw_over_canvas(p_canvas_xform, p_canvas);
+		plugins_list[i]->forward_draw_over_canvas(p_canvas);
 	}
 }
 
