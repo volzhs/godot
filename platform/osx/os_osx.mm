@@ -1206,7 +1206,9 @@ typedef UnixTerminalLogger OSXTerminalLogger;
 void OS_OSX::initialize_logger() {
 	Vector<Logger *> loggers;
 	loggers.push_back(memnew(OSXTerminalLogger));
-	loggers.push_back(memnew(RotatedFileLogger("user://logs/log.txt")));
+	// FIXME: Reenable once we figure out how to get this properly in user://
+	// instead of littering the user's working dirs (res:// + pwd) with log files (GH-12277)
+	//loggers.push_back(memnew(RotatedFileLogger("user://logs/log.txt")));
 	_set_logger(memnew(CompositeLogger(loggers)));
 }
 
@@ -1832,6 +1834,8 @@ OS::LatinKeyboardVariant OS_OSX::get_latin_keyboard_variant() const {
 			layout = LATIN_KEYBOARD_DVORAK;
 		} else if ([test isEqualToString:@"xvlcwk"]) {
 			layout = LATIN_KEYBOARD_NEO;
+		} else if ([test isEqualToString:@"qwfpgj"]) {
+			layout = LATIN_KEYBOARD_COLEMAK;
 		}
 
 		[test release];

@@ -1,5 +1,6 @@
 # Persian translation of the Godot Engine editor
-# Copyright (C) 2016-2017 Juan Linietsky, Ariel Manzur and the Godot community
+# Copyright (C) 2007-2017 Juan Linietsky, Ariel Manzur
+# Copyright (C) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)
 # This file is distributed under the same license as the Godot source code.
 #
 # alabd14313 <alabd14313@yahoo.com>, 2016.
@@ -1233,10 +1234,6 @@ msgid "File:"
 msgstr "پرونده:"
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
-msgid "Filter:"
-msgstr "صافی:"
-
-#: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "Must use a valid extension."
 msgstr "باید از یک پسوند معتبر استفاده شود."
 
@@ -1691,19 +1688,25 @@ msgid "Pick a Main Scene"
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Unable to enable addon plugin at: '"
+msgid "Unable to enable addon plugin at: '%s' parsing of config failed."
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "' parsing of config failed."
+msgid "Unable to find script field for addon plugin at: 'res://addons/%s'."
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Unable to find script field for addon plugin at: 'res://addons/"
+#, fuzzy
+msgid "Unable to load addon script from path: '%s'."
+msgstr "خطای بارگذاری قلم."
+
+#: editor/editor_node.cpp
+msgid ""
+"Unable to load addon script from path: '%s' Base type is not EditorPlugin."
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Unable to load addon script from path: '"
+msgid "Unable to load addon script from path: '%s' Script is not in tool mode."
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2231,7 +2234,7 @@ msgid "Frame %"
 msgstr ""
 
 #: editor/editor_profiler.cpp
-msgid "Fixed Frame %"
+msgid "Physics Frame %"
 msgstr ""
 
 #: editor/editor_profiler.cpp editor/script_editor_debugger.cpp
@@ -3910,7 +3913,7 @@ msgid "Eroding walkable area..."
 msgstr ""
 
 #: editor/plugins/navigation_mesh_generator.cpp
-msgid "Partioning..."
+msgid "Partitioning..."
 msgstr ""
 
 #: editor/plugins/navigation_mesh_generator.cpp
@@ -4373,7 +4376,8 @@ msgstr ""
 msgid "Break"
 msgstr ""
 
-#: editor/plugins/script_editor_plugin.cpp editor/script_editor_debugger.cpp
+#: editor/plugins/script_editor_plugin.cpp editor/project_manager.cpp
+#: editor/script_editor_debugger.cpp
 msgid "Continue"
 msgstr ""
 
@@ -4469,7 +4473,8 @@ msgid "Cut"
 msgstr "بریدن"
 
 #: editor/plugins/script_text_editor.cpp
-#: editor/plugins/shader_editor_plugin.cpp editor/property_editor.cpp
+#: editor/plugins/shader_editor_plugin.cpp
+#: editor/plugins/sprite_frames_editor_plugin.cpp editor/property_editor.cpp
 #: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 msgid "Copy"
 msgstr "کپی کردن"
@@ -5232,7 +5237,11 @@ msgid "Remove All"
 msgstr "برداشتن"
 
 #: editor/plugins/theme_editor_plugin.cpp
-msgid "Theme"
+msgid "Edit theme.."
+msgstr ""
+
+#: editor/plugins/theme_editor_plugin.cpp
+msgid "Theme editing menu."
 msgstr ""
 
 #: editor/plugins/theme_editor_plugin.cpp
@@ -5522,7 +5531,7 @@ msgstr ""
 
 #: editor/project_manager.cpp
 #, fuzzy
-msgid "The path does not exists."
+msgid "The path does not exist."
 msgstr "پرونده موجود نیست."
 
 #: editor/project_manager.cpp
@@ -5653,6 +5662,12 @@ msgstr ""
 
 #: editor/project_manager.cpp
 msgid ""
+"Language changed.\n"
+"The UI will update next time the editor or project manager starts."
+msgstr ""
+
+#: editor/project_manager.cpp
+msgid ""
 "You are about the scan %s folders for existing Godot projects. Do you "
 "confirm?"
 msgstr ""
@@ -5682,6 +5697,10 @@ msgstr "برداشتن انتخاب شده"
 
 #: editor/project_manager.cpp
 msgid "Exit"
+msgstr ""
+
+#: editor/project_manager.cpp
+msgid "Restart Now"
 msgstr ""
 
 #: editor/project_manager.cpp
@@ -5911,6 +5930,15 @@ msgid "Remove Resource Remap Option"
 msgstr ""
 
 #: editor/project_settings_editor.cpp
+#, fuzzy
+msgid "Changed Locale Filter"
+msgstr "نوع مقدار آرایه را تغییر بده"
+
+#: editor/project_settings_editor.cpp
+msgid "Changed Locale Filter Mode"
+msgstr ""
+
+#: editor/project_settings_editor.cpp
 msgid "Project Settings (project.godot)"
 msgstr ""
 
@@ -5968,6 +5996,27 @@ msgstr ""
 
 #: editor/project_settings_editor.cpp
 msgid "Locale"
+msgstr ""
+
+#: editor/project_settings_editor.cpp
+msgid "Locales Filter"
+msgstr ""
+
+#: editor/project_settings_editor.cpp
+msgid "Show all locales"
+msgstr ""
+
+#: editor/project_settings_editor.cpp
+msgid "Show only selected locales"
+msgstr ""
+
+#: editor/project_settings_editor.cpp
+#, fuzzy
+msgid "Filter mode:"
+msgstr "صافی:"
+
+#: editor/project_settings_editor.cpp
+msgid "Locales:"
 msgstr ""
 
 #: editor/project_settings_editor.cpp
@@ -7575,6 +7624,9 @@ msgstr "خطای بارگذاری قلم."
 #: scene/resources/dynamic_font.cpp
 msgid "Invalid font size."
 msgstr "اندازه‌ی قلم نامعتبر."
+
+#~ msgid "Filter:"
+#~ msgstr "صافی:"
 
 #~ msgid "Method List For '%s':"
 #~ msgstr "لیست متد برای 's%' :"
