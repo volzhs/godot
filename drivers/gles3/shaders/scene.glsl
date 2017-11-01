@@ -80,6 +80,7 @@ layout(std140) uniform SceneData { //ubo:0
 	highp float shadow_dual_paraboloid_render_zfar;
 	highp float shadow_dual_paraboloid_render_side;
 
+	highp vec2 viewport_size;
 	highp vec2 screen_pixel_size;
 	highp vec2 shadow_atlas_pixel_size;
 	highp vec2 directional_shadow_pixel_size;
@@ -566,6 +567,7 @@ in vec3 normal_interp;
 uniform bool no_ambient_light;
 
 
+
 #ifdef USE_RADIANCE_MAP
 
 
@@ -663,6 +665,7 @@ layout(std140) uniform SceneData {
 	highp float shadow_dual_paraboloid_render_zfar;
 	highp float shadow_dual_paraboloid_render_side;
 
+	highp vec2 viewport_size;
 	highp vec2 screen_pixel_size;
 	highp vec2 shadow_atlas_pixel_size;
 	highp vec2 directional_shadow_pixel_size;
