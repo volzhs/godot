@@ -31,7 +31,6 @@
 #define OS_JAVASCRIPT_H
 
 #include "audio_driver_javascript.h"
-#include "audio_server_javascript.h"
 #include "drivers/unix/os_unix.h"
 #include "javascript_eval.h"
 #include "main/input_default.h"
@@ -39,8 +38,6 @@
 #include "os/main_loop.h"
 #include "power_javascript.h"
 #include "servers/audio_server.h"
-#include "servers/physics/physics_server_sw.h"
-#include "servers/physics_2d/physics_2d_server_sw.h"
 #include "servers/visual/rasterizer.h"
 
 #include <emscripten/html5.h>
@@ -54,8 +51,6 @@ class OS_JavaScript : public OS_Unix {
 	int64_t last_sync_time;
 
 	VisualServer *visual_server;
-	PhysicsServer *physics_server;
-	Physics2DServer *physics_2d_server;
 	AudioDriverJavaScript audio_driver_javascript;
 	const char *gl_extensions;
 
