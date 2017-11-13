@@ -785,12 +785,12 @@ void ProjectSettingsEditor::_item_del() {
 	String property = globals_editor->get_current_section().plus_file(path);
 
 	if (!ProjectSettings::get_singleton()->has_setting(property)) {
-		EditorNode::get_singleton()->show_warning(TTR("No property '" + property + "' exists."));
+		EditorNode::get_singleton()->show_warning(vformat(TTR("No property '%s' exists."), property));
 		return;
 	}
 
 	if (ProjectSettings::get_singleton()->get_order(property) < ProjectSettings::NO_BUILTIN_ORDER_BASE) {
-		EditorNode::get_singleton()->show_warning(TTR("Setting '" + property + "' is internal, and it can't be deleted."));
+		EditorNode::get_singleton()->show_warning(vformat(TTR("Setting '%s' is internal, and it can't be deleted."), property));
 		return;
 	}
 
@@ -1318,7 +1318,7 @@ void ProjectSettingsEditor::_update_translations() {
 			t->set_text(0, translations[i].replace_first("res://", ""));
 			t->set_tooltip(0, translations[i]);
 			t->set_metadata(0, i);
-			t->add_button(0, get_icon("Del", "EditorIcons"), 0, false, TTR("Remove"));
+			t->add_button(0, get_icon("Remove", "EditorIcons"), 0, false, TTR("Remove"));
 		}
 	}
 
@@ -1436,7 +1436,7 @@ void ProjectSettingsEditor::_update_translations() {
 			t->set_text(0, keys[i].replace_first("res://", ""));
 			t->set_tooltip(0, keys[i]);
 			t->set_metadata(0, keys[i]);
-			t->add_button(0, get_icon("Del", "EditorIcons"), 0, false, TTR("Remove"));
+			t->add_button(0, get_icon("Remove", "EditorIcons"), 0, false, TTR("Remove"));
 			if (keys[i] == remap_selected) {
 				t->select(0);
 				translation_res_option_add_button->set_disabled(false);
@@ -1454,7 +1454,7 @@ void ProjectSettingsEditor::_update_translations() {
 					t2->set_text(0, path.replace_first("res://", ""));
 					t2->set_tooltip(0, path);
 					t2->set_metadata(0, j);
-					t2->add_button(0, get_icon("Del", "EditorIcons"), 0, false, TTR("Remove"));
+					t2->add_button(0, get_icon("Remove", "EditorIcons"), 0, false, TTR("Remove"));
 					t2->set_cell_mode(1, TreeItem::CELL_MODE_RANGE);
 					t2->set_text(1, langnames);
 					t2->set_editable(1, true);
@@ -1782,6 +1782,7 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	tab_container->add_child(translations);
 	//remap for properly select language in popup
 	translation_locales_idxs_remap = Vector<int>();
+	translation_locales_list_created = false;
 
 	{
 

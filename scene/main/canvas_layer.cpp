@@ -105,28 +105,14 @@ real_t CanvasLayer::get_rotation() const {
 	return rot;
 }
 
-void CanvasLayer::set_rotationd(real_t p_degrees) {
+void CanvasLayer::set_rotation_degrees(real_t p_degrees) {
 
 	set_rotation(Math::deg2rad(p_degrees));
 }
 
-real_t CanvasLayer::get_rotationd() const {
+real_t CanvasLayer::get_rotation_degrees() const {
 
 	return Math::rad2deg(get_rotation());
-}
-
-// Kept for compatibility after rename to {s,g}et_rotationd.
-// Could be removed after a couple releases.
-void CanvasLayer::_set_rotationd(real_t p_degrees) {
-
-	WARN_PRINT("Deprecated method CanvasLayer._set_rotationd(): This method was renamed to set_rotationd. Please adapt your code accordingly, as the old method will be obsoleted.");
-	set_rotationd(p_degrees);
-}
-
-real_t CanvasLayer::_get_rotationd() const {
-
-	WARN_PRINT("Deprecated method CanvasLayer._get_rotationd(): This method was renamed to get_rotationd. Please adapt your code accordingly, as the old method will be obsoleted.");
-	return get_rotationd();
 }
 
 void CanvasLayer::set_scale(const Vector2 &p_scale) {
@@ -252,12 +238,8 @@ void CanvasLayer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_rotation", "radians"), &CanvasLayer::set_rotation);
 	ClassDB::bind_method(D_METHOD("get_rotation"), &CanvasLayer::get_rotation);
 
-	ClassDB::bind_method(D_METHOD("set_rotationd", "degrees"), &CanvasLayer::set_rotationd);
-	ClassDB::bind_method(D_METHOD("get_rotationd"), &CanvasLayer::get_rotationd);
-
-	// TODO: Obsolete those two methods (old name) properly (GH-4397)
-	ClassDB::bind_method(D_METHOD("_set_rotationd", "degrees"), &CanvasLayer::_set_rotationd);
-	ClassDB::bind_method(D_METHOD("_get_rotationd"), &CanvasLayer::_get_rotationd);
+	ClassDB::bind_method(D_METHOD("set_rotation_degrees", "degrees"), &CanvasLayer::set_rotation_degrees);
+	ClassDB::bind_method(D_METHOD("get_rotation_degrees"), &CanvasLayer::get_rotation_degrees);
 
 	ClassDB::bind_method(D_METHOD("set_scale", "scale"), &CanvasLayer::set_scale);
 	ClassDB::bind_method(D_METHOD("get_scale"), &CanvasLayer::get_scale);
@@ -271,7 +253,7 @@ void CanvasLayer::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "layer", PROPERTY_HINT_RANGE, "-128,128,1"), "set_layer", "get_layer");
 	//ADD_PROPERTY( PropertyInfo(Variant::MATRIX32,"transform",PROPERTY_HINT_RANGE),"set_transform","get_transform") ;
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "offset"), "set_offset", "get_offset");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "rotation"), "set_rotationd", "get_rotationd");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "rotation"), "set_rotation_degrees", "get_rotation_degrees");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "scale"), "set_scale", "get_scale");
 }
 

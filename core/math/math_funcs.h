@@ -39,6 +39,7 @@
 #include <math.h>
 
 #define Math_PI 3.14159265358979323846
+#define Math_TAU 6.28318530717958647692
 #define Math_SQRT12 0.7071067811865475244008443621048490
 #define Math_LN2 0.693147180559945309417
 #define Math_INF INFINITY
@@ -271,7 +272,7 @@ public:
 
 #elif defined(_MSC_VER) && _MSC_VER < 1800
 		__asm fld a __asm fistp b
-		/*#elif defined( __GNUC__ ) && ( defined( __i386__ ) || defined( __x86_64__ ) )
+/*#elif defined( __GNUC__ ) && ( defined( __i386__ ) || defined( __x86_64__ ) )
 		// use AT&T inline assembly style, document that
 		// we use memory as output (=m) and input (m)
 		__asm__ __volatile__ (

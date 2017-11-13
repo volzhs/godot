@@ -337,6 +337,11 @@ void GDScriptLanguage::get_public_constants(List<Pair<String, Variant> > *p_cons
 	pi.second = Math_PI;
 	p_constants->push_back(pi);
 
+	Pair<String, Variant> tau;
+	tau.first = "TAU";
+	tau.second = Math_TAU;
+	p_constants->push_back(tau);
+
 	Pair<String, Variant> infinity;
 	infinity.first = "INF";
 	infinity.second = Math_INF;
@@ -1060,7 +1065,7 @@ static bool _guess_identifier_type_in_block(GDCompletionContext &context, int p_
 	}
 
 	//use the last assignment, (then backwards?)
-	if (last_assign) {
+	if (last_assign && last_assign_line != p_line) {
 
 		return _guess_expression_type(context, last_assign, last_assign_line, r_type);
 	}
@@ -1194,6 +1199,8 @@ static bool _guess_identifier_type(GDCompletionContext &context, int p_line, con
 					r_type = _get_type_from_pinfo(context._class->variables[i]._export);
 					return true;
 				} else if (context._class->variables[i].expression) {
+					if (p_line <= context._class->variables[i].line)
+						return false;
 
 					bool rtype = _guess_expression_type(context, context._class->variables[i].expression, context._class->variables[i].line, r_type);
 					if (rtype && r_type.type != Variant::NIL)
@@ -2769,31 +2776,31 @@ Error GDScriptLanguage::lookup_code(const String &p_code, const String &p_symbol
 				}
 
 				//global
-				for (Map<StringName, int>::Element *E = GDScriptLanguage::get_singleton()->get_global_map().front(); E; E = E->next()) {
-					if (E->key() == p_symbol) {
-
-						Variant value = GDScriptLanguage::get_singleton()->get_global_array()[E->get()];
-						if (value.get_type() == Variant::OBJECT) {
-							Object *obj = value;
-							if (obj) {
-
-								if (Object::cast_to<GDNativeClass>(obj)) {
-									r_result.type = ScriptLanguage::LookupResult::RESULT_CLASS;
-									r_result.class_name = Object::cast_to<GDNativeClass>(obj)->get_name();
-
-								} else {
-									r_result.type = ScriptLanguage::LookupResult::RESULT_CLASS;
-									r_result.class_name = obj->get_class();
-								}
-								return OK;
+				Map<StringName, int> classes = GDScriptLanguage::get_singleton()->get_global_map();
+				if (classes.has(p_symbol)) {
+					Variant value = GDScriptLanguage::get_singleton()->get_global_array()[classes[p_symbol]];
+					if (value.get_type() == Variant::OBJECT) {
+						Object *obj = value;
+						if (obj) {
+							if (Object::cast_to<GDNativeClass>(obj)) {
+								r_result.type = ScriptLanguage::LookupResult::RESULT_CLASS;
+								r_result.class_name = Object::cast_to<GDNativeClass>(obj)->get_name();
+							} else {
+								r_result.type = ScriptLanguage::LookupResult::RESULT_CLASS;
+								r_result.class_name = obj->get_class();
 							}
-						} else {
 
-							r_result.type = ScriptLanguage::LookupResult::RESULT_CLASS_CONSTANT;
-							r_result.class_name = "@Global Scope";
-							r_result.class_member = p_symbol;
+							// proxy class remove the underscore.
+							if (r_result.class_name.begins_with("_")) {
+								r_result.class_name = r_result.class_name.right(1);
+							}
 							return OK;
 						}
+					} else {
+						r_result.type = ScriptLanguage::LookupResult::RESULT_CLASS_CONSTANT;
+						r_result.class_name = "@Global Scope";
+						r_result.class_member = p_symbol;
+						return OK;
 					}
 				}
 			}

@@ -3668,6 +3668,11 @@ void TextEdit::set_readonly(bool p_readonly) {
 	readonly = p_readonly;
 }
 
+bool TextEdit::is_readonly() const {
+
+	return readonly;
+}
+
 void TextEdit::set_wrap(bool p_wrap) {
 
 	wrap = p_wrap;
@@ -4866,6 +4871,10 @@ void TextEdit::set_context_menu_enabled(bool p_enable) {
 	context_menu_enabled = p_enable;
 }
 
+bool TextEdit::is_context_menu_enabled() {
+	return context_menu_enabled;
+}
+
 PopupMenu *TextEdit::get_menu() const {
 	return menu;
 }
@@ -4910,8 +4919,12 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("cursor_is_block_mode"), &TextEdit::cursor_is_block_mode);
 
 	ClassDB::bind_method(D_METHOD("set_readonly", "enable"), &TextEdit::set_readonly);
+	ClassDB::bind_method(D_METHOD("is_readonly"), &TextEdit::is_readonly);
+
 	ClassDB::bind_method(D_METHOD("set_wrap", "enable"), &TextEdit::set_wrap);
 	ClassDB::bind_method(D_METHOD("set_max_chars", "amount"), &TextEdit::set_max_chars);
+	ClassDB::bind_method(D_METHOD("set_context_menu_enabled", "enable"), &TextEdit::set_context_menu_enabled);
+	ClassDB::bind_method(D_METHOD("is_context_menu_enabled"), &TextEdit::is_context_menu_enabled);
 
 	ClassDB::bind_method(D_METHOD("cut"), &TextEdit::cut);
 	ClassDB::bind_method(D_METHOD("copy"), &TextEdit::copy);
@@ -4958,11 +4971,14 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("menu_option", "option"), &TextEdit::menu_option);
 	ClassDB::bind_method(D_METHOD("get_menu"), &TextEdit::get_menu);
 
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "text", PROPERTY_HINT_MULTILINE_TEXT), "set_text", "get_text");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "readonly"), "set_readonly", "is_readonly");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "highlight_current_line"), "set_highlight_current_line", "is_highlight_current_line_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "syntax_highlighting"), "set_syntax_coloring", "is_syntax_coloring_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "show_line_numbers"), "set_show_line_numbers", "is_show_line_numbers_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "highlight_all_occurrences"), "set_highlight_all_occurrences", "is_highlight_all_occurrences_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "override_selected_font_color"), "set_override_selected_font_color", "is_overriding_selected_font_color");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "context_menu_enabled"), "set_context_menu_enabled", "is_context_menu_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "smooth_scrolling"), "set_smooth_scroll_enable", "is_smooth_scroll_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "v_scroll_speed"), "set_v_scroll_speed", "get_v_scroll_speed");
 

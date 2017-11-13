@@ -294,10 +294,10 @@ private:
 	ProjectSettingsEditor *project_settings;
 	EditorFileDialog *file;
 	ExportTemplateManager *export_template_manager;
-	FileDialog *file_templates;
-	FileDialog *file_export;
-	FileDialog *file_export_lib;
-	FileDialog *file_script;
+	EditorFileDialog *file_templates;
+	EditorFileDialog *file_export;
+	EditorFileDialog *file_export_lib;
+	EditorFileDialog *file_script;
 	CheckButton *file_export_lib_merge;
 	LineEdit *file_export_password;
 	String current_path;
@@ -503,7 +503,7 @@ private:
 	void _mark_unsaved_scenes();
 
 	void _find_node_types(Node *p_node, int &count_2d, int &count_3d);
-	void _save_scene_with_preview(String p_file);
+	void _save_scene_with_preview(String p_file, int p_idx = -1);
 
 	Map<String, Set<String> > dependency_errors;
 
@@ -765,8 +765,7 @@ public:
 	void remove_bottom_panel_item(Control *p_item);
 
 	Variant drag_resource(const Ref<Resource> &p_res, Control *p_from);
-	Variant drag_files(const Vector<String> &p_files, Control *p_from);
-	Variant drag_files_and_dirs(const Vector<String> &p_files, Control *p_from);
+	Variant drag_files_and_dirs(const Vector<String> &p_paths, Control *p_from);
 
 	void add_tool_menu_item(const String &p_name, Object *p_handler, const String &p_callback, const Variant &p_ud = Variant());
 	void add_tool_submenu_item(const String &p_name, PopupMenu *p_submenu);

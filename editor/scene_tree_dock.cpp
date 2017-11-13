@@ -533,10 +533,6 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			if (p_confirm_override) {
 				_delete_confirm();
 
-				// hack, force 2d editor viewport to refresh after deletion
-				if (CanvasItemEditor *editor = CanvasItemEditor::get_singleton())
-					editor->get_viewport_control()->update();
-
 			} else {
 				delete_dialog->set_text(TTR("Delete Node(s)?"));
 				delete_dialog->popup_centered_minsize();
@@ -1300,6 +1296,7 @@ void SceneTreeDock::_delete_confirm() {
 		editor_data->get_undo_redo().add_do_method(editor, "set_edited_scene", (Object *)NULL);
 		editor_data->get_undo_redo().add_undo_method(editor, "set_edited_scene", edited_scene);
 		editor_data->get_undo_redo().add_undo_method(edited_scene, "set_owner", edited_scene->get_owner());
+		editor_data->get_undo_redo().add_undo_method(scene_tree, "update_tree");
 		editor_data->get_undo_redo().add_undo_reference(edited_scene);
 
 	} else {
@@ -1345,6 +1342,12 @@ void SceneTreeDock::_delete_confirm() {
 		}
 	}
 	editor_data->get_undo_redo().commit_action();
+
+	// hack, force 2d editor viewport to refresh after deletion
+	if (CanvasItemEditor *editor = CanvasItemEditor::get_singleton())
+		editor->get_viewport_control()->update();
+
+	editor->push_item(NULL);
 }
 
 void SceneTreeDock::_selection_changed() {

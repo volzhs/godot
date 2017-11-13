@@ -65,12 +65,6 @@ const char *OS_Android::get_video_driver_name(int p_driver) const {
 
 	return "GLES2";
 }
-
-OS::VideoMode OS_Android::get_default_video_mode() const {
-
-	return OS::VideoMode();
-}
-
 int OS_Android::get_audio_driver_count() const {
 
 	return 1;
@@ -494,6 +488,11 @@ void OS_Android::process_touch(int p_what, int p_pointer, const Vector<TouchPos>
 void OS_Android::process_accelerometer(const Vector3 &p_accelerometer) {
 
 	input->set_accelerometer(p_accelerometer);
+}
+
+void OS_Android::process_gravity(const Vector3 &p_gravity) {
+
+	input->set_gravity(p_gravity);
 }
 
 void OS_Android::process_magnetometer(const Vector3 &p_magnetometer) {

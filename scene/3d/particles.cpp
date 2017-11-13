@@ -642,7 +642,7 @@ void ParticlesMaterial::_update_shader() {
 
 		code += "		float angle1 = (rand_from_seed(alt_seed)*2.0-1.0)*spread/180.0*3.1416;\n";
 		code += "		vec3 rot = vec3( cos(angle1), sin(angle1),0.0 );\n";
-		code += "		VELOCITY = (rot*initial_linear_velocity+rot*initial_linear_velocity_random*rand_from_seed(alt_seed));\n";
+		code += "		VELOCITY = rot*initial_linear_velocity*mix(1.0, rand_from_seed(alt_seed), initial_linear_velocity_random);\n";
 
 	} else {
 		//initiate velocity spread in 3D
@@ -650,7 +650,7 @@ void ParticlesMaterial::_update_shader() {
 		code += "		float angle2 = rand_from_seed(alt_seed)*20.0*3.1416; // make it more random like\n";
 		code += "		vec3 rot_xz = vec3( sin(angle1), 0.0, cos(angle1) );\n";
 		code += "		vec3 rot = vec3( cos(angle2)*rot_xz.x,sin(angle2)*rot_xz.x, rot_xz.z);\n";
-		code += "		VELOCITY = (rot*initial_linear_velocity+rot*initial_linear_velocity_random*rand_from_seed(alt_seed));\n";
+		code += "		VELOCITY = rot*initial_linear_velocity*mix(1.0, rand_from_seed(alt_seed), initial_linear_velocity_random);\n";
 	}
 
 	code += "		float base_angle = (initial_angle+tex_angle)*mix(1.0,angle_rand,initial_angle_random);\n";
@@ -761,11 +761,11 @@ void ParticlesMaterial::_update_shader() {
 	code += "		force += length(diff) > 0.0 ? normalize(diff) * (radial_accel+tex_radial_accel)*mix(1.0,rand_from_seed(alt_seed),radial_accel_random) : vec3(0.0);\n";
 	code += "		//apply tangential acceleration;\n";
 	if (flags[FLAG_DISABLE_Z]) {
-		code += "		force += length(diff.yx) > 0.0 ? vec3(normalize(diff.yx * vec2(-1.0,1.0)),0.0) * ((tangent_accel+tex_tangent_accel)*mix(1.0,rand_from_seed(alt_seed),radial_accel_random)) : vec3(0.0);\n";
+		code += "		force += length(diff.yx) > 0.0 ? vec3(normalize(diff.yx * vec2(-1.0,1.0)),0.0) * ((tangent_accel+tex_tangent_accel)*mix(1.0,rand_from_seed(alt_seed),tangent_accel_random)) : vec3(0.0);\n";
 
 	} else {
 		code += "		vec3 crossDiff = cross(normalize(diff),normalize(gravity));\n";
-		code += "		force += length(crossDiff) > 0.0 ? normalize(crossDiff) * ((tangent_accel+tex_tangent_accel)*mix(1.0,rand_from_seed(alt_seed),radial_accel_random)) : vec3(0.0);\n";
+		code += "		force += length(crossDiff) > 0.0 ? normalize(crossDiff) * ((tangent_accel+tex_tangent_accel)*mix(1.0,rand_from_seed(alt_seed),tangent_accel_random)) : vec3(0.0);\n";
 	}
 	code += "		//apply attractor forces\n";
 	code += "		VELOCITY += force * DELTA;\n";

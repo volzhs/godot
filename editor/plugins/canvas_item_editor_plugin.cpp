@@ -3623,7 +3623,7 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 					if (key_pos)
 						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(n2d, "position", n2d->get_position(), existing);
 					if (key_rot)
-						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(n2d, "rotation_deg", Math::rad2deg(n2d->get_rotation()), existing);
+						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(n2d, "rotation_degrees", Math::rad2deg(n2d->get_rotation()), existing);
 					if (key_scale)
 						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(n2d, "scale", n2d->get_scale(), existing);
 
@@ -3654,7 +3654,7 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 								if (key_pos)
 									AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(F->get(), "position", F->get()->get_position(), existing);
 								if (key_rot)
-									AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(F->get(), "rotation_deg", Math::rad2deg(F->get()->get_rotation()), existing);
+									AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(F->get(), "rotation_degrees", Math::rad2deg(F->get()->get_rotation()), existing);
 								if (key_scale)
 									AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(F->get(), "scale", F->get()->get_scale(), existing);
 							}
@@ -3668,7 +3668,7 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 					if (key_pos)
 						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(ctrl, "rect_position", ctrl->get_position(), existing);
 					if (key_rot)
-						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(ctrl, "rect_rotation", ctrl->get_rotation_deg(), existing);
+						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(ctrl, "rect_rotation", ctrl->get_rotation_degrees(), existing);
 					if (key_scale)
 						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(ctrl, "rect_size", ctrl->get_size(), existing);
 				}
@@ -4373,11 +4373,11 @@ void CanvasItemEditorViewport::_on_mouse_exit() {
 void CanvasItemEditorViewport::_on_select_type(Object *selected) {
 	CheckBox *check = Object::cast_to<CheckBox>(selected);
 	String type = check->get_text();
-	selector_label->set_text(vformat(TTR("Add %s"), type));
+	selector->set_title(vformat(TTR("Add %s"), type));
 	label->set_text(vformat(TTR("Adding %s..."), type));
 }
 
-void CanvasItemEditorViewport::_on_change_type() {
+void CanvasItemEditorViewport::_on_change_type_confirmed() {
 	if (!button_group->get_pressed_button())
 		return;
 
@@ -4385,6 +4385,11 @@ void CanvasItemEditorViewport::_on_change_type() {
 	default_type = check->get_text();
 	_perform_drop_data();
 	selector->hide();
+}
+
+void CanvasItemEditorViewport::_on_change_type_closed() {
+
+	_remove_preview();
 }
 
 void CanvasItemEditorViewport::_create_preview(const Vector<String> &files) const {
@@ -4698,7 +4703,7 @@ void CanvasItemEditorViewport::drop_data(const Point2 &p_point, const Variant &p
 			CheckBox *check = Object::cast_to<CheckBox>(btn_list[i]);
 			check->set_pressed(check->get_text() == default_type);
 		}
-		selector_label->set_text(vformat(TTR("Add %s"), default_type));
+		selector->set_title(vformat(TTR("Add %s"), default_type));
 		selector->popup_centered_minsize();
 	} else {
 		_perform_drop_data();
@@ -4721,7 +4726,8 @@ void CanvasItemEditorViewport::_notification(int p_what) {
 
 void CanvasItemEditorViewport::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_on_select_type"), &CanvasItemEditorViewport::_on_select_type);
-	ClassDB::bind_method(D_METHOD("_on_change_type"), &CanvasItemEditorViewport::_on_change_type);
+	ClassDB::bind_method(D_METHOD("_on_change_type_confirmed"), &CanvasItemEditorViewport::_on_change_type_confirmed);
+	ClassDB::bind_method(D_METHOD("_on_change_type_closed"), &CanvasItemEditorViewport::_on_change_type_closed);
 	ClassDB::bind_method(D_METHOD("_on_mouse_exit"), &CanvasItemEditorViewport::_on_mouse_exit);
 }
 
@@ -4749,19 +4755,14 @@ CanvasItemEditorViewport::CanvasItemEditorViewport(EditorNode *p_node, CanvasIte
 	selector = memnew(AcceptDialog);
 	editor->get_gui_base()->add_child(selector);
 	selector->set_title(TTR("Change default type"));
-	selector->connect("confirmed", this, "_on_change_type");
+	selector->connect("confirmed", this, "_on_change_type_confirmed");
+	selector->connect("popup_hide", this, "_on_change_type_closed");
 
 	VBoxContainer *vbc = memnew(VBoxContainer);
 	selector->add_child(vbc);
 	vbc->set_h_size_flags(SIZE_EXPAND_FILL);
 	vbc->set_v_size_flags(SIZE_EXPAND_FILL);
 	vbc->set_custom_minimum_size(Size2(200, 260) * EDSCALE);
-
-	selector_label = memnew(Label);
-	vbc->add_child(selector_label);
-	selector_label->set_align(Label::ALIGN_CENTER);
-	selector_label->set_valign(Label::VALIGN_BOTTOM);
-	selector_label->set_custom_minimum_size(Size2(0, 30) * EDSCALE);
 
 	btn_group = memnew(VBoxContainer);
 	vbc->add_child(btn_group);

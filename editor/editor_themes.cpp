@@ -568,6 +568,11 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	theme->set_constant("modulate_arrow", "OptionButton", true);
 
 	// CheckButton
+	theme->set_stylebox("normal", "CheckButton", style_menu);
+	theme->set_stylebox("pressed", "CheckButton", style_menu);
+	theme->set_stylebox("disabled", "CheckButton", style_menu);
+	theme->set_stylebox("hover", "CheckButton", style_menu);
+
 	theme->set_icon("on", "CheckButton", theme->get_icon("GuiToggleOn", "EditorIcons"));
 	theme->set_icon("off", "CheckButton", theme->get_icon("GuiToggleOff", "EditorIcons"));
 
@@ -577,7 +582,22 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	theme->set_color("font_color_disabled", "CheckButton", font_color_disabled);
 	theme->set_color("icon_color_hover", "CheckButton", font_color_hl);
 
+	theme->set_constant("hseparation", "CheckButton", 4 * EDSCALE);
+	theme->set_constant("check_vadjust", "CheckButton", 0 * EDSCALE);
+
 	// Checkbox
+	Ref<StyleBoxFlat> sb_checkbox = style_menu->duplicate();
+	// HACK, in reality, the checkbox draws the text over the icon by default, so the margin compensates that.
+	const int cb_w = theme->get_icon("GuiChecked", "EditorIcons")->get_width() + default_margin_size;
+	sb_checkbox->set_default_margin(MARGIN_LEFT, cb_w * EDSCALE);
+	sb_checkbox->set_default_margin(MARGIN_RIGHT, default_margin_size * EDSCALE);
+	sb_checkbox->set_default_margin(MARGIN_TOP, default_margin_size * EDSCALE);
+	sb_checkbox->set_default_margin(MARGIN_BOTTOM, default_margin_size * EDSCALE);
+
+	theme->set_stylebox("normal", "CheckBox", sb_checkbox);
+	theme->set_stylebox("pressed", "CheckBox", sb_checkbox);
+	theme->set_stylebox("disabled", "CheckBox", sb_checkbox);
+	theme->set_stylebox("hover", "CheckBox", sb_checkbox);
 	theme->set_icon("checked", "CheckBox", theme->get_icon("GuiChecked", "EditorIcons"));
 	theme->set_icon("unchecked", "CheckBox", theme->get_icon("GuiUnchecked", "EditorIcons"));
 	theme->set_icon("radio_checked", "CheckBox", theme->get_icon("GuiRadioChecked", "EditorIcons"));
@@ -588,6 +608,9 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	theme->set_color("font_color_pressed", "CheckBox", accent_color);
 	theme->set_color("font_color_disabled", "CheckBox", font_color_disabled);
 	theme->set_color("icon_color_hover", "CheckBox", font_color_hl);
+
+	theme->set_constant("hseparation", "CheckBox", 4 * EDSCALE);
+	theme->set_constant("check_vadjust", "CheckBox", 0 * EDSCALE);
 
 	// PopupMenu
 	Ref<StyleBoxFlat> style_popup_menu = style_popup;
@@ -801,6 +824,7 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	theme->set_constant("close_h_ofs", "WindowDialog", 22 * EDSCALE);
 	theme->set_constant("close_v_ofs", "WindowDialog", 20 * EDSCALE);
 	theme->set_constant("title_height", "WindowDialog", 24 * EDSCALE);
+	theme->set_font("title_font", "WindowDialog", theme->get_font("title", "EditorFonts"));
 
 	// complex window, for now only Editor settings and Project settings
 	Ref<StyleBoxFlat> style_complex_window = style_window->duplicate();
@@ -1043,12 +1067,14 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	return theme;
 }
 
-Ref<Theme> create_custom_theme() {
+Ref<Theme> create_custom_theme(const Ref<Theme> p_theme) {
 	Ref<Theme> theme;
 
 	String custom_theme = EditorSettings::get_singleton()->get("interface/theme/custom_theme");
 	if (custom_theme != "") {
 		theme = ResourceLoader::load(custom_theme);
+	} else {
+		theme = create_editor_theme(p_theme);
 	}
 
 	String global_font = EditorSettings::get_singleton()->get("interface/editor/custom_font");
