@@ -2,7 +2,7 @@ import os
 import sys
 import string
 import platform
-
+from distutils.version import LooseVersion
 
 def is_active():
     return True
@@ -157,11 +157,22 @@ def configure(env):
     else:
         env['ARCH'] = 'arch-arm'
 
-    sysroot = env["ANDROID_NDK_ROOT"] + \
-        "/platforms/" + ndk_platform + "/" + env['ARCH']
     common_opts = ['-fno-integrated-as', '-gcc-toolchain', gcc_toolchain_path]
 
-    env.Append(CPPFLAGS=["-isystem", sysroot + "/usr/include"])
+    lib_sysroot = env["ANDROID_NDK_ROOT"] + "/platforms/" + ndk_platform + "/" + env['ARCH']
+
+    ndk_version = get_ndk_version(env["ANDROID_NDK_ROOT"])
+    if ndk_version != None and LooseVersion(ndk_version) >= LooseVersion("15.0.4075724"):
+        print("Using NDK unified headers")
+        sysroot = env["ANDROID_NDK_ROOT"] + "/sysroot"
+        env.Append(CPPFLAGS=["-isystem", sysroot + "/usr/include"])
+        env.Append(CPPFLAGS=["-isystem", sysroot + "/usr/include/" + abi_subpath])
+        # For unified headers this define has to be set manually
+        env.Append(CPPFLAGS=["-D__ANDROID_API__=" + str(int(ndk_platform.split("-")[1]))])
+    else:
+        print("Using NDK deprecated headers")
+        env.Append(CPPFLAGS=["-isystem", lib_sysroot + "/usr/include"])
+
     env.Append(CPPFLAGS='-fpic -ffunction-sections -funwind-tables -fstack-protector-strong -fvisibility=hidden -fno-strict-aliasing'.split())
     env.Append(CPPFLAGS='-DNO_STATVFS -DGLES2_ENABLED'.split())
 
@@ -196,8 +207,7 @@ def configure(env):
     if (sys.platform.startswith("darwin")):
         env['SHLIBSUFFIX'] = '.so'
 
-    env['LINKFLAGS'] = ['-shared', '--sysroot=' +
-                        sysroot, '-Wl,--warn-shared-textrel']
+    env['LINKFLAGS'] = ['-shared', '--sysroot=' + lib_sysroot, '-Wl,--warn-shared-textrel']
     env.Append(LINKFLAGS='-Wl,--fix-cortex-a8'.split())
     env.Append(LINKFLAGS='-Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now'.split())
     env.Append(LINKFLAGS='-Wl,-soname,libgodot_android.so -Wl,--gc-sections'.split())
@@ -253,3 +263,18 @@ def configure(env):
         action=methods.build_gles2_headers, suffix='glsl.gen.h', src_suffix='.glsl')})
 
     env.use_windows_spawn_fix()
+
+# Return NDK version string in source.properties (adapted from the Chromium project).
+def get_ndk_version(path):
+    if path == None:
+        return None
+    prop_file_path = os.path.join(path, "source.properties")
+    try:
+        with open(prop_file_path) as prop_file:
+            for line in prop_file:
+                key_value = map(lambda x: string.strip(x), line.split("="))
+                if key_value[0] == "Pkg.Revision":
+                    return key_value[1]
+    except:
+        print("Could not read source prop file '%s'" % prop_file_path)
+    return None
