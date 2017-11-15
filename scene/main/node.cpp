@@ -2067,7 +2067,7 @@ int Node::get_position_in_parent() const {
 	return data.pos;
 }
 
-Node *Node::_duplicate(int p_flags) const {
+Node *Node::duplicate(int p_flags) const {
 
 	Node *node = NULL;
 
@@ -2168,17 +2168,6 @@ Node *Node::_duplicate(int p_flags) const {
 	}
 
 	return node;
-}
-
-Node *Node::duplicate(int p_flags) const {
-
-	Node *dupe = _duplicate(p_flags);
-
-	if (dupe && (p_flags & DUPLICATE_SIGNALS)) {
-		_duplicate_signals(this, dupe);
-	}
-
-	return dupe;
 }
 
 void Node::_duplicate_and_reown(Node *p_new_parent, const Map<Node *, Node *> &p_reown_map) const {
@@ -2422,7 +2411,9 @@ void Node::_replace_connections_target(Node *p_new_target) {
 
 		if (c.flags & CONNECT_PERSIST) {
 			c.source->disconnect(c.signal, this, c.method);
-			ERR_CONTINUE(!p_new_target->has_method(c.method));
+			bool valid = p_new_target->has_method(c.method) || p_new_target->get_script().is_null() || Ref<Script>(p_new_target->get_script())->has_method(c.method);
+			ERR_EXPLAIN("Attempt to connect signal \'" + c.source->get_class() + "." + c.signal + "\' to nonexistent method \'" + c.target->get_class() + "." + c.method + "\'");
+			ERR_CONTINUE(!valid);
 			c.source->connect(c.signal, p_new_target, c.method, c.binds, c.flags);
 		}
 	}
