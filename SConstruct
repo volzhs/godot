@@ -270,9 +270,12 @@ if selected_platform in platform_list:
                 if len(pieces) > 0:
                     basename = pieces[0]
                     basename = basename.replace('\\\\', '/')
-                    env.vs_srcs = env.vs_srcs + [basename + ".cpp"]
-                    env.vs_incs = env.vs_incs + [basename + ".h"]
-                    # print basename
+                    if os.path.isfile(basename + ".h"):
+                        env.vs_incs = env.vs_incs + [basename + ".h"]
+                    if os.path.isfile(basename + ".c"):
+                        env.vs_srcs = env.vs_srcs + [basename + ".c"]
+                    elif os.path.isfile(basename + ".cpp"):
+                        env.vs_srcs = env.vs_srcs + [basename + ".cpp"]
         env.AddToVSProject = AddToVSProject
 
     env.extra_suffix = ""
@@ -366,7 +369,7 @@ if selected_platform in platform_list:
     sys.modules.pop('detect')
 
     env.module_list = []
-    env.doc_class_path={}
+    env.doc_class_path = {}
 
     for x in module_list:
         if not env['module_' + x + '_enabled']:
@@ -382,10 +385,9 @@ if selected_platform in platform_list:
                  doc_classes = config.get_doc_classes()
                  doc_path = config.get_doc_path()
                  for c in doc_classes:
-                     env.doc_class_path[c]="modules/"+x+"/"+doc_path
+                     env.doc_class_path[c] = "modules/" + x + "/" + doc_path
             except:
                 pass
-
 
         sys.path.remove(tmppath)
         sys.modules.pop('config')
