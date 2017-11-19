@@ -4276,12 +4276,19 @@ Variant EditorNode::drag_files_and_dirs(const Vector<String> &p_paths, Control *
 
 void EditorNode::_dropped_files(const Vector<String> &p_files, int p_screen) {
 
-	/*
-	String cur_path = filesystem_dock->get_current_path();
-	for(int i=0;i<EditorImportExport::get_singleton()->get_import_plugin_count();i++) {
-		EditorImportExport::get_singleton()->get_import_plugin(i)->import_from_drop(p_files,cur_path);
+	String to_path = ProjectSettings::get_singleton()->globalize_path(get_filesystem_dock()->get_current_path());
+	DirAccessRef dir = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
+
+	for (int i = 0; i < p_files.size(); i++) {
+
+		String from = p_files[i];
+		if (!ResourceFormatImporter::get_singleton()->can_be_imported(from)) {
+			continue;
+		}
+		String to = to_path.plus_file(from.get_file());
+		dir->copy(from, to);
 	}
-	*/
+	EditorFileSystem::get_singleton()->scan_changes();
 }
 
 void EditorNode::_file_access_close_error_notify(const String &p_str) {
@@ -4550,6 +4557,11 @@ void EditorNode::_bind_methods() {
 static Node *_resource_get_edited_scene() {
 
 	return EditorNode::get_singleton()->get_edited_scene();
+}
+
+void EditorNode::_print_handler(void *p_this, const String &p_string, bool p_error) {
+	EditorNode *en = (EditorNode *)p_this;
+	en->log->add_message(p_string, p_error);
 }
 
 EditorNode::EditorNode() {
@@ -5652,6 +5664,10 @@ EditorNode::EditorNode() {
 	_dim_timer->connect("timeout", this, "_dim_timeout");
 	add_child(_dim_timer);
 
+	print_handler.printfunc = _print_handler;
+	print_handler.userdata = this;
+	add_print_handler(&print_handler);
+
 	ED_SHORTCUT("editor/editor_2d", TTR("Open 2D Editor"), KEY_F1);
 	ED_SHORTCUT("editor/editor_3d", TTR("Open 3D Editor"), KEY_F2);
 	ED_SHORTCUT("editor/editor_script", TTR("Open Script Editor"), KEY_F3); //hack neded for script editor F3 search to work :) Assign like this or don't use F3
@@ -5663,6 +5679,7 @@ EditorNode::EditorNode() {
 
 EditorNode::~EditorNode() {
 
+	remove_print_handler(&print_handler);
 	memdelete(EditorHelp::get_doc_data());
 	memdelete(editor_selection);
 	memdelete(editor_plugins_over);
