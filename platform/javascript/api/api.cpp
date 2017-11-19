@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  sprite.h                                                             */
+/*  api.cpp                                                              */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -27,83 +27,47 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef SPRITE_H
-#define SPRITE_H
+#include "api.h"
+#include "engine.h"
+#include "javascript_eval.h"
 
-#include "scene/2d/node_2d.h"
-#include "scene/resources/texture.h"
+static JavaScript *javascript_eval;
 
-class Sprite : public Node2D {
+void register_javascript_api() {
 
-	GDCLASS(Sprite, Node2D);
+	ClassDB::register_virtual_class<JavaScript>();
+	javascript_eval = memnew(JavaScript);
+	Engine::get_singleton()->add_singleton(Engine::Singleton("JavaScript", javascript_eval));
+}
 
-	Ref<Texture> texture;
-	Ref<Texture> normal_map;
+void unregister_javascript_api() {
 
-	bool centered;
-	Point2 offset;
+	memdelete(javascript_eval);
+}
 
-	bool hflip;
-	bool vflip;
-	bool region;
-	Rect2 region_rect;
-	bool region_filter_clip;
+JavaScript *JavaScript::singleton = NULL;
 
-	int frame;
+JavaScript *JavaScript::get_singleton() {
 
-	int vframes;
-	int hframes;
+	return singleton;
+}
 
-protected:
-	void _notification(int p_what);
+JavaScript::JavaScript() {
 
-	static void _bind_methods();
+	ERR_FAIL_COND(singleton != NULL);
+	singleton = this;
+}
 
-	virtual void _validate_property(PropertyInfo &property) const;
+JavaScript::~JavaScript() {}
 
-public:
-	virtual void _edit_set_pivot(const Point2 &p_pivot);
-	virtual Point2 _edit_get_pivot() const;
-	virtual bool _edit_use_pivot() const;
-	virtual Rect2 _edit_get_rect() const;
+void JavaScript::_bind_methods() {
 
-	void set_texture(const Ref<Texture> &p_texture);
-	Ref<Texture> get_texture() const;
+	ClassDB::bind_method(D_METHOD("eval", "code", "use_global_execution_context"), &JavaScript::eval, DEFVAL(false));
+}
 
-	void set_normal_map(const Ref<Texture> &p_texture);
-	Ref<Texture> get_normal_map() const;
+#if !defined(JAVASCRIPT_ENABLED) || !defined(JAVASCRIPT_EVAL_ENABLED)
+Variant JavaScript::eval(const String &p_code, bool p_use_global_exec_context) {
 
-	void set_centered(bool p_center);
-	bool is_centered() const;
-
-	void set_offset(const Point2 &p_offset);
-	Point2 get_offset() const;
-
-	void set_flip_h(bool p_flip);
-	bool is_flipped_h() const;
-
-	void set_flip_v(bool p_flip);
-	bool is_flipped_v() const;
-
-	void set_region(bool p_region);
-	bool is_region() const;
-
-	void set_region_filter_clip(bool p_enable);
-	bool is_region_filter_clip_enabled() const;
-
-	void set_region_rect(const Rect2 &p_region_rect);
-	Rect2 get_region_rect() const;
-
-	void set_frame(int p_frame);
-	int get_frame() const;
-
-	void set_vframes(int p_amount);
-	int get_vframes() const;
-
-	void set_hframes(int p_amount);
-	int get_hframes() const;
-
-	Sprite();
-};
-
-#endif // SPRITE_H
+	return Variant();
+}
+#endif

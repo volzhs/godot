@@ -3273,7 +3273,7 @@ void EditorNode::register_editor_types() {
 	ClassDB::register_class<EditorResourceConversionPlugin>();
 
 	// FIXME: Is this stuff obsolete, or should it be ported to new APIs?
-	//ClassDB::register_class<EditorScenePostImport>();
+	ClassDB::register_class<EditorScenePostImport>();
 	//ClassDB::register_type<EditorImportExport>();
 }
 
@@ -4800,7 +4800,12 @@ EditorNode::EditorNode() {
 	dock_tab_move_left->set_focus_mode(Control::FOCUS_NONE);
 	dock_tab_move_left->connect("pressed", this, "_dock_move_left");
 	dock_hb->add_child(dock_tab_move_left);
-	dock_hb->add_spacer();
+
+	Label *dock_label = memnew(Label);
+	dock_label->set_text(TTR("Dock Position"));
+	dock_label->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	dock_hb->add_child(dock_label);
+
 	dock_tab_move_right = memnew(ToolButton);
 	dock_tab_move_right->set_icon(theme->get_icon("Forward", "EditorIcons"));
 	dock_tab_move_right->set_focus_mode(Control::FOCUS_NONE);
