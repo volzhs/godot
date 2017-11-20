@@ -945,16 +945,17 @@ public:
 public:
 	virtual void get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features) {
 
-		int api = p_preset->get("graphics/api");
+		// Reenable when a GLES 2.0 backend is readded
+		/*int api = p_preset->get("graphics/api");
 		if (api == 0)
 			r_features->push_back("etc");
-		else
-			r_features->push_back("etc2");
+		else*/
+		r_features->push_back("etc2");
 	}
 
 	virtual void get_export_options(List<ExportOption> *r_options) {
 
-		r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "graphics/api", PROPERTY_HINT_ENUM, "OpenGL ES 2.0,OpenGL ES 3.0"), 1));
+		/*r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "graphics/api", PROPERTY_HINT_ENUM, "OpenGL ES 2.0,OpenGL ES 3.0"), 1));*/
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "graphics/32_bits_framebuffer"), true));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "one_click_deploy/clear_previous_install"), true));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_package/debug", PROPERTY_HINT_GLOBAL_FILE, "apk"), ""));
@@ -1066,7 +1067,7 @@ public:
 		if (use_reverse)
 			p_debug_flags |= DEBUG_FLAG_REMOTE_DEBUG_LOCALHOST;
 
-		String export_to = EditorSettings::get_singleton()->get_settings_path() + "/tmp/tmpexport.apk";
+		String export_to = EditorSettings::get_singleton()->get_cache_dir().plus_file("tmpexport.apk");
 		Error err = export_project(p_preset, true, export_to, p_debug_flags);
 		if (err) {
 			device_lock->unlock();
@@ -1291,7 +1292,7 @@ public:
 		zlib_filefunc_def io2 = io;
 		FileAccess *dst_f = NULL;
 		io2.opaque = &dst_f;
-		String unaligned_path = EditorSettings::get_singleton()->get_settings_path() + "/tmp/tmpexport-unaligned.apk";
+		String unaligned_path = EditorSettings::get_singleton()->get_cache_dir().plus_file("tmpexport-unaligned.apk");
 		zipFile unaligned_apk = zipOpen2(unaligned_path.utf8().get_data(), APPEND_STATUS_CREATE, NULL, &io2);
 
 		bool export_x86 = p_preset->get("architecture/x86");

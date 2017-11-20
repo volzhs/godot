@@ -88,6 +88,7 @@ class SpatialEditorViewport : public Control {
 		VIEW_AUDIO_DOPPLER,
 		VIEW_GIZMOS,
 		VIEW_INFORMATION,
+		VIEW_FPS,
 		VIEW_DISPLAY_NORMAL,
 		VIEW_DISPLAY_WIREFRAME,
 		VIEW_DISPLAY_OVERDRAW,
@@ -137,6 +138,9 @@ private:
 
 	PanelContainer *info;
 	Label *info_label;
+
+	PanelContainer *fps;
+	Label *fps_label;
 
 	struct _RayResult {
 
@@ -255,7 +259,7 @@ private:
 
 	real_t zoom_indicator_delay;
 
-	RID move_gizmo_instance[3], move_plane_gizmo_instance[3], rotate_gizmo_instance[3], scale_gizmo_instance[3];
+	RID move_gizmo_instance[3], move_plane_gizmo_instance[3], rotate_gizmo_instance[3], scale_gizmo_instance[3], scale_plane_gizmo_instance[3];
 
 	String last_message;
 	String message;
@@ -418,7 +422,7 @@ private:
 	bool grid_enable[3]; //should be always visible if true
 	bool grid_enabled;
 
-	Ref<ArrayMesh> move_gizmo[3], move_plane_gizmo[3], rotate_gizmo[3], scale_gizmo[3];
+	Ref<ArrayMesh> move_gizmo[3], move_plane_gizmo[3], rotate_gizmo[3], scale_gizmo[3], scale_plane_gizmo[3];
 	Ref<SpatialMaterial> gizmo_color[3];
 	Ref<SpatialMaterial> plane_gizmo_color[3];
 	Ref<SpatialMaterial> gizmo_hl;
@@ -571,6 +575,7 @@ public:
 	Ref<ArrayMesh> get_move_plane_gizmo(int idx) const { return move_plane_gizmo[idx]; }
 	Ref<ArrayMesh> get_rotate_gizmo(int idx) const { return rotate_gizmo[idx]; }
 	Ref<ArrayMesh> get_scale_gizmo(int idx) const { return scale_gizmo[idx]; }
+	Ref<ArrayMesh> get_scale_plane_gizmo(int idx) const { return scale_plane_gizmo[idx]; }
 
 	void update_transform_gizmo();
 

@@ -36,6 +36,7 @@
 #include "print_string.h"
 #include "sem_osx.h"
 #include "servers/visual/visual_server_raster.h"
+#include "version_generated.gen.h"
 
 #include <Carbon/Carbon.h>
 #import <Cocoa/Cocoa.h>
@@ -896,7 +897,7 @@ int OS_OSX::get_video_driver_count() const {
 
 const char *OS_OSX::get_video_driver_name(int p_driver) const {
 
-	return "GLES2";
+	return "GLES3";
 }
 
 void OS_OSX::initialize_core() {
@@ -1066,8 +1067,6 @@ void OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_au
 		zoomed = true;
 
 	/*** END OSX INITIALIZATION ***/
-	/*** END OSX INITIALIZATION ***/
-	/*** END OSX INITIALIZATION ***/
 
 	bool use_gl2 = p_video_driver != 1;
 
@@ -1077,16 +1076,12 @@ void OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_au
 	RasterizerGLES3::register_config();
 	RasterizerGLES3::make_current();
 
-	//rasterizer = instance_RasterizerGLES2();
-	//visual_server = memnew( VisualServerRaster(rasterizer) );
-
 	visual_server = memnew(VisualServerRaster);
 	if (get_render_thread_mode() != RENDER_THREAD_UNSAFE) {
 
 		visual_server = memnew(VisualServerWrapMT(visual_server, get_render_thread_mode() == RENDER_SEPARATE_THREAD));
 	}
 	visual_server->init();
-	//	visual_server->cursor_set_visible(false, 0);
 
 	AudioDriverManager::initialize(p_audio_driver);
 
@@ -1095,7 +1090,7 @@ void OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_au
 
 	power_manager = memnew(power_osx);
 
-	_ensure_data_dir();
+	_ensure_user_data_dir();
 
 	restore_rect = Rect2(get_window_position(), get_window_size());
 }
@@ -1338,6 +1333,43 @@ void OS_OSX::set_icon(const Ref<Image> &p_icon) {
 MainLoop *OS_OSX::get_main_loop() const {
 
 	return main_loop;
+}
+
+String OS_OSX::get_config_path() const {
+
+	if (has_environment("XDG_CONFIG_HOME")) {
+		return get_environment("XDG_CONFIG_HOME");
+	} else if (has_environment("HOME")) {
+		return get_environment("HOME").plus_file("Library/Application Support");
+	} else {
+		return ".";
+	}
+}
+
+String OS_OSX::get_data_path() const {
+
+	if (has_environment("XDG_DATA_HOME")) {
+		return get_environment("XDG_DATA_HOME");
+	} else {
+		return get_config_path();
+	}
+}
+
+String OS_OSX::get_cache_path() const {
+
+	if (has_environment("XDG_CACHE_HOME")) {
+		return get_environment("XDG_CACHE_HOME");
+	} else if (has_environment("HOME")) {
+		return get_environment("HOME").plus_file("Library/Caches");
+	} else {
+		return get_config_path();
+	}
+}
+
+// Get properly capitalized engine name for system paths
+String OS_OSX::get_godot_dir_name() const {
+
+	return String(_MKSTR(VERSION_SHORT_NAME)).capitalize();
 }
 
 String OS_OSX::get_system_dir(SystemDir p_dir) const {

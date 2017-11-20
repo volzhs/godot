@@ -758,17 +758,49 @@ bool SpatialEditorViewport::_gizmo_select(const Vector2 &p_screenpos, bool p_hig
 			}
 		}
 
+		bool is_plane_scale = false;
+		// plane select
+		if (col_axis == -1) {
+			col_d = 1e20;
+
+			for (int i = 0; i < 3; i++) {
+
+				Vector3 ivec2 = gt.basis.get_axis((i + 1) % 3).normalized();
+				Vector3 ivec3 = gt.basis.get_axis((i + 2) % 3).normalized();
+
+				Vector3 grabber_pos = gt.origin + (ivec2 + ivec3) * gs * (GIZMO_PLANE_SIZE + GIZMO_PLANE_DST);
+
+				Vector3 r;
+				Plane plane(gt.origin, gt.basis.get_axis(i).normalized());
+
+				if (plane.intersects_ray(ray_pos, ray, &r)) {
+
+					float dist = r.distance_to(grabber_pos);
+					if (dist < (gs * GIZMO_PLANE_SIZE)) {
+
+						float d = ray_pos.distance_to(r);
+						if (d < col_d) {
+							col_d = d;
+							col_axis = i;
+
+							is_plane_scale = true;
+						}
+					}
+				}
+			}
+		}
+
 		if (col_axis != -1) {
 
 			if (p_highlight_only) {
 
-				spatial_editor->select_gizmo_highlight_axis(col_axis + 9);
+				spatial_editor->select_gizmo_highlight_axis(col_axis + (is_plane_scale ? 12 : 9));
 
 			} else {
 				//handle scale
 				_edit.mode = TRANSFORM_SCALE;
 				_compute_edit(Point2(p_screenpos.x, p_screenpos.y));
-				_edit.plane = TransformPlane(TRANSFORM_X_AXIS + col_axis);
+				_edit.plane = TransformPlane(TRANSFORM_X_AXIS + col_axis + (is_plane_scale ? 3 : 0));
 			}
 			return true;
 		}
@@ -1255,6 +1287,7 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 
 						Vector3 motion_mask;
 						Plane plane;
+						bool plane_mv = false;
 
 						switch (_edit.plane) {
 							case TRANSFORM_VIEW:
@@ -1273,6 +1306,21 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 								motion_mask = spatial_editor->get_gizmo_transform().basis.get_axis(2);
 								plane = Plane(_edit.center, motion_mask.cross(motion_mask.cross(_get_camera_normal())).normalized());
 								break;
+							case TRANSFORM_YZ:
+								motion_mask = spatial_editor->get_gizmo_transform().basis.get_axis(2) + spatial_editor->get_gizmo_transform().basis.get_axis(1);
+								plane = Plane(_edit.center, spatial_editor->get_gizmo_transform().basis.get_axis(0));
+								plane_mv = true;
+								break;
+							case TRANSFORM_XZ:
+								motion_mask = spatial_editor->get_gizmo_transform().basis.get_axis(2) + spatial_editor->get_gizmo_transform().basis.get_axis(0);
+								plane = Plane(_edit.center, spatial_editor->get_gizmo_transform().basis.get_axis(1));
+								plane_mv = true;
+								break;
+							case TRANSFORM_XY:
+								motion_mask = spatial_editor->get_gizmo_transform().basis.get_axis(0) + spatial_editor->get_gizmo_transform().basis.get_axis(1);
+								plane = Plane(_edit.center, spatial_editor->get_gizmo_transform().basis.get_axis(2));
+								plane_mv = true;
+								break;
 						}
 
 						Vector3 intersection;
@@ -1284,8 +1332,19 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 							break;
 
 						Vector3 motion = intersection - click;
-						if (motion_mask != Vector3()) {
-							motion = motion_mask.dot(motion) * motion_mask;
+						if (_edit.plane != TRANSFORM_VIEW) {
+
+							if (!plane_mv) {
+
+								motion = motion_mask.dot(motion) * motion_mask;
+
+							} else {
+
+								// Alternative planar scaling mode
+								if (_get_key_modifier(m) != KEY_SHIFT) {
+									motion = motion_mask.dot(motion) * motion_mask;
+								}
+							}
 
 						} else {
 							float center_click_dist = click.distance_to(_edit.center);
@@ -1379,7 +1438,6 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 
 						switch (_edit.plane) {
 							case TRANSFORM_VIEW:
-								motion_mask = Vector3(0, 0, 0);
 								plane = Plane(_edit.center, _get_camera_normal());
 								break;
 							case TRANSFORM_X_AXIS:
@@ -1417,7 +1475,7 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 							break;
 
 						Vector3 motion = intersection - click;
-						if (motion_mask != Vector3()) {
+						if (_edit.plane != TRANSFORM_VIEW) {
 							if (!plane_mv) {
 								motion = motion_mask.dot(motion) * motion_mask;
 							}
@@ -2099,6 +2157,29 @@ void SpatialEditorViewport::_notification(int p_what) {
 			}
 		}
 
+		// FPS Counter.
+		bool show_fps = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_FPS));
+		if (show_fps != fps->is_visible()) {
+			if (show_fps)
+				fps->show();
+			else
+				fps->hide();
+		}
+
+		if (show_fps) {
+			String text;
+			const float temp_fps = Engine::get_singleton()->get_frames_per_second();
+			text += TTR("FPS") + ": " + itos(temp_fps) + " (" + String::num(1000.0f / temp_fps, 2) + " ms)";
+
+			if (fps_label->get_text() != text || surface->get_size() != prev_size) {
+				fps_label->set_text(text);
+				Size2 ms = fps->get_size();
+				Size2 size = surface->get_size();
+				size.y = ms.y + 20;
+				fps->set_position(size - ms - Vector2(20, 0) * EDSCALE);
+			}
+		}
+
 		prev_size = surface->get_size();
 	}
 
@@ -2109,6 +2190,7 @@ void SpatialEditorViewport::_notification(int p_what) {
 		surface->connect("mouse_entered", this, "_smouseenter");
 		surface->connect("mouse_exited", this, "_smouseexit");
 		info->add_style_override("panel", get_stylebox("panel", "Panel"));
+		fps->add_style_override("panel", get_stylebox("panel", "Panel"));
 		preview_camera->set_icon(get_icon("Camera", "EditorIcons"));
 		_init_gizmo_instance(index);
 	}
@@ -2431,6 +2513,13 @@ void SpatialEditorViewport::_menu_option(int p_option) {
 			view_menu->get_popup()->set_item_checked(idx, !current);
 
 		} break;
+		case VIEW_FPS: {
+
+			int idx = view_menu->get_popup()->get_item_index(VIEW_FPS);
+			bool current = view_menu->get_popup()->is_item_checked(idx);
+			view_menu->get_popup()->set_item_checked(idx, !current);
+
+		} break;
 		case VIEW_DISPLAY_NORMAL: {
 
 			viewport->set_debug_draw(Viewport::DEBUG_DRAW_DISABLED);
@@ -2516,6 +2605,14 @@ void SpatialEditorViewport::_init_gizmo_instance(int p_idx) {
 		//VS::get_singleton()->instance_geometry_set_flag(scale_gizmo_instance[i],VS::INSTANCE_FLAG_DEPH_SCALE,true);
 		VS::get_singleton()->instance_geometry_set_cast_shadows_setting(scale_gizmo_instance[i], VS::SHADOW_CASTING_SETTING_OFF);
 		VS::get_singleton()->instance_set_layer_mask(scale_gizmo_instance[i], layer);
+
+		scale_plane_gizmo_instance[i] = VS::get_singleton()->instance_create();
+		VS::get_singleton()->instance_set_base(scale_plane_gizmo_instance[i], spatial_editor->get_scale_plane_gizmo(i)->get_rid());
+		VS::get_singleton()->instance_set_scenario(scale_plane_gizmo_instance[i], get_tree()->get_root()->get_world()->get_scenario());
+		VS::get_singleton()->instance_set_visible(scale_plane_gizmo_instance[i], false);
+		//VS::get_singleton()->instance_geometry_set_flag(scale_plane_gizmo_instance[i],VS::INSTANCE_FLAG_DEPH_SCALE,true);
+		VS::get_singleton()->instance_geometry_set_cast_shadows_setting(scale_plane_gizmo_instance[i], VS::SHADOW_CASTING_SETTING_OFF);
+		VS::get_singleton()->instance_set_layer_mask(scale_plane_gizmo_instance[i], layer);
 	}
 }
 
@@ -2526,6 +2623,7 @@ void SpatialEditorViewport::_finish_gizmo_instances() {
 		VS::get_singleton()->free(move_plane_gizmo_instance[i]);
 		VS::get_singleton()->free(rotate_gizmo_instance[i]);
 		VS::get_singleton()->free(scale_gizmo_instance[i]);
+		VS::get_singleton()->free(scale_plane_gizmo_instance[i]);
 	}
 }
 void SpatialEditorViewport::_toggle_camera_preview(bool p_activate) {
@@ -2622,6 +2720,8 @@ void SpatialEditorViewport::update_transform_gizmo_view() {
 		VisualServer::get_singleton()->instance_set_visible(rotate_gizmo_instance[i], spatial_editor->is_gizmo_visible() && (spatial_editor->get_tool_mode() == SpatialEditor::TOOL_MODE_SELECT || spatial_editor->get_tool_mode() == SpatialEditor::TOOL_MODE_ROTATE));
 		VisualServer::get_singleton()->instance_set_transform(scale_gizmo_instance[i], xform);
 		VisualServer::get_singleton()->instance_set_visible(scale_gizmo_instance[i], spatial_editor->is_gizmo_visible() && (spatial_editor->get_tool_mode() == SpatialEditor::TOOL_MODE_SCALE));
+		VisualServer::get_singleton()->instance_set_transform(scale_plane_gizmo_instance[i], xform);
+		VisualServer::get_singleton()->instance_set_visible(scale_plane_gizmo_instance[i], spatial_editor->is_gizmo_visible() && (spatial_editor->get_tool_mode() == SpatialEditor::TOOL_MODE_SCALE));
 	}
 }
 
@@ -3149,6 +3249,7 @@ SpatialEditorViewport::SpatialEditorViewport(SpatialEditor *p_spatial_editor, Ed
 	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_environment", TTR("View Environment")), VIEW_ENVIRONMENT);
 	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_gizmos", TTR("View Gizmos")), VIEW_GIZMOS);
 	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_information", TTR("View Information")), VIEW_INFORMATION);
+	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_fps", TTR("View FPS")), VIEW_FPS);
 	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_ENVIRONMENT), true);
 	view_menu->get_popup()->add_separator();
 	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_half_resolution", TTR("Half Resolution")), VIEW_HALF_RESOLUTION);
@@ -3190,6 +3291,14 @@ SpatialEditorViewport::SpatialEditorViewport(SpatialEditor *p_spatial_editor, Ed
 	info_label = memnew(Label);
 	info->add_child(info_label);
 	info->hide();
+
+	// FPS Counter.
+	fps = memnew(PanelContainer);
+	fps->set_self_modulate(Color(1, 1, 1, 0.4));
+	surface->add_child(fps);
+	fps_label = memnew(Label);
+	fps->add_child(fps_label);
+	fps->hide();
 
 	accept = NULL;
 
@@ -3528,6 +3637,7 @@ void SpatialEditor::select_gizmo_highlight_axis(int p_axis) {
 		move_plane_gizmo[i]->surface_set_material(0, (i + 6) == p_axis ? gizmo_hl : plane_gizmo_color[i]);
 		rotate_gizmo[i]->surface_set_material(0, (i + 3) == p_axis ? gizmo_hl : gizmo_color[i]);
 		scale_gizmo[i]->surface_set_material(0, (i + 9) == p_axis ? gizmo_hl : gizmo_color[i]);
+		scale_plane_gizmo[i]->surface_set_material(0, (i + 12) == p_axis ? gizmo_hl : plane_gizmo_color[i]);
 	}
 }
 
@@ -4101,6 +4211,7 @@ void SpatialEditor::_init_indicators() {
 			move_plane_gizmo[i] = Ref<ArrayMesh>(memnew(ArrayMesh));
 			rotate_gizmo[i] = Ref<ArrayMesh>(memnew(ArrayMesh));
 			scale_gizmo[i] = Ref<ArrayMesh>(memnew(ArrayMesh));
+			scale_plane_gizmo[i] = Ref<ArrayMesh>(memnew(ArrayMesh));
 
 			Ref<SpatialMaterial> mat = memnew(SpatialMaterial);
 			mat->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
@@ -4295,6 +4406,49 @@ void SpatialEditor::_init_indicators() {
 
 				surftool->set_material(mat);
 				surftool->commit(scale_gizmo[i]);
+			}
+
+			// Plane Scale
+			{
+				Ref<SurfaceTool> surftool = memnew(SurfaceTool);
+				surftool->begin(Mesh::PRIMITIVE_TRIANGLES);
+
+				Vector3 vec = ivec2 - ivec3;
+				Vector3 plane[4] = {
+					vec * GIZMO_PLANE_DST,
+					vec * GIZMO_PLANE_DST + ivec2 * GIZMO_PLANE_SIZE,
+					vec * (GIZMO_PLANE_DST + GIZMO_PLANE_SIZE),
+					vec * GIZMO_PLANE_DST - ivec3 * GIZMO_PLANE_SIZE
+				};
+
+				Basis ma(ivec, Math_PI / 2);
+
+				Vector3 points[4] = {
+					ma.xform(plane[0]),
+					ma.xform(plane[1]),
+					ma.xform(plane[2]),
+					ma.xform(plane[3]),
+				};
+				surftool->add_vertex(points[0]);
+				surftool->add_vertex(points[1]);
+				surftool->add_vertex(points[2]);
+
+				surftool->add_vertex(points[0]);
+				surftool->add_vertex(points[2]);
+				surftool->add_vertex(points[3]);
+
+				Ref<SpatialMaterial> plane_mat = memnew(SpatialMaterial);
+				plane_mat->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
+				plane_mat->set_on_top_of_alpha();
+				plane_mat->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
+				plane_mat->set_cull_mode(SpatialMaterial::CULL_DISABLED);
+				Color col;
+				col[i] = 1.0;
+				col.a = gizmo_alph;
+				plane_mat->set_albedo(col);
+				plane_gizmo_color[i] = plane_mat; // needed, so we can draw planes from both sides
+				surftool->set_material(plane_mat);
+				surftool->commit(scale_plane_gizmo[i]);
 			}
 		}
 	}

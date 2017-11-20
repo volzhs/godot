@@ -705,7 +705,7 @@ void EditorNode::_get_scene_metadata(const String &p_file) {
 	if (!scene)
 		return;
 
-	String path = EditorSettings::get_singleton()->get_project_settings_path().plus_file(p_file.get_file() + "-editstate-" + p_file.md5_text() + ".cfg");
+	String path = EditorSettings::get_singleton()->get_project_settings_dir().plus_file(p_file.get_file() + "-editstate-" + p_file.md5_text() + ".cfg");
 
 	Ref<ConfigFile> cf;
 	cf.instance();
@@ -739,7 +739,7 @@ void EditorNode::_set_scene_metadata(const String &p_file, int p_idx) {
 	scene->set_meta("__editor_run_settings__", Variant()); //clear it (no point in keeping it)
 	scene->set_meta("__editor_plugin_states__", Variant());
 
-	String path = EditorSettings::get_singleton()->get_project_settings_path().plus_file(p_file.get_file() + "-editstate-" + p_file.md5_text() + ".cfg");
+	String path = EditorSettings::get_singleton()->get_project_settings_dir().plus_file(p_file.get_file() + "-editstate-" + p_file.md5_text() + ".cfg");
 
 	Ref<ConfigFile> cf;
 	cf.instance();
@@ -906,27 +906,33 @@ void EditorNode::_save_scene_with_preview(String p_file, int p_idx) {
 
 		int preview_size = EditorSettings::get_singleton()->get("filesystem/file_dialog/thumbnail_size");
 		preview_size *= EDSCALE;
-		int width, height;
-		if (img->get_width() > preview_size && img->get_width() >= img->get_height()) {
 
-			width = preview_size;
-			height = img->get_height() * preview_size / img->get_width();
-		} else if (img->get_height() > preview_size && img->get_height() >= img->get_width()) {
-
-			height = preview_size;
-			width = img->get_width() * preview_size / img->get_height();
-		} else {
-
-			width = img->get_width();
-			height = img->get_height();
-		}
+		// consider a square region
+		int vp_size = MIN(img->get_width(), img->get_height());
+		int x = (img->get_width() - vp_size) / 2;
+		int y = (img->get_height() - vp_size) / 2;
 
 		img->convert(Image::FORMAT_RGB8);
-		img->resize(width, height);
+
+		if (vp_size < preview_size) {
+			// just square it.
+			img->crop_from_point(x, y, vp_size, vp_size);
+		} else {
+			int ratio = vp_size / preview_size;
+			int size = preview_size * (ratio / 2);
+
+			x = (img->get_width() - size) / 2;
+			y = (img->get_height() - size) / 2;
+
+			img->crop_from_point(x, y, size, size);
+			// We could get better pictures with better filters
+			img->resize(preview_size, preview_size, Image::INTERPOLATE_CUBIC);
+		}
+
 		img->flip_y();
 
 		//save thumbnail directly, as thumbnailer may not update due to actual scene not changing md5
-		String temp_path = EditorSettings::get_singleton()->get_settings_path().plus_file("tmp");
+		String temp_path = EditorSettings::get_singleton()->get_cache_dir();
 		String cache_base = ProjectSettings::get_singleton()->globalize_path(p_file).md5_text();
 		cache_base = temp_path.plus_file("resthumb-" + cache_base);
 
@@ -1109,7 +1115,7 @@ void EditorNode::_dialog_action(String p_file) {
 
 				_save_default_environment();
 				_save_scene_with_preview(p_file);
-				_run(false);
+				_run(false, p_file);
 			}
 		} break;
 
@@ -1198,7 +1204,7 @@ void EditorNode::_dialog_action(String p_file) {
 
 			Ref<ConfigFile> config;
 			config.instance();
-			Error err = config->load(EditorSettings::get_singleton()->get_settings_path().plus_file("editor_layouts-3.cfg"));
+			Error err = config->load(EditorSettings::get_singleton()->get_editor_layouts_config());
 
 			if (err == ERR_CANT_OPEN) {
 				config.instance(); // new config
@@ -1209,7 +1215,7 @@ void EditorNode::_dialog_action(String p_file) {
 
 			_save_docks_to_config(config, p_file);
 
-			config->save(EditorSettings::get_singleton()->get_settings_path().plus_file("editor_layouts-3.cfg"));
+			config->save(EditorSettings::get_singleton()->get_editor_layouts_config());
 
 			layout_dialog->hide();
 			_update_layouts_menu();
@@ -1226,7 +1232,7 @@ void EditorNode::_dialog_action(String p_file) {
 
 			Ref<ConfigFile> config;
 			config.instance();
-			Error err = config->load(EditorSettings::get_singleton()->get_settings_path().plus_file("editor_layouts-3.cfg"));
+			Error err = config->load(EditorSettings::get_singleton()->get_editor_layouts_config());
 
 			if (err != OK || !config->has_section(p_file)) {
 				show_warning(TTR("Layout name not found!"));
@@ -1240,7 +1246,7 @@ void EditorNode::_dialog_action(String p_file) {
 				config->set_value(p_file, E->get(), Variant());
 			}
 
-			config->save(EditorSettings::get_singleton()->get_settings_path().plus_file("editor_layouts-3.cfg"));
+			config->save(EditorSettings::get_singleton()->get_editor_layouts_config());
 
 			layout_dialog->hide();
 			_update_layouts_menu();
@@ -3581,7 +3587,7 @@ void EditorNode::_save_docks() {
 	_save_docks_to_config(config, "docks");
 	editor_data.get_plugin_window_layout(config);
 
-	config->save(EditorSettings::get_singleton()->get_project_settings_path().plus_file("editor_layout.cfg"));
+	config->save(EditorSettings::get_singleton()->get_project_settings_dir().plus_file("editor_layout.cfg"));
 }
 
 void EditorNode::_save_docks_to_config(Ref<ConfigFile> p_layout, const String &p_section) {
@@ -3643,7 +3649,7 @@ void EditorNode::_load_docks() {
 
 	Ref<ConfigFile> config;
 	config.instance();
-	Error err = config->load(EditorSettings::get_singleton()->get_project_settings_path().plus_file("editor_layout.cfg"));
+	Error err = config->load(EditorSettings::get_singleton()->get_project_settings_dir().plus_file("editor_layout.cfg"));
 	if (err != OK) {
 		//no config
 		if (overridden_default_layout >= 0) {
@@ -3812,7 +3818,7 @@ void EditorNode::_update_layouts_menu() {
 
 	Ref<ConfigFile> config;
 	config.instance();
-	Error err = config->load(EditorSettings::get_singleton()->get_settings_path().plus_file("editor_layouts-3.cfg"));
+	Error err = config->load(EditorSettings::get_singleton()->get_editor_layouts_config());
 	if (err != OK) {
 		return; //no config
 	}
@@ -3860,7 +3866,7 @@ void EditorNode::_layout_menu_option(int p_id) {
 
 			Ref<ConfigFile> config;
 			config.instance();
-			Error err = config->load(EditorSettings::get_singleton()->get_settings_path().plus_file("editor_layouts-3.cfg"));
+			Error err = config->load(EditorSettings::get_singleton()->get_editor_layouts_config());
 			if (err != OK) {
 				return; //no config
 			}
