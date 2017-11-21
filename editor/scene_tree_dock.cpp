@@ -745,6 +745,10 @@ void SceneTreeDock::_notification(int p_what) {
 				canvas_item_plugin->get_canvas_item_editor()->connect("item_group_status_changed", scene_tree, "_update_tree");
 				scene_tree->connect("node_changed", canvas_item_plugin->get_canvas_item_editor()->get_viewport_control(), "update");
 			}
+
+			SpatialEditorPlugin *spatial_editor_plugin = Object::cast_to<SpatialEditorPlugin>(editor_data->get_editor("3D"));
+			spatial_editor_plugin->get_spatial_editor()->connect("item_lock_status_changed", scene_tree, "_update_tree");
+
 			button_add->set_icon(get_icon("Add", "EditorIcons"));
 			button_instance->set_icon(get_icon("Instance", "EditorIcons"));
 			button_create_script->set_icon(get_icon("ScriptCreate", "EditorIcons"));
@@ -1849,6 +1853,8 @@ void SceneTreeDock::_local_tree_selected() {
 		remote_tree->hide();
 	edit_remote->set_pressed(false);
 	edit_local->set_pressed(true);
+
+	_node_selected();
 }
 
 void SceneTreeDock::_bind_methods() {

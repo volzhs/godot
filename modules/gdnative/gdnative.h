@@ -55,7 +55,6 @@ class GDNativeLibrary : public Resource {
 
 	String current_library_path;
 	Vector<String> current_dependencies;
-	bool current_library_statically_linked;
 
 	bool singleton;
 	bool load_once;
@@ -74,9 +73,6 @@ public:
 	}
 	_FORCE_INLINE_ Vector<String> get_current_dependencies() const {
 		return current_dependencies;
-	}
-	_FORCE_INLINE_ bool is_current_library_statically_linked() const {
-		return current_library_statically_linked;
 	}
 
 	// things that are a property of the library itself, not platform specific
@@ -103,12 +99,10 @@ public:
 	static void _bind_methods();
 };
 
-typedef godot_variant (*native_call_cb)(void *, godot_array *);
-
 struct GDNativeCallRegistry {
 	static GDNativeCallRegistry *singleton;
 
-	inline GDNativeCallRegistry *get_singleton() {
+	inline static GDNativeCallRegistry *get_singleton() {
 		return singleton;
 	}
 
@@ -147,7 +141,7 @@ public:
 
 	Variant call_native(StringName p_native_call_type, StringName p_procedure_name, Array p_arguments = Array());
 
-	Error get_symbol(StringName p_procedure_name, void *&r_handle);
+	Error get_symbol(StringName p_procedure_name, void *&r_handle, bool p_optional = true);
 };
 
 class GDNativeLibraryResourceLoader : public ResourceFormatLoader {

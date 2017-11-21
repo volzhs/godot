@@ -1417,17 +1417,17 @@ void FileSystemDock::_files_list_rmb_select(int p_item, const Vector2 &p_pos) {
 		if (all_files_scenes) {
 			file_options->add_item(TTR("Instance"), FILE_INSTANCE);
 		}
+		file_options->add_separator();
 
 		if (filenames.size() == 1) {
-			file_options->add_separator();
 			file_options->add_item(TTR("Edit Dependencies.."), FILE_DEPENDENCIES);
 			file_options->add_item(TTR("View Owners.."), FILE_OWNERS);
+			file_options->add_separator();
 		}
 	} else if (all_folders && foldernames.size() > 0) {
 		file_options->add_item(TTR("Open"), FILE_OPEN);
+		file_options->add_separator();
 	}
-
-	file_options->add_separator();
 
 	int num_items = filenames.size() + foldernames.size();
 	if (num_items >= 1) {
@@ -1443,6 +1443,16 @@ void FileSystemDock::_files_list_rmb_select(int p_item, const Vector2 &p_pos) {
 	file_options->add_item(TTR("New Folder.."), FILE_NEW_FOLDER);
 	file_options->add_item(TTR("Show In File Manager"), FILE_SHOW_IN_EXPLORER);
 
+	file_options->set_position(files->get_global_position() + p_pos);
+	file_options->popup();
+}
+
+void FileSystemDock::_rmb_pressed(const Vector2 &p_pos) {
+	file_options->clear();
+	file_options->set_size(Size2(1, 1));
+
+	file_options->add_item(TTR("New Folder.."), FILE_NEW_FOLDER);
+	file_options->add_item(TTR("Show In File Manager"), FILE_SHOW_IN_EXPLORER);
 	file_options->set_position(files->get_global_position() + p_pos);
 	file_options->popup();
 }
@@ -1547,6 +1557,7 @@ void FileSystemDock::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_file_selected"), &FileSystemDock::_file_selected);
 	ClassDB::bind_method(D_METHOD("_file_multi_selected"), &FileSystemDock::_file_multi_selected);
 	ClassDB::bind_method(D_METHOD("_update_import_dock"), &FileSystemDock::_update_import_dock);
+	ClassDB::bind_method(D_METHOD("_rmb_pressed"), &FileSystemDock::_rmb_pressed);
 
 	ADD_SIGNAL(MethodInfo("instance", PropertyInfo(Variant::POOL_STRING_ARRAY, "files")));
 	ADD_SIGNAL(MethodInfo("open"));
@@ -1665,6 +1676,7 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	files->connect("item_rmb_selected", this, "_files_list_rmb_select");
 	files->connect("item_selected", this, "_file_selected");
 	files->connect("multi_selected", this, "_file_multi_selected");
+	files->connect("rmb_clicked", this, "_rmb_pressed");
 	files->set_allow_rmb_select(true);
 	file_list_vb->add_child(files);
 

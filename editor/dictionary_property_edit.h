@@ -1,9 +1,9 @@
 /*************************************************************************/
-/*  main.m                                                               */
+/*  dictionary_property_edit.h                                           */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                      https://godotengine.org                          */
+/*                    http://www.godotengine.org                         */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -27,13 +27,36 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+#ifndef DICTIONARY_PROPERTY_EDIT_H
+#define DICTIONARY_PROPERTY_EDIT_H
 
-#import <UIKit/UIKit.h>
+#include "scene/main/node.h"
 
-#import "AppDelegate.h"
+class DictionaryPropertyEdit : public Reference {
+	GDCLASS(DictionaryPropertyEdit, Reference);
 
-int main(int argc, char *argv[]) {
-	@autoreleasepool {
-		return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
-	}
-}
+	ObjectID obj;
+	StringName property;
+
+	void _notif_change();
+	void _notif_changev(const String &p_v);
+	void _set_key(const Variant &p_old_key, const Variant &p_new_key);
+	void _set_value(const Variant &p_key, const Variant &p_value);
+
+	Variant get_dictionary() const;
+
+protected:
+	static void _bind_methods();
+	bool _set(const StringName &p_name, const Variant &p_value);
+	bool _get(const StringName &p_name, Variant &r_ret) const;
+	void _get_property_list(List<PropertyInfo> *p_list) const;
+
+public:
+	void edit(Object *p_obj, const StringName &p_prop);
+
+	Node *get_node();
+
+	DictionaryPropertyEdit();
+};
+
+#endif // DICTIONARY_PROPERTY_EDIT_H
