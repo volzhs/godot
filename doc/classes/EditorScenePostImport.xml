@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="PHashTranslation" inherits="Translation" category="Core" version="3.0-beta">
+<class name="EditorScenePostImport" inherits="Reference" category="Core" version="3.0-beta">
 	<brief_description>
-		Optimized translation.
 	</brief_description>
 	<description>
-		Optimized translation. Uses real-time compressed translations, which results in very small dictionaries.
 	</description>
 	<tutorials>
 	</tutorials>
 	<demos>
 	</demos>
 	<methods>
-		<method name="generate">
+		<method name="post_import" qualifiers="virtual">
 			<return type="void">
 			</return>
-			<argument index="0" name="from" type="Translation">
+			<argument index="0" name="scene" type="Object">
 			</argument>
 			<description>
 			</description>

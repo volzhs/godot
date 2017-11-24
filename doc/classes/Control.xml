@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="Control" inherits="CanvasItem" category="Core" version="3.0-alpha">
+<class name="Control" inherits="CanvasItem" category="Core" version="3.0-beta">
 	<brief_description>
 		All User Interface nodes inherit from Control. Features anchors and margins to adapt its position and size to its parent.
 	</brief_description>
@@ -908,6 +908,10 @@
 		</member>
 		<member name="focus_neighbour_top" type="NodePath" setter="set_focus_neighbour" getter="get_focus_neighbour">
 			Tells Godot which node it should give keyboard focus to if the user presses Shift+Tab, the top arrow on the keyboard or top on a gamepad. The node must be a [code]Control[/code]. If this property is not set, Godot will give focus to the closest [code]Control[/code] to the bottom of this one.
+		</member>
+		<member name="focus_next" type="NodePath" setter="set_focus_next" getter="get_focus_next">
+		</member>
+		<member name="focus_previous" type="NodePath" setter="set_focus_previous" getter="get_focus_previous">
 		</member>
 		<member name="grow_horizontal" type="int" setter="set_h_grow_direction" getter="get_h_grow_direction" enum="Control.GrowDirection">
 		</member>

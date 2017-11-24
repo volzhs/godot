@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="Node2D" inherits="CanvasItem" category="Core" version="3.0-alpha">
+<class name="Node2D" inherits="CanvasItem" category="Core" version="3.0-beta">
 	<brief_description>
 		A 2D game object, parent of all 2D related nodes. Has a position, rotation, scale and Z-index.
 	</brief_description>
@@ -18,15 +18,6 @@
 			</argument>
 			<description>
 				Multiplies the current scale by the 'ratio' vector.
-			</description>
-		</method>
-		<method name="edit_set_pivot">
-			<return type="void">
-			</return>
-			<argument index="0" name="pivot" type="Vector2">
-			</argument>
-			<description>
-				Sets the node's pivot position.
 			</description>
 		</method>
 		<method name="get_angle_to" qualifiers="const">

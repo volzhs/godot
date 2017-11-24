@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="Object" category="Core" version="3.0-alpha">
+<class name="Object" category="Core" version="3.0-beta">
 	<brief_description>
 		Base class for all non built-in types.
 	</brief_description>
@@ -178,6 +178,14 @@
 				- "method_name" is a name of method to which signal is connected.
 			</description>
 		</method>
+		<method name="get_indexed" qualifiers="const">
+			<return type="Variant">
+			</return>
+			<argument index="0" name="property" type="NodePath">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="get_instance_id" qualifiers="const">
 			<return type="int">
 			</return>
@@ -336,6 +344,16 @@
 			</argument>
 			<description>
 				If set to true, signal emission is blocked.
+			</description>
+		</method>
+		<method name="set_indexed">
+			<return type="void">
+			</return>
+			<argument index="0" name="property" type="NodePath">
+			</argument>
+			<argument index="1" name="value" type="Variant">
+			</argument>
+			<description>
 			</description>
 		</method>
 		<method name="set_message_translation">
