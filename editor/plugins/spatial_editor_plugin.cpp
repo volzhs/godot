@@ -2332,6 +2332,16 @@ static void draw_indicator_bar(Control &surface, real_t fill, Ref<Texture> icon)
 
 void SpatialEditorViewport::_draw() {
 
+	EditorPluginList *over_plugin_list = EditorNode::get_singleton()->get_editor_plugins_over();
+	if (!over_plugin_list->empty()) {
+		over_plugin_list->forward_draw_over_viewport(surface);
+	}
+
+	EditorPluginList *force_over_plugin_list = editor->get_editor_plugins_force_over();
+	if (!force_over_plugin_list->empty()) {
+		force_over_plugin_list->forward_force_draw_over_viewport(surface);
+	}
+
 	if (surface->has_focus()) {
 		Size2 size = surface->get_size();
 		Rect2 r = Rect2(Point2(), size);
@@ -2839,6 +2849,20 @@ void SpatialEditorViewport::set_state(const Dictionary &p_state) {
 		camera->set_doppler_tracking(doppler ? Camera::DOPPLER_TRACKING_IDLE_STEP : Camera::DOPPLER_TRACKING_DISABLED);
 		view_menu->get_popup()->set_item_checked(idx, doppler);
 	}
+	if (p_state.has("gizmos")) {
+		bool gizmos = p_state["gizmos"];
+
+		int idx = view_menu->get_popup()->get_item_index(VIEW_GIZMOS);
+		if (view_menu->get_popup()->is_item_checked(idx) != gizmos)
+			_menu_option(VIEW_GIZMOS);
+	}
+	if (p_state.has("information")) {
+		bool information = p_state["information"];
+
+		int idx = view_menu->get_popup()->get_item_index(VIEW_INFORMATION);
+		if (view_menu->get_popup()->is_item_checked(idx) != information)
+			_menu_option(VIEW_INFORMATION);
+	}
 	if (p_state.has("half_res")) {
 		bool half_res = p_state["half_res"];
 
@@ -2870,6 +2894,9 @@ Dictionary SpatialEditorViewport::get_state() const {
 	d["use_environment"] = camera->get_environment().is_valid();
 	d["use_orthogonal"] = camera->get_projection() == Camera::PROJECTION_ORTHOGONAL;
 	d["listener"] = viewport->is_audio_listener();
+	d["doppler"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_AUDIO_DOPPLER));
+	d["gizmos"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_GIZMOS));
+	d["information"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_INFORMATION));
 	d["half_res"] = viewport_container->get_stretch_shrink() > 1;
 	if (previewing) {
 		d["previewing"] = EditorNode::get_singleton()->get_edited_scene()->get_path_to(previewing);
@@ -4828,8 +4855,8 @@ void SpatialEditor::_bind_methods() {
 
 void SpatialEditor::clear() {
 
-	settings_fov->set_value(EDITOR_DEF("editors/3d/default_fov", 55.0));
-	settings_znear->set_value(EDITOR_DEF("editors/3d/default_z_near", 0.1));
+	settings_fov->set_value(EDITOR_DEF("editors/3d/default_fov", 70.0));
+	settings_znear->set_value(EDITOR_DEF("editors/3d/default_z_near", 0.05));
 	settings_zfar->set_value(EDITOR_DEF("editors/3d/default_z_far", 1500.0));
 
 	for (uint32_t i = 0; i < VIEWPORTS_COUNT; i++) {
@@ -5072,14 +5099,14 @@ SpatialEditor::SpatialEditor(EditorNode *p_editor) {
 	settings_fov->set_max(MAX_FOV);
 	settings_fov->set_min(MIN_FOV);
 	settings_fov->set_step(0.01);
-	settings_fov->set_value(EDITOR_DEF("editors/3d/default_fov", 55.0));
+	settings_fov->set_value(EDITOR_DEF("editors/3d/default_fov", 70.0));
 	settings_vbc->add_margin_child(TTR("Perspective FOV (deg.):"), settings_fov);
 
 	settings_znear = memnew(SpinBox);
 	settings_znear->set_max(MAX_Z);
 	settings_znear->set_min(MIN_Z);
 	settings_znear->set_step(0.01);
-	settings_znear->set_value(EDITOR_DEF("editors/3d/default_z_near", 0.1));
+	settings_znear->set_value(EDITOR_DEF("editors/3d/default_z_near", 0.05));
 	settings_vbc->add_margin_child(TTR("View Z-Near:"), settings_znear);
 
 	settings_zfar = memnew(SpinBox);

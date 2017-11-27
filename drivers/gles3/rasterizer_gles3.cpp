@@ -352,7 +352,7 @@ void RasterizerGLES3::blit_render_target_to_screen(RID p_render_target, const Re
 	canvas->canvas_end();
 }
 
-void RasterizerGLES3::end_frame() {
+void RasterizerGLES3::end_frame(bool p_swap_buffers) {
 
 #if 0
 	canvas->canvas_begin();
@@ -384,7 +384,10 @@ void RasterizerGLES3::end_frame() {
 
 	canvas->draw_generic_textured_rect(Rect2(0,0,15,15),Rect2(0,0,1,1));
 #endif
-	OS::get_singleton()->swap_buffers();
+	if (p_swap_buffers)
+		OS::get_singleton()->swap_buffers();
+	else
+		glFinish();
 
 	/*	print_line("objects: "+itos(storage->info.render_object_count));
 	print_line("material chages: "+itos(storage->info.render_material_switch_count));
@@ -412,7 +415,8 @@ void RasterizerGLES3::make_current() {
 void RasterizerGLES3::register_config() {
 
 	GLOBAL_DEF("rendering/quality/filters/use_nearest_mipmap_filter", false);
-	GLOBAL_DEF("rendering/quality/filters/anisotropic_filter_level", 4.0);
+	GLOBAL_DEF("rendering/quality/filters/anisotropic_filter_level", 4);
+	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/filters/anisotropic_filter_level", PropertyInfo(Variant::INT, "rendering/quality/filters/anisotropic_filter_level", PROPERTY_HINT_RANGE, "1,16,1"));
 	GLOBAL_DEF("rendering/limits/time/time_rollover_secs", 3600);
 }
 

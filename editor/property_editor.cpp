@@ -2668,7 +2668,12 @@ TreeItem *PropertyEditor::get_parent_node(String p_path, HashMap<String, TreeIte
 		if (use_folding) {
 			if (!obj->editor_is_section_unfolded(p_path)) {
 				updating_folding = true;
-				item->set_collapsed(true);
+				if (folding_behaviour == FB_COLLAPSEALL)
+					item->set_collapsed(true);
+				else if (folding_behaviour == FB_EXPANDALL)
+					item->set_collapsed(false);
+				else
+					item->set_collapsed(true);
 				updating_folding = false;
 			}
 			item->set_metadata(0, p_path);
@@ -4207,10 +4212,29 @@ void PropertyEditor::set_subsection_selectable(bool p_selectable) {
 	update_tree();
 }
 
+bool PropertyEditor::is_expand_all_properties_enabled() const {
+
+	return (use_folding == false);
+}
+
 void PropertyEditor::set_use_folding(bool p_enable) {
 
 	use_folding = p_enable;
 	tree->set_hide_folding(false);
+}
+
+void PropertyEditor::collapse_all_parent_nodes() {
+
+	folding_behaviour = FB_COLLAPSEALL;
+	update_tree();
+	folding_behaviour = FB_UNDEFINED;
+}
+
+void PropertyEditor::expand_all_parent_nodes() {
+
+	folding_behaviour = FB_EXPANDALL;
+	update_tree();
+	folding_behaviour = FB_UNDEFINED;
 }
 
 PropertyEditor::PropertyEditor() {
@@ -4285,6 +4309,7 @@ PropertyEditor::PropertyEditor() {
 	subsection_selectable = false;
 	property_selectable = false;
 	show_type_icons = false; // maybe one day will return.
+	folding_behaviour = FB_UNDEFINED;
 }
 
 PropertyEditor::~PropertyEditor() {
@@ -4596,21 +4621,24 @@ SectionedPropertyEditor::~SectionedPropertyEditor() {
 
 double PropertyValueEvaluator::eval(const String &p_text) {
 
+	// If range value contains a comma replace it with dot (issue #6028)
+	const String &p_new_text = p_text.replace(",", ".");
+
 	if (!obj || !script_language)
-		return _default_eval(p_text);
+		return _default_eval(p_new_text);
 
 	Ref<Script> script = Ref<Script>(script_language->create_script());
-	script->set_source_code(_build_script(p_text));
+	script->set_source_code(_build_script(p_new_text));
 	Error err = script->reload();
 	if (err) {
-		print_line("[PropertyValueEvaluator] Error loading script for expression: " + p_text);
-		return _default_eval(p_text);
+		print_line("[PropertyValueEvaluator] Error loading script for expression: " + p_new_text);
+		return _default_eval(p_new_text);
 	}
 
 	Object dummy;
 	ScriptInstance *script_instance = script->instance_create(&dummy);
 	if (!script_instance)
-		return _default_eval(p_text);
+		return _default_eval(p_new_text);
 
 	Variant::CallError call_err;
 	Variant arg = obj;
@@ -4621,7 +4649,7 @@ double PropertyValueEvaluator::eval(const String &p_text) {
 	}
 	print_line("[PropertyValueEvaluator]: Error eval! Error code: " + itos(call_err.error));
 
-	return _default_eval(p_text);
+	return _default_eval(p_new_text);
 }
 
 void PropertyValueEvaluator::edit(Object *p_obj) {
