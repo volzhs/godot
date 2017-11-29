@@ -3,12 +3,13 @@
 # Copyright (C) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)
 # This file is distributed under the same license as the Godot source code.
 #
-# matevž lapajne <sivar.lapajne@gmail.com>, 2016.
+# matevž lapajne <sivar.lapajne@gmail.com>, 2016-2017.
+# Simon Šander <simon.sand3r@gmail.com>, 2017.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
-"PO-Revision-Date: 2016-08-12 09:47+0000\n"
+"PO-Revision-Date: 2017-11-29 08:12+0000\n"
 "Last-Translator: matevž lapajne <sivar.lapajne@gmail.com>\n"
 "Language-Team: Slovenian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/sl/>\n"
@@ -17,15 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8-bit\n"
 "Plural-Forms: nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n"
 "%100==4 ? 2 : 3;\n"
-"X-Generator: Weblate 2.8-dev\n"
+"X-Generator: Weblate 2.18-dev\n"
 
 #: editor/animation_editor.cpp
 msgid "Disabled"
-msgstr ""
+msgstr "Onemogočen"
 
 #: editor/animation_editor.cpp
 msgid "All Selection"
-msgstr ""
+msgstr "Vsa izbira"
 
 #: editor/animation_editor.cpp
 msgid "Move Add Key"
@@ -68,8 +69,9 @@ msgid "Remove Anim Track"
 msgstr ""
 
 #: editor/animation_editor.cpp
+#, fuzzy
 msgid "Set Transitions to:"
-msgstr ""
+msgstr "Izberi Prevod:"
 
 #: editor/animation_editor.cpp
 msgid "Anim Track Rename"
@@ -102,7 +104,7 @@ msgstr ""
 #: editor/animation_editor.cpp editor/plugins/tile_map_editor_plugin.cpp
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Duplicate Selection"
-msgstr ""
+msgstr "Podvoji Izbrano"
 
 #: editor/animation_editor.cpp
 msgid "Duplicate Transposed"
@@ -110,7 +112,7 @@ msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "Remove Selection"
-msgstr ""
+msgstr "Odstrani Izbiro"
 
 #: editor/animation_editor.cpp
 msgid "Continuous"
@@ -134,7 +136,7 @@ msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "Scale Selection"
-msgstr ""
+msgstr "Povečaj Izbiro"
 
 #: editor/animation_editor.cpp
 msgid "Scale From Cursor"
@@ -142,16 +144,16 @@ msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "Goto Next Step"
-msgstr ""
+msgstr "Pojdite na Naslednji Korak"
 
 #: editor/animation_editor.cpp
 msgid "Goto Prev Step"
-msgstr ""
+msgstr "Pojdite na Predhodni Korak"
 
 #: editor/animation_editor.cpp editor/plugins/curve_editor_plugin.cpp
 #: editor/property_editor.cpp
 msgid "Linear"
-msgstr ""
+msgstr "Linearno"
 
 #: editor/animation_editor.cpp editor/plugins/theme_editor_plugin.cpp
 msgid "Constant"
@@ -159,11 +161,11 @@ msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "In"
-msgstr ""
+msgstr "V"
 
 #: editor/animation_editor.cpp
 msgid "Out"
-msgstr ""
+msgstr "Ven"
 
 #: editor/animation_editor.cpp
 msgid "In-Out"
@@ -183,7 +185,7 @@ msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "Clean-Up Animation"
-msgstr ""
+msgstr "Počisti Animacijo"
 
 #: editor/animation_editor.cpp
 msgid "Create NEW track for %s and insert key?"
@@ -200,7 +202,7 @@ msgstr ""
 #: editor/plugins/particles_editor_plugin.cpp editor/project_manager.cpp
 #: editor/script_create_dialog.cpp
 msgid "Create"
-msgstr ""
+msgstr "Naredi"
 
 #: editor/animation_editor.cpp
 msgid "Anim Create & Insert"
@@ -240,11 +242,11 @@ msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "Animation zoom."
-msgstr ""
+msgstr "Približaj Animacijo"
 
 #: editor/animation_editor.cpp
 msgid "Length (s):"
-msgstr ""
+msgstr "Dolžina (s):"
 
 #: editor/animation_editor.cpp
 msgid "Animation length (in seconds)."
@@ -252,7 +254,7 @@ msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "Step (s):"
-msgstr ""
+msgstr "Korak (s):"
 
 #: editor/animation_editor.cpp
 msgid "Cursor step snap (in seconds)."
@@ -312,7 +314,7 @@ msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "Key"
-msgstr ""
+msgstr "Črka"
 
 #: editor/animation_editor.cpp
 msgid "Transition"
@@ -328,7 +330,7 @@ msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "Remove invalid keys"
-msgstr ""
+msgstr "Odstrani nedovoljene Črke"
 
 #: editor/animation_editor.cpp
 msgid "Remove unresolved and empty tracks"
@@ -344,11 +346,11 @@ msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "Clean-Up"
-msgstr ""
+msgstr "Pobriši"
 
 #: editor/array_property_edit.cpp
 msgid "Resize Array"
-msgstr ""
+msgstr "Povečaj Niz"
 
 #: editor/array_property_edit.cpp
 msgid "Change Array Value Type"
@@ -364,7 +366,7 @@ msgstr ""
 
 #: editor/code_editor.cpp
 msgid "Line Number:"
-msgstr ""
+msgstr "Številka vrste:"
 
 #: editor/code_editor.cpp
 msgid "No Matches"
@@ -376,7 +378,7 @@ msgstr ""
 
 #: editor/code_editor.cpp
 msgid "Replace"
-msgstr ""
+msgstr "Zamenjaj"
 
 #: editor/code_editor.cpp
 msgid "Replace All"
@@ -400,7 +402,7 @@ msgstr ""
 #: editor/plugins/script_text_editor.cpp
 #: editor/plugins/shader_editor_plugin.cpp editor/project_settings_editor.cpp
 msgid "Search"
-msgstr ""
+msgstr "Iskanje"
 
 #: editor/code_editor.cpp editor/editor_help.cpp
 msgid "Find"
@@ -412,11 +414,11 @@ msgstr ""
 
 #: editor/code_editor.cpp
 msgid "Not found!"
-msgstr ""
+msgstr "Ni Zadetka!"
 
 #: editor/code_editor.cpp
 msgid "Replace By"
-msgstr ""
+msgstr "Zamenjaj Z"
 
 #: editor/code_editor.cpp
 msgid "Case Sensitive"
@@ -1126,6 +1128,11 @@ msgid "File Exists, Overwrite?"
 msgstr ""
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
+#, fuzzy
+msgid "Select Current Folder"
+msgstr "Dodaj Setter Lastnost"
+
+#: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "All Recognized"
 msgstr ""
 
@@ -1199,7 +1206,7 @@ msgstr ""
 msgid "Move Favorite Down"
 msgstr ""
 
-#: editor/editor_file_dialog.cpp
+#: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "Go to parent folder"
 msgstr ""
 
@@ -1492,6 +1499,14 @@ msgid ""
 "This is a remote object so changes to it will not be kept.\n"
 "Please read the documentation relevant to debugging to better understand "
 "this workflow."
+msgstr ""
+
+#: editor/editor_node.cpp
+msgid "Expand all properties"
+msgstr ""
+
+#: editor/editor_node.cpp
+msgid "Collapse all properties"
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2089,11 +2104,11 @@ msgid "Import"
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "FileSystem"
+msgid "Node"
 msgstr ""
 
-#: editor/editor_node.cpp editor/node_dock.cpp
-msgid "Node"
+#: editor/editor_node.cpp
+msgid "FileSystem"
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2152,7 +2167,7 @@ msgstr ""
 msgid "Open Script Editor"
 msgstr ""
 
-#: editor/editor_node.cpp
+#: editor/editor_node.cpp editor/project_manager.cpp
 msgid "Open Asset Library"
 msgstr ""
 
@@ -2915,6 +2930,55 @@ msgstr ""
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "Copy Animation"
+msgstr ""
+
+#: editor/plugins/animation_player_editor_plugin.cpp
+msgid "Onion Skinning"
+msgstr ""
+
+#: editor/plugins/animation_player_editor_plugin.cpp
+msgid "Enable Onion Skinning"
+msgstr ""
+
+#: editor/plugins/animation_player_editor_plugin.cpp
+#, fuzzy
+msgid "Directions"
+msgstr "Funkcije:"
+
+#: editor/plugins/animation_player_editor_plugin.cpp
+msgid "Past"
+msgstr ""
+
+#: editor/plugins/animation_player_editor_plugin.cpp
+msgid "Future"
+msgstr ""
+
+#: editor/plugins/animation_player_editor_plugin.cpp
+msgid "Depth"
+msgstr ""
+
+#: editor/plugins/animation_player_editor_plugin.cpp
+msgid "1 step"
+msgstr ""
+
+#: editor/plugins/animation_player_editor_plugin.cpp
+msgid "2 steps"
+msgstr ""
+
+#: editor/plugins/animation_player_editor_plugin.cpp
+msgid "3 steps"
+msgstr ""
+
+#: editor/plugins/animation_player_editor_plugin.cpp
+msgid "Differences Only"
+msgstr ""
+
+#: editor/plugins/animation_player_editor_plugin.cpp
+msgid "Force White Modulate"
+msgstr ""
+
+#: editor/plugins/animation_player_editor_plugin.cpp
+msgid "Include Gizmos (3D)"
 msgstr ""
 
 #: editor/plugins/animation_player_editor_plugin.cpp
@@ -5793,6 +5857,12 @@ msgstr ""
 msgid "Can't run project"
 msgstr ""
 
+#: editor/project_manager.cpp
+msgid ""
+"You don't currently have any projects.\n"
+"Would you like to explore the official example projects in the Asset Library?"
+msgstr ""
+
 #: editor/project_settings_editor.cpp
 msgid "Key "
 msgstr ""
@@ -7576,6 +7646,11 @@ msgstr ""
 #: scene/gui/dialogs.cpp
 msgid "Please Confirm..."
 msgstr ""
+
+#: scene/gui/file_dialog.cpp
+#, fuzzy
+msgid "Select this Folder"
+msgstr "Dodaj Setter Lastnost"
 
 #: scene/gui/popup.cpp
 msgid ""
