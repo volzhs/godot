@@ -69,7 +69,25 @@ __attribute__((visibility("default"))) DWORD NvOptimusEnablement = 0x00000001;
 #define WM_TOUCH 576
 #endif
 
+static String format_error_message(DWORD id) {
+
+	LPWSTR messageBuffer = NULL;
+	size_t size = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+				       NULL, id, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&messageBuffer, 0, NULL);
+
+	String msg = "Error "+itos(id)+": "+String(messageBuffer,size);
+
+	LocalFree(messageBuffer);
+
+	return msg;
+
+}
+
+
+
 extern HINSTANCE godot_hinstance;
+
+
 
 void RedirectIOToConsole() {
 
@@ -1597,14 +1615,14 @@ Error OS_Windows::open_dynamic_library(const String p_path, void *&p_library_han
 		cookie = AddDllDirectory(p_path.get_base_dir().c_str());
 	}
 
-	p_library_handle = (void *)LoadLibraryExW(p_path.c_str(),NULL,p_also_set_library_path ? LOAD_LIBRARY_SEARCH_USER_DIRS : 0);
+	p_library_handle = (void *)LoadLibraryExW(p_path.c_str(), NULL, p_also_set_library_path ? LOAD_LIBRARY_SEARCH_DEFAULT_DIRS : 0);
 
 	if (p_also_set_library_path) {
 		RemoveDllDirectory(cookie);
 	}
 
 	if (!p_library_handle) {
-		ERR_EXPLAIN("Can't open dynamic library: " + p_path + ". Error: " + String::num(GetLastError()));
+		ERR_EXPLAIN("Can't open dynamic library: " + p_path + ". Error: " + format_error_message(GetLastError()));
 		ERR_FAIL_V(ERR_CANT_OPEN);
 	}
 	return OK;
