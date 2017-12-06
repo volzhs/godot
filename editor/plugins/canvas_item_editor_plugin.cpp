@@ -2294,7 +2294,7 @@ void CanvasItemEditor::_draw_focus() {
 
 void CanvasItemEditor::_draw_guides() {
 
-	Color guide_color = Color(0.6, 0.0, 0.8);
+	Color guide_color = EditorSettings::get_singleton()->get("editors/2d/guides_color");
 	Transform2D xform = viewport_scrollable->get_transform() * transform;
 
 	// Guides already there
@@ -4314,7 +4314,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 
 	show_grid = false;
 	show_helpers = false;
-	show_rulers = false;
+	show_rulers = true;
 	show_guides = true;
 	zoom = 1;
 	grid_offset = Point2();

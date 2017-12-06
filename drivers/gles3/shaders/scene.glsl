@@ -263,7 +263,9 @@ uniform highp sampler2D skeleton_texture; //texunit:-1
 
 out highp vec4 position_interp;
 
-invariant gl_Position;
+// FIXME: This triggers a Mesa bug that breaks rendering, so disabled for now.
+// See GH-13450 and https://bugs.freedesktop.org/show_bug.cgi?id=100316
+//invariant gl_Position;
 
 void main() {
 
@@ -1028,7 +1030,7 @@ LIGHT_SHADER_CODE
 
 
 #if defined(LIGHT_USE_RIM)
-		float rim_light = pow(1.0-cNdotV, (1.0-roughness)*16.0);
+		float rim_light = pow(max(0.0,1.0-cNdotV), max(0.0,(1.0-roughness)*16.0));
 		diffuse_light += rim_light * rim * mix(vec3(1.0),diffuse_color,rim_tint) * light_color;
 #endif
 	}
