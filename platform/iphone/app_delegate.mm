@@ -50,6 +50,11 @@
 #import <Parse/Parse.h>
 #endif
 
+#ifdef FIREBASE_ENABLED
+#import <GoogleSignIn/GoogleSignIn.h>
+#import <FBSDKCoreKit/FBSDKCoreKit.h>
+#endif
+
 #import "GameController/GameController.h"
 
 #define kFilteringFactor 0.1
@@ -568,7 +573,7 @@ static int frame_count = 0;
 			MainLoop::NOTIFICATION_OS_MEMORY_WARNING);
 };
 
-- (void)applicationDidFinishLaunching:(UIApplication *)application {
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
 	printf("**************** app delegate init\n");
 	CGRect rect = [[UIScreen mainScreen] bounds];
@@ -665,6 +670,12 @@ static int frame_count = 0;
 												  isAdvertisingTrackingEnabled]];
 
 #endif
+
+#ifdef FIREBASE_ENABLED
+	[[FBSDKApplicationDelegate sharedInstance] application:application
+		didFinishLaunchingWithOptions:launchOptions];
+#endif
+	return YES;
 };
 
 - (void)applicationWillTerminate:(UIApplication *)application {
@@ -741,6 +752,22 @@ static int frame_count = 0;
 	return false;
 #endif
 }
+
+#ifdef FIREBASE_ENABLED
+- (BOOL)application:(UIApplication *)application
+		  openURL:(NSURL *)url
+		  options:(NSDictionary *)options {
+	NSLog(@"from Firebase (BOOL)application:(UIApplication *)application");
+	BOOL handled_signin_google = [[GIDSignIn sharedInstance] handleURL:url
+													 sourceApplication:options[UIApplicationOpenURLOptionsSourceApplicationKey]
+															annotation:options[UIApplicationOpenURLOptionsAnnotationKey]];
+	BOOL handled_signin_facebook = [[FBSDKApplicationDelegate sharedInstance] application:application
+																				  openURL:url
+																		sourceApplication:options[UIApplicationOpenURLOptionsSourceApplicationKey]
+																			   annotation:options[UIApplicationOpenURLOptionsAnnotationKey]];
+	return handled_signin_google || handled_signin_facebook;
+}
+#endif
 
 // For 4.2+ support
 - (BOOL)application:(UIApplication *)application
