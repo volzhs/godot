@@ -2,29 +2,36 @@ language: cpp
 
 sudo: false
 
-cache: ccache
+env:
+  global:
+    - SCONS_CACHE=$HOME/.scons_cache
+    - SCONS_CACHE_LIMIT=1024
+
+cache:
+  directories:
+    - $SCONS_CACHE
 
 matrix:
   include:
     - env: STATIC_CHECKS=yes
       os: linux
       compiler: clang
-    - env: GODOT_TARGET=x11 TOOLS=yes
+    - env: GODOT_TARGET=x11 TOOLS=yes CACHE_NAME=${GODOT_TARGET}-gcc-tools
       os: linux
       compiler: gcc
-    #- env: GODOT_TARGET=x11 TOOLS=no
+    #- env: GODOT_TARGET=x11 TOOLS=no CACHE_NAME=${GODOT_TARGET}-clang
     #  os: linux
     #  compiler: clang
-    #- env: GODOT_TARGET=windows TOOLS=yes
+    #- env: GODOT_TARGET=windows TOOLS=yes CACHE_NAME=${GODOT_TARGET}-gcc-tools
     #  os: linux
     #  compiler: gcc
-    - env: GODOT_TARGET=android TOOLS=no
+    - env: GODOT_TARGET=android TOOLS=no CACHE_NAME=${GODOT_TARGET}-gcc
       os: linux
       compiler: gcc
-    - env: GODOT_TARGET=osx TOOLS=yes
+    - env: GODOT_TARGET=osx TOOLS=yes CACHE_NAME=${GODOT_TARGET}-clang-tools
       os: osx
       compiler: clang
-    #- env: GODOT_TARGET=iphone TOOLS=no
+    #- env: GODOT_TARGET=iphone TOOLS=no CACHE_NAME=${GODOT_TARGET}-clang
     #  os: osx
     #  compiler: clang
 
@@ -56,20 +63,12 @@ install:
     fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       misc/travis/scons-local-osx.sh;
-      misc/travis/ccache-osx.sh;
     fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$GODOT_TARGET" = "android" ]; then
       misc/travis/android-tools-osx.sh;
     fi
 
 before_script:
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-      export CCACHE="/usr/bin/ccache";
-    fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      export CCACHE="/usr/local/bin/ccache";
-      export PATH="/usr/local/opt/ccache/libexec:$PATH";
-    fi
   - if [ "$GODOT_TARGET" = "android" ]; then
       export ANDROID_HOME=$TRAVIS_BUILD_DIR/godot-dev/build-tools/android-sdk;
       export ANDROID_NDK_ROOT=$TRAVIS_BUILD_DIR/godot-dev/build-tools/android-ndk;
@@ -79,12 +78,5 @@ script:
   - if [ "$STATIC_CHECKS" = "yes" ]; then
       sh ./misc/travis/clang-format.sh;
     else
-      scons -j 2 platform=$GODOT_TARGET progress=no verbose=yes CXX=$CXX builtin_openssl=yes;
+      scons -j 2 platform=$GODOT_TARGET CXX=$CXX builtin_openssl=yes verbose=yes progress=no;
     fi
-
-after_success:
-  - if [ "$STATIC_CHECKS" != "yes" ] && [ $(command -v ccache) ]; then
-      which ccache;
-      ccache --version | grep "ccache version";
-      ccache -s;
-    fi;
