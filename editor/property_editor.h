@@ -203,18 +203,9 @@ class PropertyEditor : public Control {
 	bool hide_script;
 	bool use_folding;
 	bool property_selectable;
-	bool is_expandall_enabled;
-
 	bool updating_folding;
 
-	enum FOLDING_BEHAVIOUR {
-		FB_UNDEFINED,
-		FB_COLLAPSEALL,
-		FB_EXPANDALL,
-		FB_EXPANDALL_FORCE
-	};
-	FOLDING_BEHAVIOUR folding_behaviour;
-
+	List<String> foldable_property_cache;
 	HashMap<String, String> pending;
 	String selected_property;
 
@@ -253,6 +244,7 @@ class PropertyEditor : public Control {
 	bool _might_be_in_instance();
 	bool _get_instanced_node_original_property(const StringName &p_prop, Variant &value);
 	bool _is_property_different(const Variant &p_current, const Variant &p_orig, int p_usage = 0);
+	bool _is_instanced_node_with_original_property_different(const String &p_name, TreeItem *item);
 
 	void _refresh_item(TreeItem *p_item);
 	void _set_range_def(Object *p_item, String prop, float p_frame);
@@ -314,10 +306,8 @@ public:
 
 	void set_use_folding(bool p_enable);
 
-	bool is_expand_all_properties_enabled() const;
-
-	void collapse_all_parent_nodes();
-	void expand_all_parent_nodes();
+	void collapse_all_folding();
+	void expand_all_folding();
 	PropertyEditor();
 	~PropertyEditor();
 };

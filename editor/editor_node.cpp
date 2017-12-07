@@ -269,6 +269,7 @@ void EditorNode::_notification(int p_what) {
 
 		Engine::get_singleton()->set_editor_hint(true);
 
+		get_tree()->get_root()->set_usage(Viewport::USAGE_2D_NO_SAMPLING); //reduce memory usage
 		get_tree()->get_root()->set_disable_3d(true);
 		get_tree()->get_root()->set_as_audio_listener(false);
 		get_tree()->get_root()->set_as_audio_listener_2d(false);
@@ -1394,11 +1395,13 @@ void EditorNode::_property_editor_back() {
 }
 
 void EditorNode::_menu_collapseall() {
-	property_editor->collapse_all_parent_nodes();
+
+	property_editor->collapse_all_folding();
 }
 
 void EditorNode::_menu_expandall() {
-	property_editor->expand_all_parent_nodes();
+
+	property_editor->expand_all_folding();
 }
 
 void EditorNode::_save_default_environment() {
@@ -5019,6 +5022,7 @@ EditorNode::EditorNode() {
 	scene_root_parent->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 
 	scene_root = memnew(Viewport);
+	scene_root->set_usage(Viewport::USAGE_2D);
 	scene_root->set_disable_3d(true);
 
 	VisualServer::get_singleton()->viewport_set_hide_scenario(scene_root->get_viewport_rid(), true);
@@ -5444,7 +5448,7 @@ EditorNode::EditorNode() {
 	property_editor->set_use_doc_hints(true);
 	property_editor->set_hide_script(false);
 	property_editor->set_enable_capitalize_paths(bool(EDITOR_DEF("interface/editor/capitalize_properties", true)));
-	property_editor->set_use_folding(bool(EDITOR_DEF("interface/editor/expand_all_properties", false)) == false);
+	property_editor->set_use_folding(!bool(EDITOR_DEF("interface/editor/disable_inspector_folding", false)));
 
 	property_editor->hide_top_label();
 	property_editor->register_text_enter(search_box);

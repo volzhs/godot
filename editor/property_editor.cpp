@@ -2101,6 +2101,23 @@ bool PropertyEditor::_is_property_different(const Variant &p_current, const Vari
 	return bool(Variant::evaluate(Variant::OP_NOT_EQUAL, p_current, p_orig));
 }
 
+bool PropertyEditor::_is_instanced_node_with_original_property_different(const String &p_name, TreeItem *item) {
+	bool mbi = _might_be_in_instance();
+	if (mbi) {
+		Variant vorig;
+		Dictionary d = item->get_metadata(0);
+		int usage = d.has("usage") ? int(int(d["usage"]) & (PROPERTY_USAGE_STORE_IF_NONONE | PROPERTY_USAGE_STORE_IF_NONZERO)) : 0;
+		if (_get_instanced_node_original_property(p_name, vorig) || usage) {
+			Variant v = obj->get(p_name);
+
+			if (_is_property_different(v, vorig, usage)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 TreeItem *PropertyEditor::find_item(TreeItem *p_item, const String &p_name) {
 
 	if (!p_item)
@@ -2358,6 +2375,10 @@ void PropertyEditor::_check_reload_status(const String &p_name, TreeItem *item) 
 			is_disabled = item->is_button_disabled(1, i);
 			break;
 		}
+	}
+
+	if (_is_instanced_node_with_original_property_different(p_name, item)) {
+		has_reload = true;
 	}
 
 	if (obj->call("property_can_revert", p_name).operator bool()) {
@@ -2665,18 +2686,14 @@ TreeItem *PropertyEditor::get_parent_node(String p_path, HashMap<String, TreeIte
 		item->set_editable(1, false);
 		item->set_selectable(1, subsection_selectable);
 
-		if (use_folding || folding_behaviour != FB_UNDEFINED) { // Even if you disabled folding (expand all by default), you still can collapse all manually.
+		if (use_folding) { //
 			if (!obj->editor_is_section_unfolded(p_path)) {
 				updating_folding = true;
-				if (folding_behaviour == FB_COLLAPSEALL)
-					item->set_collapsed(true);
-				else if (folding_behaviour == FB_EXPANDALL || is_expandall_enabled)
-					item->set_collapsed(false);
-				else
-					item->set_collapsed(true);
+				item->set_collapsed(true);
 				updating_folding = false;
 			}
 			item->set_metadata(0, p_path);
+			foldable_property_cache.push_back(p_path);
 		}
 
 		if (item->get_parent() == root) {
@@ -2725,6 +2742,7 @@ void PropertyEditor::refresh() {
 void PropertyEditor::update_tree() {
 
 	tree->clear();
+	foldable_property_cache.clear();
 
 	if (!obj)
 		return;
@@ -3512,20 +3530,9 @@ void PropertyEditor::update_tree() {
 
 		bool has_reload = false;
 
-		bool mbi = _might_be_in_instance();
-		if (mbi) {
-
-			Variant vorig;
-			Dictionary d = item->get_metadata(0);
-			int usage = d.has("usage") ? int(int(d["usage"]) & (PROPERTY_USAGE_STORE_IF_NONONE | PROPERTY_USAGE_STORE_IF_NONZERO)) : 0;
-			if (_get_instanced_node_original_property(p.name, vorig) || usage) {
-				Variant v = obj->get(p.name);
-
-				if (_is_property_different(v, vorig, usage)) {
-					item->add_button(1, get_icon("ReloadSmall", "EditorIcons"), 3);
-					has_reload = true;
-				}
-			}
+		if (_is_instanced_node_with_original_property_different(p.name, item)) {
+			item->add_button(1, get_icon("ReloadSmall", "EditorIcons"), 3);
+			has_reload = true;
 		}
 
 		if (obj->call("property_can_revert", p.name).operator bool()) {
@@ -3545,7 +3552,7 @@ void PropertyEditor::update_tree() {
 			}
 		}
 
-		if (mbi && !has_reload && item->get_cell_mode(1) == TreeItem::CELL_MODE_RANGE && item->get_text(1) == String()) {
+		if (_might_be_in_instance() && !has_reload && item->get_cell_mode(1) == TreeItem::CELL_MODE_RANGE && item->get_text(1) == String()) {
 			item->add_button(1, get_icon("ReloadEmpty", "EditorIcons"), 3, true);
 		}
 	}
@@ -3733,7 +3740,7 @@ void PropertyEditor::_item_edited() {
 				_edit_set(name, item->get_text(1), refresh_all);
 			}
 		} break;
-			// math types
+		// math types
 
 		case Variant::VECTOR3: {
 
@@ -4212,29 +4219,29 @@ void PropertyEditor::set_subsection_selectable(bool p_selectable) {
 	update_tree();
 }
 
-bool PropertyEditor::is_expand_all_properties_enabled() const {
-
-	return (use_folding == false);
-}
-
 void PropertyEditor::set_use_folding(bool p_enable) {
 
 	use_folding = p_enable;
 	tree->set_hide_folding(false);
 }
 
-void PropertyEditor::collapse_all_parent_nodes() {
-
-	folding_behaviour = FB_COLLAPSEALL;
+void PropertyEditor::collapse_all_folding() {
+	if (!obj)
+		return;
+	for (List<String>::Element *E = foldable_property_cache.front(); E; E = E->next()) {
+		obj->editor_set_section_unfold(E->get(), false);
+	}
 	update_tree();
-	folding_behaviour = FB_UNDEFINED;
 }
 
-void PropertyEditor::expand_all_parent_nodes() {
+void PropertyEditor::expand_all_folding() {
 
-	folding_behaviour = FB_EXPANDALL;
+	if (!obj)
+		return;
+	for (List<String>::Element *E = foldable_property_cache.front(); E; E = E->next()) {
+		obj->editor_set_section_unfold(E->get(), true);
+	}
 	update_tree();
-	folding_behaviour = FB_UNDEFINED;
 }
 
 PropertyEditor::PropertyEditor() {
@@ -4309,8 +4316,6 @@ PropertyEditor::PropertyEditor() {
 	subsection_selectable = false;
 	property_selectable = false;
 	show_type_icons = false; // maybe one day will return.
-	folding_behaviour = FB_UNDEFINED;
-	is_expandall_enabled = bool(EDITOR_DEF("interface/editor/expand_all_properties", true));
 }
 
 PropertyEditor::~PropertyEditor() {

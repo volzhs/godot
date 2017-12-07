@@ -73,21 +73,16 @@ static String format_error_message(DWORD id) {
 
 	LPWSTR messageBuffer = NULL;
 	size_t size = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-				       NULL, id, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&messageBuffer, 0, NULL);
+			NULL, id, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&messageBuffer, 0, NULL);
 
-	String msg = "Error "+itos(id)+": "+String(messageBuffer,size);
+	String msg = "Error " + itos(id) + ": " + String(messageBuffer, size);
 
 	LocalFree(messageBuffer);
 
 	return msg;
-
 }
 
-
-
 extern HINSTANCE godot_hinstance;
-
-
 
 void RedirectIOToConsole() {
 
@@ -228,7 +223,17 @@ bool OS_Windows::can_draw() const {
 #define SIGNATURE_MASK 0xFFFFFF00
 #define IsPenEvent(dw) (((dw)&SIGNATURE_MASK) == MI_WP_SIGNATURE)
 
-void OS_Windows::_touch_event(bool p_pressed, int p_x, int p_y, int idx) {
+void OS_Windows::_touch_event(bool p_pressed, float p_x, float p_y, int idx) {
+
+	// Defensive
+	if (touch_state.has(idx) == p_pressed)
+		return;
+
+	if (p_pressed) {
+		touch_state.insert(idx, Vector2(p_x, p_y));
+	} else {
+		touch_state.erase(idx);
+	}
 
 	Ref<InputEventScreenTouch> event;
 	event.instance();
@@ -241,7 +246,17 @@ void OS_Windows::_touch_event(bool p_pressed, int p_x, int p_y, int idx) {
 	}
 };
 
-void OS_Windows::_drag_event(int p_x, int p_y, int idx) {
+void OS_Windows::_drag_event(float p_x, float p_y, int idx) {
+
+	Map<int, Vector2>::Element *curr = touch_state.find(idx);
+	// Defensive
+	if (!curr)
+		return;
+
+	if (curr->get() == Vector2(p_x, p_y))
+		return;
+
+	curr->get() = Vector2(p_x, p_y);
 
 	Ref<InputEventScreenDrag> event;
 	event.instance();
@@ -271,6 +286,13 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			if (mouse_mode == MOUSE_MODE_CAPTURED || mouse_mode == MOUSE_MODE_CONFINED) {
 				ReleaseCapture();
 			}
+
+			// Release every touch to avoid sticky points
+			for (Map<int, Vector2>::Element *E = touch_state.front(); E; E = E->next()) {
+				_touch_event(false, E->get().x, E->get().y, E->key());
+			}
+			touch_state.clear();
+
 			break;
 		}
 		case WM_ACTIVATE: // Watch For Window Activate Message
@@ -674,7 +696,6 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			print_line("input lang change");
 		} break;
 
-#if WINVER >= 0x0601 // for windows 7
 		case WM_TOUCH: {
 
 			BOOL bHandled = FALSE;
@@ -687,10 +708,10 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 						//do something with each touch input entry
 						if (ti.dwFlags & TOUCHEVENTF_MOVE) {
 
-							_drag_event(ti.x / 100, ti.y / 100, ti.dwID);
+							_drag_event(ti.x / 100.0f, ti.y / 100.0f, ti.dwID);
 						} else if (ti.dwFlags & (TOUCHEVENTF_UP | TOUCHEVENTF_DOWN)) {
 
-							_touch_event(ti.dwFlags & TOUCHEVENTF_DOWN != 0, ti.x / 100, ti.y / 100, ti.dwID);
+							_touch_event(ti.dwFlags & TOUCHEVENTF_DOWN, ti.x / 100.0f, ti.y / 100.0f, ti.dwID);
 						};
 					}
 					bHandled = TRUE;
@@ -708,7 +729,6 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 		} break;
 
-#endif
 		case WM_DEVICECHANGE: {
 
 			joypad->probe_joypads();
@@ -1092,7 +1112,7 @@ void OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int 
 	tme.dwHoverTime = HOVER_DEFAULT;
 	TrackMouseEvent(&tme);
 
-	//RegisterTouchWindow(hWnd, 0); // Windows 7
+	RegisterTouchWindow(hWnd, 0);
 
 	_ensure_user_data_dir();
 
@@ -1206,6 +1226,7 @@ void OS_Windows::finalize() {
 
 	memdelete(joypad);
 	memdelete(input);
+	touch_state.clear();
 
 	visual_server->finish();
 	memdelete(visual_server);
@@ -1608,17 +1629,23 @@ void OS_Windows::_update_window_style(bool repaint) {
 
 Error OS_Windows::open_dynamic_library(const String p_path, void *&p_library_handle, bool p_also_set_library_path) {
 
+	typedef DLL_DIRECTORY_COOKIE(WINAPI * PAddDllDirectory)(PCWSTR);
+	typedef BOOL(WINAPI * PRemoveDllDirectory)(DLL_DIRECTORY_COOKIE);
 
+	PAddDllDirectory add_dll_directory = (PAddDllDirectory)GetProcAddress(GetModuleHandle("kernel32.dll"), "AddDllDirectory");
+	PRemoveDllDirectory remove_dll_directory = (PRemoveDllDirectory)GetProcAddress(GetModuleHandle("kernel32.dll"), "RemoveDllDirectory");
+
+	bool has_dll_directory_api = ((add_dll_directory != NULL) && (remove_dll_directory != NULL));
 	DLL_DIRECTORY_COOKIE cookie;
 
-	if (p_also_set_library_path) {
-		cookie = AddDllDirectory(p_path.get_base_dir().c_str());
+	if (p_also_set_library_path && has_dll_directory_api) {
+		cookie = add_dll_directory(p_path.get_base_dir().c_str());
 	}
 
-	p_library_handle = (void *)LoadLibraryExW(p_path.c_str(), NULL, p_also_set_library_path ? LOAD_LIBRARY_SEARCH_DEFAULT_DIRS : 0);
+	p_library_handle = (void *)LoadLibraryExW(p_path.c_str(), NULL, (p_also_set_library_path && has_dll_directory_api) ? LOAD_LIBRARY_SEARCH_DEFAULT_DIRS : 0);
 
-	if (p_also_set_library_path) {
-		RemoveDllDirectory(cookie);
+	if (p_also_set_library_path && has_dll_directory_api) {
+		remove_dll_directory(cookie);
 	}
 
 	if (!p_library_handle) {
