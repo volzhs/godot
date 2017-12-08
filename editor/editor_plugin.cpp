@@ -466,6 +466,14 @@ String EditorPlugin::get_name() const {
 
 	return String();
 }
+const Ref<Texture> EditorPlugin::get_icon() const {
+
+	if (get_script_instance() && get_script_instance()->has_method("get_plugin_icon")) {
+		return get_script_instance()->call("get_plugin_icon");
+	}
+
+	return Ref<Texture>();
+}
 bool EditorPlugin::has_main_screen() const {
 
 	if (get_script_instance() && get_script_instance()->has_method("has_main_screen")) {
@@ -573,6 +581,15 @@ void EditorPlugin::remove_export_plugin(const Ref<EditorExportPlugin> &p_exporte
 	EditorExport::get_singleton()->remove_export_plugin(p_exporter);
 }
 
+void EditorPlugin::add_scene_import_plugin(const Ref<EditorSceneImporter> &p_importer) {
+	ResourceImporterScene::get_singleton()->add_importer(p_importer);
+}
+
+void EditorPlugin::remove_scene_import_plugin(const Ref<EditorSceneImporter> &p_importer) {
+	ResourceImporterScene::get_singleton()->remove_importer(p_importer);
+
+}
+
 void EditorPlugin::set_window_layout(Ref<ConfigFile> p_layout) {
 
 	if (get_script_instance() && get_script_instance()->has_method("set_window_layout")) {
@@ -628,6 +645,8 @@ void EditorPlugin::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("queue_save_layout"), &EditorPlugin::queue_save_layout);
 	ClassDB::bind_method(D_METHOD("add_import_plugin", "importer"), &EditorPlugin::add_import_plugin);
 	ClassDB::bind_method(D_METHOD("remove_import_plugin", "importer"), &EditorPlugin::remove_import_plugin);
+	ClassDB::bind_method(D_METHOD("add_scene_import_plugin", "scene_importer"), &EditorPlugin::add_scene_import_plugin);
+	ClassDB::bind_method(D_METHOD("remove_scene_import_plugin", "scene_importer"), &EditorPlugin::remove_scene_import_plugin);
 	ClassDB::bind_method(D_METHOD("add_export_plugin", "exporter"), &EditorPlugin::add_export_plugin);
 	ClassDB::bind_method(D_METHOD("remove_export_plugin", "exporter"), &EditorPlugin::remove_export_plugin);
 	ClassDB::bind_method(D_METHOD("set_input_event_forwarding_always_enabled"), &EditorPlugin::set_input_event_forwarding_always_enabled);
@@ -644,6 +663,7 @@ void EditorPlugin::_bind_methods() {
 	gizmo.return_val.hint_string = "EditorSpatialGizmo";
 	ClassDB::add_virtual_method(get_class_static(), gizmo);
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::STRING, "get_plugin_name"));
+	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::OBJECT, "get_plugin_icon"));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::BOOL, "has_main_screen"));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo("make_visible", PropertyInfo(Variant::BOOL, "visible")));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo("edit", PropertyInfo(Variant::OBJECT, "object")));

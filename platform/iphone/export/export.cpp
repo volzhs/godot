@@ -69,8 +69,9 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 		String name;
 		bool is_default;
 
-		ExportArchitecture()
-			: name(""), is_default(false) {
+		ExportArchitecture() :
+				name(""),
+				is_default(false) {
 		}
 
 		ExportArchitecture(String p_name, bool p_is_default) {
@@ -453,8 +454,9 @@ struct CodesignData {
 	const Ref<EditorExportPreset> &preset;
 	bool debug;
 
-	CodesignData(const Ref<EditorExportPreset> &p_preset, bool p_debug)
-		: preset(p_preset), debug(p_debug) {
+	CodesignData(const Ref<EditorExportPreset> &p_preset, bool p_debug) :
+			preset(p_preset),
+			debug(p_debug) {
 	}
 };
 
@@ -972,6 +974,7 @@ bool EditorExportPlatformIOS::can_export(const Ref<EditorExportPreset> &p_preset
 	if (!err.empty())
 		r_error = err;
 
+	r_missing_templates = !valid;
 	return valid;
 }
 

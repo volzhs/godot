@@ -251,13 +251,14 @@ void TextEdit::Text::clear() {
 	insert(0, "");
 }
 
-int TextEdit::Text::get_max_width() const {
+int TextEdit::Text::get_max_width(bool p_exclude_hidden) const {
 	//quite some work.. but should be fast enough.
 
 	int max = 0;
-
-	for (int i = 0; i < text.size(); i++)
-		max = MAX(max, get_line_width(i));
+	for (int i = 0; i < text.size(); i++) {
+		if (!p_exclude_hidden || !is_hidden(i))
+			max = MAX(max, get_line_width(i));
+	}
 	return max;
 }
 
@@ -307,7 +308,7 @@ void TextEdit::_update_scrollbars() {
 
 	int vscroll_pixels = v_scroll->get_combined_minimum_size().width;
 	int visible_width = size.width - cache.style_normal->get_minimum_size().width;
-	int total_width = text.get_max_width() + vmin.x;
+	int total_width = text.get_max_width(true) + vmin.x;
 
 	if (line_numbers)
 		total_width += cache.line_number_w;
@@ -360,6 +361,7 @@ void TextEdit::_update_scrollbars() {
 		}
 
 	} else {
+
 		cursor.line_ofs = 0;
 		line_scroll_pos = 0;
 		v_scroll->set_value(0);
@@ -371,12 +373,16 @@ void TextEdit::_update_scrollbars() {
 		h_scroll->show();
 		h_scroll->set_max(total_width);
 		h_scroll->set_page(visible_width);
+		if (cursor.x_ofs > (total_width - visible_width))
+			cursor.x_ofs = (total_width - visible_width);
 		if (fabs(h_scroll->get_value() - (double)cursor.x_ofs) >= 1) {
 			h_scroll->set_value(cursor.x_ofs);
 		}
 
 	} else {
 
+		cursor.x_ofs = 0;
+		h_scroll->set_value(0);
 		h_scroll->hide();
 	}
 
@@ -880,6 +886,11 @@ void TextEdit::_notification(int p_what) {
 						int char_w = cache.font->get_char_size(' ').width;
 						VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg + ofs_x, ofs_y, char_w, get_row_height()), cache.selection_color);
 					}
+				} else {
+					// if it has text, then draw current line marker in the margin, as line number ect will draw over it, draw the rest of line marker later.
+					if (line == cursor.line && highlight_current_line) {
+						VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(0, ofs_y, xmargin_beg, get_row_height()), cache.current_line_color);
+					}
 				}
 
 				if (text.is_breakpoint(line) && !draw_breakpoint_gutter) {
@@ -909,11 +920,11 @@ void TextEdit::_notification(int p_what) {
 					if (is_folded(line)) {
 						int xofs = horizontal_gap - (cache.can_fold_icon->get_width()) / 2;
 						int yofs = (get_row_height() - cache.folded_icon->get_height()) / 2;
-						cache.folded_icon->draw(ci, Point2(gutter_left + xofs + ofs_x, ofs_y + yofs), Color(0.8f, 0.8f, 0.8f, 0.8f));
+						cache.folded_icon->draw(ci, Point2(gutter_left + xofs + ofs_x, ofs_y + yofs), cache.code_folding_color);
 					} else if (can_fold(line)) {
 						int xofs = -cache.can_fold_icon->get_width() / 2 - horizontal_gap + 3;
 						int yofs = (get_row_height() - cache.can_fold_icon->get_height()) / 2;
-						cache.can_fold_icon->draw(ci, Point2(gutter_left + xofs + ofs_x, ofs_y + yofs), Color(0.8f, 0.8f, 0.8f, 0.8f));
+						cache.can_fold_icon->draw(ci, Point2(gutter_left + xofs + ofs_x, ofs_y + yofs), cache.code_folding_color);
 					}
 				}
 
@@ -1120,10 +1131,6 @@ void TextEdit::_notification(int p_what) {
 					bool in_selection = (selection.active && line >= selection.from_line && line <= selection.to_line && (line > selection.from_line || j >= selection.from_column) && (line < selection.to_line || j < selection.to_column));
 
 					if (line == cursor.line && highlight_current_line) {
-						// if its the first char draw behind line numbers
-						if (j == 0) {
-							VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(0, ofs_y, (char_ofs + char_margin + ofs_x), get_row_height()), cache.current_line_color);
-						}
 						// if its the last char draw to end of the line
 						if (j == str.length() - 1) {
 							VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(char_ofs + char_margin + char_w, ofs_y, xmargin_end - (char_ofs + char_margin + char_w), get_row_height()), cache.current_line_color);
@@ -1262,7 +1269,9 @@ void TextEdit::_notification(int p_what) {
 					if (j == str.length() - 1 && is_folded(line)) {
 						int yofs = (get_row_height() - cache.folded_eol_icon->get_height()) / 2;
 						int xofs = cache.folded_eol_icon->get_width() / 2;
-						cache.folded_eol_icon->draw(ci, Point2(char_ofs + char_margin + xofs + ofs_x, ofs_y + yofs), Color(1, 1, 1, 1));
+						Color eol_color = cache.code_folding_color;
+						eol_color.a = 1;
+						cache.folded_eol_icon->draw(ci, Point2(char_ofs + char_margin + xofs + ofs_x, ofs_y + yofs), eol_color);
 					}
 				}
 
@@ -3987,6 +3996,7 @@ void TextEdit::_update_caches() {
 	cache.current_line_color = get_color("current_line_color");
 	cache.line_length_guideline_color = get_color("line_length_guideline_color");
 	cache.breakpoint_color = get_color("breakpoint_color");
+	cache.code_folding_color = get_color("code_folding_color");
 	cache.brace_mismatch_color = get_color("brace_mismatch_color");
 	cache.word_highlighted_color = get_color("word_highlighted_color");
 	cache.search_result_color = get_color("search_result_color");
@@ -4507,16 +4517,17 @@ int TextEdit::num_lines_from(int p_line_from, int unhidden_amount) const {
 	return num_total;
 }
 
-int TextEdit::get_whitespace_level(int p_line) const {
+int TextEdit::get_indent_level(int p_line) const {
 
 	ERR_FAIL_INDEX_V(p_line, text.size(), 0);
 
 	// counts number of tabs and spaces before line starts
+	int tab_count = 0;
 	int whitespace_count = 0;
 	int line_length = text[p_line].size();
 	for (int i = 0; i < line_length - 1; i++) {
 		if (text[p_line][i] == '\t') {
-			whitespace_count++;
+			tab_count++;
 		} else if (text[p_line][i] == ' ') {
 			whitespace_count++;
 		} else if (text[p_line][i] == '#') {
@@ -4525,7 +4536,7 @@ int TextEdit::get_whitespace_level(int p_line) const {
 			break;
 		}
 	}
-	return whitespace_count;
+	return tab_count + whitespace_count / indent_size;
 }
 
 bool TextEdit::can_fold(int p_line) const {
@@ -4542,12 +4553,12 @@ bool TextEdit::can_fold(int p_line) const {
 	if (is_line_hidden(p_line))
 		return false;
 
-	int start_indent = get_whitespace_level(p_line);
+	int start_indent = get_indent_level(p_line);
 
 	for (int i = p_line + 1; i < text.size(); i++) {
 		if (text[i].size() == 0)
 			continue;
-		int next_indent = get_whitespace_level(i);
+		int next_indent = get_indent_level(i);
 		if (next_indent > start_indent)
 			return true;
 		else
@@ -4576,21 +4587,19 @@ void TextEdit::fold_line(int p_line) {
 		return;
 
 	// hide lines below this one
-	int start_indent = get_whitespace_level(p_line);
+	int start_indent = get_indent_level(p_line);
+	int last_line = start_indent;
 	for (int i = p_line + 1; i < text.size(); i++) {
-		int cur_indent = get_whitespace_level(i);
-		if (text[i].size() == 0 || cur_indent > start_indent) {
-			set_line_as_hidden(i, true);
-		} else {
-			// exclude trailing empty lines
-			for (int trail_i = i - 1; trail_i > p_line; trail_i--) {
-				if (text[trail_i].size() == 0)
-					set_line_as_hidden(trail_i, false);
-				else
-					break;
+		if (text[i].strip_edges().size() != 0) {
+			if (get_indent_level(i) > start_indent) {
+				last_line = i;
+			} else {
+				break;
 			}
-			break;
 		}
+	}
+	for (int i = p_line + 1; i <= last_line; i++) {
+		set_line_as_hidden(i, true);
 	}
 
 	// fix selection

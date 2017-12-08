@@ -47,6 +47,94 @@
 #include "scene/resources/ray_shape.h"
 #include "scene/resources/sphere_shape.h"
 
+
+
+uint32_t EditorSceneImporter::get_import_flags() const {
+
+	if (get_script_instance()) {
+		return get_script_instance()->call("_get_import_flags");
+	}
+
+	ERR_FAIL_V(0);
+}
+void EditorSceneImporter::get_extensions(List<String> *r_extensions) const {
+
+	if (get_script_instance()) {
+		Array arr= get_script_instance()->call("_get_extensions");
+		for(int i=0;i<arr.size();i++) {
+			r_extensions->push_back(arr[i]);
+		}
+		return;
+	}
+
+	ERR_FAIL();
+
+}
+Node *EditorSceneImporter::import_scene(const String &p_path, uint32_t p_flags, int p_bake_fps, List<String> *r_missing_deps, Error *r_err) {
+
+	if (get_script_instance()) {
+		return get_script_instance()->call("_import_scene",p_path,p_flags,p_bake_fps);
+	}
+
+	ERR_FAIL_V(NULL);
+
+}
+
+Ref<Animation> EditorSceneImporter::import_animation(const String &p_path, uint32_t p_flags,int p_bake_fps) {
+
+	if (get_script_instance()) {
+		return get_script_instance()->call("_import_animation",p_path,p_flags);
+	}
+
+	ERR_FAIL_V(NULL);
+
+}
+
+//for documenters, these functions are useful when an importer calls an external conversion helper (like, fbx2gltf),
+//and you want to load the resulting file
+
+Node* EditorSceneImporter::import_scene_from_other_importer(const String &p_path, uint32_t p_flags, int p_bake_fps) {
+
+	return ResourceImporterScene::get_singleton()->import_scene_from_other_importer(this,p_path,p_flags,p_bake_fps);
+
+}
+
+Ref<Animation> EditorSceneImporter::import_animation_from_other_importer(const String &p_path, uint32_t p_flags, int p_bake_fps) {
+
+	return ResourceImporterScene::get_singleton()->import_animation_from_other_importer(this,p_path,p_flags,p_bake_fps);
+
+}
+
+void EditorSceneImporter::_bind_methods() {
+
+	ClassDB::bind_method(D_METHOD("import_scene_from_other_importer","path","flags","bake_fps"),&EditorSceneImporter::import_scene_from_other_importer);
+	ClassDB::bind_method(D_METHOD("import_animation_from_other_importer","path","flags","bake_fps"),&EditorSceneImporter::import_animation_from_other_importer);
+
+	BIND_VMETHOD(MethodInfo(Variant::INT, "_get_import_flags"));
+	BIND_VMETHOD(MethodInfo(Variant::ARRAY, "_get_extensions"));
+
+	MethodInfo mi = MethodInfo(Variant::OBJECT, "_import_scene",PropertyInfo(Variant::STRING, "path"), PropertyInfo(Variant::INT, "flags"), PropertyInfo(Variant::INT, "bake_fps"));
+	mi.return_val.class_name="Node";
+	BIND_VMETHOD(mi);
+	mi = MethodInfo(Variant::OBJECT, "_import_animation",PropertyInfo(Variant::STRING, "path"), PropertyInfo(Variant::INT, "flags"), PropertyInfo(Variant::INT, "bake_fps"));
+	mi.return_val.class_name="Animation";
+	BIND_VMETHOD(mi);
+
+	BIND_CONSTANT( IMPORT_SCENE );
+	BIND_CONSTANT( IMPORT_ANIMATION );
+	BIND_CONSTANT( IMPORT_ANIMATION_DETECT_LOOP );
+	BIND_CONSTANT( IMPORT_ANIMATION_OPTIMIZE );
+	BIND_CONSTANT( IMPORT_ANIMATION_FORCE_ALL_TRACKS_IN_ALL_CLIPS );
+	BIND_CONSTANT( IMPORT_ANIMATION_KEEP_VALUE_TRACKS );
+	BIND_CONSTANT( IMPORT_GENERATE_TANGENT_ARRAYS );
+	BIND_CONSTANT( IMPORT_FAIL_ON_MISSING_DEPENDENCIES );
+	BIND_CONSTANT( IMPORT_MATERIALS_IN_INSTANCES );
+	BIND_CONSTANT( IMPORT_USE_COMPRESSION );
+
+}
+
+
+/////////////////////////////////
 void EditorScenePostImport::_bind_methods() {
 
 	BIND_VMETHOD(MethodInfo("post_import", PropertyInfo(Variant::OBJECT, "scene")));
@@ -93,6 +181,9 @@ bool ResourceImporterScene::get_option_visibility(const String &p_option, const 
 
 	if (p_option.begins_with("animation/")) {
 		if (p_option != "animation/import" && !bool(p_options["animation/import"]))
+			return false;
+
+		if (p_option == "animation/keep_custom_tracks" && int(p_options["animation/storage"]) == 0)
 			return false;
 
 		if (p_option.begins_with("animation/optimizer/") && p_option != "animation/optimizer/enabled" && !bool(p_options["animation/optimizer/enabled"]))
@@ -870,7 +961,7 @@ static String _make_extname(const String &p_str) {
 	return ext_name;
 }
 
-void ResourceImporterScene::_make_external_resources(Node *p_node, const String &p_base_path, bool p_make_animations, bool p_make_materials, bool p_keep_materials, bool p_make_meshes, Map<Ref<Animation>, Ref<Animation> > &p_animations, Map<Ref<Material>, Ref<Material> > &p_materials, Map<Ref<ArrayMesh>, Ref<ArrayMesh> > &p_meshes) {
+void ResourceImporterScene::_make_external_resources(Node *p_node, const String &p_base_path, bool p_make_animations, bool p_keep_animations, bool p_make_materials, bool p_keep_materials, bool p_make_meshes, Map<Ref<Animation>, Ref<Animation> > &p_animations, Map<Ref<Material>, Ref<Material> > &p_materials, Map<Ref<ArrayMesh>, Ref<ArrayMesh> > &p_meshes) {
 
 	List<PropertyInfo> pi;
 
@@ -889,7 +980,26 @@ void ResourceImporterScene::_make_external_resources(Node *p_node, const String 
 
 				if (!p_animations.has(anim)) {
 
+					//mark what comes from the file first, this helps eventually keep user data
+					for (int i = 0; i < anim->get_track_count(); i++) {
+						anim->track_set_imported(i, true);
+					}
+
 					String ext_name = p_base_path.plus_file(_make_extname(E->get()) + ".anim");
+
+					if (FileAccess::exists(ext_name) && p_keep_animations) {
+						//try to keep custom animation tracks
+						Ref<Animation> old_anim = ResourceLoader::load(ext_name, "Animation", true);
+						if (old_anim.is_valid()) {
+							//meergeee
+							for (int i = 0; i < old_anim->get_track_count(); i++) {
+								if (!old_anim->track_is_imported(i)) {
+									old_anim->copy_track(i, anim);
+								}
+							}
+						}
+					}
+
 					ResourceSaver::save(ext_name, anim, ResourceSaver::FLAG_CHANGE_PATH);
 					p_animations[anim] = anim;
 				}
@@ -997,7 +1107,7 @@ void ResourceImporterScene::_make_external_resources(Node *p_node, const String 
 
 	for (int i = 0; i < p_node->get_child_count(); i++) {
 
-		_make_external_resources(p_node->get_child(i), p_base_path, p_make_animations, p_make_materials, p_keep_materials, p_make_meshes, p_animations, p_materials, p_meshes);
+		_make_external_resources(p_node->get_child(i), p_base_path, p_make_animations, p_keep_animations, p_make_materials, p_keep_materials, p_make_meshes, p_animations, p_materials, p_meshes);
 	}
 }
 
@@ -1036,6 +1146,7 @@ void ResourceImporterScene::get_import_options(List<ImportOption> *r_options, in
 	r_options->push_back(ImportOption(PropertyInfo(Variant::REAL, "animation/fps", PROPERTY_HINT_RANGE, "1,120,1"), 15));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::STRING, "animation/filter_script", PROPERTY_HINT_MULTILINE_TEXT), ""));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "animation/storage", PROPERTY_HINT_ENUM, "Built-In,Files"), animations_out ? true : false));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "animation/keep_custom_tracks"), animations_out ? true : false));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "animation/optimizer/enabled", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::REAL, "animation/optimizer/max_linear_error"), 0.05));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::REAL, "animation/optimizer/max_angular_error"), 0.01));
@@ -1060,6 +1171,70 @@ void ResourceImporterScene::_replace_owner(Node *p_node, Node *p_scene, Node *p_
 		Node *n = p_node->get_child(i);
 		_replace_owner(n, p_scene, p_new_owner);
 	}
+
+}
+
+Node* ResourceImporterScene::import_scene_from_other_importer(EditorSceneImporter *p_exception,const String &p_path, uint32_t p_flags, int p_bake_fps) {
+
+	Ref<EditorSceneImporter> importer;
+	String ext = p_path.get_extension().to_lower();
+
+	for (Set<Ref<EditorSceneImporter> >::Element *E = importers.front(); E; E = E->next()) {
+
+		if (E->get().ptr()==p_exception)
+			continue;
+		List<String> extensions;
+		E->get()->get_extensions(&extensions);
+
+		for (List<String>::Element *F = extensions.front(); F; F = F->next()) {
+
+			if (F->get().to_lower() == ext) {
+
+				importer = E->get();
+				break;
+			}
+		}
+
+		if (importer.is_valid())
+			break;
+	}
+
+	ERR_FAIL_COND_V(!importer.is_valid(),NULL);
+
+	List<String> missing;
+	Error err;
+	return importer->import_scene(p_path,p_flags,p_bake_fps,&missing,&err);
+}
+
+Ref<Animation> ResourceImporterScene::import_animation_from_other_importer(EditorSceneImporter *p_exception,const String &p_path, uint32_t p_flags, int p_bake_fps) {
+
+
+	     Ref<EditorSceneImporter> importer;
+	     String ext = p_path.get_extension().to_lower();
+
+	     for (Set<Ref<EditorSceneImporter> >::Element *E = importers.front(); E; E = E->next()) {
+
+			if (E->get().ptr()==p_exception)
+	     continue;
+		     List<String> extensions;
+		     E->get()->get_extensions(&extensions);
+
+		     for (List<String>::Element *F = extensions.front(); F; F = F->next()) {
+
+			     if (F->get().to_lower() == ext) {
+
+				     importer = E->get();
+				     break;
+			     }
+		     }
+
+		     if (importer.is_valid())
+			     break;
+	     }
+
+	     ERR_FAIL_COND_V(!importer.is_valid(),NULL);
+
+	     return importer->import_animation(p_path,p_flags,p_bake_fps);
 }
 
 Error ResourceImporterScene::import(const String &p_source_file, const String &p_save_path, const Map<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files) {
@@ -1176,6 +1351,7 @@ Error ResourceImporterScene::import(const String &p_source_file, const String &p
 	}
 
 	bool external_animations = int(p_options["animation/storage"]) == 1;
+	bool keep_custom_tracks = p_options["animation/keep_custom_tracks"];
 	bool external_materials = p_options["materials/storage"];
 	bool external_meshes = p_options["meshes/storage"];
 	bool external_scenes = int(p_options["nodes/storage"]) == 1;
@@ -1202,7 +1378,7 @@ Error ResourceImporterScene::import(const String &p_source_file, const String &p
 
 		bool keep_materials = bool(p_options["materials/keep_on_reimport"]);
 
-		_make_external_resources(scene, base_path, external_animations, external_materials, keep_materials, external_meshes, anim_map, mat_map, mesh_map);
+		_make_external_resources(scene, base_path, external_animations, keep_custom_tracks, external_materials, keep_materials, external_meshes, anim_map, mat_map, mesh_map);
 	}
 
 	progress.step(TTR("Running Custom Script.."), 2);

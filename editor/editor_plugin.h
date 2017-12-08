@@ -35,6 +35,7 @@
 #include "scene/gui/tool_button.h"
 #include "scene/main/node.h"
 #include "scene/resources/texture.h"
+#include "editor/import/resource_importer_scene.h"
 #include "undo_redo.h"
 
 /**
@@ -165,6 +166,7 @@ public:
 	virtual void forward_force_draw_over_viewport(Control *p_overlay);
 	virtual bool forward_spatial_gui_input(Camera *p_camera, const Ref<InputEvent> &p_event);
 	virtual String get_name() const;
+	virtual const Ref<Texture> get_icon() const;
 	virtual bool has_main_screen() const;
 	virtual void make_visible(bool p_visible);
 	virtual void selected_notify() {} //notify that it was raised by the user, not the editor
@@ -198,6 +200,9 @@ public:
 
 	void add_export_plugin(const Ref<EditorExportPlugin> &p_exporter);
 	void remove_export_plugin(const Ref<EditorExportPlugin> &p_exporter);
+
+	void add_scene_import_plugin(const Ref<EditorSceneImporter> &p_importer);
+	void remove_scene_import_plugin(const Ref<EditorSceneImporter> &p_importer);
 
 	EditorPlugin();
 	virtual ~EditorPlugin();
