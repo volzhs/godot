@@ -831,7 +831,7 @@ void AnimationTreePlayer::_process_animation(float p_delta) {
 			for (List<AnimationNode::TrackRef>::Element *E = anim_list->tref.front(); E; E = E->next()) {
 
 				AnimationNode::TrackRef &tr = E->get();
-				if (tr.track == NULL || tr.local_track < 0 || tr.weight < CMP_EPSILON)
+				if (tr.track == NULL || tr.local_track < 0 || tr.weight < CMP_EPSILON || !a->track_is_enabled(tr.local_track))
 					continue;
 
 				switch (a->track_get_type(tr.local_track)) {
@@ -1795,6 +1795,10 @@ void AnimationTreePlayer::_bind_methods() {
 
 	ADD_GROUP("Playback", "playback_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "playback_process_mode", PROPERTY_HINT_ENUM, "Physics,Idle"), "set_animation_process_mode", "get_animation_process_mode");
+
+	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "master_player"), "set_master_player", "get_master_player");
+	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "base_path"), "set_base_path", "get_base_path");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "active"), "set_active", "is_active");
 
 	BIND_ENUM_CONSTANT(NODE_OUTPUT);
 	BIND_ENUM_CONSTANT(NODE_ANIMATION);
