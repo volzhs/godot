@@ -537,10 +537,6 @@ void ScriptTextEditor::set_edit_state(const Variant &p_state) {
 	code_editor->get_text_edit()->cursor_set_line(state["row"]);
 	code_editor->get_text_edit()->set_v_scroll(state["scroll_position"]);
 	code_editor->get_text_edit()->grab_focus();
-
-	//int scroll_pos;
-	//int cursor_column;
-	//int cursor_row;
 }
 
 String ScriptTextEditor::get_name() {
@@ -924,26 +920,7 @@ void ScriptTextEditor::_edit_option(int p_op) {
 			if (scr.is_null())
 				return;
 
-			tx->begin_complex_operation();
-			if (tx->is_selection_active()) {
-				tx->indent_selection_left();
-			} else {
-				int begin = tx->cursor_get_line();
-				String line_text = tx->get_line(begin);
-				// begins with tab
-				if (line_text.begins_with("\t")) {
-					line_text = line_text.substr(1, line_text.length());
-					tx->set_line(begin, line_text);
-				}
-				// begins with 4 spaces
-				else if (line_text.begins_with("    ")) {
-					line_text = line_text.substr(4, line_text.length());
-					tx->set_line(begin, line_text);
-				}
-			}
-			tx->end_complex_operation();
-			tx->update();
-			//tx->deselect();
+			tx->indent_left();
 		} break;
 		case EDIT_INDENT_RIGHT: {
 
@@ -951,18 +928,7 @@ void ScriptTextEditor::_edit_option(int p_op) {
 			if (scr.is_null())
 				return;
 
-			tx->begin_complex_operation();
-			if (tx->is_selection_active()) {
-				tx->indent_selection_right();
-			} else {
-				int begin = tx->cursor_get_line();
-				String line_text = tx->get_line(begin);
-				line_text = '\t' + line_text;
-				tx->set_line(begin, line_text);
-			}
-			tx->end_complex_operation();
-			tx->update();
-			//tx->deselect();
+			tx->indent_right();
 		} break;
 		case EDIT_DELETE_LINE: {
 
@@ -1503,14 +1469,15 @@ void ScriptTextEditor::_make_context_menu(bool p_selection, bool p_color, bool p
 	context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/select_all"), EDIT_SELECT_ALL);
 	context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/undo"), EDIT_UNDO);
 	context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/redo"), EDIT_REDO);
+	context_menu->add_separator();
+	context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/indent_left"), EDIT_INDENT_LEFT);
+	context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/indent_right"), EDIT_INDENT_RIGHT);
+	context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/toggle_comment"), EDIT_TOGGLE_COMMENT);
 
 	if (p_selection) {
 		context_menu->add_separator();
 		context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/convert_to_uppercase"), EDIT_TO_UPPERCASE);
 		context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/convert_to_lowercase"), EDIT_TO_LOWERCASE);
-		context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/indent_left"), EDIT_INDENT_LEFT);
-		context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/indent_right"), EDIT_INDENT_RIGHT);
-		context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/toggle_comment"), EDIT_TOGGLE_COMMENT);
 	}
 	if (p_can_fold || p_is_folded)
 		context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/toggle_fold_line"), EDIT_TOGGLE_FOLD_LINE);

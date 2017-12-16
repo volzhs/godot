@@ -331,6 +331,12 @@ void ScriptCreateDialog::_file_selected(const String &p_file) {
 	} else {
 		file_path->set_text(p);
 		_path_changed(p);
+
+		String filename = p.get_file().get_basename();
+		int select_start = p.find_last(filename);
+		file_path->select(select_start, select_start + filename.length());
+		file_path->set_cursor_position(select_start + filename.length());
+		file_path->grab_focus();
 	}
 }
 
@@ -425,6 +431,10 @@ void ScriptCreateDialog::_path_changed(const String &p_path) {
 	_update_dialog();
 }
 
+void ScriptCreateDialog::_path_entered(const String &p_path) {
+	ok_pressed();
+}
+
 void ScriptCreateDialog::_msg_script_valid(bool valid, const String &p_msg) {
 
 	error_label->set_text(TTR(p_msg));
@@ -459,7 +469,7 @@ void ScriptCreateDialog::_update_dialog() {
 			script_ok = false;
 		}
 	}
-	if (has_named_classes && (!is_class_name_valid)) {
+	if (has_named_classes && (is_new_script_created && !is_class_name_valid)) {
 		_msg_script_valid(false, TTR("Invalid class name"));
 		script_ok = false;
 	}
@@ -550,6 +560,7 @@ void ScriptCreateDialog::_bind_methods() {
 	ClassDB::bind_method("_browse_path", &ScriptCreateDialog::_browse_path);
 	ClassDB::bind_method("_file_selected", &ScriptCreateDialog::_file_selected);
 	ClassDB::bind_method("_path_changed", &ScriptCreateDialog::_path_changed);
+	ClassDB::bind_method("_path_entered", &ScriptCreateDialog::_path_entered);
 	ClassDB::bind_method("_template_changed", &ScriptCreateDialog::_template_changed);
 	ADD_SIGNAL(MethodInfo("script_created", PropertyInfo(Variant::OBJECT, "script", PROPERTY_HINT_RESOURCE_TYPE, "Script")));
 }
@@ -715,6 +726,7 @@ ScriptCreateDialog::ScriptCreateDialog() {
 	hb = memnew(HBoxContainer);
 	file_path = memnew(LineEdit);
 	file_path->connect("text_changed", this, "_path_changed");
+	file_path->connect("text_entered", this, "_path_entered");
 	file_path->set_h_size_flags(SIZE_EXPAND_FILL);
 	hb->add_child(file_path);
 	path_button = memnew(Button);

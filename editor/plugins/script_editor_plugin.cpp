@@ -1329,12 +1329,12 @@ void ScriptEditor::_members_overview_selected(int p_idx) {
 	if (!se) {
 		return;
 	}
-	Dictionary state;
-	state["scroll_position"] = members_overview->get_item_metadata(p_idx);
+	// Go to the member's line and reset the cursor column. We can't just change scroll_position
+	// directly, since code might be folded.
+	se->goto_line(members_overview->get_item_metadata(p_idx));
+	Dictionary state = se->get_edit_state();
 	state["column"] = 0;
-	state["row"] = members_overview->get_item_metadata(p_idx);
 	se->set_edit_state(state);
-	se->ensure_focus();
 }
 
 void ScriptEditor::_help_overview_selected(int p_idx) {
@@ -1843,6 +1843,11 @@ void ScriptEditor::apply_scripts() const {
 			continue;
 		se->apply_code();
 	}
+}
+
+void ScriptEditor::open_script_create_dialog(const String &p_base_name, const String &p_base_path) {
+	_menu_option(FILE_NEW);
+	script_create_dialog->config(p_base_name, p_base_path);
 }
 
 void ScriptEditor::_editor_play() {
@@ -2548,6 +2553,7 @@ void ScriptEditor::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_current_script"), &ScriptEditor::_get_current_script);
 	ClassDB::bind_method(D_METHOD("get_open_scripts"), &ScriptEditor::_get_open_scripts);
+	ClassDB::bind_method(D_METHOD("open_script_create_dialog", "base_name", "base_path"), &ScriptEditor::open_script_create_dialog);
 
 	ADD_SIGNAL(MethodInfo("editor_script_changed", PropertyInfo(Variant::OBJECT, "script", PROPERTY_HINT_RESOURCE_TYPE, "Script")));
 	ADD_SIGNAL(MethodInfo("script_close", PropertyInfo(Variant::OBJECT, "script", PROPERTY_HINT_RESOURCE_TYPE, "Script")));
