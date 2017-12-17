@@ -1614,6 +1614,18 @@ Vector3 VoxelLightBaker::_compute_pixel_light_at_pos(const Vector3 &p_pos, const
 	return accum;
 }
 
+uint32_t xorshiftstate[] = { 123 }; // anything non-zero will do here
+
+_ALWAYS_INLINE_ uint32_t xorshift32() {
+	/* Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" */
+	uint32_t x = xorshiftstate[0];
+	x ^= x << 13;
+	x ^= x >> 17;
+	x ^= x << 5;
+	xorshiftstate[0] = x;
+	return x;
+}
+
 Vector3 VoxelLightBaker::_compute_ray_trace_at_pos(const Vector3 &p_pos, const Vector3 &p_normal) {
 
 	int samples_per_quality[3] = { 48, 128, 512 };
@@ -1638,9 +1650,9 @@ Vector3 VoxelLightBaker::_compute_ray_trace_at_pos(const Vector3 &p_pos, const V
 
 	for (int i = 0; i < samples; i++) {
 
-		float random_angle1 = (((Math::rand() % 65535) / 65535.0) * 2.0 - 1.0) * spread;
+		float random_angle1 = (((xorshift32() % 65535) / 65535.0) * 2.0 - 1.0) * spread;
 		Vector3 axis(0, sin(random_angle1), cos(random_angle1));
-		float random_angle2 = ((Math::rand() % 65535) / 65535.0) * Math_PI * 2.0;
+		float random_angle2 = ((xorshift32() % 65535) / 65535.0) * Math_PI * 2.0;
 		Basis rot(Vector3(0, 0, 1), random_angle2);
 		axis = rot.xform(axis);
 
@@ -1692,7 +1704,7 @@ Vector3 VoxelLightBaker::_compute_ray_trace_at_pos(const Vector3 &p_pos, const V
 				}
 
 				cell = bc->childs[child];
-				if (cell == CHILD_EMPTY)
+				if (unlikely(cell == CHILD_EMPTY))
 					break;
 
 				half >>= 1;
@@ -1701,12 +1713,12 @@ Vector3 VoxelLightBaker::_compute_ray_trace_at_pos(const Vector3 &p_pos, const V
 			pos += advance;
 		}
 
-		if (cell != CHILD_EMPTY) {
+		if (unlikely(cell != CHILD_EMPTY)) {
 			for (int i = 0; i < 6; i++) {
 				//anisotropic read light
 				float amount = direction.dot(aniso_normal[i]);
-				if (amount < 0)
-					amount = 0;
+				if (amount <= 0)
+					continue;
 				accum.x += light[cell].accum[i][0] * amount;
 				accum.y += light[cell].accum[i][1] * amount;
 				accum.z += light[cell].accum[i][2] * amount;
