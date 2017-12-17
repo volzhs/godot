@@ -202,7 +202,11 @@ void PopupMenu::_gui_input(const Ref<InputEvent> &p_event) {
 
 			case KEY_DOWN: {
 
-				for (int i = mouse_over + 1; i < items.size(); i++) {
+				int search_from = mouse_over + 1;
+				if (search_from >= items.size())
+					search_from = 0;
+
+				for (int i = search_from; i < items.size(); i++) {
 
 					if (i < 0 || i >= items.size())
 						continue;
@@ -211,18 +215,17 @@ void PopupMenu::_gui_input(const Ref<InputEvent> &p_event) {
 
 						mouse_over = i;
 						update();
-
-						if (items[i].submenu != "" && submenu_over != i) {
-							submenu_over = i;
-							submenu_timer->start();
-						}
 						break;
 					}
 				}
 			} break;
 			case KEY_UP: {
 
-				for (int i = mouse_over - 1; i >= 0; i--) {
+				int search_from = mouse_over - 1;
+				if (search_from < 0)
+					search_from = items.size() - 1;
+
+				for (int i = search_from; i >= 0; i--) {
 
 					if (i < 0 || i >= items.size())
 						continue;
@@ -231,19 +234,39 @@ void PopupMenu::_gui_input(const Ref<InputEvent> &p_event) {
 
 						mouse_over = i;
 						update();
-
-						if (items[i].submenu != "" && submenu_over != i) {
-							submenu_over = i;
-							submenu_timer->start();
-						}
 						break;
 					}
 				}
 			} break;
+
+			case KEY_LEFT: {
+
+				Node *n = get_parent();
+				if (!n)
+					break;
+
+				PopupMenu *pm = Object::cast_to<PopupMenu>(n);
+				if (!pm)
+					break;
+
+				hide();
+			} break;
+
+			case KEY_RIGHT: {
+
+				if (mouse_over >= 0 && mouse_over < items.size() && !items[mouse_over].separator && items[mouse_over].submenu != "" && submenu_over != mouse_over)
+					_activate_submenu(mouse_over);
+			} break;
+
 			case KEY_ENTER:
 			case KEY_KP_ENTER: {
 
 				if (mouse_over >= 0 && mouse_over < items.size() && !items[mouse_over].separator) {
+
+					if (items[mouse_over].submenu != "" && submenu_over != mouse_over) {
+						_activate_submenu(mouse_over);
+						break;
+					}
 
 					activate_item(mouse_over);
 				}
