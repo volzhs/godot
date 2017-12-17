@@ -1820,6 +1820,7 @@ void VisualServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(INSTANCE_LIGHT);
 	BIND_ENUM_CONSTANT(INSTANCE_REFLECTION_PROBE);
 	BIND_ENUM_CONSTANT(INSTANCE_GI_PROBE);
+	BIND_ENUM_CONSTANT(INSTANCE_LIGHTMAP_CAPTURE);
 	BIND_ENUM_CONSTANT(INSTANCE_MAX);
 	BIND_ENUM_CONSTANT(INSTANCE_GEOMETRY_MASK);
 
@@ -1921,6 +1922,7 @@ VisualServer::VisualServer() {
 
 	//ERR_FAIL_COND(singleton);
 	singleton = this;
+
 	GLOBAL_DEF("rendering/vram_compression/import_s3tc", true);
 	GLOBAL_DEF("rendering/vram_compression/import_etc", false);
 	GLOBAL_DEF("rendering/vram_compression/import_etc2", true);

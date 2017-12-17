@@ -751,7 +751,6 @@ public:
 		INSTANCE_GI_PROBE,
 		INSTANCE_LIGHTMAP_CAPTURE,
 		INSTANCE_MAX,
-		/*INSTANCE_BAKED_LIGHT_SAMPLER,*/
 
 		INSTANCE_GEOMETRY_MASK = (1 << INSTANCE_MESH) | (1 << INSTANCE_MULTIMESH) | (1 << INSTANCE_IMMEDIATE) | (1 << INSTANCE_PARTICLES)
 	};
@@ -980,6 +979,8 @@ public:
 	virtual bool has_os_feature(const String &p_feature) const = 0;
 
 	virtual void set_debug_generate_wireframes(bool p_generate) = 0;
+
+	virtual void call_set_use_vsync(bool p_enable) = 0;
 
 	VisualServer();
 	virtual ~VisualServer();
