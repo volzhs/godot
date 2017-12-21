@@ -1808,13 +1808,16 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 			pos = gui.focus_inv_xform.xform(pos);
 			mb->set_position(pos);
 
-			if (gui.mouse_focus->can_process()) {
-				_gui_call_input(gui.mouse_focus, mb);
-			}
+			Control *mouse_focus = gui.mouse_focus;
 
+			//disable mouse focus if needed before calling input, this makes popups on mouse press event work better, as the release will never be received otherwise
 			if (mb->get_button_index() == gui.mouse_focus_button) {
 				gui.mouse_focus = NULL;
 				gui.mouse_focus_button = -1;
+			}
+
+			if (mouse_focus->can_process()) {
+				_gui_call_input(mouse_focus, mb);
 			}
 
 			/*if (gui.drag_data.get_type()!=Variant::NIL && mb->get_button_index()==BUTTON_LEFT) {
@@ -2371,7 +2374,17 @@ List<Control *>::Element *Viewport::_gui_show_modal(Control *p_control) {
 		p_control->_modal_set_prev_focus_owner(0);
 
 	if (gui.mouse_focus && !p_control->is_a_parent_of(gui.mouse_focus)) {
-		gui.mouse_focus->notification(Control::NOTIFICATION_MOUSE_EXIT);
+		Ref<InputEventMouseButton> mb;
+		mb.instance();
+		mb->set_position(gui.mouse_focus->get_local_mouse_position());
+		mb->set_global_position(gui.mouse_focus->get_local_mouse_position());
+		mb->set_button_index(gui.mouse_focus_button);
+		mb->set_pressed(false);
+		gui.mouse_focus->call_multilevel(SceneStringNames::get_singleton()->_gui_input, mb);
+
+		//if (gui.mouse_over == gui.mouse_focus) {
+		//	gui.mouse_focus->notification(Control::NOTIFICATION_MOUSE_EXIT);
+		//}
 		gui.mouse_focus = NULL;
 	}
 
