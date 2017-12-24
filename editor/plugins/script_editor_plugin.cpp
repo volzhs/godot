@@ -520,6 +520,8 @@ void ScriptEditor::_update_modified_scripts_for_external_editor(Ref<Script> p_fo
 	if (!bool(EditorSettings::get_singleton()->get("external_editor/use_external_editor")))
 		return;
 
+	ERR_FAIL_COND(!get_tree());
+
 	Set<Ref<Script> > scripts;
 
 	Node *base = get_tree()->get_edited_scene_root();
@@ -804,6 +806,12 @@ void ScriptEditor::_close_all_tab(int except) {
 			}
 		}
 	}
+}
+
+void ScriptEditor::_copy_script_path() {
+	ScriptTextEditor *ste = tab_container->get_child(tab_container->get_current_tab())->cast_to<ScriptTextEditor>();
+	Ref<Script> script = ste->get_edited_script();
+	OS::get_singleton()->set_clipboard(script->get_path());
 }
 
 void ScriptEditor::_close_docs_tab() {
@@ -1166,6 +1174,16 @@ void ScriptEditor::_menu_option(int p_option) {
 			case EDIT_CUT: {
 
 				current->get_text_edit()->cut();
+				current->get_text_edit()->call_deferred("grab_focus");
+			} break;
+			case EDIT_UPPERCASE: {
+
+				current->get_text_edit()->convert_case(current->get_text_edit()->UPPERCASE);
+				current->get_text_edit()->call_deferred("grab_focus");
+			} break;
+			case EDIT_LOWERCASE: {
+
+				current->get_text_edit()->convert_case(current->get_text_edit()->LOWERCASE);
 				current->get_text_edit()->call_deferred("grab_focus");
 			} break;
 			case EDIT_COPY: {
@@ -1560,6 +1578,9 @@ void ScriptEditor::_menu_option(int p_option) {
 			case FILE_CLOSE_ALL: {
 				_close_all_tab(-1);
 			} break;
+			case FILE_COPY_SCRIPT_PATH: {
+				_copy_script_path();
+			} break;
 			case CLOSE_DOCS: {
 				_close_docs_tab();
 			} break;
@@ -1610,6 +1631,9 @@ void ScriptEditor::_menu_option(int p_option) {
 				} break;
 				case FILE_CLOSE_ALL: {
 					_close_all_tab(-1);
+				} break;
+				case FILE_COPY_SCRIPT_PATH: {
+					_copy_script_path();
 				} break;
 				case FILE_CLOSE: {
 					_close_current_tab();
@@ -1908,6 +1932,8 @@ void ScriptEditor::_script_rmb_selected(int p_idx, const Vector2 &p_pos) {
 		script_list_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/close_file"), FILE_CLOSE);
 		script_list_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/close_other_tabs"), FILE_CLOSE_OTHERS);
 		script_list_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/close_all"), FILE_CLOSE_ALL);
+		script_list_menu->add_separator();
+		script_list_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/copy_script_path"), FILE_COPY_SCRIPT_PATH);
 	}
 
 	script_list_menu->set_pos(script_list->get_global_pos() + p_pos);
@@ -2651,6 +2677,7 @@ void ScriptEditor::_bind_methods() {
 	ObjectTypeDB::bind_method("_file_dialog_action", &ScriptEditor::_file_dialog_action);
 	ObjectTypeDB::bind_method("_tab_changed", &ScriptEditor::_tab_changed);
 	ObjectTypeDB::bind_method("_menu_option", &ScriptEditor::_menu_option);
+	ObjectTypeDB::bind_method("_copy_script_path", &ScriptEditor::_copy_script_path);
 	ObjectTypeDB::bind_method("_close_current_tab", &ScriptEditor::_close_current_tab);
 	ObjectTypeDB::bind_method("_close_other_tabs", &ScriptEditor::_close_other_tabs);
 	ObjectTypeDB::bind_method("_close_all_tab", &ScriptEditor::_close_all_tab);
@@ -2751,6 +2778,8 @@ ScriptEditor::ScriptEditor(EditorNode *p_editor) {
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/save_theme", TTR("Save Theme")), FILE_SAVE_THEME);
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/save_theme_as", TTR("Save Theme As")), FILE_SAVE_THEME_AS);
 	file_menu->get_popup()->add_separator();
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/copy_script_path", TTR("Copy Script Path")), FILE_COPY_SCRIPT_PATH);
+	file_menu->get_popup()->add_separator();
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_docs", TTR("Close Docs")), CLOSE_DOCS);
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_file", TTR("Close"), KEY_MASK_CMD | KEY_W), FILE_CLOSE);
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_other_tabs", TTR("Close Other Tabs")), FILE_CLOSE_OTHERS);
@@ -2768,6 +2797,9 @@ ScriptEditor::ScriptEditor(EditorNode *p_editor) {
 	edit_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/paste", TTR("Paste"), KEY_MASK_CMD | KEY_V), EDIT_PASTE);
 	edit_menu->get_popup()->add_separator();
 	edit_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/select_all", TTR("Select All"), KEY_MASK_CMD | KEY_A), EDIT_SELECT_ALL);
+	edit_menu->get_popup()->add_separator();
+	edit_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/convert_to_uppercase", TTR("Convert to UpperCase")), EDIT_UPPERCASE);
+	edit_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/convert_to_lowercase", TTR("Convert to LowerCase")), EDIT_LOWERCASE);
 	edit_menu->get_popup()->add_separator();
 	edit_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/move_up", TTR("Move Up"), KEY_MASK_ALT | KEY_UP), EDIT_MOVE_LINE_UP);
 	edit_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/move_down", TTR("Move Down"), KEY_MASK_ALT | KEY_DOWN), EDIT_MOVE_LINE_DOWN);

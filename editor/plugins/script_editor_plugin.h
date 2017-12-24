@@ -118,6 +118,7 @@ class ScriptEditor : public VBoxContainer {
 		FILE_CLOSE,
 		FILE_CLOSE_OTHERS,
 		FILE_CLOSE_ALL,
+		FILE_COPY_SCRIPT_PATH,
 		CLOSE_DOCS,
 		EDIT_UNDO,
 		EDIT_REDO,
@@ -125,6 +126,8 @@ class ScriptEditor : public VBoxContainer {
 		EDIT_COPY,
 		EDIT_PASTE,
 		EDIT_SELECT_ALL,
+		EDIT_UPPERCASE,
+		EDIT_LOWERCASE,
 		EDIT_COMPLETE,
 		EDIT_AUTO_INDENT,
 		EDIT_TRIM_TRAILING_WHITESAPCE,
@@ -245,6 +248,7 @@ class ScriptEditor : public VBoxContainer {
 	void _close_other_tabs(int idx);
 	void _close_all_tab(int except);
 	void _close_docs_tab();
+	void _copy_script_path();
 
 	bool grab_focus_block;
 
