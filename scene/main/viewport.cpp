@@ -1640,7 +1640,7 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 		if (mb->is_pressed()) {
 
 			Size2 pos = mpos;
-			if (gui.mouse_focus && mb->get_button_index() != gui.mouse_focus_button) {
+			if (gui.mouse_focus && mb->get_button_index() != gui.mouse_focus_button && mb->get_button_index() == BUTTON_LEFT) {
 
 				//do not steal mouse focus and stuff
 
@@ -2904,7 +2904,7 @@ Viewport::Viewport() {
 	gui.canvas_sort_index = 0;
 
 	msaa = MSAA_DISABLED;
-	hdr = false;
+	hdr = true;
 
 	usage = USAGE_3D;
 	debug_draw = DEBUG_DRAW_DISABLED;
