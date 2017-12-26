@@ -174,7 +174,7 @@ void light_compute(vec3 N, vec3 L,vec3 V, vec3 light_color, float roughness, ino
 
 		vec3 H = normalize(V + L);
 		float dotNH = max(dot(N,H), 0.0 );
-		float intensity = pow( dotNH, (1.0-roughness) * 256.0);
+		float intensity = (roughness >= 1.0 ? 1.0 : pow( dotNH, (1.0-roughness) * 256.0));
 		specular += light_color * intensity;
 
 	}
@@ -1615,7 +1615,7 @@ void main() {
 
 	float alpha = 1.0;
 
-#ifdef METERIAL_DOUBLESIDED
+#if defined(DO_SIDE_CHECK)
 	float side=float(gl_FrontFacing)*2.0-1.0;
 #else
 	float side=1.0;
