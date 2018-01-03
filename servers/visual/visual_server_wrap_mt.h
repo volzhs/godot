@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -647,12 +647,6 @@ public:
 	FUNC3(canvas_item_material_set_shader_param, RID, const StringName &, const Variant &);
 	FUNC2RC(Variant, canvas_item_material_get_shader_param, RID, const StringName &);
 	FUNC2(canvas_item_material_set_shading_mode, RID, CanvasItemShadingMode);
-
-	/* CURSOR */
-	FUNC2(cursor_set_rotation, float, int); // radians
-	FUNC4(cursor_set_texture, RID, const Point2 &, int, const Rect2 &);
-	FUNC2(cursor_set_visible, bool, int);
-	FUNC2(cursor_set_pos, const Point2 &, int);
 
 	/* BLACK BARS */
 

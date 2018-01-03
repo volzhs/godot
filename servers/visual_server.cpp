@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -521,11 +521,6 @@ void VisualServer::_bind_methods() {
 
 	ObjectTypeDB::bind_method(_MD("canvas_item_clear"), &VisualServer::canvas_item_clear);
 	ObjectTypeDB::bind_method(_MD("canvas_item_raise"), &VisualServer::canvas_item_raise);
-
-	ObjectTypeDB::bind_method(_MD("cursor_set_rotation"), &VisualServer::cursor_set_rotation);
-	ObjectTypeDB::bind_method(_MD("cursor_set_texture"), &VisualServer::cursor_set_texture);
-	ObjectTypeDB::bind_method(_MD("cursor_set_visible"), &VisualServer::cursor_set_visible);
-	ObjectTypeDB::bind_method(_MD("cursor_set_pos"), &VisualServer::cursor_set_pos);
 
 	ObjectTypeDB::bind_method(_MD("black_bars_set_margins", "left", "top", "right", "bottom"), &VisualServer::black_bars_set_margins);
 	ObjectTypeDB::bind_method(_MD("black_bars_set_images", "left", "top", "right", "bottom"), &VisualServer::black_bars_set_images);

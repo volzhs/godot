@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -80,8 +80,6 @@ static const char *globals_renames[][2] = {
 	{ "display/custom_theme", "gui/theme/custom" },
 	{ "display/custom_theme_font", "gui/theme/custom_font" },
 	{ "display/swap_ok_cancel", "gui/common/swap_ok_cancel" },
-	{ "display/custom_mouse_cursor", "display/mouse_cursor/custom_image" },
-	{ "display/custom_mouse_cursor_hotspot", "display/mouse_cursor/custom_hotspot" },
 	{ "display/tooltip_delay", "gui/timers/tooltip_delay_sec" },
 	{ "display/text_edit_idle_detect_sec", "gui/timers/text_edit_idle_detect_sec" },
 	{ "display/stretch_mode", "display/stretch/mode" },
