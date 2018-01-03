@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -42,14 +42,14 @@
 
 #define TAB_PIXELS
 
+inline bool _is_symbol(CharType c) {
+
+	return is_symbol(c);
+}
+
 static bool _is_text_char(CharType c) {
 
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
-}
-
-static bool _is_symbol(CharType c) {
-
-	return c != '_' && ((c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~') || c == '\t' || c == ' ');
 }
 
 static bool _is_whitespace(CharType c) {
@@ -1956,7 +1956,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 
 				} else if (mb->is_doubleclick() && text[cursor.line].length()) {
 
-					//doubleclick select world
+					//doubleclick select word
 					selection.selecting_mode = Selection::MODE_WORD;
 					_update_selection_mode_word();
 					last_dblclk = OS::get_singleton()->get_ticks_msec();
@@ -2439,26 +2439,44 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 
 						//simple unindent
 						int cc = cursor.column;
+
+						const int len = text[cursor.line].length();
+						const String &line = text[cursor.line];
+
+						int left = 0; // number of whitespace chars at beginning of line
+						while (left < len && (line[left] == '\t' || line[left] == ' '))
+							left++;
+						cc = MIN(cc, left);
+
+						while (cc < indent_size && cc < left && line[cc] == ' ')
+							cc++;
+
 						if (cc > 0 && cc <= text[cursor.line].length()) {
-							if (text[cursor.line][cursor.column - 1] == '\t') {
-								backspace_at_cursor();
+							if (text[cursor.line][cc - 1] == '\t') {
+								_remove_text(cursor.line, cc - 1, cursor.line, cc);
+								if (cursor.column >= left)
+									cursor_set_column(MAX(0, cursor.column - 1));
+								update();
 							} else {
-								if (cursor.column - indent_size >= 0) {
+								int n = 0;
 
-									bool unindent = true;
-									for (int i = 1; i <= indent_size; i++) {
-										if (text[cursor.line][cursor.column - i] != ' ') {
-											unindent = false;
-											break;
-										}
+								for (int i = 1; i <= MIN(cc, indent_size); i++) {
+									if (line[cc - i] != ' ') {
+										break;
 									}
+									n++;
+								}
 
-									if (unindent) {
-										_remove_text(cursor.line, cursor.column - indent_size, cursor.line, cursor.column);
-										cursor_set_column(cursor.column - indent_size);
-									}
+								if (n > 0) {
+									_remove_text(cursor.line, cc - n, cursor.line, cc);
+									if (cursor.column > left - n) // inside text?
+										cursor_set_column(MAX(0, cursor.column - n));
+									update();
 								}
 							}
+						} else if (cc == 0 && line.length() > 0 && line[0] == '\t') {
+							_remove_text(cursor.line, 0, cursor.line, 1);
+							update();
 						}
 					} else {
 						//simple indent
@@ -2563,21 +2581,18 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 					if (cc == 0 && cursor.line > 0) {
 						cursor_set_line(cursor.line - 1);
 						cursor_set_column(text[cursor.line].length());
-						break;
+					} else {
+						while (cc > 0) {
+							bool ischar = _is_text_char(text[cursor.line][cc - 1]);
+
+							if (prev_char && !ischar)
+								break;
+
+							prev_char = ischar;
+							cc--;
+						}
+						cursor_set_column(cc);
 					}
-
-					while (cc > 0) {
-
-						bool ischar = _is_text_char(text[cursor.line][cc - 1]);
-
-						if (prev_char && !ischar)
-							break;
-
-						prev_char = ischar;
-						cc--;
-					}
-
-					cursor_set_column(cc);
 
 				} else if (cursor.column == 0) {
 
@@ -2627,20 +2642,17 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 					if (cc == text[cursor.line].length() && cursor.line < text.size() - 1) {
 						cursor_set_line(cursor.line + 1);
 						cursor_set_column(0);
-						break;
+					} else {
+						while (cc < text[cursor.line].length()) {
+							bool ischar = _is_text_char(text[cursor.line][cc]);
+
+							if (prev_char && !ischar)
+								break;
+							prev_char = ischar;
+							cc++;
+						}
+						cursor_set_column(cc);
 					}
-
-					while (cc < text[cursor.line].length()) {
-
-						bool ischar = _is_text_char(text[cursor.line][cc]);
-
-						if (prev_char && !ischar)
-							break;
-						prev_char = ischar;
-						cc++;
-					}
-
-					cursor_set_column(cc);
 
 				} else if (cursor.column == text[cursor.line].length()) {
 
@@ -5212,12 +5224,8 @@ String TextEdit::get_word_at_pos(const Vector2 &p_pos) const {
 	String s = text[row];
 	if (s.length() == 0)
 		return "";
-	int beg = CLAMP(col, 0, s.length());
-	int end = beg;
-
-	if (s[beg] > 32 || beg == s.length()) {
-
-		bool symbol = beg < s.length() && _is_symbol(s[beg]); //not sure if right but most editors behave like this
+	int beg, end;
+	if (select_word(s, col, beg, end)) {
 
 		bool inside_quotes = false;
 		int qbegin = 0, qend = 0;
@@ -5236,16 +5244,6 @@ String TextEdit::get_word_at_pos(const Vector2 &p_pos) const {
 			}
 		}
 
-		while (beg > 0 && s[beg - 1] > 32 && (symbol == _is_symbol(s[beg - 1]))) {
-			beg--;
-		}
-		while (end < s.length() && s[end + 1] > 32 && (symbol == _is_symbol(s[end + 1]))) {
-			end++;
-		}
-
-		if (end < s.length())
-			end += 1;
-
 		return s.substr(beg, end - beg);
 	}
 
@@ -5262,22 +5260,8 @@ String TextEdit::get_tooltip(const Point2 &p_pos) const {
 	String s = text[row];
 	if (s.length() == 0)
 		return Control::get_tooltip(p_pos);
-	int beg = CLAMP(col, 0, s.length());
-	int end = beg;
-
-	if (s[beg] > 32 || beg == s.length()) {
-
-		bool symbol = beg < s.length() && _is_symbol(s[beg]); //not sure if right but most editors behave like this
-
-		while (beg > 0 && s[beg - 1] > 32 && (symbol == _is_symbol(s[beg - 1]))) {
-			beg--;
-		}
-		while (end < s.length() && s[end + 1] > 32 && (symbol == _is_symbol(s[end + 1]))) {
-			end++;
-		}
-
-		if (end < s.length())
-			end += 1;
+	int beg, end;
+	if (select_word(s, col, beg, end)) {
 
 		String tt = tooltip_obj->call(tooltip_func, s.substr(beg, end - beg), tooltip_ud);
 
