@@ -99,10 +99,28 @@ static Vector2 get_mouse_pos(NSEvent *event) {
 
 @implementation GodotApplication
 
-// From http://cocoadev.com/index.pl?GameKeyboardHandlingAlmost
-// This works around an AppKit bug, where key up events while holding
-// down the command key don't get sent to the key window.
 - (void)sendEvent:(NSEvent *)event {
+
+	// special case handling of command-period, which is traditionally a special
+	// shortcut in macOS and doesn't arrive at our regular keyDown handler.
+	if ([event type] == NSKeyDown) {
+		if (([event modifierFlags] & NSEventModifierFlagCommand) && [event keyCode] == 0x2f) {
+
+			Ref<InputEventKey> k;
+			k.instance();
+
+			get_key_modifier_state([event modifierFlags], k);
+			k->set_pressed(true);
+			k->set_scancode(KEY_PERIOD);
+			k->set_echo([event isARepeat]);
+
+			OS_OSX::singleton->push_input(k);
+		}
+	}
+
+	// From http://cocoadev.com/index.pl?GameKeyboardHandlingAlmost
+	// This works around an AppKit bug, where key up events while holding
+	// down the command key don't get sent to the key window.
 	if ([event type] == NSKeyUp && ([event modifierFlags] & NSCommandKeyMask))
 		[[self keyWindow] sendEvent:event];
 	else
@@ -958,7 +976,7 @@ static void displays_arrangement_changed(CGDirectDisplayID display_id, CGDisplay
 	displays_arrangement_dirty = true;
 }
 
-void OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_audio_driver) {
+Error OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_audio_driver) {
 
 	/*** OSX INITIALIZATION ***/
 	/*** OSX INITIALIZATION ***/
@@ -995,7 +1013,7 @@ void OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_au
 						backing:NSBackingStoreBuffered
 						  defer:NO];
 
-	ERR_FAIL_COND(window_object == nil);
+	ERR_FAIL_COND(window_object == nil, ERR_UNAVAILABLE);
 
 	window_view = [[GodotContentView alloc] init];
 
@@ -1082,11 +1100,11 @@ void OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_au
 #undef ADD_ATTR2
 
 	pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
-	ERR_FAIL_COND(pixelFormat == nil);
+	ERR_FAIL_COND(pixelFormat == nil, ERR_UNAVAILABLE);
 
 	context = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
 
-	ERR_FAIL_COND(context == nil);
+	ERR_FAIL_COND(context == nil, ERR_UNAVAILABLE);
 
 	[context setView:window_view];
 
@@ -1130,6 +1148,8 @@ void OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_au
 	_ensure_user_data_dir();
 
 	restore_rect = Rect2(get_window_position(), get_window_size());
+
+	return OK;
 }
 
 void OS_OSX::finalize() {
