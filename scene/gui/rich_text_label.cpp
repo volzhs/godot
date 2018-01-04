@@ -371,18 +371,19 @@ int RichTextLabel::_process_line(ItemFrame *p_frame, const Vector2 &p_ofs, int &
 									cw = tab_size * font->get_char_size(' ').width;
 								}
 
-								if (underline) {
-									Color uc = color;
-									uc.a *= 0.5;
-									int uy = y + lh - fh + ascent + 2;
-									float underline_width = 1.0;
-#ifdef TOOLS_ENABLED
-									underline_width *= EDSCALE;
-#endif
-									VS::get_singleton()->canvas_item_add_line(ci, p_ofs + Point2(align_ofs + pofs, uy), p_ofs + Point2(align_ofs + pofs + cw, uy), uc, underline_width);
-								}
 								ofs += cw;
 							}
+						}
+
+						if (underline) {
+							Color uc = color;
+							uc.a *= 0.5;
+							int uy = y + lh - fh + ascent + 2;
+							float underline_width = 1.0;
+#ifdef TOOLS_ENABLED
+							underline_width *= EDSCALE;
+#endif
+							VS::get_singleton()->canvas_item_add_line(ci, p_ofs + Point2(align_ofs + wofs, uy), p_ofs + Point2(align_ofs + wofs + w, uy), uc, underline_width);
 						}
 					}
 
@@ -451,6 +452,8 @@ int RichTextLabel::_process_line(ItemFrame *p_frame, const Vector2 &p_ofs, int &
 						table->columns[i].width = 0;
 					}
 					//compute minimum width for each cell
+					const int available_width = p_width - hseparation * (table->columns.size() - 1) - wofs;
+
 					for (List<Item *>::Element *E = table->subitems.front(); E; E = E->next()) {
 						ERR_CONTINUE(E->get()->type != ITEM_FRAME); //children should all be frames
 						ItemFrame *frame = static_cast<ItemFrame *>(E->get());
@@ -461,7 +464,7 @@ int RichTextLabel::_process_line(ItemFrame *p_frame, const Vector2 &p_ofs, int &
 
 						for (int i = 0; i < frame->lines.size(); i++) {
 
-							_process_line(frame, Point2(), ly, p_width, i, PROCESS_CACHE, cfont, Color());
+							_process_line(frame, Point2(), ly, available_width, i, PROCESS_CACHE, cfont, Color());
 							table->columns[column].min_width = MAX(table->columns[column].min_width, frame->lines[i].minimum_width);
 						}
 						idx++;
@@ -470,11 +473,11 @@ int RichTextLabel::_process_line(ItemFrame *p_frame, const Vector2 &p_ofs, int &
 					//compute available width and total ratio (for expanders)
 
 					int total_ratio = 0;
-					int available_width = p_width - hseparation * (table->columns.size() - 1);
+					int remaining_width = available_width;
 					table->total_width = hseparation;
 
 					for (int i = 0; i < table->columns.size(); i++) {
-						available_width -= table->columns[i].min_width;
+						remaining_width -= table->columns[i].min_width;
 						if (table->columns[i].expand)
 							total_ratio += table->columns[i].expand_ratio;
 					}
@@ -484,7 +487,7 @@ int RichTextLabel::_process_line(ItemFrame *p_frame, const Vector2 &p_ofs, int &
 					for (int i = 0; i < table->columns.size(); i++) {
 						table->columns[i].width = table->columns[i].min_width;
 						if (table->columns[i].expand)
-							table->columns[i].width += table->columns[i].expand_ratio * available_width / total_ratio;
+							table->columns[i].width += table->columns[i].expand_ratio * remaining_width / total_ratio;
 						table->total_width += table->columns[i].width + hseparation;
 					}
 
