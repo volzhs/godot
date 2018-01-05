@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "popup_menu.h"
 #include "os/input.h"
 #include "os/keyboard.h"
@@ -122,8 +123,7 @@ int PopupMenu::_get_mouse_over(const Point2 &p_over) const {
 
 	for (int i = 0; i < items.size(); i++) {
 
-		if (i > 0)
-			ofs.y += vseparation;
+		ofs.y += vseparation;
 		float h;
 
 		if (!items[i].icon.is_null()) {
@@ -459,7 +459,7 @@ void PopupMenu::_notification(int p_what) {
 
 				if (i == mouse_over) {
 
-					hover->draw(ci, Rect2(item_ofs + Point2(-hseparation, -vseparation), Size2(get_size().width - style->get_minimum_size().width + hseparation * 2, h + vseparation * 2)));
+					hover->draw(ci, Rect2(item_ofs + Point2(-hseparation, -vseparation / 2), Size2(get_size().width - style->get_minimum_size().width + hseparation * 2, h + vseparation)));
 				}
 
 				if (items[i].separator) {

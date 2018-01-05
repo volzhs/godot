@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #ifndef GD_MONO_HEADER_H
 #define GD_MONO_HEADER_H
 
@@ -34,8 +35,10 @@
 
 class GDMonoAssembly;
 class GDMonoClass;
-class GDMonoMethod;
+class GDMonoClassMember;
 class GDMonoField;
+class GDMonoProperty;
+class GDMonoMethod;
 
 struct ManagedType {
 	int type_encoding;

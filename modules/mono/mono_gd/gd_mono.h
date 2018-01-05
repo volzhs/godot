@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #ifndef GD_MONO_H
 #define GD_MONO_H
 
@@ -111,14 +112,6 @@ public:
 	uint64_t get_api_editor_hash() { return api_editor_hash; }
 #endif
 #endif
-
-	enum MemberVisibility {
-		PRIVATE,
-		PROTECTED_AND_INTERNAL, // FAM_AND_ASSEM
-		INTERNAL, // ASSEMBLY
-		PROTECTED, // FAMILY
-		PUBLIC
-	};
 
 	static GDMono *get_singleton() { return singleton; }
 

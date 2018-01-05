@@ -1,10 +1,9 @@
 /*************************************************************************/
 /*  bullet_types_converter.cpp                                           */
-/*  Author: AndreaCatania                                                */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -32,6 +31,10 @@
 #pragma once
 
 #include "bullet_types_converter.h"
+
+/**
+	@author AndreaCatania
+*/
 
 // ++ BULLET to GODOT ++++++++++
 void B_TO_G(btVector3 const &inVal, Vector3 &outVal) {
@@ -91,4 +94,15 @@ void INVERT_G_TO_B(Basis const &inVal, btMatrix3x3 &outVal) {
 void G_TO_B(Transform const &inVal, btTransform &outVal) {
 	G_TO_B(inVal.basis, outVal.getBasis());
 	G_TO_B(inVal.origin, outVal.getOrigin());
+}
+
+void UNSCALE_BT_BASIS(btTransform &scaledBasis) {
+	btMatrix3x3 &m(scaledBasis.getBasis());
+	btVector3 column0(m[0][0], m[1][0], m[2][0]);
+	btVector3 column1(m[0][1], m[1][1], m[2][1]);
+	btVector3 column2(m[0][2], m[1][2], m[2][2]);
+	column0.normalize();
+	column1.normalize();
+	column2.normalize();
+	m.setValue(column0[0], column1[0], column2[0], column0[1], column1[1], column2[1], column0[2], column1[2], column2[2]);
 }

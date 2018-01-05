@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "tile_set_editor_plugin.h"
 
 #include "editor/plugins/canvas_item_editor_plugin.h"
@@ -342,7 +343,7 @@ AutotileEditor::AutotileEditor(EditorNode *p_editor) {
 	split->add_child(property_editor);
 
 	helper = memnew(AutotileEditorHelper(this));
-	property_editor->edit(helper);
+	property_editor->call_deferred("edit", helper);
 
 	//Editor
 

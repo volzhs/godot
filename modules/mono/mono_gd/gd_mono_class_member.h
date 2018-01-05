@@ -1,6 +1,5 @@
-header = """\
 /*************************************************************************/
-/*  $filename                                                            */
+/*  gd_mono_class_member.h                                               */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,44 +27,41 @@ header = """\
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-"""
+#ifndef GD_MONO_CLASS_MEMBER_H
+#define GD_MONO_CLASS_MEMBER_H
 
-f = open("files", "rb")
+#include "gd_mono_header.h"
 
-fname = f.readline()
-while (fname != ""):
+#include <mono/metadata/object.h>
 
-    fr = open(fname.strip(), "rb")
-    l = fr.readline()
-    bc = False
-    fsingle = fname.strip()
+class GDMonoClassMember {
+public:
+	enum Visibility {
+		PRIVATE,
+		PROTECTED_AND_INTERNAL, // FAM_AND_ASSEM
+		INTERNAL, // ASSEMBLY
+		PROTECTED, // FAMILY
+		PUBLIC
+	};
 
-    if (fsingle.find("/") != -1):
-        fsingle = fsingle[fsingle.rfind("/") + 1:]
-    rep_fl = "$filename"
-    rep_fi = fsingle
-    len_fl = len(rep_fl)
-    len_fi = len(rep_fi)
-    if (len_fi < len_fl):
-        for x in range(len_fl - len_fi):
-            rep_fi += " "
-    elif (len_fl < len_fi):
-        for x in range(len_fi - len_fl):
-            rep_fl += " "
-    if (header.find(rep_fl) != -1):
-        text = header.replace(rep_fl, rep_fi)
-    else:
-        text = header.replace("$filename", fsingle)
+	enum MemberType {
+		MEMBER_TYPE_FIELD,
+		MEMBER_TYPE_PROPERTY,
+		MEMBER_TYPE_METHOD
+	};
 
-    while (l != ""):
-        if ((l.find("//") != 0 and l.find("/*") != 0 and l.strip() != "") or bc):
-            text += l
-            bc = True
-        l = fr.readline()
+	virtual ~GDMonoClassMember() {}
 
-    fr.close()
-    fr = open(fname.strip(), "wb")
-    fr.write(text)
-    fr.close()
-    # print(text)
-    fname = f.readline()
+	virtual MemberType get_member_type() = 0;
+
+	virtual StringName get_name() = 0;
+
+	virtual bool is_static() = 0;
+
+	virtual Visibility get_visibility() = 0;
+
+	virtual bool has_attribute(GDMonoClass *p_attr_class) = 0;
+	virtual MonoObject *get_attribute(GDMonoClass *p_attr_class) = 0;
+};
+
+#endif // GD_MONO_CLASS_MEMBER_H

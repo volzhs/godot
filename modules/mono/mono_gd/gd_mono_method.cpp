@@ -27,10 +27,13 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "gd_mono_method.h"
 
 #include "gd_mono_class.h"
 #include "gd_mono_marshal.h"
+
+#include <mono/metadata/attrdefs.h>
 
 void GDMonoMethod::_update_signature() {
 	// Apparently MonoMethodSignature needs not to be freed.
@@ -41,7 +44,6 @@ void GDMonoMethod::_update_signature() {
 }
 
 void GDMonoMethod::_update_signature(MonoMethodSignature *p_method_sig) {
-	is_instance = mono_signature_is_instance(p_method_sig);
 	params_count = mono_signature_get_param_count(p_method_sig);
 
 	MonoType *ret_type = mono_signature_get_return_type(p_method_sig);
@@ -61,12 +63,31 @@ void GDMonoMethod::_update_signature(MonoMethodSignature *p_method_sig) {
 
 		param_type.type_encoding = mono_type_get_type(param_raw_type);
 
-		if (param_type.type_encoding != MONO_TYPE_VOID) {
-			MonoClass *param_type_class = mono_class_from_mono_type(param_raw_type);
-			param_type.type_class = GDMono::get_singleton()->get_class(param_type_class);
-		}
+		MonoClass *param_type_class = mono_class_from_mono_type(param_raw_type);
+		param_type.type_class = GDMono::get_singleton()->get_class(param_type_class);
 
 		param_types.push_back(param_type);
+	}
+}
+
+bool GDMonoMethod::is_static() {
+	return mono_method_get_flags(mono_method, NULL) & MONO_METHOD_ATTR_STATIC;
+}
+
+GDMonoClassMember::Visibility GDMonoMethod::get_visibility() {
+	switch (mono_method_get_flags(mono_method, NULL) & MONO_METHOD_ATTR_ACCESS_MASK) {
+		case MONO_METHOD_ATTR_PRIVATE:
+			return GDMonoClassMember::PRIVATE;
+		case MONO_METHOD_ATTR_FAM_AND_ASSEM:
+			return GDMonoClassMember::PROTECTED_AND_INTERNAL;
+		case MONO_METHOD_ATTR_ASSEM:
+			return GDMonoClassMember::INTERNAL;
+		case MONO_METHOD_ATTR_FAMILY:
+			return GDMonoClassMember::PROTECTED;
+		case MONO_METHOD_ATTR_PUBLIC:
+			return GDMonoClassMember::PUBLIC;
+		default:
+			ERR_FAIL_V(GDMonoClassMember::PRIVATE);
 	}
 }
 
@@ -87,11 +108,11 @@ MonoObject *GDMonoMethod::invoke(MonoObject *p_object, const Variant **p_params,
 		MonoObject *ret = mono_runtime_invoke_array(mono_method, p_object, params, &exc);
 
 		if (exc) {
+			ret = NULL;
 			if (r_exc) {
 				*r_exc = exc;
 			} else {
-				ERR_PRINT(GDMonoUtils::get_exception_name_and_message(exc).utf8());
-				mono_print_unhandled_exception(exc);
+				GDMonoUtils::print_unhandled_exception(exc);
 			}
 		}
 
@@ -104,8 +125,7 @@ MonoObject *GDMonoMethod::invoke(MonoObject *p_object, const Variant **p_params,
 			if (r_exc) {
 				*r_exc = exc;
 			} else {
-				ERR_PRINT(GDMonoUtils::get_exception_name_and_message(exc).utf8());
-				mono_print_unhandled_exception(exc);
+				GDMonoUtils::print_unhandled_exception(exc);
 			}
 		}
 
@@ -123,11 +143,11 @@ MonoObject *GDMonoMethod::invoke_raw(MonoObject *p_object, void **p_params, Mono
 	MonoObject *ret = mono_runtime_invoke(mono_method, p_object, p_params, &exc);
 
 	if (exc) {
+		ret = NULL;
 		if (r_exc) {
 			*r_exc = exc;
 		} else {
-			ERR_PRINT(GDMonoUtils::get_exception_name_and_message(exc).utf8());
-			mono_print_unhandled_exception(exc);
+			GDMonoUtils::print_unhandled_exception(exc);
 		}
 	}
 
@@ -143,7 +163,7 @@ bool GDMonoMethod::has_attribute(GDMonoClass *p_attr_class) {
 	if (!attributes)
 		return false;
 
-	return mono_custom_attrs_has_attr(attributes, p_attr_class->get_raw());
+	return mono_custom_attrs_has_attr(attributes, p_attr_class->get_mono_ptr());
 }
 
 MonoObject *GDMonoMethod::get_attribute(GDMonoClass *p_attr_class) {
@@ -155,7 +175,7 @@ MonoObject *GDMonoMethod::get_attribute(GDMonoClass *p_attr_class) {
 	if (!attributes)
 		return NULL;
 
-	return mono_custom_attrs_get_attr(attributes, p_attr_class->get_raw());
+	return mono_custom_attrs_get_attr(attributes, p_attr_class->get_mono_ptr());
 }
 
 void GDMonoMethod::fetch_attributes() {

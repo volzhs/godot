@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "navigation_mesh_editor_plugin.h"
 #include "io/marshalls.h"
 #include "io/resource_saver.h"
@@ -107,7 +108,7 @@ NavigationMeshEditor::NavigationMeshEditor() {
 	button_bake->set_text(TTR("Bake!"));
 	button_bake->set_toggle_mode(true);
 	button_reset = memnew(Button);
-	button_bake->set_tooltip(TTR("Bake the navigation mesh.\n"));
+	button_bake->set_tooltip(TTR("Bake the navigation mesh.") + "\n");
 
 	bake_info = memnew(Label);
 	bake_hbox->add_child(button_bake);

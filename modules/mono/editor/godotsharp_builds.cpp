@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "godotsharp_builds.h"
 
 #include "main/main.h"
@@ -446,7 +447,7 @@ void GodotSharpBuilds::BuildProcess::start(bool p_blocking) {
 
 	GDMonoClass *klass = GDMono::get_singleton()->get_editor_tools_assembly()->get_class("GodotSharpTools.Build", "BuildInstance");
 
-	MonoObject *mono_object = mono_object_new(mono_domain_get(), klass->get_raw());
+	MonoObject *mono_object = mono_object_new(mono_domain_get(), klass->get_mono_ptr());
 
 	// Construct
 

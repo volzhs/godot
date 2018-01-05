@@ -1,10 +1,9 @@
 /*************************************************************************/
 /*  bullet_types_converter.h                                             */
-/*  Author: AndreaCatania                                                */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -32,13 +31,18 @@
 #ifndef BULLET_TYPES_CONVERTER_H
 #define BULLET_TYPES_CONVERTER_H
 
-#include "LinearMath/btMatrix3x3.h"
-#include "LinearMath/btTransform.h"
-#include "LinearMath/btVector3.h"
 #include "core/math/matrix3.h"
 #include "core/math/transform.h"
 #include "core/math/vector3.h"
 #include "core/typedefs.h"
+
+#include <LinearMath/btMatrix3x3.h>
+#include <LinearMath/btTransform.h>
+#include <LinearMath/btVector3.h>
+
+/**
+	@author AndreaCatania
+*/
 
 // Bullet to Godot
 extern void B_TO_G(btVector3 const &inVal, Vector3 &outVal);
@@ -54,4 +58,5 @@ extern void G_TO_B(Basis const &inVal, btMatrix3x3 &outVal);
 extern void INVERT_G_TO_B(Basis const &inVal, btMatrix3x3 &outVal);
 extern void G_TO_B(Transform const &inVal, btTransform &outVal);
 
+extern void UNSCALE_BT_BASIS(btTransform &scaledBasis);
 #endif
