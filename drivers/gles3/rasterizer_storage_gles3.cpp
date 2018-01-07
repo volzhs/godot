@@ -1619,6 +1619,7 @@ void RasterizerStorageGLES3::_update_shader(Shader *p_shader) const {
 			p_shader->spatial.uses_time = false;
 			p_shader->spatial.uses_vertex_lighting = false;
 			p_shader->spatial.uses_screen_texture = false;
+			p_shader->spatial.uses_depth_texture = false;
 			p_shader->spatial.uses_vertex = false;
 			p_shader->spatial.writes_modelview_or_projection = false;
 			p_shader->spatial.uses_world_coordinates = false;
@@ -1650,6 +1651,7 @@ void RasterizerStorageGLES3::_update_shader(Shader *p_shader) const {
 			shaders.actions_scene.usage_flag_pointers["SSS_STRENGTH"] = &p_shader->spatial.uses_sss;
 			shaders.actions_scene.usage_flag_pointers["DISCARD"] = &p_shader->spatial.uses_discard;
 			shaders.actions_scene.usage_flag_pointers["SCREEN_TEXTURE"] = &p_shader->spatial.uses_screen_texture;
+			shaders.actions_scene.usage_flag_pointers["DEPTH_TEXTURE"] = &p_shader->spatial.uses_depth_texture;
 			shaders.actions_scene.usage_flag_pointers["TIME"] = &p_shader->spatial.uses_time;
 
 			shaders.actions_scene.write_flag_pointers["MODELVIEW_MATRIX"] = &p_shader->spatial.writes_modelview_or_projection;
@@ -6904,6 +6906,7 @@ bool RasterizerStorageGLES3::free(RID p_rid) {
 
 		// delete the texture
 		GIProbe *gi_probe = gi_probe_owner.get(p_rid);
+		gi_probe->instance_remove_deps();
 
 		gi_probe_owner.free(p_rid);
 		memdelete(gi_probe);
@@ -6919,6 +6922,7 @@ bool RasterizerStorageGLES3::free(RID p_rid) {
 
 		// delete the texture
 		LightmapCapture *lightmap_capture = lightmap_capture_data_owner.get(p_rid);
+		lightmap_capture->instance_remove_deps();
 
 		gi_probe_owner.free(p_rid);
 		memdelete(lightmap_capture);

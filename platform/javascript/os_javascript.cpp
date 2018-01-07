@@ -566,7 +566,7 @@ void OS_JavaScript::set_css_cursor(const char *p_cursor) {
 
 	/* clang-format off */
 	EM_ASM_({
-		Module.canvas.style.cursor = Module.UTF8ToString($0);
+		Module.canvas.style.cursor = UTF8ToString($0);
 	}, p_cursor);
 	/* clang-format on */
 }
@@ -576,7 +576,7 @@ const char *OS_JavaScript::get_css_cursor() const {
 	char cursor[16];
 	/* clang-format off */
 	EM_ASM_INT({
-		Module.stringToUTF8(Module.canvas.style.cursor ? Module.canvas.style.cursor : 'auto', $0, 16);
+		stringToUTF8(Module.canvas.style.cursor ? Module.canvas.style.cursor : 'auto', $0, 16);
 	}, cursor);
 	/* clang-format on */
 	return cursor;
@@ -792,7 +792,7 @@ void OS_JavaScript::main_loop_begin() {
 
 	/* clang-format off */
 	EM_ASM_ARGS({
-		const send_notification = Module.cwrap('send_notification', null, ['number']);
+		const send_notification = cwrap('send_notification', null, ['number']);
 		const notifs = arguments;
 		(['mouseover', 'mouseleave', 'focus', 'blur']).forEach(function(event, i) {
 			Module.canvas.addEventListener(event, send_notification.bind(null, notifs[i]));
@@ -989,6 +989,7 @@ bool OS_JavaScript::is_userfs_persistent() const {
 }
 
 OS_JavaScript::OS_JavaScript(const char *p_execpath, GetUserDataDirFunc p_get_user_data_dir_func) {
+
 	set_cmdline(p_execpath, get_cmdline_args());
 	main_loop = NULL;
 	gl_extensions = NULL;
@@ -1001,6 +1002,10 @@ OS_JavaScript::OS_JavaScript(const char *p_execpath, GetUserDataDirFunc p_get_us
 
 	idbfs_available = false;
 	time_to_save_sync = -1;
+
+	Vector<Logger *> loggers;
+	loggers.push_back(memnew(StdLogger));
+	_set_logger(memnew(CompositeLogger(loggers)));
 }
 
 OS_JavaScript::~OS_JavaScript() {
