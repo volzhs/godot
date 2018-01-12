@@ -45,7 +45,11 @@ void PluginScriptLanguage::init() {
 }
 
 String PluginScriptLanguage::get_type() const {
-	return String(_desc.type);
+	// We should use _desc.type here, however the returned type is used to
+	// query ClassDB which would complain given the type is not registered
+	// from his point of view...
+	// To solve this we just use a more generic (but present in ClassDB) type.
+	return String("PluginScript");
 }
 
 String PluginScriptLanguage::get_extension() const {
@@ -168,7 +172,7 @@ Error PluginScriptLanguage::complete_code(const String &p_code, const String &p_
 		for (int i = 0; i < options.size(); i++) {
 			r_options->push_back(String(options[i]));
 		}
-		Error err = *(Error *)tmp;
+		Error err = *(Error *)&tmp;
 		return err;
 	}
 	return ERR_UNAVAILABLE;
