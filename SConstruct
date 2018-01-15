@@ -171,6 +171,7 @@ opts.Add(BoolVariable('dev', "If yes, alias for verbose=yes warnings=all", False
 opts.Add(EnumVariable('macports_clang', "Build using clang from MacPorts", 'no', ('no', '5.0', 'devel')))
 
 # Thirdparty libraries
+opts.Add(BoolVariable('builtin_bullet', "Use the builtin bullet library", True))
 opts.Add(BoolVariable('builtin_enet', "Use the builtin enet library", True))
 opts.Add(BoolVariable('builtin_freetype', "Use the builtin freetype library", True))
 opts.Add(BoolVariable('builtin_libogg', "Use the builtin libogg library", True))
@@ -497,7 +498,12 @@ node_count_interval = 1
 node_pruning = 8 # Number of nodes to process before prunning the cache
 if ('env' in locals()):
     node_count_fname = str(env.Dir('#')) + '/.scons_node_count'
-show_progress = env['progress']
+# Progress reporting is not available in non-TTY environments since it
+# messes with the output (for example, when writing to a file)
+if sys.stdout.isatty():
+    show_progress = env['progress']
+else:
+    show_progress = False
 
 import time, math
 

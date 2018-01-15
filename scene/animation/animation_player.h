@@ -251,6 +251,7 @@ private:
 protected:
 	bool _set(const StringName &p_name, const Variant &p_value);
 	bool _get(const StringName &p_name, Variant &r_ret) const;
+	virtual void _validate_property(PropertyInfo &property) const;
 	void _get_property_list(List<PropertyInfo> *p_list) const;
 	void _notification(int p_what);
 
@@ -283,6 +284,8 @@ public:
 	bool is_playing() const;
 	String get_current_animation() const;
 	void set_current_animation(const String &p_anim);
+	String get_assigned_animation() const;
+	void set_assigned_animation(const String &p_anim);
 	void stop_all();
 	void set_active(bool p_active);
 	bool is_active() const;

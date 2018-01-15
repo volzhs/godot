@@ -210,6 +210,7 @@ class TextEdit : public Control {
 
 	//syntax coloring
 	HashMap<String, Color> keywords;
+	HashMap<String, Color> member_keywords;
 
 	Vector<ColorRegion> color_regions;
 
@@ -491,7 +492,10 @@ public:
 	bool is_readonly() const;
 
 	void set_max_chars(int p_max_chars);
+	int get_max_chars() const;
+
 	void set_wrap(bool p_wrap);
+	bool is_wrapping() const;
 
 	void clear();
 
@@ -542,6 +546,9 @@ public:
 	void add_keyword_color(const String &p_keyword, const Color &p_color);
 	void add_color_region(const String &p_begin_key = String(), const String &p_end_key = String(), const Color &p_color = Color(), bool p_line_only = false);
 	void clear_colors();
+
+	void add_member_keyword(const String &p_keyword, const Color &p_color);
+	void clear_member_keywords();
 
 	int get_v_scroll() const;
 	void set_v_scroll(int p_scroll);

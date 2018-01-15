@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="@GlobalScope" category="Core" version="3.0-beta">
+<class name="@GlobalScope" category="Core" version="3.0-rc1">
 	<brief_description>
 		Global scope constants and variables.
 	</brief_description>
@@ -1285,7 +1285,7 @@
 		</constant>
 		<constant name="PROPERTY_USAGE_DEFAULT_INTL" value="71" enum="PropertyUsageFlags">
 		</constant>
-		<constant name="PROPERTY_USAGE_NOEDITOR" value="1048581" enum="PropertyUsageFlags">
+		<constant name="PROPERTY_USAGE_NOEDITOR" value="5" enum="PropertyUsageFlags">
 		</constant>
 		<constant name="METHOD_FLAG_NORMAL" value="1" enum="MethodFlags">
 			Flag for normal method
