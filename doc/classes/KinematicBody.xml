@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="KinematicBody" inherits="PhysicsBody" category="Core" version="3.0-rc1">
+<class name="KinematicBody" inherits="PhysicsBody" category="Core" version="3.0-stable">
 	<brief_description>
 		Kinematic body 3D node.
 	</brief_description>
@@ -9,7 +9,7 @@
 		Kinematic Characters: KinematicBody also has an API for moving objects (the [method move_and_collide] and [method move_and_slide] methods) while performing collision tests. This makes them really useful to implement characters that collide against a world, but that don't require advanced physics.
 	</description>
 	<tutorials>
-		http://docs.godotengine.org/en/3.0/learning/features/physics/kinematic_character_2d.html
+		http://docs.godotengine.org/en/3.0/tutorials/physics/kinematic_character_2d.html
 	</tutorials>
 	<demos>
 	</demos>

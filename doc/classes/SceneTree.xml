@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="SceneTree" inherits="MainLoop" category="Core" version="3.0-rc1">
+<class name="SceneTree" inherits="MainLoop" category="Core" version="3.0-stable">
 	<brief_description>
 	</brief_description>
 	<description>
 	</description>
 	<tutorials>
-		http://docs.godotengine.org/en/3.0/learning/step_by_step/scene_tree.html
-	http://docs.godotengine.org/en/3.0/learning/features/viewports/multiple_resolutions.html
+		http://docs.godotengine.org/en/3.0/getting_started/step_by_step/scene_tree.html
+	http://docs.godotengine.org/en/3.0/tutorials/viewports/multiple_resolutions.html
 	</tutorials>
 	<demos>
 	</demos>
