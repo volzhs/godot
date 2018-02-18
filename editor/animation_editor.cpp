@@ -1359,7 +1359,7 @@ void AnimationKeyEditor::_track_editor_draw() {
 		Color ncol = color;
 		if (n && editor_selection->is_selected(n))
 			ncol = track_select_color;
-		te->draw_string(font, Point2(ofs + Point2(left_check_ofs + sep + type_icon[0]->get_width() + sep, y + font->get_ascent() + (sep / 2))).floor(), np, ncol, name_limit - (type_icon[0]->get_width() + sep) - 5);
+		te->draw_string(font, Point2(ofs + Point2(left_check_ofs + sep + type_icon[0]->get_width() + sep, y + font->get_ascent() + (sep / 2))).floor(), np, ncol, name_limit - (left_check_ofs + sep) - (type_icon[0]->get_width() + sep) - 5);
 
 		// Draw separator line below track area
 		if (!obj)
@@ -3362,7 +3362,7 @@ int AnimationKeyEditor::_confirm_insert(InsertData p_id, int p_last_track) {
 			//wants a new tack
 
 			{
-				//shitty hack
+				//hack
 				NodePath np;
 				animation->add_track(p_id.type);
 				animation->track_set_path(animation->get_track_count() - 1, p_id.path);

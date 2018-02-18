@@ -197,7 +197,7 @@ MonoBottomPanel::MonoBottomPanel(EditorNode *p_editor) {
 		toolbar_hbc->set_h_size_flags(SIZE_EXPAND_FILL);
 		panel_builds_tab->add_child(toolbar_hbc);
 
-		ToolButton *build_project_btn = memnew(ToolButton);
+		Button *build_project_btn = memnew(Button);
 		build_project_btn->set_text(TTR("Build Project"));
 		build_project_btn->set_focus_mode(FOCUS_NONE);
 		build_project_btn->connect("pressed", this, "_build_project_pressed");
@@ -335,16 +335,14 @@ void MonoBuildTab::_update_issues_list() {
 
 Ref<Texture> MonoBuildTab::get_icon_texture() const {
 
-	// FIXME these icons were removed... find something better
-
 	if (build_exited) {
 		if (build_result == RESULT_ERROR) {
-			return get_icon("DependencyChangedHl", "EditorIcons");
+			return get_icon("StatusError", "EditorIcons");
 		} else {
-			return get_icon("DependencyOkHl", "EditorIcons");
+			return get_icon("StatusSuccess", "EditorIcons");
 		}
 	} else {
-		return get_icon("GraphTime", "EditorIcons");
+		return get_icon("Stop", "EditorIcons");
 	}
 }
 
