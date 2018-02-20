@@ -443,6 +443,7 @@ struct _VariantCall {
 	VCALL_LOCALMEM1R(Color, lightened);
 	VCALL_LOCALMEM1R(Color, darkened);
 	VCALL_LOCALMEM1R(Color, to_html);
+	VCALL_LOCALMEM4R(Color, from_hsv);
 
 	VCALL_LOCALMEM0R(RID, get_id);
 
@@ -490,6 +491,7 @@ struct _VariantCall {
 	VCALL_LOCALMEM1(Array, erase);
 	VCALL_LOCALMEM0(Array, sort);
 	VCALL_LOCALMEM2(Array, sort_custom);
+	VCALL_LOCALMEM0(Array, shuffle);
 	VCALL_LOCALMEM2R(Array, bsearch);
 	VCALL_LOCALMEM4R(Array, bsearch_custom);
 	VCALL_LOCALMEM0R(Array, duplicate);
@@ -1589,6 +1591,7 @@ void register_variant_methods() {
 	ADDFUNC1R(COLOR, COLOR, Color, lightened, REAL, "amount", varray());
 	ADDFUNC1R(COLOR, COLOR, Color, darkened, REAL, "amount", varray());
 	ADDFUNC1R(COLOR, STRING, Color, to_html, BOOL, "with_alpha", varray(true));
+	ADDFUNC4R(COLOR, COLOR, Color, from_hsv, REAL, "h", REAL, "s", REAL, "v", REAL, "a", varray(1.0));
 
 	ADDFUNC0R(_RID, INT, RID, get_id, varray());
 
@@ -1634,6 +1637,7 @@ void register_variant_methods() {
 	ADDFUNC0RNC(ARRAY, NIL, Array, pop_front, varray());
 	ADDFUNC0NC(ARRAY, NIL, Array, sort, varray());
 	ADDFUNC2NC(ARRAY, NIL, Array, sort_custom, OBJECT, "obj", STRING, "func", varray());
+	ADDFUNC0NC(ARRAY, NIL, Array, shuffle, varray());
 	ADDFUNC2R(ARRAY, INT, Array, bsearch, NIL, "value", BOOL, "before", varray(true));
 	ADDFUNC4R(ARRAY, INT, Array, bsearch_custom, NIL, "value", OBJECT, "obj", STRING, "func", BOOL, "before", varray(true));
 	ADDFUNC0NC(ARRAY, NIL, Array, invert, varray());

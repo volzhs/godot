@@ -5,10 +5,9 @@
 	</brief_description>
 	<description>
 		This is the node that implements full 3D physics. This means that you do not control a RigidBody directly. Instead you can apply forces to it (gravity, impulses, etc.), and the physics simulation will calculate the resulting movement, collision, bouncing, rotating, etc.
-		This node can use custom force integration, for writing complex physics motion behavior per node.
-		This node can shift state between regular Rigid body, Kinematic, Character or Static.
-		Character mode forbids this node from being rotated.
-		As a warning, don't change RigidBody's position every frame or very often. Sporadic changes work fine, but physics runs at a different granularity (fixed hz) than usual rendering (process callback) and maybe even in a separate thread, so changing this from a process loop will yield strange behavior.
+		A RigidBody has 4 behavior [member mode]s: Rigid, Static, Character, and Kinematic.
+		[b]Note:[/b] Don't change a RigidBody's position every frame or very often. Sporadic changes work fine, but physics runs at a different granularity (fixed hz) than usual rendering (process callback) and maybe even in a separate thread, so changing this from a process loop will yield strange behavior. If you need to directly affect the body's state, use [method _integrate_forces], which allows you to directly access the physics state.
+		If you need to override the default physics behavior, you can write a custom force integration. See [member custom_integrator].
 	</description>
 	<tutorials>
 		http://docs.godotengine.org/en/3.0/tutorials/physics/physics_introduction.html
@@ -34,6 +33,15 @@
 			</argument>
 			<description>
 				Apply a positioned impulse (which will be affected by the body mass and shape). This is the equivalent of hitting a billiard ball with a cue: a force that is applied once, and only once. Both the impulse and the position are in global coordinates, and the position is relative to the object's origin.
+			</description>
+		</method>
+		<method name="apply_torque_impulse">
+			<return type="void">
+			</return>
+			<argument index="1" name="impulse" type="Vector3">
+			</argument>
+			<description>
+				Apply a torque impulse (which will be affected by the body mass and shape). This will rotate the body around the passed in vector.
 			</description>
 		</method>
 		<method name="get_colliding_bodies" qualifiers="const">

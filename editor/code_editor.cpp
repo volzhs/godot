@@ -666,6 +666,7 @@ void CodeTextEditor::_reset_zoom() {
 	if (font.is_valid()) {
 		EditorSettings::get_singleton()->set("interface/editor/code_font_size", 14);
 		font->set_size(14);
+		zoom_nb->set_text("100%");
 	}
 }
 
@@ -727,6 +728,9 @@ bool CodeTextEditor::_add_font_size(int p_delta) {
 
 	if (font.is_valid()) {
 		int new_size = CLAMP(font->get_size() + p_delta, 8 * EDSCALE, 96 * EDSCALE);
+
+		zoom_nb->set_text(itos(100 * new_size / 14) + "%");
+
 		if (new_size != font->get_size()) {
 			EditorSettings::get_singleton()->set("interface/editor/code_font_size", new_size / EDSCALE);
 			font->set_size(new_size);
@@ -771,6 +775,14 @@ void CodeTextEditor::set_error(const String &p_error) {
 void CodeTextEditor::_update_font() {
 
 	text_editor->add_font_override("font", get_font("source", "EditorFonts"));
+
+	Ref<Font> status_bar_font = get_font("status_source", "EditorFonts");
+	int count = status_bar->get_child_count();
+	for (int i = 0; i < count; i++) {
+		Control *n = Object::cast_to<Control>(status_bar->get_child(i));
+		if (n)
+			n->add_font_override("font", status_bar_font);
+	}
 }
 
 void CodeTextEditor::_on_settings_change() {
@@ -851,7 +863,7 @@ CodeTextEditor::CodeTextEditor() {
 	text_editor->set_brace_matching(true);
 	text_editor->set_auto_indent(true);
 
-	HBoxContainer *status_bar = memnew(HBoxContainer);
+	status_bar = memnew(HBoxContainer);
 	add_child(status_bar);
 	status_bar->set_h_size_flags(SIZE_EXPAND_FILL);
 
@@ -877,6 +889,24 @@ CodeTextEditor::CodeTextEditor() {
 	find_replace_bar->connect("error", error, "set_text");
 
 	status_bar->add_child(memnew(Label)); //to keep the height if the other labels are not visible
+
+	Label *zoom_txt = memnew(Label);
+	status_bar->add_child(zoom_txt);
+	zoom_txt->set_align(Label::ALIGN_RIGHT);
+	zoom_txt->set_valign(Label::VALIGN_CENTER);
+	zoom_txt->set_v_size_flags(SIZE_FILL);
+	zoom_txt->set_text(TTR("Zoom:"));
+	zoom_txt->add_font_override("font", EditorNode::get_singleton()->get_gui_base()->get_font("status_source", "EditorFonts"));
+
+	zoom_nb = memnew(Label);
+	status_bar->add_child(zoom_nb);
+	zoom_nb->set_valign(Label::VALIGN_CENTER);
+	zoom_nb->set_v_size_flags(SIZE_FILL);
+	zoom_nb->set_autowrap(true); // workaround to prevent resizing the label on each change, do not touch
+	zoom_nb->set_clip_text(true); // workaround to prevent resizing the label on each change, do not touch
+	zoom_nb->set_custom_minimum_size(Size2(60, 1) * EDSCALE);
+	zoom_nb->set_align(Label::ALIGN_RIGHT);
+	zoom_nb->add_font_override("font", EditorNode::get_singleton()->get_gui_base()->get_font("status_source", "EditorFonts"));
 
 	Label *line_txt = memnew(Label);
 	status_bar->add_child(line_txt);
@@ -931,7 +961,8 @@ CodeTextEditor::CodeTextEditor() {
 	code_complete_timer->connect("timeout", this, "_code_complete_timer_timeout");
 
 	font_resize_val = 0;
-	font_size = -1;
+	font_size = EditorSettings::get_singleton()->get("interface/editor/code_font_size");
+	zoom_nb->set_text(itos(100 * font_size / 14) + "%");
 	font_resize_timer = memnew(Timer);
 	add_child(font_resize_timer);
 	font_resize_timer->set_one_shot(true);

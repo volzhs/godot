@@ -596,7 +596,6 @@ private:
 	static EditorPluginInitializeCallback plugin_init_callbacks[MAX_INIT_CALLBACKS];
 	void _save_default_environment();
 
-	bool _call_build();
 	static int build_callback_count;
 	static EditorBuildCallback build_callbacks[MAX_BUILD_CALLBACKS];
 
@@ -634,6 +633,8 @@ protected:
 	static void _bind_methods();
 
 public:
+	bool call_build();
+
 	static void add_plugin_init_callback(EditorPluginInitializeCallback p_callback);
 
 	enum EditorTable {
@@ -652,6 +653,8 @@ public:
 	EditorPluginList *get_editor_plugins_force_input_forwarding() { return editor_plugins_force_input_forwarding; }
 	PropertyEditor *get_property_editor() { return property_editor; }
 	VBoxContainer *get_property_editor_vb() { return prop_editor_vb; }
+
+	ProjectSettingsEditor *get_project_settings() { return project_settings; }
 
 	static void add_editor_plugin(EditorPlugin *p_editor);
 	static void remove_editor_plugin(EditorPlugin *p_editor);

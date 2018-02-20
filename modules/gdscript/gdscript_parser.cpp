@@ -456,9 +456,9 @@ GDScriptParser::Node *GDScriptParser::_parse_expression(Node *p_parent, bool p_s
 			if (!validating) {
 
 				//this can be too slow for just validating code
-				if (for_completion && ScriptCodeCompletionCache::get_singleton()) {
+				if (for_completion && ScriptCodeCompletionCache::get_singleton() && FileAccess::exists(path)) {
 					res = ScriptCodeCompletionCache::get_singleton()->get_cached_resource(path);
-				} else { // essential; see issue 15902
+				} else if (!for_completion || FileAccess::exists(path)) {
 					res = ResourceLoader::load(path);
 				}
 				if (!res.is_valid()) {
@@ -576,18 +576,47 @@ GDScriptParser::Node *GDScriptParser::_parse_expression(Node *p_parent, bool p_s
 
 			if (identifier == StringName()) {
 
-				_set_error("Built-in type constant expected after '.'");
+				_set_error("Built-in type constant or static function expected after '.'");
 				return NULL;
 			}
 			if (!Variant::has_numeric_constant(bi_type, identifier)) {
 
-				_set_error("Static constant  '" + identifier.operator String() + "' not present in built-in type " + Variant::get_type_name(bi_type) + ".");
-				return NULL;
-			}
+				if (tokenizer->get_token() == GDScriptTokenizer::TK_PARENTHESIS_OPEN &&
+						Variant::is_method_const(bi_type, identifier) &&
+						Variant::get_method_return_type(bi_type, identifier) == bi_type) {
 
-			ConstantNode *cn = alloc_node<ConstantNode>();
-			cn->value = Variant::get_numeric_constant_value(bi_type, identifier);
-			expr = cn;
+					tokenizer->advance();
+
+					OperatorNode *construct = alloc_node<OperatorNode>();
+					construct->op = OperatorNode::OP_CALL;
+
+					TypeNode *tn = alloc_node<TypeNode>();
+					tn->vtype = bi_type;
+					construct->arguments.push_back(tn);
+
+					OperatorNode *op = alloc_node<OperatorNode>();
+					op->op = OperatorNode::OP_CALL;
+					op->arguments.push_back(construct);
+
+					IdentifierNode *id = alloc_node<IdentifierNode>();
+					id->name = identifier;
+					op->arguments.push_back(id);
+
+					if (!_parse_arguments(op, op->arguments, p_static, true))
+						return NULL;
+
+					expr = op;
+				} else {
+
+					_set_error("Static constant  '" + identifier.operator String() + "' not present in built-in type " + Variant::get_type_name(bi_type) + ".");
+					return NULL;
+				}
+			} else {
+
+				ConstantNode *cn = alloc_node<ConstantNode>();
+				cn->value = Variant::get_numeric_constant_value(bi_type, identifier);
+				expr = cn;
+			}
 
 		} else if (tokenizer->get_token(1) == GDScriptTokenizer::TK_PARENTHESIS_OPEN && tokenizer->is_token_literal()) {
 			// We check with is_token_literal, as this allows us to use match/sync/etc. as a name
@@ -1516,11 +1545,11 @@ GDScriptParser::Node *GDScriptParser::_reduce_expression(Node *p_node, bool p_to
 						String errwhere;
 						if (op->arguments[0]->type == Node::TYPE_TYPE) {
 							TypeNode *tn = static_cast<TypeNode *>(op->arguments[0]);
-							errwhere = "'" + Variant::get_type_name(tn->vtype) + "'' constructor";
+							errwhere = "'" + Variant::get_type_name(tn->vtype) + "' constructor";
 
 						} else {
 							GDScriptFunctions::Function func = static_cast<BuiltInFunctionNode *>(op->arguments[0])->function;
-							errwhere = String("'") + GDScriptFunctions::get_func_name(func) + "'' intrinsic function";
+							errwhere = String("'") + GDScriptFunctions::get_func_name(func) + "' intrinsic function";
 						}
 
 						switch (ce.error) {
@@ -4356,8 +4385,6 @@ Error GDScriptParser::_parse(const String &p_base_path) {
 
 	base_path = p_base_path;
 
-	clear();
-
 	//assume class
 	ClassNode *main_class = alloc_node<ClassNode>();
 	main_class->initializer = alloc_node<BlockNode>();
@@ -4382,17 +4409,7 @@ Error GDScriptParser::_parse(const String &p_base_path) {
 
 Error GDScriptParser::parse_bytecode(const Vector<uint8_t> &p_bytecode, const String &p_base_path, const String &p_self_path) {
 
-	for_completion = false;
-	validating = false;
-	completion_type = COMPLETION_NONE;
-	completion_node = NULL;
-	completion_class = NULL;
-	completion_function = NULL;
-	completion_block = NULL;
-	completion_found = false;
-	current_block = NULL;
-	current_class = NULL;
-	current_function = NULL;
+	clear();
 
 	self_path = p_self_path;
 	GDScriptTokenizerBuffer *tb = memnew(GDScriptTokenizerBuffer);
@@ -4406,16 +4423,7 @@ Error GDScriptParser::parse_bytecode(const Vector<uint8_t> &p_bytecode, const St
 
 Error GDScriptParser::parse(const String &p_code, const String &p_base_path, bool p_just_validate, const String &p_self_path, bool p_for_completion) {
 
-	completion_type = COMPLETION_NONE;
-	completion_node = NULL;
-	completion_class = NULL;
-	completion_function = NULL;
-	completion_block = NULL;
-	completion_found = false;
-	current_block = NULL;
-	current_class = NULL;
-
-	current_function = NULL;
+	clear();
 
 	self_path = p_self_path;
 	GDScriptTokenizerText *tt = memnew(GDScriptTokenizerText);
