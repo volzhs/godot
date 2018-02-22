@@ -948,7 +948,7 @@ void ScriptEditorDebugger::_notification(int p_what) {
 
 			inspector->edit(variables);
 
-			copy->set_icon(get_icon("Duplicate", "EditorIcons"));
+			copy->set_icon(get_icon("ActionCopy", "EditorIcons"));
 
 			step->set_icon(get_icon("DebugStep", "EditorIcons"));
 			next->set_icon(get_icon("DebugNext", "EditorIcons"));
@@ -965,6 +965,14 @@ void ScriptEditorDebugger::_notification(int p_what) {
 
 			reason->add_color_override("font_color", get_color("error_color", "Editor"));
 
+			bool enable_rl = EditorSettings::get_singleton()->get("docks/scene_tree/draw_relationship_lines");
+			Color rl_color = EditorSettings::get_singleton()->get("docks/scene_tree/relationship_line_color");
+
+			if (enable_rl) {
+				inspect_scene_tree->add_constant_override("draw_relationship_lines", 1);
+				inspect_scene_tree->add_color_override("relationship_line_color", rl_color);
+			} else
+				inspect_scene_tree->add_constant_override("draw_relationship_lines", 0);
 		} break;
 		case NOTIFICATION_PROCESS: {
 
@@ -1277,14 +1285,14 @@ void ScriptEditorDebugger::_stack_dump_frame_selected() {
 	emit_signal("goto_script_line", stack_script, int(d["line"]) - 1);
 	stack_script.unref();
 
-	ERR_FAIL_COND(connection.is_null());
-	ERR_FAIL_COND(!connection->is_connected_to_host());
-	///
-
-	Array msg;
-	msg.push_back("get_stack_frame_vars");
-	msg.push_back(d["frame"]);
-	ppeer->put_var(msg);
+	if (connection.is_valid() && connection->is_connected_to_host()) {
+		Array msg;
+		msg.push_back("get_stack_frame_vars");
+		msg.push_back(d["frame"]);
+		ppeer->put_var(msg);
+	} else {
+		inspector->edit(NULL);
+	}
 }
 
 void ScriptEditorDebugger::_output_clear() {
@@ -1726,7 +1734,7 @@ void ScriptEditorDebugger::_error_list_item_rmb_selected(int p_item, const Vecto
 	bool single_item_selected = error_list->get_selected_items().size() == 1;
 
 	if (single_item_selected) {
-		item_menu->add_icon_item(get_icon("CopyNodePath", "EditorIcons"), TTR("Copy Error"), ITEM_MENU_COPY_ERROR);
+		item_menu->add_icon_item(get_icon("ActionCopy", "EditorIcons"), TTR("Copy Error"), ITEM_MENU_COPY_ERROR);
 	}
 
 	if (item_menu->get_item_count() > 0) {

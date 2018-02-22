@@ -148,11 +148,11 @@ def configure(env):
         ## Compiler configuration
 
         env['ENV'] = os.environ
-        # This detection function needs the tools env (that is env['ENV'], not SCons's env), and that is why it's this far bellow in the code
+        # This detection function needs the tools env (that is env['ENV'], not SCons's env), and that is why it's this far below in the code
         compiler_version_str = methods.detect_visual_c_compiler_version(env['ENV'])
 
         print("Detected MSVC compiler: " + compiler_version_str)
-        # If building for 64bit architecture, disable assembly optimisations for 32 bit builds (theora as of writting)... vc compiler for 64bit can not compile _asm
+        # If building for 64bit architecture, disable assembly optimisations for 32 bit builds (theora as of writing)... vc compiler for 64bit can not compile _asm
         if(compiler_version_str == "amd64" or compiler_version_str == "x86_amd64"):
             env["bits"] = "64"
             env["x86_libtheora_opt_vc"] = False
@@ -179,7 +179,7 @@ def configure(env):
         if env["bits"] == "64":
             env.Append(CCFLAGS=['/D_WIN64'])
 
-        LIBS = ['winmm', 'opengl32', 'dsound', 'kernel32', 'ole32', 'oleaut32', 'user32', 'gdi32', 'IPHLPAPI', 'Shlwapi', 'wsock32', 'Ws2_32', 'shell32', 'advapi32', 'dinput8', 'dxguid', 'imm32']
+        LIBS = ['winmm', 'opengl32', 'dsound', 'kernel32', 'ole32', 'oleaut32', 'user32', 'gdi32', 'IPHLPAPI', 'Shlwapi', 'wsock32', 'Ws2_32', 'shell32', 'advapi32', 'dinput8', 'dxguid', 'imm32', 'bcrypt']
         env.Append(LINKFLAGS=[p + env["LIBSUFFIX"] for p in LIBS])
 
         env.Append(LIBPATH=[os.getenv("WindowsSdkDir") + "/Lib"])
@@ -281,7 +281,7 @@ def configure(env):
         env.Append(CCFLAGS=['-DRTAUDIO_ENABLED'])
         env.Append(CCFLAGS=['-DWASAPI_ENABLED'])
         env.Append(CCFLAGS=['-DWINVER=%s' % env['target_win_version'], '-D_WIN32_WINNT=%s' % env['target_win_version']])
-        env.Append(LIBS=['mingw32', 'opengl32', 'dsound', 'ole32', 'd3d9', 'winmm', 'gdi32', 'iphlpapi', 'shlwapi', 'wsock32', 'ws2_32', 'kernel32', 'oleaut32', 'dinput8', 'dxguid', 'ksuser', 'imm32'])
+        env.Append(LIBS=['mingw32', 'opengl32', 'dsound', 'ole32', 'd3d9', 'winmm', 'gdi32', 'iphlpapi', 'shlwapi', 'wsock32', 'ws2_32', 'kernel32', 'oleaut32', 'dinput8', 'dxguid', 'ksuser', 'imm32', 'bcrypt'])
 
         env.Append(CPPFLAGS=['-DMINGW_ENABLED'])
 

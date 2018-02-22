@@ -147,7 +147,7 @@ Variant::operator bool() const {
 	return booleanize();
 }
 
-// We consider all unitialized or empty types to be false based on the type's
+// We consider all uninitialized or empty types to be false based on the type's
 // zeroiness.
 bool Variant::booleanize() const {
 	return !is_zero();
@@ -1501,7 +1501,7 @@ void Variant::set_named(const StringName &p_index, const Variant &p_value, bool 
 					v->set_hsv(v->get_h(), p_value._data._real, v->get_v());
 					valid = true;
 				} else if (p_index == CoreStringNames::singleton->v) {
-					v->set_hsv(v->get_h(), v->get_v(), p_value._data._real);
+					v->set_hsv(v->get_h(), v->get_s(), p_value._data._real);
 					valid = true;
 				}
 			}
