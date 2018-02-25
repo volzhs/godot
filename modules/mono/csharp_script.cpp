@@ -118,6 +118,8 @@ void CSharpLanguage::init() {
 
 #ifdef TOOLS_ENABLED
 	EditorNode::add_init_callback(&gdsharp_editor_init_callback);
+
+	GLOBAL_DEF("mono/export/include_scripts_content", true);
 #endif
 }
 
@@ -1550,7 +1552,6 @@ bool CSharpScript::_update_exports() {
 }
 
 bool CSharpScript::_update_signals() {
-#ifdef TOOLS_ENABLED
 	if (!valid)
 		return false;
 
@@ -1581,8 +1582,6 @@ bool CSharpScript::_update_signals() {
 	}
 
 	return changed;
-#endif
-	return false;
 }
 
 bool CSharpScript::_get_signal(GDMonoClass *p_class, GDMonoClass *p_delegate, Vector<Argument> &params) {
@@ -2135,9 +2134,7 @@ void CSharpScript::get_script_signal_list(List<MethodInfo> *r_signals) const {
 }
 
 void CSharpScript::update_signals() {
-#ifdef TOOLS_ENABLED
 	_update_signals();
-#endif
 }
 
 Ref<Script> CSharpScript::get_base_script() const {

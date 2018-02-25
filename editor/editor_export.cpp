@@ -274,8 +274,6 @@ void EditorExportPlatform::gen_debug_flags(Vector<String> &r_flags, int p_flags)
 }
 
 Error EditorExportPlatform::_save_pack_file(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total) {
-	if (p_path.ends_with(".so") || p_path.ends_with(".dylib") || p_path.ends_with(".dll"))
-		return OK;
 
 	PackData *pd = (PackData *)p_userdata;
 
@@ -337,7 +335,7 @@ Error EditorExportPlatform::_save_zip_file(void *p_userdata, const String &p_pat
 
 String EditorExportPlatform::find_export_template(String template_file_name, String *err) const {
 
-	String current_version = itos(VERSION_MAJOR) + "." + itos(VERSION_MINOR) + "-" + VERSION_STATUS + VERSION_MODULE_CONFIG;
+	String current_version = VERSION_FULL_CONFIG;
 	String template_path = EditorSettings::get_singleton()->get_templates_dir().plus_file(current_version).plus_file(template_file_name);
 
 	if (FileAccess::exists(template_path)) {
