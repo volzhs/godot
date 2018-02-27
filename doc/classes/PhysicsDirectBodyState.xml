@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="PhysicsDirectBodyState" inherits="Object" category="Core" version="3.1-dev">
+<class name="PhysicsDirectBodyState" inherits="Object" category="Core" version="3.1">
 	<brief_description>
 	</brief_description>
 	<description>
@@ -45,7 +45,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="apply_torqe_impulse">
+		<method name="apply_torque_impulse">
 			<return type="void">
 			</return>
 			<argument index="0" name="j" type="Vector3">
