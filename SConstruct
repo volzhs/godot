@@ -354,7 +354,6 @@ if selected_platform in platform_list:
         else: # 'no'
             env.Append(CCFLAGS=['-w'])
         env.Append(CCFLAGS=['-Werror=return-type'])
-
     #env['platform_libsuffix'] = env['LIBSUFFIX']
 
     suffix = "." + selected_platform
@@ -445,7 +444,8 @@ if selected_platform in platform_list:
         methods.no_verbose(sys, env)
 
     if (not env["platform"] == "server"): # FIXME: detect GLES3
-        env.Append( BUILDERS = { 'GLES3_GLSL' : env.Builder(action = methods.build_gles3_headers, suffix = 'glsl.gen.h',src_suffix = '.glsl') } )
+        env.Append( BUILDERS = { 'GLES3_GLSL' : env.Builder(action = methods.build_gles3_headers, suffix = 'glsl.gen.h', src_suffix = '.glsl') } )
+        env.Append( BUILDERS = { 'GLES2_GLSL' : env.Builder(action = methods.build_gles2_headers, suffix = 'glsl.gen.h', src_suffix = '.glsl') } )
 
     scons_cache_path = os.environ.get("SCONS_CACHE")
     if scons_cache_path != None:
