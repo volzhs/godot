@@ -142,16 +142,20 @@ void TileMap::_update_quadrant_transform() {
 
 void TileMap::set_tileset(const Ref<TileSet> &p_tileset) {
 
-	if (tile_set.is_valid())
+	if (tile_set.is_valid()) {
 		tile_set->disconnect("changed", this, "_recreate_quadrants");
+		tile_set->remove_change_receptor(this);
+	}
 
 	_clear_quadrants();
 	tile_set = p_tileset;
 
-	if (tile_set.is_valid())
+	if (tile_set.is_valid()) {
 		tile_set->connect("changed", this, "_recreate_quadrants");
-	else
+		tile_set->add_change_receptor(this);
+	} else {
 		clear();
+	}
 
 	_recreate_quadrants();
 	emit_signal("settings_changed");
@@ -827,6 +831,16 @@ void TileMap::update_dirty_bitmask() {
 	while (dirty_bitmask.size() > 0) {
 		update_cell_bitmask(dirty_bitmask[0].x, dirty_bitmask[0].y);
 		dirty_bitmask.pop_front();
+	}
+}
+
+void TileMap::fix_invalid_tiles() {
+
+	for (Map<PosKey, Cell>::Element *E = tile_map.front(); E; E = E->next()) {
+
+		if (!tile_set->has_tile(get_cell(E->key().x, E->key().y))) {
+			set_cell(E->key().x, E->key().y, INVALID_CELL);
+		}
 	}
 }
 
@@ -1515,6 +1529,7 @@ void TileMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_cell_y_flipped", "x", "y"), &TileMap::is_cell_y_flipped);
 	ClassDB::bind_method(D_METHOD("is_cell_transposed", "x", "y"), &TileMap::is_cell_transposed);
 
+	ClassDB::bind_method(D_METHOD("fix_invalid_tiles"), &TileMap::fix_invalid_tiles);
 	ClassDB::bind_method(D_METHOD("clear"), &TileMap::clear);
 
 	ClassDB::bind_method(D_METHOD("get_used_cells"), &TileMap::get_used_cells);
@@ -1573,6 +1588,12 @@ void TileMap::_bind_methods() {
 	BIND_ENUM_CONSTANT(TILE_ORIGIN_BOTTOM_LEFT);
 }
 
+void TileMap::_changed_callback(Object *p_changed, const char *p_prop) {
+	if (tile_set.is_valid() && tile_set.ptr() == p_changed) {
+		emit_signal("settings_changed");
+	}
+}
+
 TileMap::TileMap() {
 
 	rect_cache_dirty = true;
@@ -1600,6 +1621,9 @@ TileMap::TileMap() {
 }
 
 TileMap::~TileMap() {
+
+	if (tile_set.is_valid())
+		tile_set->remove_change_receptor(this);
 
 	clear();
 }

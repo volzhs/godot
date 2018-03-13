@@ -514,6 +514,7 @@ EditorAssetLibraryItemDownload::EditorAssetLibraryItemDownload() {
 	download = memnew(HTTPRequest);
 	add_child(download);
 	download->connect("request_completed", this, "_http_download_completed");
+	download->set_use_threads(EDITOR_DEF("asset_library/use_threads", true));
 
 	download_error = memnew(AcceptDialog);
 	add_child(download_error);
@@ -533,11 +534,9 @@ void EditorAssetLibrary::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_READY: {
 
-			TextureRect *tf = memnew(TextureRect);
-			tf->set_texture(get_icon("Error", "EditorIcons"));
+			error_tr->set_texture(get_icon("Error", "EditorIcons"));
 			reverse->set_icon(get_icon("Sort", "EditorIcons"));
 
-			error_hb->add_child(tf);
 			error_label->raise();
 		} break;
 
@@ -585,6 +584,8 @@ void EditorAssetLibrary::_notification(int p_what) {
 		case NOTIFICATION_THEME_CHANGED: {
 
 			library_scroll_bg->add_style_override("panel", get_stylebox("bg", "Tree"));
+			error_tr->set_texture(get_icon("Error", "EditorIcons"));
+			reverse->set_icon(get_icon("Sort", "EditorIcons"));
 		} break;
 	}
 }
@@ -832,6 +833,7 @@ void EditorAssetLibrary::_request_image(ObjectID p_for, String p_image_url, Imag
 	iq.image_index = p_image_index;
 	iq.image_type = p_type;
 	iq.request = memnew(HTTPRequest);
+	iq.request->set_use_threads(EDITOR_DEF("asset_library/use_threads", true));
 
 	iq.target = p_for;
 	iq.queue_id = ++last_queue_id;
@@ -1452,6 +1454,8 @@ EditorAssetLibrary::EditorAssetLibrary(bool p_templates_only) {
 	error_label = memnew(Label);
 	error_label->add_color_override("color", get_color("error_color", "Editor"));
 	error_hb->add_child(error_label);
+	error_tr = memnew(TextureRect);
+	error_hb->add_child(error_tr);
 
 	description = NULL;
 

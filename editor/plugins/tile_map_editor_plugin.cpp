@@ -48,6 +48,20 @@ void TileMapEditor::_notification(int p_what) {
 
 		} break;
 
+		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
+
+			bool new_show_tile_info = EditorSettings::get_singleton()->get("editors/tile_map/show_tile_info_on_hover");
+			if (new_show_tile_info != show_tile_info) {
+				show_tile_info = new_show_tile_info;
+				tile_info->set_visible(show_tile_info);
+			}
+
+			if (is_visible_in_tree()) {
+				_update_palette();
+			}
+
+		} // fallthrough
+
 		case NOTIFICATION_ENTER_TREE: {
 
 			transp->set_icon(get_icon("Transpose", "EditorIcons"));
@@ -60,19 +74,13 @@ void TileMapEditor::_notification(int p_what) {
 
 			search_box->add_icon_override("right_icon", get_icon("Search", "EditorIcons"));
 
-		} break;
+			PopupMenu *p = options->get_popup();
+			p->set_item_icon(p->get_item_index(OPTION_PAINTING), get_icon("Edit", "EditorIcons"));
+			p->set_item_icon(p->get_item_index(OPTION_PICK_TILE), get_icon("ColorPick", "EditorIcons"));
+			p->set_item_icon(p->get_item_index(OPTION_SELECT), get_icon("ToolSelect", "EditorIcons"));
+			p->set_item_icon(p->get_item_index(OPTION_DUPLICATE), get_icon("Duplicate", "EditorIcons"));
+			p->set_item_icon(p->get_item_index(OPTION_ERASE_SELECTION), get_icon("Remove", "EditorIcons"));
 
-		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
-
-			bool new_show_tile_info = EditorSettings::get_singleton()->get("editors/tile_map/show_tile_info_on_hover");
-			if (new_show_tile_info != show_tile_info) {
-				show_tile_info = new_show_tile_info;
-				tile_info->set_visible(show_tile_info);
-			}
-
-			if (is_visible_in_tree()) {
-				_update_palette();
-			}
 		} break;
 	}
 }
@@ -138,6 +146,15 @@ void TileMapEditor::_menu_option(int p_option) {
 			copydata.clear();
 
 			canvas_item_editor->update();
+		} break;
+		case OPTION_FIX_INVALID: {
+
+			undo_redo->create_action(TTR("Fix Invalid Tiles"));
+			undo_redo->add_undo_method(node, "set", "tile_data", node->get("tile_data"));
+			node->fix_invalid_tiles();
+			undo_redo->add_do_method(node, "set", "tile_data", node->get("tile_data"));
+			undo_redo->commit_action();
+
 		} break;
 	}
 }
@@ -1511,8 +1528,8 @@ TileMapEditor::TileMapEditor(EditorNode *p_editor) {
 	bucket_cache_tile = -1;
 	bucket_cache_visited = 0;
 
-	ED_SHORTCUT("tile_map_editor/erase_selection", TTR("Erase selection"), KEY_DELETE);
-	ED_SHORTCUT("tile_map_editor/find_tile", TTR("Find tile"), KEY_MASK_CMD + KEY_F);
+	ED_SHORTCUT("tile_map_editor/erase_selection", TTR("Erase Selection"), KEY_DELETE);
+	ED_SHORTCUT("tile_map_editor/find_tile", TTR("Find Tile"), KEY_MASK_CMD + KEY_F);
 	ED_SHORTCUT("tile_map_editor/transpose", TTR("Transpose"), KEY_T);
 	ED_SHORTCUT("tile_map_editor/mirror_x", TTR("Mirror X"), KEY_A);
 	ED_SHORTCUT("tile_map_editor/mirror_y", TTR("Mirror Y"), KEY_S);
@@ -1575,6 +1592,8 @@ TileMapEditor::TileMapEditor(EditorNode *p_editor) {
 	p->add_shortcut(ED_SHORTCUT("tile_map_editor/select", TTR("Select"), KEY_MASK_CMD + KEY_B), OPTION_SELECT);
 	p->add_shortcut(ED_SHORTCUT("tile_map_editor/duplicate_selection", TTR("Duplicate Selection"), KEY_MASK_CMD + KEY_D), OPTION_DUPLICATE);
 	p->add_shortcut(ED_GET_SHORTCUT("tile_map_editor/erase_selection"), OPTION_ERASE_SELECTION);
+	p->add_separator();
+	p->add_item(TTR("Fix Invalid Tiles"), OPTION_FIX_INVALID);
 
 	p->connect("id_pressed", this, "_menu_option");
 

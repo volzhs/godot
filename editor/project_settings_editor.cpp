@@ -110,6 +110,14 @@ void ProjectSettingsEditor::_notification(int p_what) {
 			EditorSettings::get_singleton()->set("interface/dialogs/project_settings_bounds", get_rect());
 		} break;
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
+
+			search_button->set_icon(get_icon("Search", "EditorIcons"));
+			clear_button->set_icon(get_icon("Close", "EditorIcons"));
+			action_add_error->add_color_override("font_color", get_color("error_color", "Editor"));
+			popup_add->set_item_icon(popup_add->get_item_index(INPUT_KEY), get_icon("Keyboard", "EditorIcons"));
+			popup_add->set_item_icon(popup_add->get_item_index(INPUT_JOY_BUTTON), get_icon("JoyButton", "EditorIcons"));
+			popup_add->set_item_icon(popup_add->get_item_index(INPUT_JOY_MOTION), get_icon("JoyAxis", "EditorIcons"));
+			popup_add->set_item_icon(popup_add->get_item_index(INPUT_MOUSE_BUTTON), get_icon("Mouse", "EditorIcons"));
 			_update_actions();
 		} break;
 	}
@@ -137,12 +145,12 @@ void ProjectSettingsEditor::_action_edited() {
 	if (new_name == old_name)
 		return;
 
-	if (new_name.find("/") != -1 || new_name.find(":") != -1 || new_name == "") {
+	if (new_name.find("/") != -1 || new_name.find(":") != -1 || new_name.find("\"") != -1 || new_name == "") {
 
 		ti->set_text(0, old_name);
 		add_at = "input/" + old_name;
 
-		message->set_text(TTR("Invalid action (anything goes but '/' or ':')."));
+		message->set_text(TTR("Invalid action (anything goes but '/', ':' or '\"')."));
 		message->popup_centered(Size2(300, 100) * EDSCALE);
 		return;
 	}
@@ -830,9 +838,9 @@ void ProjectSettingsEditor::_action_check(String p_action) {
 		action_add->set_disabled(true);
 	} else {
 
-		if (p_action.find("/") != -1 || p_action.find(":") != -1) {
+		if (p_action.find("/") != -1 || p_action.find(":") != -1 || p_action.find("\"") != -1) {
 
-			action_add_error->set_text(TTR("Can't contain '/' or ':'"));
+			action_add_error->set_text(TTR("Can't contain '/', ':' or '\"'"));
 			action_add_error->show();
 			action_add->set_disabled(true);
 			return;

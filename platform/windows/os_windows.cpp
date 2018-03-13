@@ -30,6 +30,7 @@
 
 #include "os_windows.h"
 
+#include "drivers/gles2/rasterizer_gles2.h"
 #include "drivers/gles3/rasterizer_gles3.h"
 #include "drivers/windows/dir_access_windows.h"
 #include "drivers/windows/file_access_windows.h"
@@ -149,26 +150,6 @@ void RedirectIOToConsole() {
 	// make cout, wcout, cin, wcin, wcerr, cerr, wclog and clog
 
 	// point to console as well
-}
-
-int OS_Windows::get_video_driver_count() const {
-
-	return 1;
-}
-const char *OS_Windows::get_video_driver_name(int p_driver) const {
-
-	return "GLES3";
-}
-
-int OS_Windows::get_audio_driver_count() const {
-
-	return AudioDriverManager::get_driver_count();
-}
-const char *OS_Windows::get_audio_driver_name(int p_driver) const {
-
-	AudioDriver *driver = AudioDriverManager::get_driver(p_driver);
-	ERR_FAIL_COND_V(!driver, "");
-	return AudioDriverManager::get_driver(p_driver)->get_name();
 }
 
 void OS_Windows::initialize_core() {
@@ -1089,12 +1070,19 @@ Error OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int
 	}
 
 #if defined(OPENGL_ENABLED)
-	gl_context = memnew(ContextGL_Win(hWnd, true));
-	gl_context->initialize();
+	if (p_video_driver == VIDEO_DRIVER_GLES2) {
+		gl_context = memnew(ContextGL_Win(hWnd, false));
+		gl_context->initialize();
 
-	RasterizerGLES3::register_config();
+		RasterizerGLES2::register_config();
+		RasterizerGLES2::make_current();
+	} else {
+		gl_context = memnew(ContextGL_Win(hWnd, true));
+		gl_context->initialize();
 
-	RasterizerGLES3::make_current();
+		RasterizerGLES3::register_config();
+		RasterizerGLES3::make_current();
+	}
 
 	gl_context->set_use_vsync(video_mode.use_vsync);
 #endif
