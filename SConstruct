@@ -65,7 +65,7 @@ platform_arg = ARGUMENTS.get("platform", ARGUMENTS.get("p", False))
 if (os.name == "posix"):
     pass
 elif (os.name == "nt"):
-    if (os.getenv("VCINSTALLDIR") == None or platform_arg == "android" or platform_arg == "javascript"):
+    if platform_arg == "android" or platform_arg == "javascript" or ARGUMENTS.get("use_mingw", False):
         custom_tools = ['mingw']
 
 env_base = Environment(tools=custom_tools)
@@ -92,6 +92,7 @@ env_base.use_ptrcall = False
 env_base.split_drivers = False
 env_base.split_modules = False
 env_base.module_version_string = ""
+env_base.msvc = False
 
 # To decide whether to rebuild a file, use the MD5 sum only if the timestamp has changed.
 # http://scons.org/doc/production/HTML/scons-user/ch06.html#idm139837621851792
@@ -240,14 +241,13 @@ sys.modules.pop('detect')
 """
 
 if (env_base['target'] == 'debug'):
-    env_base.Append(CPPFLAGS=['-DDEBUG_MEMORY_ALLOC'])
-    env_base.Append(CPPFLAGS=['-DSCI_NAMESPACE'])
+    env_base.Append(CPPDEFINES=['DEBUG_MEMORY_ALLOC', 'SCI_NAMESPACE'])
 
 if (env_base['no_editor_splash']):
-    env_base.Append(CPPFLAGS=['-DNO_EDITOR_SPLASH'])
+    env_base.Append(CPPDEFINES=['NO_EDITOR_SPLASH'])
 
 if not env_base['deprecated']:
-    env_base.Append(CPPFLAGS=['-DDISABLE_DEPRECATED'])
+    env_base.Append(CPPDEFINES=['DISABLE_DEPRECATED'])
 
 env_base.platforms = {}
 
@@ -329,9 +329,7 @@ if selected_platform in platform_list:
     if (env["warnings"] == 'yes'):
         print("WARNING: warnings=yes is deprecated; assuming warnings=all")
 
-    env.msvc = 0
-    if (os.name == "nt" and os.getenv("VCINSTALLDIR") and (platform_arg == "windows" or platform_arg == "uwp")): # MSVC, needs to stand out of course
-        env.msvc = 1
+    if env.msvc:
         disable_nonessential_warnings = ['/wd4267', '/wd4244', '/wd4305', '/wd4800'] # Truncations, narrowing conversions...
         if (env["warnings"] == 'extra'):
             env.Append(CCFLAGS=['/Wall']) # Implies /W4
@@ -363,7 +361,7 @@ if selected_platform in platform_list:
             print("Tools can only be built with targets 'debug' and 'release_debug'.")
             sys.exit(255)
         suffix += ".opt"
-        env.Append(CCFLAGS=['-DNDEBUG'])
+        env.Append(CPPDEFINES=['NDEBUG'])
 
     elif (env["target"] == "release_debug"):
         if env["tools"]:
@@ -420,25 +418,25 @@ if selected_platform in platform_list:
     env["SHLIBSUFFIX"] = suffix + env["SHLIBSUFFIX"]
 
     if (env.use_ptrcall):
-        env.Append(CPPFLAGS=['-DPTRCALL_ENABLED'])
+        env.Append(CPPDEFINES=['PTRCALL_ENABLED'])
 
     # to test 64 bits compiltion
     # env.Append(CPPFLAGS=['-m64'])
 
     if env['tools']:
-        env.Append(CPPFLAGS=['-DTOOLS_ENABLED'])
+        env.Append(CPPDEFINES=['TOOLS_ENABLED'])
     if env['disable_3d']:
-        env.Append(CPPFLAGS=['-D_3D_DISABLED'])
+        env.Append(CPPDEFINES=['_3D_DISABLED'])
     if env['gdscript']:
-        env.Append(CPPFLAGS=['-DGDSCRIPT_ENABLED'])
+        env.Append(CPPDEFINES=['GDSCRIPT_ENABLED'])
     if env['disable_advanced_gui']:
-        env.Append(CPPFLAGS=['-DADVANCED_GUI_DISABLED'])
+        env.Append(CPPDEFINES=['ADVANCED_GUI_DISABLED'])
 
     if env['minizip']:
-        env.Append(CPPFLAGS=['-DMINIZIP_ENABLED'])
+        env.Append(CPPDEFINES=['MINIZIP_ENABLED'])
 
     if env['xml']:
-        env.Append(CPPFLAGS=['-DXML_ENABLED'])
+        env.Append(CPPDEFINES=['XML_ENABLED'])
 
     if not env['verbose']:
         methods.no_verbose(sys, env)
@@ -479,10 +477,7 @@ if selected_platform in platform_list:
     if ("check_c_headers" in env):
         for header in env["check_c_headers"]:
             if (conf.CheckCHeader(header[0])):
-                if (env.msvc):
-                    env.Append(CCFLAGS=['/D' + header[1]])
-                else:
-                    env.Append(CCFLAGS=['-D' + header[1]])
+                env.AppendUnique(CPPDEFINES=[header[1]])
 
 else:
 
@@ -491,122 +486,120 @@ else:
     for x in platform_list:
         print("\t" + x)
     print("\nPlease run scons again with argument: platform=<string>")
-    sys.exit(255)
 
 
-screen = sys.stdout
-node_count = 0
-node_count_max = 0
-node_count_interval = 1
-if ('env' in locals()):
+# The following only makes sense when the env is defined, and assumes it is
+if 'env' in locals():
+    screen = sys.stdout
+    # Progress reporting is not available in non-TTY environments since it
+    # messes with the output (for example, when writing to a file)
+    show_progress = (env['progress'] and sys.stdout.isatty())
+    node_count = 0
+    node_count_max = 0
+    node_count_interval = 1
     node_count_fname = str(env.Dir('#')) + '/.scons_node_count'
-# Progress reporting is not available in non-TTY environments since it
-# messes with the output (for example, when writing to a file)
-if sys.stdout.isatty():
-    show_progress = env['progress']
-else:
-    show_progress = False
 
-import time, math
+    import time, math
 
-class cache_progress:
-    # The default is 1 GB cache and 12 hours half life
-    def __init__(self, path = None, limit = 1073741824, half_life = 43200):
-        self.path = path
-        self.limit = limit
-        self.exponent_scale = math.log(2) / half_life
-        if env['verbose'] and path != None:
-            screen.write('Current cache limit is ' + self.convert_size(limit) + ' (used: ' + self.convert_size(self.get_size(path)) + ')\n')
-        self.delete(self.file_list())
+    class cache_progress:
+        # The default is 1 GB cache and 12 hours half life
+        def __init__(self, path = None, limit = 1073741824, half_life = 43200):
+            self.path = path
+            self.limit = limit
+            self.exponent_scale = math.log(2) / half_life
+            if env['verbose'] and path != None:
+                screen.write('Current cache limit is ' + self.convert_size(limit) + ' (used: ' + self.convert_size(self.get_size(path)) + ')\n')
+            self.delete(self.file_list())
 
-    def __call__(self, node, *args, **kw):
-        global node_count, node_count_max, node_count_interval, node_count_fname, show_progress
-        if show_progress:
-            # Print the progress percentage
-            node_count += node_count_interval
-            if (node_count_max > 0 and node_count <= node_count_max):
-                screen.write('\r[%3d%%] ' % (node_count * 100 / node_count_max))
-                screen.flush()
-            elif (node_count_max > 0 and node_count > node_count_max):
-                screen.write('\r[100%] ')
-                screen.flush()
+        def __call__(self, node, *args, **kw):
+            global node_count, node_count_max, node_count_interval, node_count_fname, show_progress
+            if show_progress:
+                # Print the progress percentage
+                node_count += node_count_interval
+                if (node_count_max > 0 and node_count <= node_count_max):
+                    screen.write('\r[%3d%%] ' % (node_count * 100 / node_count_max))
+                    screen.flush()
+                elif (node_count_max > 0 and node_count > node_count_max):
+                    screen.write('\r[100%] ')
+                    screen.flush()
+                else:
+                    screen.write('\r[Initial build] ')
+                    screen.flush()
+
+        def delete(self, files):
+            if len(files) == 0:
+                return
+            if env['verbose']:
+                # Utter something
+                screen.write('\rPurging %d %s from cache...\n' % (len(files), len(files) > 1 and 'files' or 'file'))
+            [os.remove(f) for f in files]
+
+        def file_list(self):
+            if self.path == None:
+                # Nothing to do
+                return []
+            # Gather a list of (filename, (size, atime)) within the
+            # cache directory
+            file_stat = [(x, os.stat(x)[6:8]) for x in glob.glob(os.path.join(self.path, '*', '*'))]
+            if file_stat == []:
+                # Nothing to do
+                return []
+            # Weight the cache files by size (assumed to be roughly
+            # proportional to the recompilation time) times an exponential
+            # decay since the ctime, and return a list with the entries
+            # (filename, size, weight).
+            current_time = time.time()
+            file_stat = [(x[0], x[1][0], (current_time - x[1][1])) for x in file_stat]
+            # Sort by the most resently accessed files (most sensible to keep) first
+            file_stat.sort(key=lambda x: x[2])
+            # Search for the first entry where the storage limit is
+            # reached
+            sum, mark = 0, None
+            for i,x in enumerate(file_stat):
+                sum += x[1]
+                if sum > self.limit:
+                    mark = i
+                    break
+            if mark == None:
+                return []
             else:
-                screen.write('\r[Initial build] ')
-                screen.flush()
+                return [x[0] for x in file_stat[mark:]]
 
-    def delete(self, files):
-        if len(files) == 0:
-            return
-        if env['verbose']:
-            # Utter something
-            screen.write('\rPurging %d %s from cache...\n' % (len(files), len(files) > 1 and 'files' or 'file'))
-        [os.remove(f) for f in files]
+        def convert_size(self, size_bytes):
+            if size_bytes == 0:
+                return "0 bytes"
+            size_name = ("bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+            i = int(math.floor(math.log(size_bytes, 1024)))
+            p = math.pow(1024, i)
+            s = round(size_bytes / p, 2)
+            return "%s %s" % (int(s) if i == 0 else s, size_name[i])
 
-    def file_list(self):
-        if self.path == None:
-            # Nothing to do
-            return []
-        # Gather a list of (filename, (size, atime)) within the
-        # cache directory
-        file_stat = [(x, os.stat(x)[6:8]) for x in glob.glob(os.path.join(self.path, '*', '*'))]
-        if file_stat == []:
-            # Nothing to do
-            return []
-        # Weight the cache files by size (assumed to be roughly
-        # proportional to the recompilation time) times an exponential
-        # decay since the ctime, and return a list with the entries
-        # (filename, size, weight).
-        current_time = time.time()
-        file_stat = [(x[0], x[1][0], (current_time - x[1][1])) for x in file_stat]
-        # Sort by the most resently accessed files (most sensible to keep) first
-        file_stat.sort(key=lambda x: x[2])
-        # Search for the first entry where the storage limit is
-        # reached
-        sum, mark = 0, None
-        for i,x in enumerate(file_stat):
-            sum += x[1]
-            if sum > self.limit:
-                mark = i
-                break
-        if mark == None:
-            return []
-        else:
-            return [x[0] for x in file_stat[mark:]]
+        def get_size(self, start_path = '.'):
+            total_size = 0
+            for dirpath, dirnames, filenames in os.walk(start_path):
+                for f in filenames:
+                    fp = os.path.join(dirpath, f)
+                    total_size += os.path.getsize(fp)
+            return total_size
 
-    def convert_size(self, size_bytes):
-       if size_bytes == 0:
-           return "0 bytes"
-       size_name = ("bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-       i = int(math.floor(math.log(size_bytes, 1024)))
-       p = math.pow(1024, i)
-       s = round(size_bytes / p, 2)
-       return "%s %s" % (int(s) if i == 0 else s, size_name[i])
+    def progress_finish(target, source, env):
+        global node_count, progressor
+        with open(node_count_fname, 'w') as f:
+            f.write('%d\n' % node_count)
+        progressor.delete(progressor.file_list())
 
-    def get_size(self, start_path = '.'):
-        total_size = 0
-        for dirpath, dirnames, filenames in os.walk(start_path):
-            for f in filenames:
-                fp = os.path.join(dirpath, f)
-                total_size += os.path.getsize(fp)
-        return total_size
+    try:
+        with open(node_count_fname) as f:
+            node_count_max = int(f.readline())
+    except:
+        pass
 
-def progress_finish(target, source, env):
-    global node_count, progressor
-    with open(node_count_fname, 'w') as f:
-        f.write('%d\n' % node_count)
-    progressor.delete(progressor.file_list())
+    cache_directory = os.environ.get("SCONS_CACHE")
+    # Simple cache pruning, attached to SCons' progress callback. Trim the
+    # cache directory to a size not larger than cache_limit.
+    cache_limit = float(os.getenv("SCONS_CACHE_LIMIT", 1024)) * 1024 * 1024
+    progressor = cache_progress(cache_directory, cache_limit)
+    Progress(progressor, interval = node_count_interval)
 
-try:
-    with open(node_count_fname) as f:
-        node_count_max = int(f.readline())
-except:
-    pass
-cache_directory = os.environ.get("SCONS_CACHE")
-# Simple cache pruning, attached to SCons' progress callback. Trim the
-# cache directory to a size not larger than cache_limit.
-cache_limit = float(os.getenv("SCONS_CACHE_LIMIT", 1024)) * 1024 * 1024
-progressor = cache_progress(cache_directory, cache_limit)
-Progress(progressor, interval = node_count_interval)
-
-progress_finish_command = Command('progress_finish', [], progress_finish)
-AlwaysBuild(progress_finish_command)
+    progress_finish_command = Command('progress_finish', [], progress_finish)
+    AlwaysBuild(progress_finish_command)
