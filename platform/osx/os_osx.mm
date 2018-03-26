@@ -1601,6 +1601,12 @@ Size2 OS_OSX::get_window_size() const {
 	return window_size;
 };
 
+Size2 OS_OSX::get_real_window_size() const {
+
+	NSRect frame = [window_object frame];
+	return Size2(frame.size.width, frame.size.height);
+}
+
 void OS_OSX::set_window_size(const Size2 p_size) {
 
 	Size2 size = p_size;
@@ -1695,6 +1701,20 @@ bool OS_OSX::is_window_maximized() const {
 void OS_OSX::move_window_to_foreground() {
 
 	[window_object orderFrontRegardless];
+}
+
+void OS_OSX::set_window_always_on_top(bool p_enabled) {
+	if (is_window_always_on_top() == p_enabled)
+		return;
+
+	if (p_enabled)
+		[window_object setLevel:NSFloatingWindowLevel];
+	else
+		[window_object setLevel:NSNormalWindowLevel];
+}
+
+bool OS_OSX::is_window_always_on_top() const {
+	return [window_object level] == NSFloatingWindowLevel;
 }
 
 void OS_OSX::request_attention() {

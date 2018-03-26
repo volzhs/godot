@@ -12,7 +12,8 @@ def get_name():
 
 
 def can_build():
-    return ("EMSCRIPTEN_ROOT" in os.environ)
+
+    return ("EMSCRIPTEN_ROOT" in os.environ or "EMSCRIPTEN" in os.environ)
 
 
 def get_opts():
@@ -39,7 +40,11 @@ def configure(env):
 
     env.Append(CPPPATH=['#platform/javascript'])
 
-    em_path = os.environ["EMSCRIPTEN_ROOT"]
+    env['ENV'] = os.environ
+    if ("EMSCRIPTEN_ROOT" in os.environ):
+        em_path = os.environ["EMSCRIPTEN_ROOT"]
+    elif ("EMSCRIPTEN" in os.environ):
+        em_path = os.environ["EMSCRIPTEN"]
 
     env['ENV']['PATH'] = em_path + ":" + env['ENV']['PATH']
 
@@ -86,6 +91,7 @@ def configure(env):
         env.Append(LINKFLAGS=['--compression', lzma_binpath + "," + lzma_decoder + "," + lzma_dec])
 
     env.Append(LINKFLAGS=['-s', 'ASM_JS=1'])
+    env.Append(LINKFLAGS=['-s', 'EXTRA_EXPORTED_RUNTIME_METHODS="[\'FS\']"'])
     env.Append(LINKFLAGS=['--separate-asm'])
     env.Append(LINKFLAGS=['-O2'])
     # env.Append(LINKFLAGS=['-g4'])

@@ -162,6 +162,7 @@ public:
 	virtual void set_window_title(const String &p_title);
 
 	virtual Size2 get_window_size() const;
+	virtual Size2 get_real_window_size() const;
 
 	virtual void set_icon(const Image &p_icon);
 
@@ -209,6 +210,8 @@ public:
 	virtual bool is_window_minimized() const;
 	virtual void set_window_maximized(bool p_enabled);
 	virtual bool is_window_maximized() const;
+	virtual void set_window_always_on_top(bool p_enabled);
+	virtual bool is_window_always_on_top() const;
 	virtual void request_attention();
 	virtual String get_joy_guid(int p_device) const;
 

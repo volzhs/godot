@@ -30,7 +30,6 @@
 package org.godotengine.godot;
 
 import android.app.Activity;
-import android.util.Log;
 
 import org.godotengine.godot.payments.PaymentsManager;
 import org.json.JSONException;
@@ -39,7 +38,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 
 public class GodotPaymentV3 extends Godot.SingletonBase {
 
@@ -67,8 +65,8 @@ public class GodotPaymentV3 extends Godot.SingletonBase {
 
 	public GodotPaymentV3(Activity p_activity) {
 
-		registerClass("GodotPayments", new String[]{"purchase", "setPurchaseCallbackId", "setPurchaseValidationUrlPrefix", "setTransactionId", "getSignature", "consumeUnconsumedPurchases", "requestPurchased", "setAutoConsume", "consume", "querySkuDetails"});
-		activity = (Godot) p_activity;
+		registerClass("GodotPayments", new String[] { "purchase", "setPurchaseCallbackId", "setPurchaseValidationUrlPrefix", "setTransactionId", "getSignature", "consumeUnconsumedPurchases", "requestPurchased", "setAutoConsume", "consume", "querySkuDetails", "isConnected" });
+		activity = (Godot)p_activity;
 		mPaymentManager = activity.getPaymentsManager();
 		mPaymentManager.setBaseSingleton(this);
 	}
@@ -89,32 +87,31 @@ public class GodotPaymentV3 extends Godot.SingletonBase {
 	}
 
 	public void callbackSuccess(String ticket, String signature, String sku) {
-		GodotLib.callobject(purchaseCallbackId, "purchase_success", new Object[]{ticket, signature, sku});
+		GodotLib.callobject(purchaseCallbackId, "purchase_success", new Object[] { ticket, signature, sku });
 	}
 
 	public void callbackSuccessProductMassConsumed(String ticket, String signature, String sku) {
-		Log.d(this.getClass().getName(), "callbackSuccessProductMassConsumed > " + ticket + "," + signature + "," + sku);
-		GodotLib.calldeferred(purchaseCallbackId, "consume_success", new Object[]{ticket, signature, sku});
+		GodotLib.calldeferred(purchaseCallbackId, "consume_success", new Object[] { ticket, signature, sku });
 	}
 
 	public void callbackSuccessNoUnconsumedPurchases() {
-		GodotLib.calldeferred(purchaseCallbackId, "consume_not_required", new Object[]{});
+		GodotLib.calldeferred(purchaseCallbackId, "consume_not_required", new Object[] {});
 	}
 
 	public void callbackFailConsume() {
-		GodotLib.calldeferred(purchaseCallbackId, "consume_fail", new Object[]{});
+		GodotLib.calldeferred(purchaseCallbackId, "consume_fail", new Object[] {});
 	}
 
 	public void callbackFail() {
-		GodotLib.calldeferred(purchaseCallbackId, "purchase_fail", new Object[]{});
+		GodotLib.calldeferred(purchaseCallbackId, "purchase_fail", new Object[] {});
 	}
 
 	public void callbackCancel() {
-		GodotLib.calldeferred(purchaseCallbackId, "purchase_cancel", new Object[]{});
+		GodotLib.calldeferred(purchaseCallbackId, "purchase_cancel", new Object[] {});
 	}
 
 	public void callbackAlreadyOwned(String sku) {
-		GodotLib.calldeferred(purchaseCallbackId, "purchase_owned", new Object[]{sku});
+		GodotLib.calldeferred(purchaseCallbackId, "purchase_owned", new Object[] { sku });
 	}
 
 	public int getPurchaseCallbackId() {
@@ -161,7 +158,20 @@ public class GodotPaymentV3 extends Godot.SingletonBase {
 
 	// callback for requestPurchased()
 	public void callbackPurchased(String receipt, String signature, String sku) {
-		GodotLib.calldeferred(purchaseCallbackId, "has_purchased", new Object[]{receipt, signature, sku});
+		GodotLib.calldeferred(purchaseCallbackId, "has_purchased", new Object[] { receipt, signature, sku });
+	}
+
+	public void callbackDisconnected() {
+		GodotLib.calldeferred(purchaseCallbackId, "iap_disconnected", new Object[] {});
+	}
+
+	public void callbackConnected() {
+		GodotLib.calldeferred(purchaseCallbackId, "iap_connected", new Object[] {});
+	}
+
+	// true if connected, false otherwise
+	public boolean isConnected() {
+		return mPaymentManager.isConnected();
 	}
 
 	// consume item automatically after purchase. default is true.
@@ -210,10 +220,10 @@ public class GodotPaymentV3 extends Godot.SingletonBase {
 	}
 
 	public void completeSkuDetail() {
-		GodotLib.calldeferred(purchaseCallbackId, "sku_details_complete", new Object[]{mSkuDetails});
+		GodotLib.calldeferred(purchaseCallbackId, "sku_details_complete", new Object[] { mSkuDetails });
 	}
 
 	public void errorSkuDetail(String errorMessage) {
-		GodotLib.calldeferred(purchaseCallbackId, "sku_details_error", new Object[]{errorMessage});
+		GodotLib.calldeferred(purchaseCallbackId, "sku_details_error", new Object[] { errorMessage });
 	}
 }

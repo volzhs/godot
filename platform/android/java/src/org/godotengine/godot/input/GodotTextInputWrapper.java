@@ -67,7 +67,7 @@ public class GodotTextInputWrapper implements TextWatcher, OnEditorActionListene
 
 	private boolean isFullScreenEdit() {
 		final TextView textField = this.mEdit;
-		final InputMethodManager imm = (InputMethodManager) textField.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+		final InputMethodManager imm = (InputMethodManager)textField.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 		return imm.isFullscreenMode();
 	}
 
@@ -81,14 +81,12 @@ public class GodotTextInputWrapper implements TextWatcher, OnEditorActionListene
 
 	@Override
 	public void afterTextChanged(final Editable s) {
-
 	}
 
 	@Override
 	public void beforeTextChanged(final CharSequence pCharSequence, final int start, final int count, final int after) {
-		//Log.d(TAG, "beforeTextChanged(" + pCharSequence + ")start: " + start + ",count: " + count + ",after: " + after);
 
-		for (int i=0;i<count;i++){
+		for (int i = 0; i < count; i++) {
 			GodotLib.key(KeyEvent.KEYCODE_DEL, 0, true);
 			GodotLib.key(KeyEvent.KEYCODE_DEL, 0, false);
 		}
@@ -96,14 +94,12 @@ public class GodotTextInputWrapper implements TextWatcher, OnEditorActionListene
 
 	@Override
 	public void onTextChanged(final CharSequence pCharSequence, final int start, final int before, final int count) {
-		//Log.d(TAG, "onTextChanged(" + pCharSequence + ")start: " + start + ",count: " + count + ",before: " + before);
 
-		for (int i=start;i<start+count;i++){
+		for (int i = start; i < start + count; i++) {
 			int ch = pCharSequence.charAt(i);
 			GodotLib.key(0, ch, true);
 			GodotLib.key(0, ch, false);
 		}
-
 	}
 
 	@Override
@@ -113,11 +109,6 @@ public class GodotTextInputWrapper implements TextWatcher, OnEditorActionListene
 			for (int i = this.mOriginText.length(); i > 0; i--) {
 				GodotLib.key(KeyEvent.KEYCODE_DEL, 0, true);
 				GodotLib.key(KeyEvent.KEYCODE_DEL, 0, false);
-				/*
-				if (BuildConfig.DEBUG) {
-					Log.d(TAG, "deleteBackward");
-				}
-				*/
 			}
 			String text = pTextView.getText().toString();
 
@@ -130,29 +121,16 @@ public class GodotTextInputWrapper implements TextWatcher, OnEditorActionListene
 				text += '\n';
 			}
 
-			for(int i = 0; i < text.length(); i++) {
+			for (int i = 0; i < text.length(); i++) {
 				int ch = text.codePointAt(i);
 				GodotLib.key(0, ch, true);
 				GodotLib.key(0, ch, false);
 			}
-			/*
-			if (BuildConfig.DEBUG) {
-				Log.d(TAG, "insertText(" + insertText + ")");
-			}
-			*/
 		}
-		
+
 		if (pActionID == EditorInfo.IME_ACTION_DONE) {
 			this.mView.requestFocus();
 		}
 		return false;
 	}
-
-	// ===========================================================
-	// Methods
-	// ===========================================================
-
-	// ===========================================================
-	// Inner and Anonymous Classes
-	// ===========================================================
 }
