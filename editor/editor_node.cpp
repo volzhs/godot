@@ -190,6 +190,8 @@ void EditorNode::_unhandled_input(const Ref<InputEvent> &p_event) {
 	Ref<InputEventKey> k = p_event;
 	if (k.is_valid() && k->is_pressed() && !k->is_echo() && !gui_base->get_viewport()->gui_has_modal_stack()) {
 
+		EditorPlugin *old_editor = editor_plugin_screen;
+
 		if (ED_IS_SHORTCUT("editor/next_tab", p_event)) {
 			int next_tab = editor_data.get_edited_scene() + 1;
 			next_tab %= editor_data.get_edited_scene_count();
@@ -224,6 +226,10 @@ void EditorNode::_unhandled_input(const Ref<InputEvent> &p_event) {
 			for (int i = 0; i < bottom_panel_items.size(); i++) {
 				_bottom_panel_switch(false, i);
 			}
+		}
+
+		if (old_editor != editor_plugin_screen) {
+			get_tree()->set_input_as_handled();
 		}
 	}
 }
@@ -604,9 +610,6 @@ void EditorNode::open_resource(const String &p_type) {
 void EditorNode::save_resource_in_path(const Ref<Resource> &p_resource, const String &p_path) {
 
 	editor_data.apply_changes_in_editors();
-	if (p_resource->get_last_modified_time() == p_resource->get_import_last_modified_time()) {
-		return;
-	}
 
 	int flg = 0;
 	if (EditorSettings::get_singleton()->get("filesystem/on_save/compress_binary_resources"))
@@ -1453,7 +1456,8 @@ void EditorNode::_save_default_environment() {
 	if (fallback.is_valid() && fallback->get_path().is_resource_file()) {
 		Map<RES, bool> processed;
 		_find_and_save_edited_subresources(fallback.ptr(), processed, 0);
-		save_resource_in_path(fallback, fallback->get_path());
+		if (fallback->get_last_modified_time() != fallback->get_import_last_modified_time())
+			save_resource_in_path(fallback, fallback->get_path());
 	}
 }
 
@@ -1599,7 +1603,8 @@ void EditorNode::_edit_current() {
 
 		// special case if use of external editor is true
 		if (main_plugin->get_name() == "Script" && (bool(EditorSettings::get_singleton()->get("text_editor/external/use_external_editor")) || overrides_external_editor(current_obj))) {
-			main_plugin->edit(current_obj);
+			if (!changing_scene)
+				main_plugin->edit(current_obj);
 		}
 
 		else if (main_plugin != editor_plugin_screen && (!ScriptEditor::get_singleton() || !ScriptEditor::get_singleton()->is_visible_in_tree() || ScriptEditor::get_singleton()->can_take_away_focus())) {
@@ -2122,10 +2127,6 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 				log->add_message("REDO: " + action);
 
 		} break;
-		case TOOLS_ORPHAN_RESOURCES: {
-
-			orphan_resources->show();
-		} break;
 
 		case EDIT_REVERT: {
 
@@ -2568,6 +2569,30 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			} else if (p_option >= IMPORT_PLUGIN_BASE) {
 			}
 		}
+	}
+}
+
+void EditorNode::_tool_menu_option(int p_idx) {
+	switch (tool_menu->get_item_id(p_idx)) {
+		case TOOLS_ORPHAN_RESOURCES: {
+			orphan_resources->show();
+		} break;
+		case TOOLS_CUSTOM: {
+			if (tool_menu->get_item_submenu(p_idx) == "") {
+				Array params = tool_menu->get_item_metadata(p_idx);
+
+				Object *handler = ObjectDB::get_instance(params[0]);
+				String callback = params[1];
+				Variant *ud = &params[2];
+				Variant::CallError ce;
+
+				handler->call(callback, (const Variant **)&ud, 1, ce);
+				if (ce.error != Variant::CallError::CALL_OK) {
+					String err = Variant::get_call_error_text(handler, callback, (const Variant **)&ud, 1, ce);
+					ERR_PRINTS("Error calling function from tool menu: " + err);
+				}
+			} // else it's a submenu so don't do anything.
+		} break;
 	}
 }
 
@@ -4463,6 +4488,45 @@ Variant EditorNode::drag_files_and_dirs(const Vector<String> &p_paths, Control *
 	return drag_data;
 }
 
+void EditorNode::add_tool_menu_item(const String &p_name, Object *p_handler, const String &p_callback, const Variant &p_ud) {
+	ERR_FAIL_NULL(p_handler);
+	int idx = tool_menu->get_item_count();
+	tool_menu->add_item(p_name, TOOLS_CUSTOM);
+
+	Array parameters;
+	parameters.push_back(p_handler->get_instance_id());
+	parameters.push_back(p_callback);
+	parameters.push_back(p_ud);
+
+	tool_menu->set_item_metadata(idx, parameters);
+}
+
+void EditorNode::add_tool_submenu_item(const String &p_name, PopupMenu *p_submenu) {
+	ERR_FAIL_NULL(p_submenu);
+	ERR_FAIL_COND(p_submenu->get_parent() != NULL);
+
+	tool_menu->add_child(p_submenu);
+	tool_menu->add_submenu_item(p_name, p_submenu->get_name(), TOOLS_CUSTOM);
+}
+
+void EditorNode::remove_tool_menu_item(const String &p_name) {
+	for (int i = 0; i < tool_menu->get_item_count(); i++) {
+		if (tool_menu->get_item_id(i) != TOOLS_CUSTOM)
+			continue;
+
+		if (tool_menu->get_item_text(i) == p_name) {
+			if (tool_menu->get_item_submenu(i) != "") {
+				Node *n = tool_menu->get_node(tool_menu->get_item_submenu(i));
+				tool_menu->remove_child(n);
+				memdelete(n);
+			}
+			tool_menu->remove_item(i);
+			tool_menu->set_as_minsize();
+			return;
+		}
+	}
+}
+
 void EditorNode::_dropped_files(const Vector<String> &p_files, int p_screen) {
 
 	String to_path = ProjectSettings::get_singleton()->globalize_path(get_filesystem_dock()->get_current_path());
@@ -4659,6 +4723,7 @@ Vector<Ref<EditorResourceConversionPlugin> > EditorNode::find_resource_conversio
 void EditorNode::_bind_methods() {
 
 	ClassDB::bind_method("_menu_option", &EditorNode::_menu_option);
+	ClassDB::bind_method("_tool_menu_option", &EditorNode::_tool_menu_option);
 	ClassDB::bind_method("_menu_confirm_current", &EditorNode::_menu_confirm_current);
 	ClassDB::bind_method("_dialog_action", &EditorNode::_dialog_action);
 	ClassDB::bind_method("_resource_selected", &EditorNode::_resource_selected, DEFVAL(""));
@@ -4797,18 +4862,43 @@ EditorNode::EditorNode() {
 	FileAccess::set_backup_save(EDITOR_GET("filesystem/on_save/safe_save_on_backup_then_rename"));
 
 	{
-		int dpi_mode = EditorSettings::get_singleton()->get("interface/editor/hidpi_mode");
-		if (dpi_mode == 0) {
-			const int screen = OS::get_singleton()->get_current_screen();
-			editor_set_scale(OS::get_singleton()->get_screen_dpi(screen) >= 192 && OS::get_singleton()->get_screen_size(screen).x > 2000 ? 2.0 : 1.0);
-		} else if (dpi_mode == 1) {
-			editor_set_scale(0.75);
-		} else if (dpi_mode == 2) {
-			editor_set_scale(1.0);
-		} else if (dpi_mode == 3) {
-			editor_set_scale(1.5);
-		} else if (dpi_mode == 4) {
-			editor_set_scale(2.0);
+		int display_scale = EditorSettings::get_singleton()->get("interface/editor/display_scale");
+		float custom_display_scale = EditorSettings::get_singleton()->get("interface/editor/custom_display_scale");
+
+		switch (display_scale) {
+			case 0: {
+				// Try applying a suitable display scale automatically
+				const int screen = OS::get_singleton()->get_current_screen();
+				editor_set_scale(OS::get_singleton()->get_screen_dpi(screen) >= 192 && OS::get_singleton()->get_screen_size(screen).x > 2000 ? 2.0 : 1.0);
+			} break;
+
+			case 1: {
+				editor_set_scale(0.75);
+			} break;
+
+			case 2: {
+				editor_set_scale(1.0);
+			} break;
+
+			case 3: {
+				editor_set_scale(1.25);
+			} break;
+
+			case 4: {
+				editor_set_scale(1.5);
+			} break;
+
+			case 5: {
+				editor_set_scale(1.75);
+			} break;
+
+			case 6: {
+				editor_set_scale(2.0);
+			} break;
+
+			default: {
+				editor_set_scale(custom_display_scale);
+			} break;
 		}
 	}
 
@@ -5232,9 +5322,9 @@ EditorNode::EditorNode() {
 	p->connect("id_pressed", this, "_menu_option");
 	p->add_item(TTR("Export"), FILE_EXPORT_PROJECT);
 
-	PopupMenu *tool_menu = memnew(PopupMenu);
+	tool_menu = memnew(PopupMenu);
 	tool_menu->set_name("Tools");
-	tool_menu->connect("id_pressed", this, "_menu_option");
+	tool_menu->connect("index_pressed", this, "_tool_menu_option");
 	p->add_child(tool_menu);
 	p->add_submenu_item(TTR("Tools"), "Tools");
 	tool_menu->add_item(TTR("Orphan Resource Explorer"), TOOLS_ORPHAN_RESOURCES);
