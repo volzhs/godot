@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  stream_peer_ssl.cpp                                                  */
+/*  gdscript_highlighter.h                                               */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,72 +28,29 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "stream_peer_ssl.h"
-#include "os/file_access.h"
-#include "project_settings.h"
+#ifndef GDSCRIPT_HIGHLIGHTER_H
+#define GDSCRIPT_HIGHLIGHTER_H
 
-StreamPeerSSL *(*StreamPeerSSL::_create)() = NULL;
+#include "scene/gui/text_edit.h"
 
-StreamPeerSSL *StreamPeerSSL::create() {
+class GDScriptSyntaxHighlighter : public SyntaxHighlighter {
+private:
+	// colours
+	Color font_color;
+	Color symbol_color;
+	Color function_color;
+	Color built_in_type_color;
+	Color number_color;
+	Color member_color;
 
-	return _create();
-}
+public:
+	static SyntaxHighlighter *create();
 
-StreamPeerSSL::LoadCertsFromMemory StreamPeerSSL::load_certs_func = NULL;
-bool StreamPeerSSL::available = false;
-bool StreamPeerSSL::initialize_certs = true;
+	virtual void _update_cache();
+	virtual Map<int, TextEdit::HighlighterInfo> _get_line_syntax_highlighting(int p_line);
 
-void StreamPeerSSL::load_certs_from_memory(const PoolByteArray &p_memory) {
-	if (load_certs_func)
-		load_certs_func(p_memory);
-}
+	virtual String get_name();
+	virtual List<String> get_supported_languages();
+};
 
-bool StreamPeerSSL::is_available() {
-	return available;
-}
-
-PoolByteArray StreamPeerSSL::get_project_cert_array() {
-
-	PoolByteArray out;
-	String certs_path = GLOBAL_DEF("network/ssl/certificates", "");
-	ProjectSettings::get_singleton()->set_custom_property_info("network/ssl/certificates", PropertyInfo(Variant::STRING, "network/ssl/certificates", PROPERTY_HINT_FILE, "*.crt"));
-
-	if (certs_path != "") {
-
-		FileAccess *f = FileAccess::open(certs_path, FileAccess::READ);
-		if (f) {
-			int flen = f->get_len();
-			out.resize(flen + 1);
-			{
-				PoolByteArray::Write w = out.write();
-				f->get_buffer(w.ptr(), flen);
-				w[flen] = 0; //end f string
-			}
-
-			memdelete(f);
-
-#ifdef DEBUG_ENABLED
-			print_line("Loaded certs from '" + certs_path);
-#endif
-		}
-	}
-
-	return out;
-}
-
-void StreamPeerSSL::_bind_methods() {
-
-	ClassDB::bind_method(D_METHOD("poll"), &StreamPeerSSL::poll);
-	ClassDB::bind_method(D_METHOD("accept_stream", "stream"), &StreamPeerSSL::accept_stream);
-	ClassDB::bind_method(D_METHOD("connect_to_stream", "stream", "validate_certs", "for_hostname"), &StreamPeerSSL::connect_to_stream, DEFVAL(false), DEFVAL(String()));
-	ClassDB::bind_method(D_METHOD("get_status"), &StreamPeerSSL::get_status);
-	ClassDB::bind_method(D_METHOD("disconnect_from_stream"), &StreamPeerSSL::disconnect_from_stream);
-
-	BIND_ENUM_CONSTANT(STATUS_DISCONNECTED);
-	BIND_ENUM_CONSTANT(STATUS_CONNECTED);
-	BIND_ENUM_CONSTANT(STATUS_ERROR_NO_CERTIFICATE);
-	BIND_ENUM_CONSTANT(STATUS_ERROR_HOSTNAME_MISMATCH);
-}
-
-StreamPeerSSL::StreamPeerSSL() {
-}
+#endif // GDSCRIPT_HIGHLIGHTER_H

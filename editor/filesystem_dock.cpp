@@ -1034,8 +1034,19 @@ void FileSystemDock::_move_operation_confirm(const String &p_to_path) {
 void FileSystemDock::_file_option(int p_option) {
 	switch (p_option) {
 		case FILE_SHOW_IN_EXPLORER: {
-			String dir = ProjectSettings::get_singleton()->globalize_path(this->path);
-			OS::get_singleton()->shell_open(String("file://") + dir);
+
+			String path = this->path;
+
+			// first try to grab directory from selected file, so that it works for searched files
+			int idx = files->get_current();
+
+			if (idx >= 0 && idx < files->get_item_count()) {
+				path = files->get_item_metadata(idx);
+				path = path.get_base_dir();
+			}
+
+			path = ProjectSettings::get_singleton()->globalize_path(path);
+			OS::get_singleton()->shell_open(String("file://") + path);
 		} break;
 		case FILE_OPEN: {
 			for (int i = 0; i < files->get_item_count(); i++) {
@@ -1660,6 +1671,8 @@ void FileSystemDock::_files_gui_input(Ref<InputEvent> p_event) {
 			_file_option(FILE_COPY_PATH);
 		} else if (ED_IS_SHORTCUT("filesystem_dock/delete", p_event)) {
 			_file_option(FILE_REMOVE);
+		} else if (ED_IS_SHORTCUT("filesystem_dock/rename", p_event)) {
+			_file_option(FILE_RENAME);
 		}
 	}
 }
@@ -1770,6 +1783,7 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	ED_SHORTCUT("filesystem_dock/copy_path", TTR("Copy Path"), KEY_MASK_CMD | KEY_C);
 	ED_SHORTCUT("filesystem_dock/duplicate", TTR("Duplicate..."), KEY_MASK_CMD | KEY_D);
 	ED_SHORTCUT("filesystem_dock/delete", TTR("Delete"), KEY_DELETE);
+	ED_SHORTCUT("filesystem_dock/rename", TTR("Rename"));
 
 	HBoxContainer *toolbar_hbc = memnew(HBoxContainer);
 	add_child(toolbar_hbc);

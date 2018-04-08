@@ -5468,20 +5468,6 @@
         ]
       },
       {
-        "name": "godot_string_http_escape",
-        "return_type": "godot_string",
-        "arguments": [
-          ["const godot_string *", "p_self"]
-        ]
-      },
-      {
-        "name": "godot_string_http_unescape",
-        "return_type": "godot_string",
-        "arguments": [
-          ["const godot_string *", "p_self"]
-        ]
-      },
-      {
         "name": "godot_string_json_escape",
         "return_type": "godot_string",
         "arguments": [
@@ -5819,6 +5805,23 @@
               ["const char *", "p_name"],
               ["const char *", "p_signal_name"],
               ["godot_string", "p_documentation"]
+            ]
+          },
+          {
+            "name": "godot_nativescript_set_global_type_tag",
+            "return_type": "void",
+            "arguments": [
+              ["int", "p_idx"],
+              ["const char *", "p_name"],
+              ["const void *", "p_type_tag"]
+            ]
+          },
+          {
+            "name": "godot_nativescript_get_global_type_tag",
+            "return_type": "const void *",
+            "arguments": [
+              ["int", "p_idx"],
+              ["const char *", "p_name"]
             ]
           },
           {
