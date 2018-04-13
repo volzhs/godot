@@ -288,6 +288,10 @@ void _OS::set_window_size(const Size2 &p_size) {
 	OS::get_singleton()->set_window_size(p_size);
 }
 
+Rect2 _OS::get_window_safe_area() const {
+	return OS::get_singleton()->get_window_safe_area();
+}
+
 void _OS::set_window_fullscreen(bool p_enabled) {
 	OS::get_singleton()->set_window_fullscreen(p_enabled);
 }
@@ -1032,9 +1036,9 @@ void _OS::_bind_methods() {
 	//ClassDB::bind_method(D_METHOD("get_fullscreen_mode_list","screen"),&_OS::get_fullscreen_mode_list,DEFVAL(0));
 
 	ClassDB::bind_method(D_METHOD("get_video_driver_count"), &_OS::get_video_driver_count);
-	ClassDB::bind_method(D_METHOD("get_video_driver_name"), &_OS::get_video_driver_name);
+	ClassDB::bind_method(D_METHOD("get_video_driver_name", "driver"), &_OS::get_video_driver_name);
 	ClassDB::bind_method(D_METHOD("get_audio_driver_count"), &_OS::get_audio_driver_count);
-	ClassDB::bind_method(D_METHOD("get_audio_driver_name"), &_OS::get_audio_driver_name);
+	ClassDB::bind_method(D_METHOD("get_audio_driver_name", "driver"), &_OS::get_audio_driver_name);
 
 	ClassDB::bind_method(D_METHOD("get_screen_count"), &_OS::get_screen_count);
 	ClassDB::bind_method(D_METHOD("get_current_screen"), &_OS::get_current_screen);
@@ -1046,6 +1050,7 @@ void _OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_window_position", "position"), &_OS::set_window_position);
 	ClassDB::bind_method(D_METHOD("get_window_size"), &_OS::get_window_size);
 	ClassDB::bind_method(D_METHOD("set_window_size", "size"), &_OS::set_window_size);
+	ClassDB::bind_method(D_METHOD("get_window_safe_area"), &_OS::get_window_safe_area);
 	ClassDB::bind_method(D_METHOD("set_window_fullscreen", "enabled"), &_OS::set_window_fullscreen);
 	ClassDB::bind_method(D_METHOD("is_window_fullscreen"), &_OS::is_window_fullscreen);
 	ClassDB::bind_method(D_METHOD("set_window_resizable", "enabled"), &_OS::set_window_resizable);
