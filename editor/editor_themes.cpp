@@ -891,6 +891,10 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 
 	//RichTextLabel
 	theme->set_color("default_color", "RichTextLabel", font_color);
+	theme->set_color("font_color_shadow", "RichTextLabel", Color(0, 0, 0, 0));
+	theme->set_constant("shadow_offset_x", "RichTextLabel", 1 * EDSCALE);
+	theme->set_constant("shadow_offset_y", "RichTextLabel", 1 * EDSCALE);
+	theme->set_constant("shadow_as_outline", "RichTextLabel", 0 * EDSCALE);
 	theme->set_stylebox("focus", "RichTextLabel", make_empty_stylebox());
 	theme->set_stylebox("normal", "RichTextLabel", style_tree_bg);
 
@@ -907,6 +911,10 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	theme->set_constant("shadow_offset_y", "Label", 1 * EDSCALE);
 	theme->set_constant("shadow_as_outline", "Label", 0 * EDSCALE);
 	theme->set_constant("line_spacing", "Label", 3 * EDSCALE);
+
+	// LinkButton
+	theme->set_stylebox("focus", "LinkButton", style_empty);
+	theme->set_color("font_color", "LinkButton", font_color);
 
 	// TooltipPanel
 	Ref<StyleBoxFlat> style_tooltip = style_popup->duplicate();

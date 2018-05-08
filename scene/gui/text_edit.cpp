@@ -2410,6 +2410,12 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 					cursor_set_line(line);
 					cursor_set_column(column);
 
+#ifdef APPLE_STYLE_KEYS
+				} else if (k->get_command()) {
+					int cursor_current_column = cursor.column;
+					cursor.column = 0;
+					_remove_text(cursor.line, 0, cursor.line, cursor_current_column);
+#endif
 				} else {
 					if (cursor.line > 0 && is_line_hidden(cursor.line - 1))
 						unfold_line(cursor.line - 1);
@@ -2684,7 +2690,11 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 
 					next_line = line;
 					next_column = column;
-
+#ifdef APPLE_STYLE_KEYS
+				} else if (k->get_command()) {
+					next_column = curline_len;
+					next_line = cursor.line;
+#endif
 				} else {
 					next_column = cursor.column < curline_len ? (cursor.column + 1) : 0;
 				}
@@ -2833,13 +2843,64 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			} break;
 			case KEY_A: {
 
+#ifndef APPLE_STYLE_KEYS
 				if (!k->get_command() || k->get_shift() || k->get_alt()) {
 					scancode_handled = false;
 					break;
 				}
-
 				select_all();
+#else
+				if (k->get_alt()) {
+					scancode_handled = false;
+					break;
+				}
+				if (!k->get_shift() && k->get_command())
+					select_all();
+				else if (k->get_control()) {
+					if (k->get_shift())
+						_pre_shift_selection();
 
+					int current_line_whitespace_len = 0;
+					while (current_line_whitespace_len < text[cursor.line].length()) {
+						CharType c = text[cursor.line][current_line_whitespace_len];
+						if (c != '\t' && c != ' ')
+							break;
+						current_line_whitespace_len++;
+					}
+
+					if (cursor_get_column() == current_line_whitespace_len)
+						cursor_set_column(0);
+					else
+						cursor_set_column(current_line_whitespace_len);
+
+					if (k->get_shift())
+						_post_shift_selection();
+					else if (k->get_command() || k->get_control())
+						deselect();
+				}
+			} break;
+			case KEY_E: {
+
+				if (!k->get_control() || k->get_command() || k->get_alt()) {
+					scancode_handled = false;
+					break;
+				}
+
+				if (k->get_shift())
+					_pre_shift_selection();
+
+				if (k->get_command())
+					cursor_set_line(text.size() - 1, true, false);
+				cursor_set_column(text[cursor.line].length());
+
+				if (k->get_shift())
+					_post_shift_selection();
+				else if (k->get_command() || k->get_control())
+					deselect();
+
+				_cancel_completion();
+				completion_hint = "";
+#endif
 			} break;
 			case KEY_X: {
 				if (readonly) {
@@ -4976,6 +5037,11 @@ void TextEdit::set_indent_size(const int p_size) {
 	}
 
 	update();
+}
+
+int TextEdit::get_indent_size() {
+
+	return indent_size;
 }
 
 void TextEdit::set_draw_tabs(bool p_draw) {

@@ -93,6 +93,7 @@
 #include "editor/plugins/particles_editor_plugin.h"
 #include "editor/plugins/path_2d_editor_plugin.h"
 #include "editor/plugins/path_editor_plugin.h"
+#include "editor/plugins/physical_bone_plugin.h"
 #include "editor/plugins/polygon_2d_editor_plugin.h"
 #include "editor/plugins/resource_preloader_editor_plugin.h"
 #include "editor/plugins/script_editor_plugin.h"
@@ -100,6 +101,7 @@
 #include "editor/plugins/shader_editor_plugin.h"
 #include "editor/plugins/shader_graph_editor_plugin.h"
 #include "editor/plugins/skeleton_2d_editor_plugin.h"
+#include "editor/plugins/skeleton_editor_plugin.h"
 #include "editor/plugins/spatial_editor_plugin.h"
 #include "editor/plugins/sprite_editor_plugin.h"
 #include "editor/plugins/sprite_frames_editor_plugin.h"
@@ -631,6 +633,7 @@ void EditorNode::save_resource_in_path(const Ref<Resource> &p_resource, const St
 
 	((Resource *)p_resource.ptr())->set_path(path);
 	emit_signal("resource_saved", p_resource);
+	editor_data.notify_resource_saved(p_resource);
 }
 
 void EditorNode::save_resource(const Ref<Resource> &p_resource) {
@@ -5880,6 +5883,8 @@ EditorNode::EditorNode() {
 	add_editor_plugin(memnew(AudioBusesEditorPlugin(audio_bus_editor)));
 	add_editor_plugin(memnew(AudioBusesEditorPlugin(audio_bus_editor)));
 	add_editor_plugin(memnew(NavigationMeshEditorPlugin(this)));
+	add_editor_plugin(memnew(SkeletonEditorPlugin(this)));
+	add_editor_plugin(memnew(PhysicalBonePlugin(this)));
 
 	// FIXME: Disabled as (according to reduz) users were complaining that it gets in the way
 	// Waiting for PropertyEditor rewrite (planned for 3.1) to be refactored.

@@ -11,6 +11,10 @@ class Bone2D : public Node2D {
 	Bone2D *parent_bone;
 	Skeleton2D *skeleton;
 	Transform2D rest;
+	float default_length;
+
+friend class Skeleton2D;
+	int skeleton_index;
 
 protected:
 	void _notification(int p_what);
@@ -23,6 +27,11 @@ public:
 	Transform2D get_skeleton_rest() const;
 
 	String get_configuration_warning() const;
+
+	void set_default_length(float p_length);
+	float get_default_length() const;
+
+	int get_index_in_skeleton() const;
 
 	Bone2D();
 };
@@ -37,6 +46,8 @@ class Skeleton2D : public Node2D {
 			return p_bone.bone->is_greater_than(bone);
 		}
 		Bone2D *bone;
+		int parent_index;
+		Transform2D accum_transform;
 		Transform2D rest_inverse;
 	};
 

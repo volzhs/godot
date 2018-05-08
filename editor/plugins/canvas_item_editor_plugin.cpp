@@ -44,6 +44,7 @@
 #include "scene/2d/particles_2d.h"
 #include "scene/2d/polygon_2d.h"
 #include "scene/2d/screen_button.h"
+#include "scene/2d/skeleton_2d.h"
 #include "scene/2d/sprite.h"
 #include "scene/gui/grid_container.h"
 #include "scene/gui/nine_patch_rect.h"
@@ -466,32 +467,28 @@ void CanvasItemEditor::_find_canvas_items_at_pos(const Point2 &p_pos, Node *p_no
 	const real_t grab_distance = EDITOR_DEF("editors/poly_editor/point_grab_radius", 8);
 	CanvasItem *canvas_item = Object::cast_to<CanvasItem>(p_node);
 
-	bool locked = p_node->has_meta("_edit_lock_") && p_node->get_meta("_edit_lock_");
-
-	if (!locked) {
-		for (int i = p_node->get_child_count() - 1; i >= 0; i--) {
-			if (canvas_item && !canvas_item->is_set_as_toplevel()) {
-				_find_canvas_items_at_pos(p_pos, p_node->get_child(i), r_items, p_limit, p_parent_xform * canvas_item->get_transform(), p_canvas_xform);
-			} else {
-				CanvasLayer *cl = Object::cast_to<CanvasLayer>(p_node);
-				_find_canvas_items_at_pos(p_pos, p_node->get_child(i), r_items, p_limit, Transform2D(), cl ? cl->get_transform() : p_canvas_xform);
-			}
-			if (p_limit != 0 && r_items.size() >= p_limit)
-				return;
+	for (int i = p_node->get_child_count() - 1; i >= 0; i--) {
+		if (canvas_item && !canvas_item->is_set_as_toplevel()) {
+			_find_canvas_items_at_pos(p_pos, p_node->get_child(i), r_items, p_limit, p_parent_xform * canvas_item->get_transform(), p_canvas_xform);
+		} else {
+			CanvasLayer *cl = Object::cast_to<CanvasLayer>(p_node);
+			_find_canvas_items_at_pos(p_pos, p_node->get_child(i), r_items, p_limit, Transform2D(), cl ? cl->get_transform() : p_canvas_xform);
 		}
+		if (p_limit != 0 && r_items.size() >= p_limit)
+			return;
+	}
 
-		if (canvas_item && canvas_item->is_visible_in_tree()) {
-			Transform2D xform = (p_parent_xform * p_canvas_xform * canvas_item->get_transform()).affine_inverse();
-			const real_t local_grab_distance = xform.basis_xform(Vector2(grab_distance, 0)).length();
-			if (canvas_item->_edit_is_selected_on_click(xform.xform(p_pos), local_grab_distance)) {
-				Node2D *node = Object::cast_to<Node2D>(canvas_item);
+	if (canvas_item && canvas_item->is_visible_in_tree()) {
+		Transform2D xform = (p_parent_xform * p_canvas_xform * canvas_item->get_transform()).affine_inverse();
+		const real_t local_grab_distance = xform.basis_xform(Vector2(grab_distance, 0)).length();
+		if (canvas_item->_edit_is_selected_on_click(xform.xform(p_pos), local_grab_distance)) {
+			Node2D *node = Object::cast_to<Node2D>(canvas_item);
 
-				_SelectResult res;
-				res.item = canvas_item;
-				res.z_index = node ? node->get_z_index() : 0;
-				res.has_z = node;
-				r_items.push_back(res);
-			}
+			_SelectResult res;
+			res.item = canvas_item;
+			res.z_index = node ? node->get_z_index() : 0;
+			res.has_z = node;
+			r_items.push_back(res);
 		}
 	}
 
@@ -508,14 +505,14 @@ void CanvasItemEditor::_get_canvas_items_at_pos(const Point2 &p_pos, Vector<_Sel
 	for (int i = 0; i < r_items.size(); i++) {
 		Node *node = r_items[i].item;
 
-		// Make sure the selected node is in the current scene
-		while (node && node != scene && node->get_owner() != scene) {
+		// Make sure the selected node is in the current scene, or editable
+		while (node && node != get_tree()->get_edited_scene_root() && node->get_owner() != scene && !scene->is_editable_instance(node->get_owner())) {
 			node = node->get_parent();
 		};
 
 		// Replace the node by the group if grouped
 		CanvasItem *canvas_item = Object::cast_to<CanvasItem>(node);
-		while (node && node != scene) {
+		while (node && node != scene->get_parent()) {
 			CanvasItem *canvas_item_tmp = Object::cast_to<CanvasItem>(node);
 			if (canvas_item_tmp && node->has_meta("_edit_group_")) {
 				canvas_item = canvas_item_tmp;
@@ -524,7 +521,7 @@ void CanvasItemEditor::_get_canvas_items_at_pos(const Point2 &p_pos, Vector<_Sel
 		}
 
 		//Remove the item if invalid
-		if (!canvas_item || (canvas_item != scene && canvas_item->get_owner() != scene && !scene->is_editable_instance(canvas_item->get_owner()))) {
+		if (!canvas_item || (canvas_item != scene && canvas_item->get_owner() != scene && !scene->is_editable_instance(canvas_item->get_owner())) || (canvas_item->has_meta("_edit_lock_") && canvas_item->get_meta("_edit_lock_"))) {
 			r_items.remove(i);
 			i--;
 		} else {
@@ -540,13 +537,13 @@ void CanvasItemEditor::_find_canvas_items_in_rect(const Rect2 &p_rect, Node *p_n
 		return;
 
 	CanvasItem *canvas_item = Object::cast_to<CanvasItem>(p_node);
+	Node *scene = editor->get_edited_scene();
 
-	bool inherited = p_node != get_tree()->get_edited_scene_root() && p_node->get_filename() != "";
-	bool editable = !inherited || EditorNode::get_singleton()->get_edited_scene()->is_editable_instance(p_node);
+	bool editable = p_node == scene || p_node->get_owner() == scene || scene->is_editable_instance(p_node->get_owner());
 	bool lock_children = p_node->has_meta("_edit_group_") && p_node->get_meta("_edit_group_");
 	bool locked = p_node->has_meta("_edit_lock_") && p_node->get_meta("_edit_lock_");
 
-	if (!lock_children && !locked && editable) {
+	if (!lock_children || !editable) {
 		for (int i = p_node->get_child_count() - 1; i >= 0; i--) {
 			if (canvas_item && !canvas_item->is_set_as_toplevel()) {
 				_find_canvas_items_in_rect(p_rect, p_node->get_child(i), r_items, p_parent_xform * canvas_item->get_transform(), p_canvas_xform);
@@ -557,7 +554,7 @@ void CanvasItemEditor::_find_canvas_items_in_rect(const Rect2 &p_rect, Node *p_n
 		}
 	}
 
-	if (canvas_item && canvas_item->is_visible_in_tree() && !canvas_item->has_meta("_edit_lock_")) {
+	if (canvas_item && canvas_item->is_visible_in_tree() && !locked && editable) {
 		Transform2D xform = p_parent_xform * p_canvas_xform * canvas_item->get_transform();
 
 		if (canvas_item->_edit_use_rect()) {
@@ -2586,43 +2583,52 @@ void CanvasItemEditor::_draw_bones() {
 		Color bone_color1 = EditorSettings::get_singleton()->get("editors/2d/bone_color1");
 		Color bone_color2 = EditorSettings::get_singleton()->get("editors/2d/bone_color2");
 		Color bone_ik_color = EditorSettings::get_singleton()->get("editors/2d/bone_ik_color");
+		Color bone_outline_color = EditorSettings::get_singleton()->get("editors/2d/bone_outline_color");
 		Color bone_selected_color = EditorSettings::get_singleton()->get("editors/2d/bone_selected_color");
+		int bone_outline_size = EditorSettings::get_singleton()->get("editors/2d/bone_outline_size");
 
-		for (Map<ObjectID, BoneList>::Element *E = bone_list.front(); E; E = E->next()) {
+		for (Map<BoneKey, BoneList>::Element *E = bone_list.front(); E; E = E->next()) {
 
-			E->get().from = Vector2();
-			E->get().to = Vector2();
+			Node2D *from_node = Object::cast_to<Node2D>(ObjectDB::get_instance(E->key().from));
+			Node2D *to_node = Object::cast_to<Node2D>(ObjectDB::get_instance(E->key().to));
 
-			Node2D *n2d = Object::cast_to<Node2D>(ObjectDB::get_instance(E->key()));
-			if (!n2d)
+			if (!from_node->is_inside_tree())
+				continue; //may have been removed
+			if (!from_node)
 				continue;
 
-			if (!n2d->get_parent())
+			if (!to_node && E->get().length == 0)
 				continue;
 
-			CanvasItem *pi = n2d->get_parent_item();
+			Vector2 from = transform.xform(from_node->get_global_position());
+			Vector2 to;
 
-			Node2D *pn2d = Object::cast_to<Node2D>(n2d->get_parent());
-
-			if (!pn2d)
-				continue;
-
-			Vector2 from = transform.xform(pn2d->get_global_position());
-			Vector2 to = transform.xform(n2d->get_global_position());
-
-			E->get().from = from;
-			E->get().to = to;
+			if (to_node)
+				to = transform.xform(to_node->get_global_position());
+			else
+				to = transform.xform(from_node->get_global_transform().xform(Vector2(E->get().length, 0)));
 
 			Vector2 rel = to - from;
 			Vector2 relt = rel.tangent().normalized() * bone_width;
+			Vector2 reln = rel.normalized();
+			Vector2 reltn = relt.normalized();
 
 			Vector<Vector2> bone_shape;
 			bone_shape.push_back(from);
 			bone_shape.push_back(from + rel * 0.2 + relt);
 			bone_shape.push_back(to);
 			bone_shape.push_back(from + rel * 0.2 - relt);
+
+			Vector<Vector2> bone_shape_outline;
+			bone_shape_outline.push_back(from + (-reln - reltn) * bone_outline_size);
+			bone_shape_outline.push_back(from + (-reln + reltn) * bone_outline_size);
+			bone_shape_outline.push_back(from + rel * 0.2 + relt + reltn * bone_outline_size);
+			bone_shape_outline.push_back(to + (reln + reltn) * bone_outline_size);
+			bone_shape_outline.push_back(to + (reln - reltn) * bone_outline_size);
+			bone_shape_outline.push_back(from + rel * 0.2 - relt - reltn * bone_outline_size);
+
 			Vector<Color> colors;
-			if (pi->has_meta("_edit_ik_")) {
+			if (from_node->has_meta("_edit_ik_")) {
 
 				colors.push_back(bone_ik_color);
 				colors.push_back(bone_ik_color);
@@ -2635,14 +2641,26 @@ void CanvasItemEditor::_draw_bones() {
 				colors.push_back(bone_color2);
 			}
 
-			VisualServer::get_singleton()->canvas_item_add_primitive(ci, bone_shape, colors, Vector<Vector2>(), RID());
+			Vector<Color> outline_colors;
 
-			if (editor_selection->is_selected(pi)) {
-				for (int i = 0; i < bone_shape.size(); i++) {
-
-					VisualServer::get_singleton()->canvas_item_add_line(ci, bone_shape[i], bone_shape[(i + 1) % bone_shape.size()], bone_selected_color, 2);
-				}
+			if (editor_selection->is_selected(from_node)) {
+				outline_colors.push_back(bone_selected_color);
+				outline_colors.push_back(bone_selected_color);
+				outline_colors.push_back(bone_selected_color);
+				outline_colors.push_back(bone_selected_color);
+				outline_colors.push_back(bone_selected_color);
+				outline_colors.push_back(bone_selected_color);
+			} else {
+				outline_colors.push_back(bone_outline_color);
+				outline_colors.push_back(bone_outline_color);
+				outline_colors.push_back(bone_outline_color);
+				outline_colors.push_back(bone_outline_color);
+				outline_colors.push_back(bone_outline_color);
+				outline_colors.push_back(bone_outline_color);
 			}
+
+			VisualServer::get_singleton()->canvas_item_add_polygon(ci, bone_shape_outline, outline_colors);
+			VisualServer::get_singleton()->canvas_item_add_primitive(ci, bone_shape, colors, Vector<Vector2>(), RID());
 		}
 	}
 }
@@ -2651,7 +2669,7 @@ void CanvasItemEditor::_draw_invisible_nodes_positions(Node *p_node, const Trans
 	ERR_FAIL_COND(!p_node);
 
 	Node *scene = editor->get_edited_scene();
-	if (p_node != scene && p_node->get_owner() != scene && !scene->is_editable_instance(p_node))
+	if (p_node != scene && p_node->get_owner() != scene && !scene->is_editable_instance(p_node->get_owner()))
 		return;
 	CanvasItem *canvas_item = Object::cast_to<CanvasItem>(p_node);
 	if (canvas_item && !canvas_item->is_visible())
@@ -2766,26 +2784,70 @@ void CanvasItemEditor::_draw_locks_and_groups(Node *p_node, const Transform2D &p
 	}
 }
 
-void CanvasItemEditor::_build_bones_list(Node *p_node) {
-	ERR_FAIL_COND(!p_node);
+bool CanvasItemEditor::_build_bones_list(Node *p_node) {
+	ERR_FAIL_COND_V(!p_node, false);
+
+	bool has_child_bones = false;
 
 	for (int i = 0; i < p_node->get_child_count(); i++) {
-		_build_bones_list(p_node->get_child(i));
-	}
-
-	CanvasItem *c = Object::cast_to<CanvasItem>(p_node);
-	if (c && c->is_visible_in_tree()) {
-		if (c->has_meta("_edit_bone_")) {
-
-			ObjectID id = c->get_instance_id();
-			if (!bone_list.has(id)) {
-				BoneList bone;
-				bone_list[id] = bone;
-			}
-
-			bone_list[id].last_pass = bone_last_frame;
+		if (_build_bones_list(p_node->get_child(i))) {
+			has_child_bones = true;
 		}
 	}
+
+	CanvasItem *canvas_item = Object::cast_to<CanvasItem>(p_node);
+	Node *scene = editor->get_edited_scene();
+	if (!canvas_item || !canvas_item->is_visible() || (canvas_item != scene && canvas_item->get_owner() != scene && !scene->is_editable_instance(canvas_item->get_owner()))) {
+		return false;
+	}
+
+	Node *parent = canvas_item->get_parent();
+
+	if (Object::cast_to<Bone2D>(canvas_item)) {
+		if (Object::cast_to<Bone2D>(parent)) {
+			// Add as bone->parent relationship
+			BoneKey bk;
+			bk.from = parent->get_instance_id();
+			bk.to = canvas_item->get_instance_id();
+			if (!bone_list.has(bk)) {
+				BoneList b;
+				b.length = 0;
+				bone_list[bk] = b;
+			}
+
+			bone_list[bk].last_pass = bone_last_frame;
+		}
+
+		if (!has_child_bones) {
+			// Add a last bone if the Bone2D has no Bone2D child
+			BoneKey bk;
+			bk.from = canvas_item->get_instance_id();
+			bk.to = 0;
+			if (!bone_list.has(bk)) {
+				BoneList b;
+				b.length = 0;
+				bone_list[bk] = b;
+			}
+			bone_list[bk].last_pass = bone_last_frame;
+		}
+
+		return true;
+	}
+
+	if (canvas_item->has_meta("_edit_bone_")) {
+		// Add a "custom bone"
+		BoneKey bk;
+		bk.from = parent->get_instance_id();
+		bk.to = canvas_item->get_instance_id();
+		if (!bone_list.has(bk)) {
+			BoneList b;
+			b.length = 0;
+			bone_list[bk] = b;
+		}
+		bone_list[bk].last_pass = bone_last_frame;
+	}
+
+	return false;
 }
 
 void CanvasItemEditor::_draw_viewport() {
@@ -2861,6 +2923,7 @@ void CanvasItemEditor::_notification(int p_what) {
 		int nb_control = 0;
 		int nb_having_pivot = 0;
 
+		// Update the viewport if the canvas_item changes
 		List<CanvasItem *> selection = _get_edited_canvas_items();
 		for (List<CanvasItem *>::Element *E = selection.front(); E; E = E->next()) {
 			CanvasItem *canvas_item = E->get();
@@ -2906,15 +2969,17 @@ void CanvasItemEditor::_notification(int p_what) {
 				nb_having_pivot++;
 			}
 		}
+
 		// Activate / Deactivate the pivot tool
 		pivot_button->set_disabled(nb_having_pivot == 0);
 
 		// Show / Hide the layout button
 		presets_menu->set_visible(nb_control > 0 && nb_control == selection.size());
 
-		for (Map<ObjectID, BoneList>::Element *E = bone_list.front(); E; E = E->next()) {
+		// Update the viewport if bones changes
+		for (Map<BoneKey, BoneList>::Element *E = bone_list.front(); E; E = E->next()) {
 
-			Object *b = ObjectDB::get_instance(E->key());
+			Object *b = ObjectDB::get_instance(E->key().from);
 			if (!b) {
 
 				viewport->update();
@@ -2922,13 +2987,22 @@ void CanvasItemEditor::_notification(int p_what) {
 			}
 
 			Node2D *b2 = Object::cast_to<Node2D>(b);
-			if (!b2) {
+			if (!b2 || !b2->is_inside_tree()) {
 				continue;
 			}
 
-			if (b2->get_global_transform() != E->get().xform) {
+			Transform2D global_xform = b2->get_global_transform();
 
-				E->get().xform = b2->get_global_transform();
+			if (global_xform != E->get().xform) {
+
+				E->get().xform = global_xform;
+				viewport->update();
+			}
+
+			Bone2D *bone = Object::cast_to<Bone2D>(b);
+			if (bone && bone->get_default_length() != E->get().length) {
+
+				E->get().length = bone->get_default_length();
 				viewport->update();
 			}
 		}
@@ -2944,10 +3018,17 @@ void CanvasItemEditor::_notification(int p_what) {
 
 		AnimationPlayerEditor::singleton->get_key_editor()->connect("visibility_changed", this, "_keying_changed");
 		_keying_changed();
+		get_tree()->connect("node_added", this, "_tree_changed", varray());
+		get_tree()->connect("node_removed", this, "_tree_changed", varray());
 
 	} else if (p_what == EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED) {
 
 		select_sb->set_texture(get_icon("EditorRect2D", "EditorIcons"));
+	}
+
+	if (p_what == NOTIFICATION_EXIT_TREE) {
+		get_tree()->disconnect("node_added", this, "_tree_changed");
+		get_tree()->disconnect("node_removed", this, "_tree_changed");
 	}
 
 	if (p_what == NOTIFICATION_ENTER_TREE || p_what == EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED) {
@@ -3034,6 +3115,47 @@ void CanvasItemEditor::edit(CanvasItem *p_canvas_item) {
 	editor_selection->add_node(p_canvas_item);
 }
 
+void CanvasItemEditor::_queue_update_bone_list() {
+
+	if (bone_list_dirty)
+		return;
+
+	call_deferred("_update_bone_list");
+	bone_list_dirty = true;
+}
+
+void CanvasItemEditor::_update_bone_list() {
+
+	bone_last_frame++;
+
+	if (editor->get_edited_scene()) {
+		_build_bones_list(editor->get_edited_scene());
+	}
+
+	List<Map<BoneKey, BoneList>::Element *> bone_to_erase;
+	for (Map<BoneKey, BoneList>::Element *E = bone_list.front(); E; E = E->next()) {
+		if (E->get().last_pass != bone_last_frame) {
+			bone_to_erase.push_back(E);
+			continue;
+		}
+
+		Node *node = Object::cast_to<Node>(ObjectDB::get_instance(E->key().from));
+		if (!node || !node->is_inside_tree() || (node != get_tree()->get_edited_scene_root() && !get_tree()->get_edited_scene_root()->is_a_parent_of(node))) {
+			bone_to_erase.push_back(E);
+			continue;
+		}
+	}
+	while (bone_to_erase.size()) {
+		bone_list.erase(bone_to_erase.front()->get());
+		bone_to_erase.pop_front();
+	}
+	bone_list_dirty = false;
+}
+
+void CanvasItemEditor::_tree_changed(Node *) {
+	_queue_update_bone_list();
+}
+
 void CanvasItemEditor::_update_scrollbars() {
 
 	updating_scroll = true;
@@ -3058,22 +3180,7 @@ void CanvasItemEditor::_update_scrollbars() {
 	Size2 screen_rect = Size2(ProjectSettings::get_singleton()->get("display/window/size/width"), ProjectSettings::get_singleton()->get("display/window/size/height"));
 	Rect2 local_rect = Rect2(Point2(), viewport->get_size() - Size2(vmin.width, hmin.height));
 
-	bone_last_frame++;
-
-	if (editor->get_edited_scene()) {
-		_build_bones_list(editor->get_edited_scene());
-	}
-
-	List<Map<ObjectID, BoneList>::Element *> bone_to_erase;
-	for (Map<ObjectID, BoneList>::Element *E = bone_list.front(); E; E = E->next()) {
-		if (E->get().last_pass != bone_last_frame) {
-			bone_to_erase.push_back(E);
-		}
-	}
-	while (bone_to_erase.size()) {
-		bone_list.erase(bone_to_erase.front()->get());
-		bone_to_erase.pop_front();
-	}
+	_queue_update_bone_list();
 
 	// Calculate scrollable area
 	Rect2 canvas_item_rect = Rect2(Point2(), screen_rect);
@@ -3837,6 +3944,9 @@ void CanvasItemEditor::_bind_methods() {
 	ClassDB::bind_method("_draw_viewport", &CanvasItemEditor::_draw_viewport);
 	ClassDB::bind_method("_gui_input_viewport", &CanvasItemEditor::_gui_input_viewport);
 	ClassDB::bind_method("_snap_changed", &CanvasItemEditor::_snap_changed);
+	ClassDB::bind_method("_update_bone_list", &CanvasItemEditor::_update_bone_list);
+	ClassDB::bind_method("_tree_changed", &CanvasItemEditor::_tree_changed);
+
 	ClassDB::bind_method(D_METHOD("_selection_result_pressed"), &CanvasItemEditor::_selection_result_pressed);
 	ClassDB::bind_method(D_METHOD("_selection_menu_hide"), &CanvasItemEditor::_selection_menu_hide);
 	ClassDB::bind_method(D_METHOD("set_state"), &CanvasItemEditor::set_state);
@@ -4040,6 +4150,7 @@ void CanvasItemEditor::focus_selection() {
 
 CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 
+	bone_list_dirty = false;
 	tool = TOOL_SELECT;
 	undo_redo = p_editor->get_undo_redo();
 	editor = p_editor;
@@ -4224,13 +4335,13 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 
 	p = skeleton_menu->get_popup();
 	p->set_hide_on_checkable_item_selection(false);
-	p->add_shortcut(ED_SHORTCUT("canvas_item_editor/skeleton_make_bones", TTR("Make Bones"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_B), SKELETON_MAKE_BONES);
-	p->add_shortcut(ED_SHORTCUT("canvas_item_editor/skeleton_clear_bones", TTR("Clear Bones")), SKELETON_CLEAR_BONES);
-	p->add_separator();
 	p->add_check_shortcut(ED_SHORTCUT("canvas_item_editor/skeleton_show_bones", TTR("Show Bones")), SKELETON_SHOW_BONES);
 	p->add_separator();
 	p->add_shortcut(ED_SHORTCUT("canvas_item_editor/skeleton_set_ik_chain", TTR("Make IK Chain")), SKELETON_SET_IK_CHAIN);
 	p->add_shortcut(ED_SHORTCUT("canvas_item_editor/skeleton_clear_ik_chain", TTR("Clear IK Chain")), SKELETON_CLEAR_IK_CHAIN);
+	p->add_separator();
+	p->add_shortcut(ED_SHORTCUT("canvas_item_editor/skeleton_make_bones", TTR("Make Custom Bone(s) from Node(s)"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_B), SKELETON_MAKE_BONES);
+	p->add_shortcut(ED_SHORTCUT("canvas_item_editor/skeleton_clear_bones", TTR("Clear Custom Bones")), SKELETON_CLEAR_BONES);
 	p->connect("id_pressed", this, "_popup_callback");
 
 	hb->add_child(memnew(VSeparator));

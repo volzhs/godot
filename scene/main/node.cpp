@@ -136,7 +136,6 @@ void Node::_notification(int p_notification) {
 
 				get_script_instance()->call_multilevel_reversed(SceneStringNames::get_singleton()->_ready, NULL, 0);
 			}
-			//emit_signal(SceneStringNames::get_singleton()->enter_tree);
 
 		} break;
 		case NOTIFICATION_POSTINITIALIZE: {
@@ -180,6 +179,7 @@ void Node::_propagate_ready() {
 	if (data.ready_first) {
 		data.ready_first = false;
 		notification(NOTIFICATION_READY);
+		emit_signal(SceneStringNames::get_singleton()->ready);
 	}
 }
 
@@ -2581,18 +2581,21 @@ Array Node::_get_children() const {
 	return arr;
 }
 
-#ifdef TOOLS_ENABLED
 void Node::set_import_path(const NodePath &p_import_path) {
 
+#ifdef TOOLS_ENABLED
 	data.import_path = p_import_path;
+#endif
 }
 
 NodePath Node::get_import_path() const {
 
+#ifdef TOOLS_ENABLED
 	return data.import_path;
-}
-
+#else
+	return NodePath();
 #endif
+}
 
 static void _add_nodes_to_options(const Node *p_base, const Node *p_node, List<String> *r_options) {
 
@@ -2751,12 +2754,9 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("rpc_config", "method", "mode"), &Node::rpc_config);
 	ClassDB::bind_method(D_METHOD("rset_config", "property", "mode"), &Node::rset_config);
 
-#ifdef TOOLS_ENABLED
 	ClassDB::bind_method(D_METHOD("_set_import_path", "import_path"), &Node::set_import_path);
 	ClassDB::bind_method(D_METHOD("_get_import_path"), &Node::get_import_path);
 	ADD_PROPERTYNZ(PropertyInfo(Variant::NODE_PATH, "_import_path", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL), "_set_import_path", "_get_import_path");
-
-#endif
 
 	{
 		MethodInfo mi;
@@ -2814,6 +2814,7 @@ void Node::_bind_methods() {
 	BIND_ENUM_CONSTANT(DUPLICATE_SCRIPTS);
 	BIND_ENUM_CONSTANT(DUPLICATE_USE_INSTANCING);
 
+	ADD_SIGNAL(MethodInfo("ready"));
 	ADD_SIGNAL(MethodInfo("renamed"));
 	ADD_SIGNAL(MethodInfo("tree_entered"));
 	ADD_SIGNAL(MethodInfo("tree_exiting"));

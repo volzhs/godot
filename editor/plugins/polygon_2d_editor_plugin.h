@@ -45,7 +45,8 @@ class Polygon2DEditor : public AbstractPolygon2DEditor {
 		MODE_EDIT_UV = MODE_CONT,
 		UVEDIT_POLYGON_TO_UV,
 		UVEDIT_UV_TO_POLYGON,
-		UVEDIT_UV_CLEAR
+		UVEDIT_UV_CLEAR,
+		UVEDIT_GRID_SETTINGS
 
 	};
 
@@ -91,20 +92,21 @@ class Polygon2DEditor : public AbstractPolygon2DEditor {
 	int bone_painting_bone;
 	PoolVector<float> prev_weights;
 	Vector2 bone_paint_pos;
+	AcceptDialog *grid_settings;
 
 	void _sync_bones();
 	void _update_bone_list();
 
 	Vector2 uv_draw_ofs;
 	float uv_draw_zoom;
-	PoolVector<Vector2> uv_prev;
+	PoolVector<Vector2> points_prev;
 	PoolVector<Vector2> uv_create_uv_prev;
 	PoolVector<Vector2> uv_create_poly_prev;
 	Array uv_create_bones_prev;
 	PoolVector<int> splits_prev;
 
 	Vector2 uv_create_to;
-	int uv_drag_index;
+	int point_drag_index;
 	bool uv_drag;
 	bool uv_create;
 	bool split_create;
