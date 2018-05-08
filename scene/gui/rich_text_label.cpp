@@ -86,6 +86,54 @@ RichTextLabel::Item *RichTextLabel::_get_next_item(Item *p_item, bool p_free) {
 	return NULL;
 }
 
+RichTextLabel::Item *RichTextLabel::_get_prev_item(Item *p_item, bool p_free) {
+	if (p_free) {
+
+		if (p_item->subitems.size()) {
+
+			return p_item->subitems.back()->get();
+		} else if (!p_item->parent) {
+			return NULL;
+		} else if (p_item->E->prev()) {
+
+			return p_item->E->prev()->get();
+		} else {
+			//go back until something with a prev is found
+			while (p_item->parent && !p_item->E->prev()) {
+				p_item = p_item->parent;
+			}
+
+			if (p_item->parent)
+				return p_item->E->prev()->get();
+			else
+				return NULL;
+		}
+
+	} else {
+		if (p_item->subitems.size() && p_item->type != ITEM_TABLE) {
+
+			return p_item->subitems.back()->get();
+		} else if (p_item->type == ITEM_FRAME) {
+			return NULL;
+		} else if (p_item->E->prev()) {
+
+			return p_item->E->prev()->get();
+		} else {
+			//go back until something with a prev is found
+			while (p_item->type != ITEM_FRAME && !p_item->E->prev()) {
+				p_item = p_item->parent;
+			}
+
+			if (p_item->type != ITEM_FRAME)
+				return p_item->E->prev()->get();
+			else
+				return NULL;
+		}
+	}
+
+	return NULL;
+}
+
 Rect2 RichTextLabel::_get_text_rect() {
 	Ref<StyleBox> style = get_stylebox("normal");
 	return Rect2(style->get_offset(), get_size() - style->get_minimum_size());
@@ -286,6 +334,7 @@ int RichTextLabel::_process_line(ItemFrame *p_frame, const Vector2 &p_ofs, int &
 				}
 
 				rchar = 0;
+				FontDrawer drawer(font, Color(1, 1, 1));
 				while (*c) {
 
 					int end = 0;
@@ -395,9 +444,9 @@ int RichTextLabel::_process_line(ItemFrame *p_frame, const Vector2 &p_ofs, int &
 									}
 
 									if (selected) {
-										font->draw_char(ci, p_ofs + Point2(align_ofs + pofs, y + lh - line_descent), c[i], c[i + 1], override_selected_font_color ? selection_fg : color);
+										drawer.draw_char(ci, p_ofs + Point2(align_ofs + pofs, y + lh - line_descent), c[i], c[i + 1], override_selected_font_color ? selection_fg : color);
 									} else {
-										cw = font->draw_char(ci, p_ofs + Point2(align_ofs + pofs, y + lh - line_descent), c[i], c[i + 1], color);
+										cw = drawer.draw_char(ci, p_ofs + Point2(align_ofs + pofs, y + lh - line_descent), c[i], c[i + 1], color);
 									}
 								}
 
@@ -1888,7 +1937,7 @@ void RichTextLabel::set_selection_enabled(bool p_enabled) {
 	}
 }
 
-bool RichTextLabel::search(const String &p_string, bool p_from_selection) {
+bool RichTextLabel::search(const String &p_string, bool p_from_selection, bool p_search_previous) {
 
 	ERR_FAIL_COND_V(!selection.enabled, false);
 	Item *it = main;
@@ -1937,7 +1986,10 @@ bool RichTextLabel::search(const String &p_string, bool p_from_selection) {
 			}
 		}
 
-		it = _get_next_item(it, true);
+		if (p_search_previous)
+			it = _get_prev_item(it, true);
+		else
+			it = _get_next_item(it, true);
 		charidx = 0;
 	}
 

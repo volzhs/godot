@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  script_debugger_local.h                                              */
+/*  register_types.cpp                                                   */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,40 +28,17 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef SCRIPT_DEBUGGER_LOCAL_H
-#define SCRIPT_DEBUGGER_LOCAL_H
+#include "register_types.h"
 
-#include "list.h"
-#include "script_language.h"
+#include "image_loader_bmp.h"
 
-class ScriptDebuggerLocal : public ScriptDebugger {
+static ImageLoaderBMP *image_loader_bmp = NULL;
 
-	bool profiling;
-	float frame_time, idle_time, physics_time, physics_frame_time;
-	uint64_t idle_accum;
-	String target_function;
-	Map<String, String> options;
+void register_bmp_types() {
+	image_loader_bmp = memnew(ImageLoaderBMP);
+	ImageLoader::add_image_format_loader(image_loader_bmp);
+}
 
-	Vector<ScriptLanguage::ProfilingInfo> pinfo;
-
-	Pair<String, int> to_breakpoint(const String &p_line);
-	void print_variables(const List<String> &names, const List<Variant> &values, const String &variable_prefix);
-
-public:
-	void debug(ScriptLanguage *p_script, bool p_can_continue);
-	virtual void send_message(const String &p_message, const Array &p_args);
-	virtual void send_error(const String &p_func, const String &p_file, int p_line, const String &p_err, const String &p_descr, ErrorHandlerType p_type, const Vector<ScriptLanguage::StackInfo> &p_stack_info);
-
-	virtual bool is_profiling() const { return profiling; }
-	virtual void add_profiling_frame_data(const StringName &p_name, const Array &p_data) {}
-
-	virtual void idle_poll();
-
-	virtual void profiling_start();
-	virtual void profiling_end();
-	virtual void profiling_set_frame_times(float p_frame_time, float p_idle_time, float p_physics_time, float p_physics_frame_time);
-
-	ScriptDebuggerLocal();
-};
-
-#endif // SCRIPT_DEBUGGER_LOCAL_H
+void unregister_bmp_types() {
+	memdelete(image_loader_bmp);
+}

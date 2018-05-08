@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  script_debugger_local.h                                              */
+/*  image_loader_bmp.h                                                   */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,40 +28,57 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef SCRIPT_DEBUGGER_LOCAL_H
-#define SCRIPT_DEBUGGER_LOCAL_H
+#ifndef IMAGE_LOADER_BMP_H
+#define IMAGE_LOADER_BMP_H
 
-#include "list.h"
-#include "script_language.h"
+#include "io/image_loader.h"
 
-class ScriptDebuggerLocal : public ScriptDebugger {
+class ImageLoaderBMP : public ImageFormatLoader {
+protected:
+	static const unsigned BITMAP_SIGNATURE = 0x4d42;
 
-	bool profiling;
-	float frame_time, idle_time, physics_time, physics_frame_time;
-	uint64_t idle_accum;
-	String target_function;
-	Map<String, String> options;
+	struct bmp_header_s {
+		struct bmp_file_header_s {
+			uint16_t bmp_signature;
+			uint32_t bmp_file_size;
+			uint32_t bmp_file_padding;
+			uint32_t bmp_file_offset;
+		} bmp_file_header;
 
-	Vector<ScriptLanguage::ProfilingInfo> pinfo;
+		struct bmp_info_header_s {
+			uint32_t bmp_header_size;
+			uint32_t bmp_width;
+			uint32_t bmp_height;
+			uint16_t bmp_planes;
+			uint16_t bmp_bit_count;
+			uint32_t bmp_compression;
+			uint32_t bmp_size_image;
+			uint32_t bmp_pixels_per_meter_x;
+			uint32_t bmp_pixels_per_meter_y;
+			uint32_t bmp_colors_used;
+			uint32_t bmp_important_colors;
+			uint32_t bmp_red_mask;
+			uint32_t bmp_green_mask;
+			uint32_t bmp_blue_mask;
+			uint32_t bmp_alpha_mask;
+			uint32_t bmp_cs_type;
+			uint32_t bmp_endpoints[9];
+			uint32_t bmp_gamma_red;
+			uint32_t bmp_gamma_green;
+			uint32_t bmp_gamma_blue;
+		} bmp_info_header;
+	};
 
-	Pair<String, int> to_breakpoint(const String &p_line);
-	void print_variables(const List<String> &names, const List<Variant> &values, const String &variable_prefix);
+	static Error convert_to_image(Ref<Image> p_image,
+			const uint8_t *p_buffer,
+			const uint8_t *p_color_buffer,
+			const bmp_header_s &p_header);
 
 public:
-	void debug(ScriptLanguage *p_script, bool p_can_continue);
-	virtual void send_message(const String &p_message, const Array &p_args);
-	virtual void send_error(const String &p_func, const String &p_file, int p_line, const String &p_err, const String &p_descr, ErrorHandlerType p_type, const Vector<ScriptLanguage::StackInfo> &p_stack_info);
-
-	virtual bool is_profiling() const { return profiling; }
-	virtual void add_profiling_frame_data(const StringName &p_name, const Array &p_data) {}
-
-	virtual void idle_poll();
-
-	virtual void profiling_start();
-	virtual void profiling_end();
-	virtual void profiling_set_frame_times(float p_frame_time, float p_idle_time, float p_physics_time, float p_physics_frame_time);
-
-	ScriptDebuggerLocal();
+	virtual Error load_image(Ref<Image> p_image, FileAccess *f,
+			bool p_force_linear, float p_scale);
+	virtual void get_recognized_extensions(List<String> *p_extensions) const;
+	ImageLoaderBMP();
 };
 
-#endif // SCRIPT_DEBUGGER_LOCAL_H
+#endif // IMAGE_LOADER_BMP_H

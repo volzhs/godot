@@ -93,6 +93,12 @@ class OS_Windows : public OS {
 	HINSTANCE hInstance; // Holds The Instance Of The Application
 	HWND hWnd;
 
+	HBITMAP hBitmap; //DIB section for layered window
+	uint8_t *dib_data;
+	Size2 dib_size;
+	HDC hDC_dib;
+	bool layered_window;
+
 	uint32_t move_timer_id;
 
 	HCURSOR hCursor;
@@ -212,6 +218,13 @@ public:
 	virtual void set_borderless_window(bool p_borderless);
 	virtual bool get_borderless_window();
 
+	virtual bool get_window_per_pixel_transparency_enabled() const;
+	virtual void set_window_per_pixel_transparency_enabled(bool p_enabled);
+
+	virtual uint8_t *get_layered_buffer_data();
+	virtual Size2 get_layered_buffer_size();
+	virtual void swap_layered_buffer();
+
 	virtual Error open_dynamic_library(const String p_path, void *&p_library_handle, bool p_also_set_library_path = false);
 	virtual Error close_dynamic_library(void *p_library_handle);
 	virtual Error get_dynamic_library_symbol_handle(void *p_library_handle, const String p_name, void *&p_symbol_handle, bool p_optional = false);
@@ -294,6 +307,7 @@ public:
 
 	void disable_crash_handler();
 	bool is_disable_crash_handler() const;
+	virtual void initialize_debugging();
 
 	void force_process_input();
 
