@@ -541,7 +541,9 @@ static const NSRange kEmptyRange = { NSNotFound, 0 };
 }
 
 - (void)cursorUpdate:(NSEvent *)event {
-	//setModeCursor(window, window->cursorMode);
+	OS::CursorShape p_shape = OS_OSX::singleton->cursor_shape;
+	OS_OSX::singleton->cursor_shape = OS::CURSOR_MAX;
+	OS_OSX::singleton->set_cursor_shape(p_shape);
 }
 
 static void _mouseDownEvent(NSEvent *event, int index, int mask, bool pressed) {
@@ -656,11 +658,12 @@ static void _mouseDownEvent(NSEvent *event, int index, int mask, bool pressed) {
 		return;
 	if (OS_OSX::singleton->main_loop && OS_OSX::singleton->mouse_mode != OS::MOUSE_MODE_CAPTURED)
 		OS_OSX::singleton->main_loop->notification(MainLoop::NOTIFICATION_WM_MOUSE_ENTER);
-	if (OS_OSX::singleton->input) {
+	if (OS_OSX::singleton->input)
 		OS_OSX::singleton->input->set_mouse_in_window(true);
-		OS_OSX::singleton->cursor_shape = OS::CURSOR_MAX;
-		OS_OSX::singleton->set_cursor_shape(OS::CURSOR_ARROW);
-	}
+
+	OS::CursorShape p_shape = OS_OSX::singleton->cursor_shape;
+	OS_OSX::singleton->cursor_shape = OS::CURSOR_MAX;
+	OS_OSX::singleton->set_cursor_shape(p_shape);
 }
 
 - (void)magnifyWithEvent:(NSEvent *)event {
@@ -1594,6 +1597,11 @@ void OS_OSX::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 		if (p_shape == CURSOR_ARROW) {
 			[cursor set];
 		}
+	} else {
+		// Reset to default system cursor
+		cursors[p_shape] = NULL;
+		cursor_shape = CURSOR_MAX;
+		set_cursor_shape(p_shape);
 	}
 }
 
