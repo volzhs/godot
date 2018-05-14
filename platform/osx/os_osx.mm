@@ -850,16 +850,16 @@ struct _KeyCodeMap {
 static const _KeyCodeMap _keycodes[55] = {
 	{ '`', KEY_QUOTELEFT },
 	{ '~', KEY_ASCIITILDE },
-	{ '0', KEY_KP_0 },
-	{ '1', KEY_KP_1 },
-	{ '2', KEY_KP_2 },
-	{ '3', KEY_KP_3 },
-	{ '4', KEY_KP_4 },
-	{ '5', KEY_KP_5 },
-	{ '6', KEY_KP_6 },
-	{ '7', KEY_KP_7 },
-	{ '8', KEY_KP_8 },
-	{ '9', KEY_KP_9 },
+	{ '0', KEY_0 },
+	{ '1', KEY_1 },
+	{ '2', KEY_2 },
+	{ '3', KEY_3 },
+	{ '4', KEY_4 },
+	{ '5', KEY_5 },
+	{ '6', KEY_6 },
+	{ '7', KEY_7 },
+	{ '8', KEY_8 },
+	{ '9', KEY_9 },
 	{ '-', KEY_MINUS },
 	{ '_', KEY_UNDERSCORE },
 	{ '=', KEY_EQUAL },
@@ -2427,12 +2427,21 @@ void OS_OSX::run() {
 	//int frames=0;
 	//uint64_t frame=0;
 
-	while (!force_quit) {
+	bool quit = false;
 
-		process_events(); // get rid of pending events
-		joypad_osx->process_joypads();
-		if (Main::iteration() == true)
-			break;
+	while (!force_quit && !quit) {
+
+		@try {
+
+			process_events(); // get rid of pending events
+			joypad_osx->process_joypads();
+
+			if (Main::iteration() == true) {
+				quit = true;
+			}
+		} @catch (NSException *exception) {
+			ERR_PRINTS("NSException: " + String([exception reason].UTF8String));
+		}
 	};
 
 	main_loop->finish();
