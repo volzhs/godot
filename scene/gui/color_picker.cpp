@@ -684,7 +684,7 @@ void ColorPickerButton::_notification(int p_what) {
 		draw_rect(r, color);
 	}
 
-	if (p_what == MainLoop::NOTIFICATION_WM_QUIT_REQUEST) {
+	if (p_what == MainLoop::NOTIFICATION_WM_QUIT_REQUEST && popup) {
 		popup->hide();
 	}
 }
@@ -759,6 +759,9 @@ void ColorPickerButton::_bind_methods() {
 
 ColorPickerButton::ColorPickerButton() {
 
+	//Initialization is now done deferred
+	//this improves performance in the inspector as the color picker
+	//can be expensive to initialize
 	picker = NULL;
 	popup = NULL;
 	edit_alpha = true;
