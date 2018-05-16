@@ -147,7 +147,7 @@ Files extracted from upstream source:
 ## libwebp
 
 - Upstream: https://chromium.googlesource.com/webm/libwebp/
-- Version: 0.6.1
+- Version: 1.0.0
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -163,7 +163,7 @@ changes are marked with `// -- GODOT --` comments.
 ## minizip
 
 - Upstream: http://www.zlib.net
-- Version: 1.2.4 (zlib contrib)
+- Version: 1.2.11 (zlib contrib)
 - License: zlib
 
 Files extracted from the upstream source:
