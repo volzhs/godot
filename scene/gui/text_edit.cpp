@@ -2950,13 +2950,13 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			case KEY_A: {
 
 #ifndef APPLE_STYLE_KEYS
-				if (!k->get_command() || k->get_shift() || k->get_alt()) {
+				if (!k->get_control() || k->get_shift() || k->get_alt()) {
 					scancode_handled = false;
 					break;
 				}
 				select_all();
 #else
-				if (k->get_alt() || (!k->get_shift() && !k->get_command() && !k->get_control())) {
+				if ((!k->get_command() && !k->get_control())) {
 					scancode_handled = false;
 					break;
 				}
@@ -4110,7 +4110,7 @@ Control::CursorShape TextEdit::get_cursor_shape(const Point2 &p_pos) const {
 void TextEdit::set_text(String p_text) {
 
 	setting_text = true;
-	clear();
+	_clear();
 	_insert_text_at_cursor(p_text);
 	clear_undo_history();
 	cursor.column = 0;
@@ -4123,7 +4123,7 @@ void TextEdit::set_text(String p_text) {
 	cursor_set_column(0);
 	update();
 	setting_text = false;
-	_text_changed_emit();
+
 	//get_range()->set(0);
 };
 
