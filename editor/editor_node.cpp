@@ -4271,12 +4271,21 @@ EditorBuildCallback EditorNode::build_callbacks[EditorNode::MAX_BUILD_CALLBACKS]
 
 bool EditorNode::call_build() {
 
-	for (int i = 0; i < build_callback_count; i++) {
-		if (!build_callbacks[i]())
-			return false;
+	bool builds_successful = true;
+
+	for (int i = 0; i < build_callback_count && builds_successful; i++) {
+		if (!build_callbacks[i]()) {
+			ERR_PRINT("A Godot Engine build callback failed.");
+			builds_successful = false;
+		}
 	}
 
-	return true;
+	if (builds_successful && !editor_data.call_build()) {
+		ERR_PRINT("An EditorPlugin build callback failed.");
+		builds_successful = false;
+	}
+
+	return builds_successful;
 }
 
 void EditorNode::_inherit_imported(const String &p_action) {
@@ -5379,6 +5388,7 @@ EditorNode::EditorNode() {
 	//resource_preview->add_preview_generator( Ref<EditorSamplePreviewPlugin>( memnew(EditorSamplePreviewPlugin )));
 	resource_preview->add_preview_generator(Ref<EditorMeshPreviewPlugin>(memnew(EditorMeshPreviewPlugin)));
 	resource_preview->add_preview_generator(Ref<EditorBitmapPreviewPlugin>(memnew(EditorBitmapPreviewPlugin)));
+	resource_preview->add_preview_generator(Ref<EditorFontPreviewPlugin>(memnew(EditorFontPreviewPlugin)));
 
 	{
 		Ref<SpatialMaterialConversionPlugin> spatial_mat_convert;

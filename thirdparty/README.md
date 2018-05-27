@@ -191,7 +191,7 @@ Files extracted from upstream source:
 ## libvorbis
 
 - Upstream: https://www.xiph.org/vorbis
-- Version: 1.3.5
+- Version: 1.3.6
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -342,11 +342,11 @@ Collection of single-file libraries used in Godot components.
   * License: zlib
 - `stb_truetype.h`
   * Upstream: https://github.com/nothings/stb
-  * Version: 1.17
+  * Version: 1.19
   * License: Public Domain (Unlicense) or MIT
 - `stb_vorbis.c`
   * Upstream: https://github.com/nothings/stb
-  * Version: 1.11
+  * Version: 1.14
   * License: Public Domain (Unlicense) or MIT
 
 

@@ -446,7 +446,7 @@ String CSharpLanguage::make_function(const String &p_class, const String &p_name
 
 		s += variant_type_to_managed_name(arg.get_slice(":", 1)) + " " + escape_csharp_keyword(arg.get_slice(":", 0));
 	}
-	s += ")\n{\n    // Replace with function body\n}\n";
+	s += ")\n{\n    // Replace with function body.\n}\n";
 
 	return s;
 #else
@@ -1954,11 +1954,6 @@ Variant CSharpScript::_new(const Variant **p_args, int p_argcount, Variant::Call
 
 ScriptInstance *CSharpScript::instance_create(Object *p_this) {
 
-	if (!script_class) {
-		ERR_EXPLAIN("Cannot find class " + name + " for script " + get_path());
-		ERR_FAIL_V(NULL);
-	}
-
 	ERR_FAIL_COND_V(!valid, NULL);
 
 	if (!tool && !ScriptServer::is_scripting_enabled()) {
@@ -1971,6 +1966,18 @@ ScriptInstance *CSharpScript::instance_create(Object *p_this) {
 #else
 		return NULL;
 #endif
+	}
+	
+	if (!script_class) {
+		if (GDMono::get_singleton()->get_project_assembly() == NULL) {
+			// The project assembly is not loaded
+			ERR_EXPLAIN("Cannot instance script because the project assembly is not loaded. Script: " + get_path());
+			ERR_FAIL_V(NULL);
+		}
+		
+			// The project assembly is loaded, but the class could not found
+		ERR_EXPLAIN("Cannot instance script because the class '" + name + "' could not be found. Script: " + get_path());
+		ERR_FAIL_V(NULL);
 	}
 
 	update_signals();
