@@ -2452,6 +2452,8 @@ void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 
 		image = texture->get_data();
 
+		ERR_FAIL_COND(!image.is_valid());
+
 		// Create the cursor structure
 		XcursorImage *cursor_image = XcursorImageCreate(texture_size.width, texture_size.height);
 		XcursorUInt image_size = texture_size.width * texture_size.height;
@@ -2463,7 +2465,7 @@ void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 		cursor_image->yhot = p_hotspot.y;
 
 		// allocate memory to contain the whole file
-		cursor_image->pixels = (XcursorPixel *)malloc(size);
+		cursor_image->pixels = (XcursorPixel *)memalloc(size);
 
 		image->lock();
 
@@ -2489,6 +2491,9 @@ void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 		if (p_shape == CURSOR_ARROW) {
 			XDefineCursor(x11_display, x11_window, cursors[p_shape]);
 		}
+
+		memfree(cursor_image->pixels);
+		XcursorImageDestroy(cursor_image);
 	} else {
 		// Reset to default system cursor
 		if (img[p_shape]) {

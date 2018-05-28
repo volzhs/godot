@@ -567,22 +567,46 @@ void ScriptDebuggerRemote::_send_object_id(ObjectID p_id) {
 	if (ScriptInstance *si = obj->get_script_instance()) {
 		if (!si->get_script().is_null()) {
 
-			Set<StringName> members;
-			si->get_script()->get_members(&members);
-			for (Set<StringName>::Element *E = members.front(); E; E = E->next()) {
+			typedef Map<const Script *, Set<StringName> > ScriptMemberMap;
+			typedef Map<const Script *, Map<StringName, Variant> > ScriptConstantsMap;
 
-				Variant m;
-				if (si->get(E->get(), m)) {
-					PropertyInfo pi(m.get_type(), String("Members/") + E->get());
-					properties.push_back(PropertyDesc(pi, m));
+			ScriptMemberMap members;
+			members[si->get_script().ptr()] = Set<StringName>();
+			si->get_script()->get_members(&(members[si->get_script().ptr()]));
+
+			ScriptConstantsMap constants;
+			constants[si->get_script().ptr()] = Map<StringName, Variant>();
+			si->get_script()->get_constants(&(constants[si->get_script().ptr()]));
+
+			Ref<Script> base = si->get_script()->get_base_script();
+			while (base.is_valid()) {
+
+				members[base.ptr()] = Set<StringName>();
+				base->get_members(&(members[base.ptr()]));
+
+				constants[base.ptr()] = Map<StringName, Variant>();
+				base->get_constants(&(constants[base.ptr()]));
+
+				base = base->get_base_script();
+			}
+
+			for (ScriptMemberMap::Element *sm = members.front(); sm; sm = sm->next()) {
+				for (Set<StringName>::Element *E = sm->get().front(); E; E = E->next()) {
+					Variant m;
+					if (si->get(E->get(), m)) {
+						String script_path = sm->key() == si->get_script().ptr() ? "" : sm->key()->get_path().get_file() + "/";
+						PropertyInfo pi(m.get_type(), "Members/" + script_path + E->get());
+						properties.push_back(PropertyDesc(pi, m));
+					}
 				}
 			}
 
-			Map<StringName, Variant> constants;
-			si->get_script()->get_constants(&constants);
-			for (Map<StringName, Variant>::Element *E = constants.front(); E; E = E->next()) {
-				PropertyInfo pi(E->value().get_type(), (String("Constants/") + E->key()));
-				properties.push_back(PropertyDesc(pi, E->value()));
+			for (ScriptConstantsMap::Element *sc = constants.front(); sc; sc = sc->next()) {
+				for (Map<StringName, Variant>::Element *E = sc->get().front(); E; E = E->next()) {
+					String script_path = sc->key() == si->get_script().ptr() ? "" : sc->key()->get_path().get_file() + "/";
+					PropertyInfo pi(E->value().get_type(), "Constants/" + script_path + E->key());
+					properties.push_back(PropertyDesc(pi, E->value()));
+				}
 			}
 		}
 	}
@@ -658,8 +682,10 @@ void ScriptDebuggerRemote::_set_object_property(ObjectID p_id, const String &p_p
 		return;
 
 	String prop_name = p_property;
-	if (p_property.begins_with("Members/"))
-		prop_name = p_property.substr(8, p_property.length());
+	if (p_property.begins_with("Members/")) {
+		Vector<String> ss = p_property.split("/");
+		prop_name = ss[ss.size() - 1];
+	}
 
 	obj->set(prop_name, p_value);
 }
@@ -854,7 +880,7 @@ void ScriptDebuggerRemote::idle_poll() {
 	if (performance) {
 
 		uint64_t pt = OS::get_singleton()->get_ticks_msec();
-		if (pt - last_perf_time > update_frequency) {
+		if (pt - last_perf_time > 1000) {
 
 			last_perf_time = pt;
 			int max = performance->get("MONITOR_MAX");
@@ -1081,7 +1107,7 @@ ScriptDebuggerRemote::ScriptDebuggerRemote() :
 	eh.userdata = this;
 	add_error_handler(&eh);
 
-	profile_info.resize(CLAMP(int(GLOBAL_GET("debug/settings/profiler/max_functions")), 128, 65535));
+	profile_info.resize(CLAMP(int(ProjectSettings::get_singleton()->get("debug/settings/profiler/max_functions")), 128, 65535));
 	profile_info_ptrs.resize(profile_info.size());
 }
 
