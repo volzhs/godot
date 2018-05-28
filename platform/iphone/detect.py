@@ -79,7 +79,7 @@ def configure(env):
 
     if (env["arch"] == "x86"):
         env['IPHONEPLATFORM'] = 'iPhoneSimulator'
-        env.Append(LINKFLAGS=['-arch', 'i386', '-mios-simulator-version-min=4.3',
+        env.Append(LINKFLAGS=['-arch', 'i386', '-mios-simulator-version-min=9.0',
                               '-isysroot', '$IPHONESDK',
                               #'-mmacosx-version-min=10.6',
                               '-Xlinker',
