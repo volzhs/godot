@@ -19,7 +19,7 @@ def find_file_in_dir(directory, files, prefix='', extension=''):
     return ''
 
 
-def can_build(platform):
+def can_build(env, platform):
     if platform in ["javascript"]:
         return False # Not yet supported
     return True
@@ -80,7 +80,11 @@ def configure(env):
 
         if mono_static:
             lib_suffix = Environment()['LIBSUFFIX']
-            mono_static_lib_name = 'libmono-static-sgen'
+
+            if env.msvc:
+                mono_static_lib_name = 'libmono-static-sgen'
+            else:
+                mono_static_lib_name = 'libmonosgen-2.0'
 
             if not os.path.isfile(os.path.join(mono_lib_path, mono_static_lib_name + lib_suffix)):
                 raise RuntimeError('Could not find static mono library in: ' + mono_lib_path)
@@ -93,7 +97,10 @@ def configure(env):
                 env.Append(LINKFLAGS='LIBCMT' + lib_suffix)
                 env.Append(LINKFLAGS='Psapi' + lib_suffix)
             else:
-                env.Append(LIBS=mono_static_lib_name)
+                env.Append(LINKFLAGS=os.path.join(mono_lib_path, mono_static_lib_name + lib_suffix))
+
+                env.Append(LIBS='psapi')
+                env.Append(LIBS='version')
         else:
             mono_lib_name = find_file_in_dir(mono_lib_path, mono_lib_names, extension='.lib')
 

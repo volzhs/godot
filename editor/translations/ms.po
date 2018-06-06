@@ -1,78 +1,80 @@
-# Urdu (Pakistan) translation of the Godot Engine editor
+# Malay translation of the Godot Engine editor
 # Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.
 # Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)
 # This file is distributed under the same license as the Godot source code.
 #
-# Muhammad Ali <ali@codeonion.com>, 2016.
+# Sam Vanguard <syafz119@gmail.com>, 2018.
+# Shaqir Rafiq <moshamoradev@gmail.com>, 2018.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
-"PO-Revision-Date: 2016-07-01 05:14+0000\n"
-"Last-Translator: Muhammad Ali <ali@codeonion.com>\n"
-"Language-Team: Urdu (Pakistan) <https://hosted.weblate.org/projects/godot-"
-"engine/godot/ur_PK/>\n"
-"Language: ur_PK\n"
+"PO-Revision-Date: 2018-06-05 19:27+0000\n"
+"Last-Translator: Shaqir Rafiq <moshamoradev@gmail.com>\n"
+"Language-Team: Malay <https://hosted.weblate.org/projects/godot-engine/godot/"
+"ms/>\n"
+"Language: ms\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8-bit\n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2.7-dev\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 3.0\n"
 
 #: editor/animation_editor.cpp
 msgid "Disabled"
-msgstr ""
+msgstr "Tidak Aktif"
 
 #: editor/animation_editor.cpp
 msgid "All Selection"
-msgstr ".تمام کا انتخاب"
+msgstr "Semua Pilihan"
 
 #: editor/animation_editor.cpp
+#, fuzzy
 msgid "Anim Change Keyframe Time"
-msgstr ""
+msgstr "Anim Ubah Masa Keyframe"
 
 #: editor/animation_editor.cpp
 msgid "Anim Change Transition"
-msgstr ""
+msgstr "Anim Ubah Peralihan"
 
 #: editor/animation_editor.cpp
 msgid "Anim Change Transform"
-msgstr ""
+msgstr "Anim Ubah Penukaran"
 
 #: editor/animation_editor.cpp
 msgid "Anim Change Keyframe Value"
-msgstr ""
+msgstr "Anim Ubah Nilai Keyframe"
 
 #: editor/animation_editor.cpp
 msgid "Anim Change Call"
-msgstr ""
+msgstr "Anim Ubah Panggilan"
 
 #: editor/animation_editor.cpp
 msgid "Anim Add Track"
-msgstr ""
+msgstr "Anim Tambah Trek"
 
 #: editor/animation_editor.cpp
 msgid "Anim Duplicate Keys"
-msgstr ""
+msgstr "Anim Menduakan Kunci"
 
 #: editor/animation_editor.cpp
 msgid "Move Anim Track Up"
-msgstr ""
+msgstr "Ubah Trek Anim Ke Atas"
 
 #: editor/animation_editor.cpp
 msgid "Move Anim Track Down"
-msgstr ""
+msgstr "Ubah Trek Anim Ke Bawah"
 
 #: editor/animation_editor.cpp
 msgid "Remove Anim Track"
-msgstr ""
+msgstr "Buang Trek Anim"
 
 #: editor/animation_editor.cpp
 msgid "Set Transitions to:"
-msgstr ""
+msgstr "Set Peralihan ke:"
 
 #: editor/animation_editor.cpp
 msgid "Anim Track Rename"
-msgstr ""
+msgstr "Ubah Nama Trek Anim"
 
 #: editor/animation_editor.cpp
 msgid "Anim Track Change Interpolation"
@@ -96,7 +98,7 @@ msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "Anim Delete Keys"
-msgstr ".اینیمیشن کی کیز کو ڈیلیٹ کرو"
+msgstr ""
 
 #: editor/animation_editor.cpp editor/plugins/tile_map_editor_plugin.cpp
 #: modules/gridmap/grid_map_editor_plugin.cpp
@@ -108,9 +110,8 @@ msgid "Duplicate Transposed"
 msgstr ""
 
 #: editor/animation_editor.cpp
-#, fuzzy
 msgid "Remove Selection"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "Continuous"
@@ -517,9 +518,8 @@ msgid "Change"
 msgstr ""
 
 #: editor/create_dialog.cpp
-#, fuzzy
 msgid "Create New %s"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/create_dialog.cpp editor/editor_file_dialog.cpp
 #: editor/filesystem_dock.cpp
@@ -809,14 +809,12 @@ msgid "Add Effect"
 msgstr ""
 
 #: editor/editor_audio_buses.cpp
-#, fuzzy
 msgid "Rename Audio Bus"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/editor_audio_buses.cpp
-#, fuzzy
 msgid "Change Audio Bus Volume"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/editor_audio_buses.cpp
 msgid "Toggle Audio Bus Solo"
@@ -904,9 +902,8 @@ msgid "Reset Bus Volume"
 msgstr ""
 
 #: editor/editor_audio_buses.cpp
-#, fuzzy
 msgid "Move Audio Bus"
-msgstr "ایکشن منتقل کریں"
+msgstr ""
 
 #: editor/editor_audio_buses.cpp
 msgid "Save Audio Bus Layout As..."
@@ -942,9 +939,8 @@ msgid "Load"
 msgstr ""
 
 #: editor/editor_audio_buses.cpp
-#, fuzzy
 msgid "Load an existing Bus Layout."
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/editor_audio_buses.cpp
 #: editor/plugins/animation_player_editor_plugin.cpp
@@ -992,9 +988,8 @@ msgid "File does not exist."
 msgstr ""
 
 #: editor/editor_autoload_settings.cpp
-#, fuzzy
 msgid "Not in resource path."
-msgstr ".یہ ریسورس فائل پر مبنی نہی ہے"
+msgstr ""
 
 #: editor/editor_autoload_settings.cpp
 msgid "Add AutoLoad"
@@ -1133,7 +1128,7 @@ msgstr ""
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "All Recognized"
-msgstr ".سب کچھ تسلیم ہوچکا ہے"
+msgstr ""
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "All Files (*)"
@@ -1194,14 +1189,12 @@ msgid "Focus Path"
 msgstr ""
 
 #: editor/editor_file_dialog.cpp
-#, fuzzy
 msgid "Move Favorite Up"
-msgstr "پسندیدہ اوپر منتقل کریں"
+msgstr ""
 
 #: editor/editor_file_dialog.cpp
-#, fuzzy
 msgid "Move Favorite Down"
-msgstr "پسندیدہ نیچے منتقل کریں"
+msgstr ""
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "Go to parent folder"
@@ -1314,9 +1307,8 @@ msgid "Constants:"
 msgstr ""
 
 #: editor/editor_help.cpp
-#, fuzzy
 msgid "Description"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/editor_help.cpp
 msgid "Online Tutorials:"
@@ -1334,9 +1326,8 @@ msgid "Properties"
 msgstr ""
 
 #: editor/editor_help.cpp
-#, fuzzy
 msgid "Property Description:"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/editor_help.cpp
 msgid ""
@@ -1378,9 +1369,8 @@ msgid "Clear"
 msgstr ""
 
 #: editor/editor_log.cpp
-#, fuzzy
 msgid "Clear Output"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/editor_node.cpp
 msgid "Project export failed with error code %d."
@@ -1703,9 +1693,8 @@ msgid ""
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Pick a Main Scene"
-msgstr "ایک مینو منظر چنیں"
+msgstr ""
 
 #: editor/editor_node.cpp
 msgid "Unable to enable addon plugin at: '%s' parsing of config failed."
@@ -2025,7 +2014,7 @@ msgstr ""
 
 #: editor/editor_node.cpp editor/plugins/asset_library_editor_plugin.cpp
 msgid "Community"
-msgstr "کمیونٹی"
+msgstr ""
 
 #: editor/editor_node.cpp
 msgid "About"
@@ -2173,9 +2162,8 @@ msgid "Open & Run a Script"
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "New Inherited"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/editor_node.cpp
 msgid "Load Errors"
@@ -2499,9 +2487,8 @@ msgid "Install From File"
 msgstr ""
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Remove Template"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/export_template_manager.cpp
 msgid "Select template file"
@@ -2512,9 +2499,8 @@ msgid "Export Template Manager"
 msgstr ""
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Download Templates"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/export_template_manager.cpp
 msgid "Select mirror from list: "
@@ -2826,9 +2812,8 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/abstract_polygon_2d_editor.cpp
-#, fuzzy
 msgid "Delete points"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "Toggle Autoplay"
@@ -2982,9 +2967,8 @@ msgid "Enable Onion Skinning"
 msgstr ""
 
 #: editor/plugins/animation_player_editor_plugin.cpp
-#, fuzzy
 msgid "Directions"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "Past"
@@ -3325,11 +3309,11 @@ msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Site:"
-msgstr "سائٹ:"
+msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Support..."
-msgstr ".سپورٹ"
+msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Official"
@@ -3341,7 +3325,7 @@ msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Assets ZIP File"
-msgstr "اثاثہ کی زپ فائل"
+msgstr ""
 
 #: editor/plugins/baked_lightmap_editor_plugin.cpp
 msgid ""
@@ -3397,16 +3381,15 @@ msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Move Action"
-msgstr "ایکشن منتقل کریں"
+msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Move vertical guide"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Create new vertical guide"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Remove vertical guide"
@@ -3417,14 +3400,12 @@ msgid "Move horizontal guide"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Create new horizontal guide"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Remove horizontal guide"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Create new horizontal and vertical guides"
@@ -3475,9 +3456,8 @@ msgid "Alt+RMB: Depth list selection"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Move Mode"
-msgstr "ایکشن منتقل کریں"
+msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Rotate Mode"
@@ -3660,9 +3640,8 @@ msgid "Drag pivot from mouse position"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Set pivot at mouse position"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Multiply grid step by 2"
@@ -3747,9 +3726,8 @@ msgid "Flat1"
 msgstr ""
 
 #: editor/plugins/curve_editor_plugin.cpp
-#, fuzzy
 msgid "Ease in"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/curve_editor_plugin.cpp
 msgid "Ease out"
@@ -3776,9 +3754,8 @@ msgid "Add point"
 msgstr ""
 
 #: editor/plugins/curve_editor_plugin.cpp
-#, fuzzy
 msgid "Remove point"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/curve_editor_plugin.cpp
 msgid "Left linear"
@@ -3793,9 +3770,8 @@ msgid "Load preset"
 msgstr ""
 
 #: editor/plugins/curve_editor_plugin.cpp
-#, fuzzy
 msgid "Remove Curve Point"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/curve_editor_plugin.cpp
 msgid "Toggle Curve Linear Tangent"
@@ -4329,19 +4305,16 @@ msgid "Curve Point #"
 msgstr ""
 
 #: editor/plugins/path_editor_plugin.cpp
-#, fuzzy
 msgid "Set Curve Point Position"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/path_editor_plugin.cpp
-#, fuzzy
 msgid "Set Curve In Position"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/path_editor_plugin.cpp
-#, fuzzy
 msgid "Set Curve Out Position"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/path_editor_plugin.cpp
 msgid "Split Path"
@@ -4352,9 +4325,8 @@ msgid "Remove Path Point"
 msgstr ""
 
 #: editor/plugins/path_editor_plugin.cpp
-#, fuzzy
 msgid "Remove Out-Control Point"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/path_editor_plugin.cpp
 msgid "Remove In-Control Point"
@@ -4539,9 +4511,8 @@ msgid "Move Down"
 msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
-#, fuzzy
 msgid "Next script"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Previous script"
@@ -5246,19 +5217,16 @@ msgid "Focus Origin"
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Focus Selection"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Align Selection With View"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Tool Select"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Tool Move"
@@ -5442,14 +5410,12 @@ msgid "Insert Empty (After)"
 msgstr ""
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
-#, fuzzy
 msgid "Move (Before)"
-msgstr "ایکشن منتقل کریں"
+msgstr ""
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
-#, fuzzy
 msgid "Move (After)"
-msgstr "ایکشن منتقل کریں"
+msgstr ""
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "SpriteFrames"
@@ -5528,14 +5494,12 @@ msgid "Remove Item"
 msgstr ""
 
 #: editor/plugins/theme_editor_plugin.cpp
-#, fuzzy
 msgid "Remove All Items"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/theme_editor_plugin.cpp
-#, fuzzy
 msgid "Remove All"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/theme_editor_plugin.cpp
 msgid "Edit theme..."
@@ -5646,9 +5610,8 @@ msgid "Theme"
 msgstr ""
 
 #: editor/plugins/tile_map_editor_plugin.cpp
-#, fuzzy
 msgid "Erase Selection"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/plugins/tile_map_editor_plugin.cpp
 msgid "Paint TileMap"
@@ -5889,9 +5852,8 @@ msgid "Invalid Project Name."
 msgstr ""
 
 #: editor/project_manager.cpp
-#, fuzzy
 msgid "Couldn't create folder."
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/project_manager.cpp
 msgid "There is already a folder in this path with the specified name."
@@ -5924,9 +5886,8 @@ msgid "The following files failed extraction from package:"
 msgstr ""
 
 #: editor/project_manager.cpp
-#, fuzzy
 msgid "Rename Project"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/project_manager.cpp
 msgid "New Game Project"
@@ -5945,9 +5906,8 @@ msgid "Create New Project"
 msgstr ""
 
 #: editor/project_manager.cpp
-#, fuzzy
 msgid "Create & Edit"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/project_manager.cpp
 msgid "Install Project:"
@@ -6039,9 +5999,8 @@ msgid "New Project"
 msgstr ""
 
 #: editor/project_manager.cpp
-#, fuzzy
 msgid "Templates"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/project_manager.cpp
 msgid "Exit"
@@ -6164,9 +6123,8 @@ msgid "Joypad Button Index:"
 msgstr ""
 
 #: editor/project_settings_editor.cpp
-#, fuzzy
 msgid "Erase Input Action"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/project_settings_editor.cpp
 msgid "Erase Input Action Event"
@@ -6405,9 +6363,8 @@ msgid "Select Node"
 msgstr ""
 
 #: editor/property_editor.cpp
-#, fuzzy
 msgid "New Script"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/property_editor.cpp
 msgid "New %s"
@@ -6635,14 +6592,12 @@ msgid "Change Type"
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "Attach Script"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "Clear Script"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/scene_tree_dock.cpp
 msgid "Merge From Scene"
@@ -6683,9 +6638,8 @@ msgid "Clear a script for the selected node."
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "Remote"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/scene_tree_dock.cpp
 msgid "Local"
@@ -6730,9 +6684,8 @@ msgid ""
 msgstr ""
 
 #: editor/scene_tree_editor.cpp
-#, fuzzy
 msgid "Open script"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/scene_tree_editor.cpp
 msgid ""
@@ -6839,14 +6792,12 @@ msgid "Built-in script (into scene file)"
 msgstr ""
 
 #: editor/script_create_dialog.cpp
-#, fuzzy
 msgid "Create new script file"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/script_create_dialog.cpp
-#, fuzzy
 msgid "Load existing script file"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/script_create_dialog.cpp
 msgid "Language"
@@ -6861,23 +6812,20 @@ msgid "Class Name"
 msgstr ""
 
 #: editor/script_create_dialog.cpp
-#, fuzzy
 msgid "Template"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/script_create_dialog.cpp
 msgid "Built-in Script"
 msgstr ""
 
 #: editor/script_create_dialog.cpp
-#, fuzzy
 msgid "Attach Node Script"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: editor/script_editor_debugger.cpp
-#, fuzzy
 msgid "Remote "
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: editor/script_editor_debugger.cpp
 msgid "Bytes:"
@@ -7049,16 +6997,15 @@ msgstr ""
 
 #: editor/spatial_editor_gizmos.cpp
 msgid "Change Notifier Extents"
-msgstr ".نوٹفئر کے اکسٹنٹ کو تبدیل کیجیۓ"
+msgstr ""
 
 #: editor/spatial_editor_gizmos.cpp
 msgid "Change Particles AABB"
 msgstr ""
 
 #: editor/spatial_editor_gizmos.cpp
-#, fuzzy
 msgid "Change Probe Extents"
-msgstr ".نوٹفئر کے اکسٹنٹ کو تبدیل کیجیۓ"
+msgstr ""
 
 #: modules/gdnative/gdnative_library_editor_plugin.cpp
 msgid "Select the dynamic library for this entry"
@@ -7069,9 +7016,8 @@ msgid "Select dependencies of the library for this entry"
 msgstr ""
 
 #: modules/gdnative/gdnative_library_editor_plugin.cpp
-#, fuzzy
 msgid "Remove current entry"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: modules/gdnative/gdnative_library_editor_plugin.cpp
 msgid "Double click to create a new entry"
@@ -7117,28 +7063,27 @@ msgstr ""
 #: modules/visual_script/visual_script_builtin_funcs.cpp
 msgid "Invalid type argument to convert(), use TYPE_* constants."
 msgstr ""
-".استمال کیجۓ TYPE_* constants .کے لیے غلط ہیں  convert() دیے گئے ارگمنٹس."
 
 #: modules/gdscript/gdscript_functions.cpp modules/mono/glue/glue_header.h
 #: modules/visual_script/visual_script_builtin_funcs.cpp
 msgid "Not enough bytes for decoding bytes, or invalid format."
-msgstr "یا تو ڈیکوڈ کرنے کے لئے بائیٹس کم ہیں یا پھر ناقص فارمیٹ ھے."
+msgstr ""
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "step argument is zero!"
-msgstr "سٹیپ کے ارگمنٹس سفر ہیں!"
+msgstr ""
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "Not a script with an instance"
-msgstr ".یہ انسٹینس کے بغیر سکرپٹ نہی ہوتی"
+msgstr ""
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "Not based on a script"
-msgstr ".یہ سکرپٹ پر مبنی نہی ہے"
+msgstr ""
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "Not based on a resource file"
-msgstr ".یہ ریسورس فائل پر مبنی نہی ہے"
+msgstr ""
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "Invalid instance dictionary format (missing @path)"
@@ -7185,9 +7130,8 @@ msgid "Floor:"
 msgstr ""
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
-#, fuzzy
 msgid "GridMap Delete Selection"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "GridMap Duplicate Selection"
@@ -7266,9 +7210,8 @@ msgid "Erase Area"
 msgstr ""
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
-#, fuzzy
 msgid "Clear Selection"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "GridMap Settings"
@@ -7315,9 +7258,8 @@ msgid "About C# support"
 msgstr ""
 
 #: modules/mono/editor/godotsharp_editor.cpp
-#, fuzzy
 msgid "Create C# solution"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: modules/mono/editor/mono_bottom_panel.cpp
 msgid "Builds"
@@ -7402,9 +7344,8 @@ msgid "Name already in use by another func/var/signal:"
 msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Rename Function"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Rename Variable"
@@ -7487,9 +7428,8 @@ msgid "Change Base Type"
 msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Move Node(s)"
-msgstr "ایکشن منتقل کریں"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Remove VisualScript Node"
@@ -7552,9 +7492,8 @@ msgid "Paste VisualScript Nodes"
 msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Remove Function"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Edit Variable"
@@ -7569,9 +7508,8 @@ msgid "Edit Signal"
 msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Remove Signal"
-msgstr ".تمام کا انتخاب"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Editing Variable:"
@@ -7684,9 +7622,8 @@ msgid "Run exported HTML in the system's default browser."
 msgstr ""
 
 #: platform/javascript/export/export.cpp
-#, fuzzy
 msgid "Could not write file:"
-msgstr "سب سکریپشن بنائیں"
+msgstr ""
 
 #: platform/javascript/export/export.cpp
 msgid "Could not open template for export:"
@@ -8017,10 +7954,3 @@ msgstr ""
 #: scene/resources/dynamic_font.cpp
 msgid "Invalid font size."
 msgstr ""
-
-#, fuzzy
-#~ msgid "Can't write file."
-#~ msgstr "سب سکریپشن بنائیں"
-
-#~ msgid "Samples"
-#~ msgstr "نمونے"

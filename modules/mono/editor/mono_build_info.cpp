@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  register_types.cpp                                                   */
+/*  mono_build_info.cpp                                                  */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,30 +28,35 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "register_types.h"
+#include "mono_build_info.h"
 
-#include "csg_gizmos.h"
-#include "csg_shape.h"
+#include "../godotsharp_dirs.h"
+#include "../mono_gd/gd_mono_utils.h"
 
-void register_csg_types() {
+uint32_t MonoBuildInfo::Hasher::hash(const MonoBuildInfo &p_key) {
 
-#ifndef _3D_DISABLED
+	uint32_t hash = 0;
 
-	ClassDB::register_virtual_class<CSGShape>();
-	ClassDB::register_virtual_class<CSGPrimitive>();
-	ClassDB::register_class<CSGMesh>();
-	ClassDB::register_class<CSGSphere>();
-	ClassDB::register_class<CSGBox>();
-	ClassDB::register_class<CSGCylinder>();
-	ClassDB::register_class<CSGTorus>();
-	ClassDB::register_class<CSGPolygon>();
-	ClassDB::register_class<CSGCombiner>();
+	GDMonoUtils::hash_combine(hash, p_key.solution.hash());
+	GDMonoUtils::hash_combine(hash, p_key.configuration.hash());
 
-#ifdef TOOLS_ENABLED
-	EditorPlugins::add_by_type<EditorPluginCSG>();
-#endif
-#endif
+	return hash;
 }
 
-void unregister_csg_types() {
+bool MonoBuildInfo::operator==(const MonoBuildInfo &p_b) const {
+
+	return p_b.solution == solution && p_b.configuration == configuration;
+}
+
+String MonoBuildInfo::get_log_dirpath() {
+
+	return GodotSharpDirs::get_build_logs_dir().plus_file(solution.md5_text() + "_" + configuration);
+}
+
+MonoBuildInfo::MonoBuildInfo() {}
+
+MonoBuildInfo::MonoBuildInfo(const String &p_solution, const String &p_config) {
+
+	solution = p_solution;
+	configuration = p_config;
 }
