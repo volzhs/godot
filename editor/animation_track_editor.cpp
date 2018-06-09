@@ -732,29 +732,6 @@ void AnimationTimelineEdit::_notification(int p_what) {
 		if (l <= 0)
 			l = 0.001; //avoid crashor
 
-		int end_px = (l - get_value()) * scale;
-		int begin_px = -get_value() * scale;
-		Color notimecol = get_color("dark_color_2", "Editor");
-		Color timecolor = color;
-		timecolor.a = 0.2;
-		Color linecolor = color;
-		linecolor.a = 0.2;
-
-		{
-
-			draw_rect(Rect2(Point2(get_name_limit(), 0), Point2(zoomw - 1, h)), notimecol);
-
-			if (begin_px < zoomw && end_px > 0) {
-
-				if (begin_px < 0)
-					begin_px = 0;
-				if (end_px > zoomw)
-					end_px = zoomw;
-
-				draw_rect(Rect2(Point2(get_name_limit() + begin_px, 0), Point2(end_px - begin_px - 1, h)), timecolor);
-			}
-		}
-
 		Ref<Texture> hsize_icon = get_icon("Hsize", "EditorIcons");
 		hsize_rect = Rect2(get_name_limit() - hsize_icon->get_width() - 2 * EDSCALE, (get_size().height - hsize_icon->get_height()) / 2, hsize_icon->get_width(), hsize_icon->get_height());
 		draw_texture(hsize_icon, hsize_rect.position);
@@ -770,17 +747,17 @@ void AnimationTimelineEdit::_notification(int p_what) {
 				if (animation->track_get_key_count(i) > 0) {
 
 					float beg = animation->track_get_key_time(i, 0);
-					if (animation->track_get_type(i) == Animation::TYPE_BEZIER) {
+					/*if (animation->track_get_type(i) == Animation::TYPE_BEZIER) {
 						beg += animation->bezier_track_get_key_in_handle(i, 0).x;
-					}
+					}* not worth it since they have no use */
 
 					if (beg < time_min)
 						time_min = beg;
 
 					float end = animation->track_get_key_time(i, animation->track_get_key_count(i) - 1);
-					if (animation->track_get_type(i) == Animation::TYPE_BEZIER) {
+					/*if (animation->track_get_type(i) == Animation::TYPE_BEZIER) {
 						end += animation->bezier_track_get_key_out_handle(i, animation->track_get_key_count(i) - 1).x;
-					}
+					} not worth it since they have no use */
 
 					if (end > time_max)
 						time_max = end;
@@ -805,6 +782,29 @@ void AnimationTimelineEdit::_notification(int p_what) {
 		}
 
 		set_page(zoomw / scale);
+
+		int end_px = (l - get_value()) * scale;
+		int begin_px = -get_value() * scale;
+		Color notimecol = get_color("dark_color_2", "Editor");
+		Color timecolor = color;
+		timecolor.a = 0.2;
+		Color linecolor = color;
+		linecolor.a = 0.2;
+
+		{
+
+			draw_rect(Rect2(Point2(get_name_limit(), 0), Point2(zoomw - 1, h)), notimecol);
+
+			if (begin_px < zoomw && end_px > 0) {
+
+				if (begin_px < 0)
+					begin_px = 0;
+				if (end_px > zoomw)
+					end_px = zoomw;
+
+				draw_rect(Rect2(Point2(get_name_limit() + begin_px, 0), Point2(end_px - begin_px - 1, h)), timecolor);
+			}
+		}
 
 		Color color_time_sec = color;
 		Color color_time_dec = color;
@@ -964,7 +964,7 @@ void AnimationTimelineEdit::_gui_input(const Ref<InputEvent> &p_event) {
 		if (!panning_timeline && mb->get_button_index() == BUTTON_LEFT) {
 			int x = mb->get_position().x - get_name_limit();
 
-			float ofs = x / get_zoom_scale();
+			float ofs = x / get_zoom_scale() + get_value();
 			emit_signal("timeline_changed", ofs, false);
 			dragging_timeline = true;
 		}
@@ -997,7 +997,7 @@ void AnimationTimelineEdit::_gui_input(const Ref<InputEvent> &p_event) {
 		}
 		if (dragging_timeline) {
 			int x = mm->get_position().x - get_name_limit();
-			float ofs = x / get_zoom_scale();
+			float ofs = x / get_zoom_scale() + get_value();
 			emit_signal("timeline_changed", ofs, false);
 		}
 		if (panning_timeline) {
@@ -1941,7 +1941,6 @@ void AnimationTrackEdit::_gui_input(const Ref<InputEvent> &p_event) {
 				offset = offset * scale + limit;
 				rect.position.x += offset;
 
-				print_line("rect: " + rect + " pos: " + pos);
 				if (rect.has_point(pos)) {
 
 					if (is_key_selectable_by_distance()) {
@@ -3391,6 +3390,7 @@ void AnimationTrackEditor::_update_tracks() {
 
 void AnimationTrackEditor::_animation_changed() {
 
+	timeline->update();
 	timeline->update_values();
 	if (block_animation_update) {
 		for (int i = 0; i < track_edits.size(); i++) {
@@ -3421,6 +3421,7 @@ void AnimationTrackEditor::_notification(int p_what) {
 		snap->set_icon(get_icon("Snap", "EditorIcons"));
 		view_group->set_icon(get_icon(view_group->is_pressed() ? "AnimationTrackList" : "AnimationTrackGroup", "EditorIcons"));
 		selected_filter->set_icon(get_icon("AnimationFilter", "EditorIcons"));
+		main_panel->add_style_override("panel", get_stylebox("bg", "Tree"));
 	}
 
 	if (p_what == NOTIFICATION_READY) {
@@ -3873,6 +3874,12 @@ struct _AnimMoveRestore {
 
 void AnimationTrackEditor::_clear_key_edit() {
 	if (key_edit) {
+
+#if 0
+		// going back seems like the most comfortable thing to do, but it results
+		// in weird behaviors and crashes, because going back to animation editor
+		// triggers the editor setting up again itself
+
 		bool go_back = false;
 		if (EditorNode::get_singleton()->get_inspector()->get_edited_object() == key_edit) {
 			EditorNode::get_singleton()->push_item(NULL);
@@ -3885,6 +3892,15 @@ void AnimationTrackEditor::_clear_key_edit() {
 		if (go_back) {
 			EditorNode::get_singleton()->get_inspector_dock()->go_back();
 		}
+#else
+		//if key edit is the object being inspected, remove it first
+		if (EditorNode::get_singleton()->get_inspector()->get_edited_object() == key_edit) {
+			EditorNode::get_singleton()->push_item(NULL);
+		}
+		//then actually delete it
+		memdelete(key_edit);
+		key_edit = NULL;
+#endif
 	}
 }
 
@@ -4747,8 +4763,12 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	block_animation_update = false;
 
 	undo_redo = EditorNode::get_singleton()->get_undo_redo();
+
+	main_panel = memnew(PanelContainer);
+	add_child(main_panel);
+	main_panel->set_v_size_flags(SIZE_EXPAND_FILL);
 	HBoxContainer *timeline_scroll = memnew(HBoxContainer);
-	add_child(timeline_scroll);
+	main_panel->add_child(timeline_scroll);
 	timeline_scroll->set_v_size_flags(SIZE_EXPAND_FILL);
 
 	VBoxContainer *timeline_vbox = memnew(VBoxContainer);
@@ -4800,7 +4820,7 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	scroll->set_enable_v_scroll(true);
 	track_vbox->add_constant_override("separation", 0);
 
-	timeline_vbox->add_child(memnew(HSeparator));
+	//timeline_vbox->add_child(memnew(HSeparator));
 	HBoxContainer *bottom_hb = memnew(HBoxContainer);
 	add_child(bottom_hb);
 	bottom_hb->add_spacer();
