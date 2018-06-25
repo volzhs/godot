@@ -1,10 +1,10 @@
-#ifndef ANIMATION_BLEND_SPACE_H
-#define ANIMATION_BLEND_SPACE_H
+#ifndef ANIMATION_BLEND_SPACE_2D_H
+#define ANIMATION_BLEND_SPACE_2D_H
 
-#include "scene/animation/animation_graph_player.h"
+#include "scene/animation/animation_tree.h"
 
-class AnimationNodeBlendSpace : public AnimationRootNode {
-	GDCLASS(AnimationNodeBlendSpace, AnimationRootNode)
+class AnimationNodeBlendSpace2D : public AnimationRootNode {
+	GDCLASS(AnimationNodeBlendSpace2D, AnimationRootNode)
 
 	enum {
 		MAX_BLEND_POINTS = 64
@@ -37,6 +37,11 @@ class AnimationNodeBlendSpace : public AnimationRootNode {
 
 	void _blend_triangle(const Vector2 &p_pos, const Vector2 *p_points, float *r_weights);
 
+	bool auto_triangles;
+	bool trianges_dirty;
+
+	void _update_triangles();
+
 protected:
 	virtual void _validate_property(PropertyInfo &property) const;
 	static void _bind_methods();
@@ -65,8 +70,8 @@ public:
 	void set_snap(const Vector2 &p_snap);
 	Vector2 get_snap() const;
 
-	void set_blend_pos(const Vector2 &p_pos);
-	Vector2 get_blend_pos() const;
+	void set_blend_position(const Vector2 &p_pos);
+	Vector2 get_blend_position() const;
 
 	void set_x_label(const String &p_label);
 	String get_x_label() const;
@@ -74,13 +79,16 @@ public:
 	void set_y_label(const String &p_label);
 	String get_y_label() const;
 
-	float process(float p_time, bool p_seek);
-	String get_caption() const;
+	virtual float process(float p_time, bool p_seek);
+	virtual String get_caption() const;
 
 	Vector2 get_closest_point(const Vector2 &p_point);
 
-	AnimationNodeBlendSpace();
-	~AnimationNodeBlendSpace();
+	void set_auto_triangles(bool p_enable);
+	bool get_auto_triangles() const;
+
+	AnimationNodeBlendSpace2D();
+	~AnimationNodeBlendSpace2D();
 };
 
-#endif // ANIMATION_BLEND_SPACE_H
+#endif // ANIMATION_BLEND_SPACE_2D_H
