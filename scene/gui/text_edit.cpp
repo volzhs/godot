@@ -426,6 +426,9 @@ void TextEdit::_update_scrollbars() {
 
 void TextEdit::_click_selection_held() {
 
+	// Warning: is_mouse_button_pressed(BUTTON_LEFT) returns false for double+ clicks, so this doesn't work for MODE_WORD
+	// and MODE_LINE. However, moving the mouse triggers _gui_input, which calls these functions too, so that's not a huge problem.
+	// I'm unsure if there's an actual fix that doesn't have a ton of side effects.
 	if (Input::get_singleton()->is_mouse_button_pressed(BUTTON_LEFT) && selection.selecting_mode != Selection::MODE_NONE) {
 		switch (selection.selecting_mode) {
 			case Selection::MODE_POINTER: {
@@ -455,7 +458,7 @@ void TextEdit::_update_selection_mode_pointer() {
 	select(selection.selecting_line, selection.selecting_column, row, col);
 
 	cursor_set_line(row, false);
-	cursor_set_column(col, false);
+	cursor_set_column(col);
 	update();
 
 	click_select_held->start();
@@ -496,21 +499,24 @@ void TextEdit::_update_selection_mode_word() {
 		selection.selected_word_beg = beg;
 		selection.selected_word_end = end;
 		selection.selected_word_origin = beg;
+		cursor_set_line(selection.to_line, false);
 		cursor_set_column(selection.to_column);
 	} else {
 		if ((col <= selection.selected_word_origin && row == selection.selecting_line) || row < selection.selecting_line) {
 			selection.selecting_column = selection.selected_word_end;
 			select(row, beg, selection.selecting_line, selection.selected_word_end);
+			cursor_set_line(selection.from_line, false);
 			cursor_set_column(selection.from_column);
 		} else {
 			selection.selecting_column = selection.selected_word_beg;
 			select(selection.selecting_line, selection.selected_word_beg, row, end);
+			cursor_set_line(selection.to_line, false);
 			cursor_set_column(selection.to_column);
 		}
 	}
-	cursor_set_line(row, false);
 
 	update();
+
 	click_select_held->start();
 }
 
@@ -531,7 +537,7 @@ void TextEdit::_update_selection_mode_line() {
 		selection.selecting_column = 0;
 		col = text[row].length();
 	}
-	cursor_set_column(0, false);
+	cursor_set_column(0);
 
 	select(selection.selecting_line, selection.selecting_column, row, col);
 	update();
@@ -1660,14 +1666,17 @@ void TextEdit::_get_mouse_pos(const Point2i &p_mouse, int &r_row, int &r_col) co
 	rows /= get_row_height();
 	rows += get_v_scroll_offset();
 	int first_vis_line = get_first_visible_line();
+	int last_vis_line = get_last_visible_line();
 	int row = first_vis_line + Math::floor(rows);
 	int wrap_index = 0;
 
 	if (is_wrap_enabled() || is_hiding_enabled()) {
 
-		int f_ofs = num_lines_from_rows(first_vis_line, cursor.wrap_ofs, rows + 1, wrap_index) - 1;
-		row = first_vis_line + f_ofs;
-		row = CLAMP(row, 0, get_last_visible_line() + 1);
+		int f_ofs = num_lines_from_rows(first_vis_line, cursor.wrap_ofs, rows + (1 * SGN(rows)), wrap_index) - 1;
+		if (rows < 0)
+			row = first_vis_line - f_ofs;
+		else
+			row = first_vis_line + f_ofs;
 	}
 
 	if (row < 0)
@@ -5765,18 +5774,23 @@ String TextEdit::get_word_at_pos(const Vector2 &p_pos) const {
 	if (select_word(s, col, beg, end)) {
 
 		bool inside_quotes = false;
+		char selected_quote = '\0';
 		int qbegin = 0, qend = 0;
 		for (int i = 0; i < s.length(); i++) {
-			if (s[i] == '"') {
-				if (inside_quotes) {
-					qend = i;
-					inside_quotes = false;
-					if (col >= qbegin && col <= qend) {
-						return s.substr(qbegin, qend - qbegin);
+			if (s[i] == '"' || s[i] == '\'') {
+				if (i == 0 || s[i - 1] != '\\') {
+					if (inside_quotes && selected_quote == s[i]) {
+						qend = i;
+						inside_quotes = false;
+						selected_quote = '\0';
+						if (col >= qbegin && col <= qend) {
+							return s.substr(qbegin, qend - qbegin);
+						}
+					} else if (!inside_quotes) {
+						qbegin = i + 1;
+						inside_quotes = true;
+						selected_quote = s[i];
 					}
-				} else {
-					qbegin = i + 1;
-					inside_quotes = true;
 				}
 			}
 		}

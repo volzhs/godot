@@ -200,6 +200,7 @@ void FileSystemDock::_notification(int p_what) {
 
 			button_hist_next->set_icon(get_icon("Forward", ei));
 			button_hist_prev->set_icon(get_icon("Back", ei));
+			button_show->set_icon(get_icon("GuiVisibilityVisible", "EditorIcons"));
 			file_options->connect("id_pressed", this, "_file_option");
 			folder_options->connect("id_pressed", this, "_folder_option");
 
@@ -315,6 +316,15 @@ void FileSystemDock::_favorites_pressed() {
 	}
 	EditorSettings::get_singleton()->set_favorite_dirs(favorites);
 	_update_tree(true);
+}
+
+void FileSystemDock::_show_current_scene_file() {
+
+	int index = EditorNode::get_editor_data().get_edited_scene();
+	String path = EditorNode::get_editor_data().get_scene_path(index);
+	if (path != String()) {
+		navigate_to_path(path);
+	}
 }
 
 String FileSystemDock::get_selected_path() const {
@@ -1048,18 +1058,24 @@ void FileSystemDock::_move_operation_confirm(const String &p_to_path) {
 
 	Map<String, String> file_renames;
 	Map<String, String> folder_renames;
+	bool is_moved = false;
 	for (int i = 0; i < to_move.size(); i++) {
 		String old_path = to_move[i].path.ends_with("/") ? to_move[i].path.substr(0, to_move[i].path.length() - 1) : to_move[i].path;
 		String new_path = p_to_path.plus_file(old_path.get_file());
-		_try_move_item(to_move[i], new_path, file_renames, folder_renames);
+		if (old_path != new_path) {
+			_try_move_item(to_move[i], new_path, file_renames, folder_renames);
+			is_moved = true;
+		}
 	}
 
-	_update_dependencies_after_move(file_renames);
-	_update_resource_paths_after_move(file_renames);
-	_update_favorite_dirs_list_after_move(folder_renames);
+	if (is_moved) {
+		_update_dependencies_after_move(file_renames);
+		_update_resource_paths_after_move(file_renames);
+		_update_favorite_dirs_list_after_move(folder_renames);
 
-	print_line("call rescan!");
-	_rescan();
+		print_line("call rescan!");
+		_rescan();
+	}
 }
 
 void FileSystemDock::_file_option(int p_option) {
@@ -1779,6 +1795,7 @@ void FileSystemDock::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_update_tree"), &FileSystemDock::_update_tree);
 	ClassDB::bind_method(D_METHOD("_rescan"), &FileSystemDock::_rescan);
 	ClassDB::bind_method(D_METHOD("_favorites_pressed"), &FileSystemDock::_favorites_pressed);
+	ClassDB::bind_method(D_METHOD("_show_current_scene_file"), &FileSystemDock::_show_current_scene_file);
 	//ClassDB::bind_method(D_METHOD("_instance_pressed"),&ScenesDock::_instance_pressed);
 	ClassDB::bind_method(D_METHOD("_go_to_file_list"), &FileSystemDock::_go_to_file_list);
 	ClassDB::bind_method(D_METHOD("_dir_rmb_pressed"), &FileSystemDock::_dir_rmb_pressed);
@@ -1828,6 +1845,7 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	ED_SHORTCUT("filesystem_dock/rename", TTR("Rename"));
 
 	HBoxContainer *toolbar_hbc = memnew(HBoxContainer);
+	toolbar_hbc->add_constant_override("separation", 0);
 	add_child(toolbar_hbc);
 
 	button_hist_prev = memnew(ToolButton);
@@ -1863,6 +1881,13 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	button_favorite->set_tooltip(TTR("Toggle folder status as Favorite."));
 	button_favorite->set_focus_mode(FOCUS_NONE);
 	toolbar_hbc->add_child(button_favorite);
+
+	button_show = memnew(Button);
+	button_show->set_flat(true);
+	button_show->connect("pressed", this, "_show_current_scene_file");
+	toolbar_hbc->add_child(button_show);
+	button_show->set_focus_mode(FOCUS_NONE);
+	button_show->set_tooltip(TTR("Show current scene file."));
 
 	//Control *spacer = memnew( Control);
 
