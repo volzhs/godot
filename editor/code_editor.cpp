@@ -95,7 +95,7 @@ void FindReplaceBar::_notification(int p_what) {
 
 		set_process_unhandled_input(is_visible_in_tree());
 		if (is_visible_in_tree()) {
-			call_deferred("_update_size");
+			_update_size();
 		}
 	} else if (p_what == EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED) {
 
@@ -775,7 +775,7 @@ void CodeTextEditor::update_editor_settings() {
 	text_editor->set_highlight_current_line(EditorSettings::get_singleton()->get("text_editor/highlighting/highlight_current_line"));
 	text_editor->cursor_set_blink_enabled(EditorSettings::get_singleton()->get("text_editor/cursor/caret_blink"));
 	text_editor->cursor_set_blink_speed(EditorSettings::get_singleton()->get("text_editor/cursor/caret_blink_speed"));
-	text_editor->set_draw_breakpoint_gutter(EditorSettings::get_singleton()->get("text_editor/line_numbers/show_breakpoint_gutter"));
+	text_editor->set_breakpoint_gutter_enabled(EditorSettings::get_singleton()->get("text_editor/line_numbers/show_breakpoint_gutter"));
 	text_editor->set_hiding_enabled(EditorSettings::get_singleton()->get("text_editor/line_numbers/code_folding"));
 	text_editor->set_draw_fold_gutter(EditorSettings::get_singleton()->get("text_editor/line_numbers/code_folding"));
 	text_editor->set_wrap_enabled(EditorSettings::get_singleton()->get("text_editor/line_numbers/word_wrap"));
