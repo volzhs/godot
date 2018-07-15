@@ -180,7 +180,7 @@ public:
 
 	void remove_item(int p_idx);
 
-	void add_separator();
+	void add_separator(const String &p_text = String());
 
 	void clear();
 
@@ -201,6 +201,9 @@ public:
 
 	void set_hide_on_multistate_item_selection(bool p_enabled);
 	bool is_hide_on_multistate_item_selection() const;
+
+	void set_submenu_popup_delay(float p_time);
+	float get_submenu_popup_delay() const;
 
 	virtual void popup(const Rect2 &p_bounds = Rect2());
 

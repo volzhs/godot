@@ -398,6 +398,15 @@ void PopupMenu::_notification(int p_what) {
 
 	switch (p_what) {
 
+		case NOTIFICATION_ENTER_TREE: {
+
+			PopupMenu *pm = Object::cast_to<PopupMenu>(get_parent());
+			if (pm) {
+				// Inherit submenu's popup delay time from parent menu
+				float pm_delay = pm->get_submenu_popup_delay();
+				set_submenu_popup_delay(pm_delay);
+			}
+		} break;
 		case NOTIFICATION_TRANSLATION_CHANGED: {
 
 			for (int i = 0; i < items.size(); i++) {
@@ -421,6 +430,8 @@ void PopupMenu::_notification(int p_what) {
 			Ref<Texture> uncheck[] = { get_icon("unchecked"), get_icon("radio_unchecked") };
 			Ref<Texture> submenu = get_icon("submenu");
 			Ref<StyleBox> separator = get_stylebox("separator");
+			Ref<StyleBox> labeled_separator_left = get_stylebox("labeled_separator_left");
+			Ref<StyleBox> labeled_separator_right = get_stylebox("labeled_separator_right");
 
 			style->draw(ci, Rect2(Point2(), get_size()));
 			Point2 ofs = style->get_offset();
@@ -457,10 +468,25 @@ void PopupMenu::_notification(int p_what) {
 					hover->draw(ci, Rect2(item_ofs + Point2(-hseparation, -vseparation / 2), Size2(get_size().width - style->get_minimum_size().width + hseparation * 2, h + vseparation)));
 				}
 
+				String text = items[i].shortcut.is_valid() ? String(tr(items[i].shortcut->get_name())) : items[i].xl_text;
+
 				if (items[i].separator) {
 
 					int sep_h = separator->get_center_size().height + separator->get_minimum_size().height;
-					separator->draw(ci, Rect2(item_ofs + Point2(0, Math::floor((h - sep_h) / 2.0)), Size2(get_size().width - style->get_minimum_size().width, sep_h)));
+					if (text != String()) {
+						int ss = font->get_string_size(text).width;
+						int center = (get_size().width) / 2;
+						int l = center - ss / 2;
+						int r = center + ss / 2;
+						if (l > item_ofs.x) {
+							labeled_separator_left->draw(ci, Rect2(item_ofs + Point2(0, Math::floor((h - sep_h) / 2.0)), Size2(MAX(0, l - item_ofs.x), sep_h)));
+						}
+						if (r < get_size().width - style->get_margin(MARGIN_RIGHT)) {
+							labeled_separator_right->draw(ci, Rect2(Point2(r, item_ofs.y + Math::floor((h - sep_h) / 2.0)), Size2(MAX(0, get_size().width - style->get_margin(MARGIN_RIGHT) - r), sep_h)));
+						}
+					} else {
+						separator->draw(ci, Rect2(item_ofs + Point2(0, Math::floor((h - sep_h) / 2.0)), Size2(get_size().width - style->get_minimum_size().width, sep_h)));
+					}
 				}
 
 				if (items[i].checkable_type) {
@@ -480,8 +506,13 @@ void PopupMenu::_notification(int p_what) {
 				}
 
 				item_ofs.y += font->get_ascent();
-				String text = items[i].shortcut.is_valid() ? String(tr(items[i].shortcut->get_name())) : items[i].xl_text;
-				if (!items[i].separator) {
+				if (items[i].separator) {
+
+					if (text != String()) {
+						int center = (get_size().width - font->get_string_size(text).width) / 2;
+						font->draw(ci, Point2(center, item_ofs.y + Math::floor((h - font_h) / 2.0)), text, font_color_disabled);
+					}
+				} else {
 
 					font->draw(ci, item_ofs + Point2(0, Math::floor((h - font_h) / 2.0)), text, items[i].disabled ? font_color_disabled : (i == mouse_over ? font_color_hover : font_color));
 				}
@@ -1064,11 +1095,15 @@ void PopupMenu::remove_item(int p_idx) {
 	update();
 }
 
-void PopupMenu::add_separator() {
+void PopupMenu::add_separator(const String &p_text) {
 
 	Item sep;
 	sep.separator = true;
 	sep.ID = -1;
+	if (p_text != String()) {
+		sep.text = p_text;
+		sep.xl_text = tr(p_text);
+	}
 	items.push_back(sep);
 	update();
 }
@@ -1201,6 +1236,19 @@ bool PopupMenu::is_hide_on_multistate_item_selection() const {
 	return hide_on_multistate_item_selection;
 }
 
+void PopupMenu::set_submenu_popup_delay(float p_time) {
+
+	if (p_time <= 0)
+		p_time = 0.01;
+
+	submenu_timer->set_wait_time(p_time);
+}
+
+float PopupMenu::get_submenu_popup_delay() const {
+
+	return submenu_timer->get_wait_time();
+}
+
 String PopupMenu::get_tooltip(const Point2 &p_pos) const {
 
 	int over = _get_mouse_over(p_pos);
@@ -1288,7 +1336,7 @@ void PopupMenu::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("remove_item", "idx"), &PopupMenu::remove_item);
 
-	ClassDB::bind_method(D_METHOD("add_separator"), &PopupMenu::add_separator);
+	ClassDB::bind_method(D_METHOD("add_separator", "label"), &PopupMenu::add_separator, DEFVAL(String()));
 	ClassDB::bind_method(D_METHOD("clear"), &PopupMenu::clear);
 
 	ClassDB::bind_method(D_METHOD("_set_items"), &PopupMenu::_set_items);
@@ -1303,12 +1351,15 @@ void PopupMenu::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_hide_on_state_item_selection", "enable"), &PopupMenu::set_hide_on_multistate_item_selection);
 	ClassDB::bind_method(D_METHOD("is_hide_on_state_item_selection"), &PopupMenu::is_hide_on_multistate_item_selection);
 
+	ClassDB::bind_method(D_METHOD("set_submenu_popup_delay", "seconds"), &PopupMenu::set_submenu_popup_delay);
+	ClassDB::bind_method(D_METHOD("get_submenu_popup_delay"), &PopupMenu::get_submenu_popup_delay);
 	ClassDB::bind_method(D_METHOD("_submenu_timeout"), &PopupMenu::_submenu_timeout);
 
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "items", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL), "_set_items", "_get_items");
 	ADD_PROPERTYNO(PropertyInfo(Variant::BOOL, "hide_on_item_selection"), "set_hide_on_item_selection", "is_hide_on_item_selection");
 	ADD_PROPERTYNO(PropertyInfo(Variant::BOOL, "hide_on_checkable_item_selection"), "set_hide_on_checkable_item_selection", "is_hide_on_checkable_item_selection");
 	ADD_PROPERTYNO(PropertyInfo(Variant::BOOL, "hide_on_state_item_selection"), "set_hide_on_state_item_selection", "is_hide_on_state_item_selection");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "submenu_popup_delay"), "set_submenu_popup_delay", "get_submenu_popup_delay");
 
 	ADD_SIGNAL(MethodInfo("id_pressed", PropertyInfo(Variant::INT, "ID")));
 	ADD_SIGNAL(MethodInfo("id_focused", PropertyInfo(Variant::INT, "ID")));
