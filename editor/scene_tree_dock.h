@@ -68,6 +68,7 @@ class SceneTreeDock : public VBoxContainer {
 		TOOL_MOVE_DOWN,
 		TOOL_DUPLICATE,
 		TOOL_REPARENT,
+		TOOL_MAKE_ROOT,
 		TOOL_NEW_SCENE_FROM,
 		TOOL_MERGE_FROM_SCENE,
 		TOOL_MULTI_EDIT,
@@ -80,7 +81,12 @@ class SceneTreeDock : public VBoxContainer {
 		TOOL_SCENE_OPEN,
 		TOOL_SCENE_CLEAR_INHERITANCE,
 		TOOL_SCENE_CLEAR_INHERITANCE_CONFIRM,
-		TOOL_SCENE_OPEN_INHERITED
+		TOOL_SCENE_OPEN_INHERITED,
+
+		TOOL_CREATE_2D_SCENE,
+		TOOL_CREATE_3D_SCENE,
+		TOOL_CREATE_USER_INTERFACE,
+
 	};
 
 	enum {
@@ -134,13 +140,22 @@ class SceneTreeDock : public VBoxContainer {
 	Node *edited_scene;
 	EditorNode *editor;
 
+	VBoxContainer *create_root_dialog;
+
 	void _add_children_to_popup(Object *p_obj, int p_depth);
 
 	void _node_reparent(NodePath p_path, bool p_keep_global_xform);
 	void _do_reparent(Node *p_new_parent, int p_position_in_parent, Vector<Node *> p_nodes, bool p_keep_global_xform);
 
 	void _set_owners(Node *p_owner, const Array &p_nodes);
-	void _node_replace_owner(Node *p_base, Node *p_node, Node *p_root);
+
+	enum ReplaceOwnerMode {
+		MODE_BIDI,
+		MODE_DO,
+		MODE_UNDO
+	};
+
+	void _node_replace_owner(Node *p_base, Node *p_node, Node *p_root, ReplaceOwnerMode p_mode = MODE_BIDI);
 	void _load_request(const String &p_path);
 	void _script_open_request(const Ref<Script> &p_script);
 

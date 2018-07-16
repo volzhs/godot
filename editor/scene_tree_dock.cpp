@@ -551,6 +551,32 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			reparent_dialog->set_current(nodeset);
 
 		} break;
+		case TOOL_MAKE_ROOT: {
+
+			List<Node *> nodes = editor_selection->get_selected_node_list();
+			ERR_FAIL_COND(nodes.size() != 1);
+
+			Node *node = nodes.front()->get();
+			Node *root = get_tree()->get_edited_scene_root();
+
+			if (node == root)
+				return;
+
+			editor_data->get_undo_redo().create_action("Make node as Root");
+			_node_replace_owner(root, node, node, MODE_DO);
+			editor_data->get_undo_redo().add_do_method(node->get_parent(), "remove_child", node);
+			editor_data->get_undo_redo().add_do_method(editor, "set_edited_scene", node);
+			editor_data->get_undo_redo().add_do_method(node, "set_filename", root->get_filename());
+
+			editor_data->get_undo_redo().add_undo_method(node, "set_filename", String());
+			editor_data->get_undo_redo().add_undo_method(editor, "set_edited_scene", root);
+			editor_data->get_undo_redo().add_undo_method(node->get_parent(), "add_child", node);
+			_node_replace_owner(root, node, root, MODE_UNDO);
+			editor_data->get_undo_redo().add_do_method(scene_tree, "update_tree");
+			editor_data->get_undo_redo().add_undo_method(scene_tree, "update_tree");
+			editor_data->get_undo_redo().add_undo_reference(root);
+			editor_data->get_undo_redo().commit_action();
+		} break;
 		case TOOL_MULTI_EDIT: {
 
 			Node *root = EditorNode::get_singleton()->get_edited_scene();
@@ -757,6 +783,26 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 				}
 			}
 		} break;
+		case TOOL_CREATE_2D_SCENE:
+		case TOOL_CREATE_3D_SCENE:
+		case TOOL_CREATE_USER_INTERFACE: {
+
+			Node *new_node;
+			switch (p_tool) {
+				case TOOL_CREATE_2D_SCENE: new_node = memnew(Node2D); break;
+				case TOOL_CREATE_3D_SCENE: new_node = memnew(Spatial); break;
+				case TOOL_CREATE_USER_INTERFACE: new_node = memnew(Control); break;
+			}
+
+			editor_data->get_undo_redo().create_action("New Scene Root");
+			editor_data->get_undo_redo().add_do_method(editor, "set_edited_scene", new_node);
+			editor_data->get_undo_redo().add_do_method(scene_tree, "update_tree");
+			editor_data->get_undo_redo().add_do_reference(new_node);
+			editor_data->get_undo_redo().add_undo_method(editor, "set_edited_scene", (Object *)NULL);
+			editor_data->get_undo_redo().commit_action();
+
+		} break;
+
 		default: {
 
 			if (p_tool >= EDIT_SUBRESOURCE_BASE) {
@@ -803,6 +849,35 @@ void SceneTreeDock::_notification(int p_what) {
 
 			EditorNode::get_singleton()->get_editor_selection()->connect("selection_changed", this, "_selection_changed");
 
+			create_root_dialog->add_child(memnew(Label(TTR("Create Root Node:"))));
+
+			Button *button_2d = memnew(Button);
+			create_root_dialog->add_child(button_2d);
+
+			button_2d->set_text(TTR("2D Scene"));
+			button_2d->set_icon(get_icon("Node2D", "EditorIcons"));
+			button_2d->connect("pressed", this, "_tool_selected", make_binds(TOOL_CREATE_2D_SCENE, false));
+
+			Button *button_3d = memnew(Button);
+			create_root_dialog->add_child(button_3d);
+			button_3d->set_text(TTR("3D Scene"));
+			button_3d->set_icon(get_icon("Spatial", "EditorIcons"));
+			button_3d->connect("pressed", this, "_tool_selected", make_binds(TOOL_CREATE_3D_SCENE, false));
+
+			Button *button_ui = memnew(Button);
+			create_root_dialog->add_child(button_ui);
+			button_ui->set_text(TTR("User Interface"));
+			button_ui->set_icon(get_icon("Control", "EditorIcons"));
+			button_ui->connect("pressed", this, "_tool_selected", make_binds(TOOL_CREATE_USER_INTERFACE, false));
+
+			Button *button_custom = memnew(Button);
+			create_root_dialog->add_child(button_custom);
+			button_custom->set_text(TTR("Custom Node"));
+			button_custom->set_icon(get_icon("Add", "EditorIcons"));
+			button_custom->connect("pressed", this, "_tool_selected", make_binds(TOOL_NEW, false));
+
+			create_root_dialog->add_spacer();
+
 		} break;
 
 		case NOTIFICATION_ENTER_TREE: {
@@ -820,21 +895,49 @@ void SceneTreeDock::_notification(int p_what) {
 
 			filter->add_icon_override("right_icon", get_icon("Search", "EditorIcons"));
 		} break;
+		case NOTIFICATION_PROCESS: {
+
+			bool show_create_root = bool(EDITOR_GET("interface/editors/show_scene_tree_root_selection")) && get_tree()->get_edited_scene_root() == NULL;
+
+			if (show_create_root != create_root_dialog->is_visible_in_tree()) {
+				if (show_create_root) {
+					create_root_dialog->show();
+					scene_tree->hide();
+				} else {
+					create_root_dialog->hide();
+					scene_tree->show();
+				}
+			}
+
+		} break;
 	}
 }
 
-void SceneTreeDock::_node_replace_owner(Node *p_base, Node *p_node, Node *p_root) {
+void SceneTreeDock::_node_replace_owner(Node *p_base, Node *p_node, Node *p_root, ReplaceOwnerMode p_mode) {
 
 	if (p_base != p_node) {
 		if (p_node->get_owner() == p_base) {
 			UndoRedo *undo_redo = &editor_data->get_undo_redo();
-			undo_redo->add_do_method(p_node, "set_owner", p_root);
-			undo_redo->add_undo_method(p_node, "set_owner", p_base);
+			switch (p_mode) {
+				case MODE_BIDI: {
+					undo_redo->add_do_method(p_node, "set_owner", p_root);
+					undo_redo->add_undo_method(p_node, "set_owner", p_base);
+
+				} break;
+				case MODE_DO: {
+					undo_redo->add_do_method(p_node, "set_owner", p_root);
+
+				} break;
+				case MODE_UNDO: {
+					undo_redo->add_undo_method(p_node, "set_owner", p_root);
+
+				} break;
+			}
 		}
 	}
 
 	for (int i = 0; i < p_node->get_child_count(); i++) {
-		_node_replace_owner(p_base, p_node->get_child(i), p_root);
+		_node_replace_owner(p_base, p_node->get_child(i), p_root, p_mode);
 	}
 }
 
@@ -1904,6 +2007,8 @@ void SceneTreeDock::_tree_rmb(const Vector2 &p_menu_pos) {
 	menu->add_icon_shortcut(get_icon("Reparent", "EditorIcons"), ED_GET_SHORTCUT("scene_tree/reparent"), TOOL_REPARENT);
 
 	if (selection.size() == 1) {
+
+		menu->add_icon_shortcut(get_icon("NewRoot", "EditorIcons"), ED_GET_SHORTCUT("scene_tree/make_root"), TOOL_MAKE_ROOT);
 		menu->add_separator();
 		menu->add_icon_shortcut(get_icon("Blend", "EditorIcons"), ED_GET_SHORTCUT("scene_tree/merge_from_scene"), TOOL_MERGE_FROM_SCENE);
 		menu->add_icon_shortcut(get_icon("CreateNewSceneFrom", "EditorIcons"), ED_GET_SHORTCUT("scene_tree/save_branch_as_scene"), TOOL_NEW_SCENE_FROM);
@@ -2090,6 +2195,7 @@ SceneTreeDock::SceneTreeDock(EditorNode *p_editor, Node *p_scene_root, EditorSel
 	ED_SHORTCUT("scene_tree/move_down", TTR("Move Down"), KEY_MASK_CMD | KEY_DOWN);
 	ED_SHORTCUT("scene_tree/duplicate", TTR("Duplicate"), KEY_MASK_CMD | KEY_D);
 	ED_SHORTCUT("scene_tree/reparent", TTR("Reparent"));
+	ED_SHORTCUT("scene_tree/make_root", TTR("Make Scene Root"));
 	ED_SHORTCUT("scene_tree/merge_from_scene", TTR("Merge From Scene"));
 	ED_SHORTCUT("scene_tree/save_branch_as_scene", TTR("Save Branch as Scene"));
 	ED_SHORTCUT("scene_tree/copy_node_path", TTR("Copy Node Path"), KEY_MASK_CMD | KEY_C);
@@ -2152,6 +2258,10 @@ SceneTreeDock::SceneTreeDock(EditorNode *p_editor, Node *p_scene_root, EditorSel
 
 	remote_tree = NULL;
 	button_hb->hide();
+
+	create_root_dialog = memnew(VBoxContainer);
+	vbc->add_child(create_root_dialog);
+	create_root_dialog->hide();
 
 	scene_tree = memnew(SceneTreeEditor(false, true, true));
 
@@ -2227,4 +2337,7 @@ SceneTreeDock::SceneTreeDock(EditorNode *p_editor, Node *p_scene_root, EditorSel
 	add_child(clear_inherit_confirm);
 
 	set_process_input(true);
+	set_process(true);
+
+	EDITOR_DEF("interface/editors/show_scene_tree_root_selection", true);
 }
