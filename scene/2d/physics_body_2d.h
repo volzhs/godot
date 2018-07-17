@@ -290,21 +290,25 @@ private:
 	bool on_floor;
 	bool on_ceiling;
 	bool on_wall;
+
 	Vector<Collision> colliders;
 	Vector<Ref<KinematicCollision2D> > slide_colliders;
 	Ref<KinematicCollision2D> motion_cache;
 
 	_FORCE_INLINE_ bool _ignores_mode(Physics2DServer::BodyMode) const;
 
-	Ref<KinematicCollision2D> _move(const Vector2 &p_motion, bool p_infinite_inertia = true);
+	Ref<KinematicCollision2D> _move(const Vector2 &p_motion, bool p_infinite_inertia = true, bool p_exclude_raycast_shapes = true);
 	Ref<KinematicCollision2D> _get_slide_collision(int p_bounce);
 
 protected:
 	static void _bind_methods();
 
 public:
-	bool move_and_collide(const Vector2 &p_motion, bool p_infinite_inertia, Collision &r_collision);
+	bool move_and_collide(const Vector2 &p_motion, bool p_infinite_inertia, Collision &r_collision, bool p_exclude_raycast_shapes = true);
+	bool snap_to_floor(const Vector2 &p_direction, float p_floor_max_angle = Math::deg2rad((float)45));
 	bool test_move(const Transform2D &p_from, const Vector2 &p_motion, bool p_infinite_inertia);
+
+	bool separate_raycast_shapes(bool p_infinite_inertia, Collision &r_collision);
 
 	void set_safe_margin(float p_margin);
 	float get_safe_margin() const;
