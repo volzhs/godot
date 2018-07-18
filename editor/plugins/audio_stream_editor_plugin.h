@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  path_2d_editor_plugin.h                                              */
+/*  audio_stream_editor_plugin.h                                         */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,109 +28,66 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef PATH_2D_EDITOR_PLUGIN_H
-#define PATH_2D_EDITOR_PLUGIN_H
+#ifndef AUDIO_STREAM_EDITOR_PLUGIN_H
+#define AUDIO_STREAM_EDITOR_PLUGIN_H
 
 #include "editor/editor_node.h"
 #include "editor/editor_plugin.h"
-#include "scene/2d/path_2d.h"
-#include "scene/gui/tool_button.h"
+#include "scene/audio/audio_player.h"
+#include "scene/gui/color_rect.h"
+#include "scene/resources/texture.h"
 
-/**
-	@author Juan Linietsky <reduzio@gmail.com>
-*/
-class CanvasItemEditor;
+class AudioStreamEditor : public ColorRect {
 
-class Path2DEditor : public HBoxContainer {
+	GDCLASS(AudioStreamEditor, ColorRect);
 
-	GDCLASS(Path2DEditor, HBoxContainer);
+	Ref<AudioStream> stream;
+	AudioStreamPlayer *_player;
+	ColorRect *_preview;
+	Control *_indicator;
+	Label *_current_label;
+	Label *_duration_label;
 
-	UndoRedo *undo_redo;
+	ToolButton *_play_button;
+	ToolButton *_stop_button;
 
-	CanvasItemEditor *canvas_item_editor;
-	EditorNode *editor;
-	Panel *panel;
-	Path2D *node;
-
-	HBoxContainer *base_hb;
-	Separator *sep;
-
-	enum Mode {
-		MODE_CREATE,
-		MODE_EDIT,
-		MODE_EDIT_CURVE,
-		MODE_DELETE,
-		ACTION_CLOSE
-	};
-
-	Mode mode;
-	ToolButton *curve_create;
-	ToolButton *curve_edit;
-	ToolButton *curve_edit_curve;
-	ToolButton *curve_del;
-	ToolButton *curve_close;
-	MenuButton *handle_menu;
-
-	bool mirror_handle_angle;
-	bool mirror_handle_length;
-
-	enum HandleOption {
-		HANDLE_OPTION_ANGLE,
-		HANDLE_OPTION_LENGTH
-	};
-
-	enum Action {
-
-		ACTION_NONE,
-		ACTION_MOVING_POINT,
-		ACTION_MOVING_IN,
-		ACTION_MOVING_OUT,
-	};
-
-	Action action;
-	int action_point;
-	Point2 moving_from;
-	Point2 moving_screen_from;
-	float orig_in_length;
-	float orig_out_length;
-
-	void _mode_selected(int p_mode);
-	void _handle_option_pressed(int p_option);
-
-	void _node_visibility_changed();
-	friend class Path2DEditorPlugin;
+	float _current;
+	bool _dragging;
 
 protected:
 	void _notification(int p_what);
-	void _node_removed(Node *p_node);
+	void _preview_changed(ObjectID p_which);
+	void _play();
+	void _stop();
+	void _on_finished();
+	void _draw_preview();
+	void _draw_indicator();
+	void _on_input_indicator(Ref<InputEvent> p_event);
+	void _seek_to(real_t p_x);
+	void _changed_callback(Object *p_changed, const char *p_prop);
 	static void _bind_methods();
 
 public:
-	bool forward_gui_input(const Ref<InputEvent> &p_event);
-	void forward_draw_over_viewport(Control *p_overlay);
-	void edit(Node *p_path2d);
-	Path2DEditor(EditorNode *p_editor);
+	void edit(Ref<AudioStream> p_stream);
+	AudioStreamEditor();
 };
 
-class Path2DEditorPlugin : public EditorPlugin {
+class AudioStreamEditorPlugin : public EditorPlugin {
 
-	GDCLASS(Path2DEditorPlugin, EditorPlugin);
+	GDCLASS(AudioStreamEditorPlugin, EditorPlugin);
 
-	Path2DEditor *path2d_editor;
+	AudioStreamEditor *audio_editor;
 	EditorNode *editor;
 
 public:
-	virtual bool forward_canvas_gui_input(const Ref<InputEvent> &p_event) { return path2d_editor->forward_gui_input(p_event); }
-	virtual void forward_draw_over_viewport(Control *p_overlay) { return path2d_editor->forward_draw_over_viewport(p_overlay); }
-
-	virtual String get_name() const { return "Path2D"; }
+	virtual String get_name() const { return "Audio"; }
 	bool has_main_screen() const { return false; }
 	virtual void edit(Object *p_object);
 	virtual bool handles(Object *p_object) const;
 	virtual void make_visible(bool p_visible);
 
-	Path2DEditorPlugin(EditorNode *p_node);
-	~Path2DEditorPlugin();
+	AudioStreamEditorPlugin(EditorNode *p_node);
+	~AudioStreamEditorPlugin();
 };
 
-#endif // PATH_2D_EDITOR_PLUGIN_H
+#endif // AUDIO_STREAM_EDITOR_PLUGIN_H
