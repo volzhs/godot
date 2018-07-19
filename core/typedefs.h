@@ -74,7 +74,7 @@ T *_nullptr() {
 
 #define OFFSET_OF(st, m) \
 	((size_t)((char *)&(_nullptr<st>()->m) - (char *)0))
-	/**
+/**
  * Some platforms (devices) not define NULL
  */
 
@@ -82,7 +82,7 @@ T *_nullptr() {
 #define NULL 0
 #endif
 
-	/**
+/**
  * Windows defines a lot of badly stuff we'll never ever use. undefine it.
  */
 
@@ -97,6 +97,7 @@ T *_nullptr() {
 #undef CLAMP // override standard definition
 #undef Error
 #undef OK
+#undef CONNECT_DEFERRED // override from Windows SDK, clashes with Object enum
 #endif
 
 #include "int_types.h"
@@ -104,7 +105,7 @@ T *_nullptr() {
 #include "error_list.h"
 #include "error_macros.h"
 
-	/** Generic ABS function, for math uses please use Math::abs */
+/** Generic ABS function, for math uses please use Math::abs */
 
 #ifndef ABS
 #define ABS(m_v) ((m_v < 0) ? (-(m_v)) : (m_v))
