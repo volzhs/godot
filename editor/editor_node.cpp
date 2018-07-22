@@ -5270,7 +5270,7 @@ EditorNode::EditorNode() {
 	video_restart_dialog->set_text(TTR("Changing the video driver requires restarting the editor."));
 	video_restart_dialog->get_ok()->set_text(TTR("Save & Restart"));
 	video_restart_dialog->connect("confirmed", this, "_menu_option", varray(SET_VIDEO_DRIVER_SAVE_AND_RESTART));
-	add_child(video_restart_dialog);
+	gui_base->add_child(video_restart_dialog);
 
 	progress_hb = memnew(BackgroundProgress);
 
@@ -5289,8 +5289,8 @@ EditorNode::EditorNode() {
 	update_menu->set_icon(gui_base->get_icon("Progress1", "EditorIcons"));
 	update_menu->get_popup()->connect("id_pressed", this, "_menu_option");
 	p = update_menu->get_popup();
-	p->add_check_item(TTR("Update Always"), SETTINGS_UPDATE_ALWAYS);
-	p->add_check_item(TTR("Update Changes"), SETTINGS_UPDATE_CHANGES);
+	p->add_radio_check_item(TTR("Update Always"), SETTINGS_UPDATE_ALWAYS);
+	p->add_radio_check_item(TTR("Update Changes"), SETTINGS_UPDATE_CHANGES);
 	p->add_separator();
 	p->add_check_item(TTR("Disable Update Spinner"), SETTINGS_UPDATE_SPINNER_HIDE);
 	int update_always = EditorSettings::get_singleton()->get_project_metadata("editor_options", "update_always", false);
