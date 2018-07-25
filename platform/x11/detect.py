@@ -62,6 +62,7 @@ def get_opts():
         EnumVariable('debug_symbols', 'Add debugging symbols to release builds', 'yes', ('yes', 'no', 'full')),
         BoolVariable('separate_debug_symbols', 'Create a separate file containing debugging symbols', False),
         BoolVariable('touch', 'Enable touch events', True),
+        BoolVariable('execinfo', 'Use libexecinfo on systems where glibc is not available', False),
     ]
 
 
@@ -248,7 +249,7 @@ def configure(env):
 
     if (os.system("pkg-config --exists alsa") == 0): # 0 means found
         print("Enabling ALSA")
-        env.Append(CPPFLAGS=["-DALSA_ENABLED"])
+        env.Append(CPPFLAGS=["-DALSA_ENABLED", "-DALSAMIDI_ENABLED"])
         env.ParseConfig('pkg-config alsa --cflags --libs')
     else:
         print("ALSA libraries not found, disabling driver")
@@ -284,6 +285,9 @@ def configure(env):
         env.Append(LIBS=['dl'])
 
     if (platform.system().find("BSD") >= 0):
+        env["execinfo"] = True
+
+    if env["execinfo"]:
         env.Append(LIBS=['execinfo'])
 
     ## Cross-compilation

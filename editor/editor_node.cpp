@@ -112,6 +112,7 @@
 #include "editor/plugins/sprite_editor_plugin.h"
 #include "editor/plugins/sprite_frames_editor_plugin.h"
 #include "editor/plugins/style_box_editor_plugin.h"
+#include "editor/plugins/text_editor.h"
 #include "editor/plugins/texture_editor_plugin.h"
 #include "editor/plugins/texture_region_editor_plugin.h"
 #include "editor/plugins/theme_editor_plugin.h"
@@ -156,7 +157,6 @@ void EditorNode::_update_scene_tabs() {
 
 	scene_tabs->set_current_tab(editor_data.get_edited_scene());
 
-	int current = editor_data.get_edited_scene();
 	if (scene_tabs->get_offset_buttons_visible()) {
 		// move add button to fixed position on the tabbar
 		if (scene_tab_add->get_parent() == scene_tabs) {
@@ -5469,6 +5469,7 @@ EditorNode::EditorNode() {
 	EditorAudioBuses *audio_bus_editor = EditorAudioBuses::register_editor();
 
 	ScriptTextEditor::register_editor(); //register one for text scripts
+	TextEditor::register_editor();
 
 	if (StreamPeerSSL::is_available()) {
 		add_editor_plugin(memnew(AssetLibraryEditorPlugin(this)));

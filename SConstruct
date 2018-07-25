@@ -409,6 +409,11 @@ if selected_platform in platform_list:
 
     env["PROGSUFFIX"] = suffix + env.module_version_string + env["PROGSUFFIX"]
     env["OBJSUFFIX"] = suffix + env["OBJSUFFIX"]
+    # (SH)LIBSUFFIX will be used for our own built libraries
+    # LIBSUFFIXES contains LIBSUFFIX and SHLIBSUFFIX by default,
+    # so we need to append the default suffixes to keep the ability
+    # to link against thirdparty libraries (.a, .so, .dll, etc.).
+    env["LIBSUFFIXES"] += [env["LIBSUFFIX"], env["SHLIBSUFFIX"]]
     env["LIBSUFFIX"] = suffix + env["LIBSUFFIX"]
     env["SHLIBSUFFIX"] = suffix + env["SHLIBSUFFIX"]
 
@@ -417,11 +422,19 @@ if selected_platform in platform_list:
     if env['tools']:
         env.Append(CPPDEFINES=['TOOLS_ENABLED'])
     if env['disable_3d']:
-        env.Append(CPPDEFINES=['_3D_DISABLED'])
+        if env['tools']:
+            print("Build option 'disable_3d=yes' cannot be used with 'tools=yes' (editor), only with 'tools=no' (export template).")
+            sys.exit(255)
+        else:
+            env.Append(CPPDEFINES=['_3D_DISABLED'])
     if env['gdscript']:
         env.Append(CPPDEFINES=['GDSCRIPT_ENABLED'])
     if env['disable_advanced_gui']:
-        env.Append(CPPDEFINES=['ADVANCED_GUI_DISABLED'])
+        if env['tools']:
+            print("Build option 'disable_advanced_gui=yes' cannot be used with 'tools=yes' (editor), only with 'tools=no' (export template).")
+            sys.exit(255)
+        else:
+            env.Append(CPPDEFINES=['ADVANCED_GUI_DISABLED'])
     if env['minizip']:
         env.Append(CPPDEFINES=['MINIZIP_ENABLED'])
     if env['xml']:
