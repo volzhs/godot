@@ -729,7 +729,7 @@ Error BindingsGenerator::_generate_cs_type(const TypeInterface &itype, const Str
 
 	output.push_back(INDENT1 "public ");
 	bool is_abstract = itype.is_object_type && !ClassDB::can_instance(itype.name) && ClassDB::is_class_enabled(itype.name); // can_instance returns true if there's a constructor and the class is not 'disabled'
-	output.push_back(itype.is_singleton ? "static class " : (is_abstract ? "abstract class " : "class "));
+	output.push_back(itype.is_singleton ? "static partial class " : (is_abstract ? "abstract partial class " : "partial class "));
 	output.push_back(itype.proxy_name);
 
 	if (itype.is_singleton) {
@@ -1650,7 +1650,7 @@ Error BindingsGenerator::_generate_glue_method(const BindingsGenerator::TypeInte
 								   "\t\tvarargs.set(i, GDMonoMarshal::mono_object_to_variant(elem));\n"
 								   "\t\t" C_LOCAL_PTRCALL_ARGS ".set(");
 				p_output.push_back(real_argc_str);
-				p_output.push_back(" + i, &varargs[i]);\n\t" CLOSE_BLOCK);
+				p_output.push_back(" + i, &varargs.write[i]);\n\t" CLOSE_BLOCK);
 			} else {
 				p_output.push_back(c_in_statements);
 				p_output.push_back("\tconst void* " C_LOCAL_PTRCALL_ARGS "[");
