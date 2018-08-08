@@ -1,12 +1,12 @@
 /*************************************************************************/
-/*  editor_spin_slider.h                                                 */
+/*  skeleton_ik_editor_plugin.h                                             */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -28,79 +28,38 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef EDITOR_SPIN_SLIDER_H
-#define EDITOR_SPIN_SLIDER_H
+#ifndef SKELETON_IK_EDITOR_PLUGIN_H
+#define SKELETON_IK_EDITOR_PLUGIN_H
 
-#include "scene/gui/line_edit.h"
-#include "scene/gui/range.h"
-#include "scene/gui/texture_rect.h"
+#include "editor/editor_node.h"
+#include "editor/editor_plugin.h"
 
-class EditorSpinSlider : public Range {
-	GDCLASS(EditorSpinSlider, Range)
+class SkeletonIK;
 
-	String label;
-	int updown_offset;
-	bool hover_updown;
-	bool mouse_hover;
+class SkeletonIKEditorPlugin : public EditorPlugin {
 
-	TextureRect *grabber;
-	int grabber_range;
+	GDCLASS(SkeletonIKEditorPlugin, EditorPlugin);
 
-	bool mouse_over_spin;
-	bool mouse_over_grabber;
+	SkeletonIK *skeleton_ik;
 
-	bool grabbing_grabber;
-	int grabbing_from;
-	float grabbing_ratio;
+	Button *play_btn;
+	EditorNode *editor;
+	Vector<Transform> initial_bone_poses;
 
-	bool grabbing_spinner_attempt;
-	bool grabbing_spinner;
-
-	bool read_only;
-	float grabbing_spinner_dist_cache;
-	Vector2 grabbing_spinner_mouse_pos;
-
-	LineEdit *value_input;
-	bool value_input_just_closed;
-
-	void _grabber_gui_input(const Ref<InputEvent> &p_event);
-	void _value_input_closed();
-	void _value_input_entered(const String &);
-	void _value_focus_exited();
-	bool hide_slider;
-	bool flat;
-
-	bool use_custom_label_color;
-	Color custom_label_color;
+	void _play();
 
 protected:
-	void _notification(int p_what);
-	void _gui_input(const Ref<InputEvent> &p_event);
 	static void _bind_methods();
-	void _grabber_mouse_entered();
-	void _grabber_mouse_exited();
-	void _focus_entered();
 
 public:
-	String get_tooltip(const Point2 &p_pos) const;
+	virtual String get_name() const { return "SkeletonIK"; }
+	bool has_main_screen() const { return false; }
+	virtual void edit(Object *p_object);
+	virtual bool handles(Object *p_object) const;
+	virtual void make_visible(bool p_visible);
 
-	String get_text_value() const;
-	void set_label(const String &p_label);
-	String get_label() const;
-
-	void set_hide_slider(bool p_hide);
-	bool is_hiding_slider() const;
-
-	void set_read_only(bool p_enable);
-	bool is_read_only() const;
-
-	void set_flat(bool p_enable);
-	bool is_flat() const;
-
-	void set_custom_label_color(bool p_use_custom_label_color, Color p_custom_label_color);
-
-	virtual Size2 get_minimum_size() const;
-	EditorSpinSlider();
+	SkeletonIKEditorPlugin(EditorNode *p_node);
+	~SkeletonIKEditorPlugin();
 };
 
-#endif // EDITOR_SPIN_SLIDER_H
+#endif // SKELETON_IK_EDITOR_PLUGIN_H

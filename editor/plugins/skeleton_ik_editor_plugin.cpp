@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  physics_material.cpp                                                 */
+/*  skeleton_ik_editor_plugin.cpp                                        */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -27,50 +27,84 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "physics_material.h"
 
-void PhysicsMaterial::_bind_methods() {
+#include "skeleton_ik_editor_plugin.h"
 
-	ClassDB::bind_method(D_METHOD("set_friction", "friction"), &PhysicsMaterial::set_friction);
-	ClassDB::bind_method(D_METHOD("get_friction"), &PhysicsMaterial::get_friction);
+#include "scene/animation/skeleton_ik.h"
 
-	ClassDB::bind_method(D_METHOD("set_rough", "rough"), &PhysicsMaterial::set_rough);
-	ClassDB::bind_method(D_METHOD("is_rough"), &PhysicsMaterial::is_rough);
+void SkeletonIKEditorPlugin::_play() {
 
-	ClassDB::bind_method(D_METHOD("set_bounce", "bounce"), &PhysicsMaterial::set_bounce);
-	ClassDB::bind_method(D_METHOD("get_bounce"), &PhysicsMaterial::get_bounce);
+	if (!skeleton_ik)
+		return;
 
-	ClassDB::bind_method(D_METHOD("set_absorbent", "absorbent"), &PhysicsMaterial::set_absorbent);
-	ClassDB::bind_method(D_METHOD("is_absorbent"), &PhysicsMaterial::is_absorbent);
+	if (!skeleton_ik->get_parent_skeleton())
+		return;
 
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "friction"), "set_friction", "get_friction");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "rough"), "set_rough", "is_rough");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "bounce"), "set_bounce", "get_bounce");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "absorbent"), "set_absorbent", "is_absorbent");
+	if (play_btn->is_pressed()) {
+
+		initial_bone_poses.resize(skeleton_ik->get_parent_skeleton()->get_bone_count());
+		for (int i = 0; i < skeleton_ik->get_parent_skeleton()->get_bone_count(); ++i) {
+			initial_bone_poses.write[i] = skeleton_ik->get_parent_skeleton()->get_bone_pose(i);
+		}
+
+		skeleton_ik->start();
+	} else {
+		skeleton_ik->stop();
+
+		if (initial_bone_poses.size() != skeleton_ik->get_parent_skeleton()->get_bone_count())
+			return;
+
+		for (int i = 0; i < skeleton_ik->get_parent_skeleton()->get_bone_count(); ++i) {
+			skeleton_ik->get_parent_skeleton()->set_bone_pose(i, initial_bone_poses[i]);
+		}
+	}
 }
 
-void PhysicsMaterial::set_friction(real_t p_val) {
-	friction = p_val;
-	emit_changed();
+void SkeletonIKEditorPlugin::edit(Object *p_object) {
+
+	if (p_object != skeleton_ik) {
+		if (skeleton_ik) {
+			play_btn->set_pressed(false);
+			_play();
+		}
+	}
+
+	SkeletonIK *s = Object::cast_to<SkeletonIK>(p_object);
+	if (!s)
+		return;
+
+	skeleton_ik = s;
 }
 
-void PhysicsMaterial::set_rough(bool p_val) {
-	rough = p_val;
-	emit_changed();
+bool SkeletonIKEditorPlugin::handles(Object *p_object) const {
+
+	return p_object->is_class("SkeletonIK");
 }
 
-void PhysicsMaterial::set_bounce(real_t p_val) {
-	bounce = p_val;
-	emit_changed();
+void SkeletonIKEditorPlugin::make_visible(bool p_visible) {
+
+	if (p_visible)
+		play_btn->show();
+	else
+		play_btn->hide();
 }
 
-void PhysicsMaterial::set_absorbent(bool p_val) {
-	absorbent = p_val;
-	emit_changed();
+void SkeletonIKEditorPlugin::_bind_methods() {
+
+	ClassDB::bind_method("_play", &SkeletonIKEditorPlugin::_play);
 }
 
-PhysicsMaterial::PhysicsMaterial() :
-		friction(1),
-		rough(false),
-		bounce(0),
-		absorbent(false) {}
+SkeletonIKEditorPlugin::SkeletonIKEditorPlugin(EditorNode *p_node) {
+
+	editor = p_node;
+	play_btn = memnew(Button);
+	play_btn->set_icon(editor->get_gui_base()->get_icon("Play", "EditorIcons"));
+	play_btn->set_text(TTR("Play IK"));
+	play_btn->set_toggle_mode(true);
+	play_btn->hide();
+	play_btn->connect("pressed", this, "_play");
+	add_control_to_container(CONTAINER_SPATIAL_EDITOR_MENU, play_btn);
+	skeleton_ik = NULL;
+}
+
+SkeletonIKEditorPlugin::~SkeletonIKEditorPlugin() {}

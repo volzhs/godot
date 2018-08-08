@@ -124,7 +124,7 @@ bool ImageTexture::_set(const StringName &p_name, const Variant &p_value) {
 		Size2 s = p_value;
 		w = s.width;
 		h = s.height;
-		VisualServer::get_singleton()->texture_set_size_override(texture, w, h);
+		VisualServer::get_singleton()->texture_set_size_override(texture, w, h, 0);
 	} else if (p_name == "_data") {
 		_set_data(p_value);
 	} else
@@ -151,13 +151,6 @@ bool ImageTexture::_get(const StringName &p_name, Variant &r_ret) const {
 
 void ImageTexture::_get_property_list(List<PropertyInfo> *p_list) const {
 
-	PropertyHint img_hint = PROPERTY_HINT_NONE;
-	if (storage == STORAGE_COMPRESS_LOSSY) {
-		img_hint = PROPERTY_HINT_IMAGE_COMPRESS_LOSSY;
-	} else if (storage == STORAGE_COMPRESS_LOSSLESS) {
-		img_hint = PROPERTY_HINT_IMAGE_COMPRESS_LOSSLESS;
-	}
-
 	p_list->push_back(PropertyInfo(Variant::INT, "flags", PROPERTY_HINT_FLAGS, "Mipmaps,Repeat,Filter,Anisotropic,sRGB,Mirrored Repeat"));
 	p_list->push_back(PropertyInfo(Variant::OBJECT, "image", PROPERTY_HINT_RESOURCE_TYPE, "Image"));
 	p_list->push_back(PropertyInfo(Variant::VECTOR2, "size", PROPERTY_HINT_NONE, ""));
@@ -183,7 +176,7 @@ void ImageTexture::_reload_hook(const RID &p_hook) {
 void ImageTexture::create(int p_width, int p_height, Image::Format p_format, uint32_t p_flags) {
 
 	flags = p_flags;
-	VisualServer::get_singleton()->texture_allocate(texture, p_width, p_height, p_format, p_flags);
+	VisualServer::get_singleton()->texture_allocate(texture, p_width, p_height, 0, p_format, VS::TEXTURE_TYPE_2D, p_flags);
 	format = p_format;
 	w = p_width;
 	h = p_height;
@@ -196,7 +189,7 @@ void ImageTexture::create_from_image(const Ref<Image> &p_image, uint32_t p_flags
 	h = p_image->get_height();
 	format = p_image->get_format();
 
-	VisualServer::get_singleton()->texture_allocate(texture, p_image->get_width(), p_image->get_height(), p_image->get_format(), p_flags);
+	VisualServer::get_singleton()->texture_allocate(texture, p_image->get_width(), p_image->get_height(), 0, p_image->get_format(), VS::TEXTURE_TYPE_2D, p_flags);
 	VisualServer::get_singleton()->texture_set_data(texture, p_image);
 	_change_notify();
 }
@@ -301,7 +294,7 @@ void ImageTexture::set_size_override(const Size2 &p_size) {
 		w = s.x;
 	if (s.y != 0)
 		h = s.y;
-	VisualServer::get_singleton()->texture_set_size_override(texture, w, h);
+	VisualServer::get_singleton()->texture_set_size_override(texture, w, h, 0);
 }
 
 void ImageTexture::set_path(const String &p_path, bool p_take_over) {
@@ -592,7 +585,7 @@ Error StreamTexture::_load_data(const String &p_path, int &tw, int &th, int &fla
 			int sh = th;
 
 			int mipmaps = Image::get_image_required_mipmaps(tw, th, format);
-			int total_size = Image::get_image_data_size(tw, th, format, mipmaps);
+			int total_size = Image::get_image_data_size(tw, th, format, true);
 			int idx = 0;
 			int ofs = 0;
 
@@ -648,7 +641,7 @@ Error StreamTexture::load(const String &p_path) {
 	if (err)
 		return err;
 
-	VS::get_singleton()->texture_allocate(texture, image->get_width(), image->get_height(), image->get_format(), lflags);
+	VS::get_singleton()->texture_allocate(texture, image->get_width(), image->get_height(), 0, image->get_format(), VS::TEXTURE_TYPE_2D, lflags);
 	VS::get_singleton()->texture_set_data(texture, image);
 
 	w = lw;
@@ -1155,7 +1148,6 @@ void LargeTexture::draw_rect(RID p_canvas_item, const Rect2 &p_rect, bool p_tile
 
 	Size2 scale = p_rect.size / size;
 
-	RID normal_rid = p_normal_map.is_valid() ? p_normal_map->get_rid() : RID();
 	for (int i = 0; i < pieces.size(); i++) {
 
 		// TODO
@@ -1170,7 +1162,6 @@ void LargeTexture::draw_rect_region(RID p_canvas_item, const Rect2 &p_rect, cons
 
 	Size2 scale = p_rect.size / p_src_rect.size;
 
-	RID normal_rid = p_normal_map.is_valid() ? p_normal_map->get_rid() : RID();
 	for (int i = 0; i < pieces.size(); i++) {
 
 		// TODO
@@ -1195,7 +1186,7 @@ void CubeMap::set_flags(uint32_t p_flags) {
 
 	flags = p_flags;
 	if (_is_valid())
-		VS::get_singleton()->texture_set_flags(cubemap, flags | VS::TEXTURE_FLAG_CUBEMAP);
+		VS::get_singleton()->texture_set_flags(cubemap, flags);
 }
 
 uint32_t CubeMap::get_flags() const {
@@ -1211,7 +1202,7 @@ void CubeMap::set_side(Side p_side, const Ref<Image> &p_image) {
 		format = p_image->get_format();
 		w = p_image->get_width();
 		h = p_image->get_height();
-		VS::get_singleton()->texture_allocate(cubemap, w, h, p_image->get_format(), flags | VS::TEXTURE_FLAG_CUBEMAP);
+		VS::get_singleton()->texture_allocate(cubemap, w, h, 0, p_image->get_format(), VS::TEXTURE_TYPE_CUBEMAP, flags);
 	}
 
 	VS::get_singleton()->texture_set_data(cubemap, p_image, VS::CubeMapSide(p_side));
@@ -1321,13 +1312,6 @@ bool CubeMap::_get(const StringName &p_name, Variant &r_ret) const {
 }
 
 void CubeMap::_get_property_list(List<PropertyInfo> *p_list) const {
-
-	PropertyHint img_hint = PROPERTY_HINT_NONE;
-	if (storage == STORAGE_COMPRESS_LOSSY) {
-		img_hint = PROPERTY_HINT_IMAGE_COMPRESS_LOSSY;
-	} else if (storage == STORAGE_COMPRESS_LOSSLESS) {
-		img_hint = PROPERTY_HINT_IMAGE_COMPRESS_LOSSLESS;
-	}
 
 	p_list->push_back(PropertyInfo(Variant::OBJECT, "side/left", PROPERTY_HINT_RESOURCE_TYPE, "Image"));
 	p_list->push_back(PropertyInfo(Variant::OBJECT, "side/right", PROPERTY_HINT_RESOURCE_TYPE, "Image"));
@@ -1474,7 +1458,7 @@ void CurveTexture::_update() {
 
 	Ref<Image> image = memnew(Image(_width, 1, false, Image::FORMAT_RF, data));
 
-	VS::get_singleton()->texture_allocate(_texture, _width, 1, Image::FORMAT_RF, VS::TEXTURE_FLAG_FILTER);
+	VS::get_singleton()->texture_allocate(_texture, _width, 1, 0, Image::FORMAT_RF, VS::TEXTURE_TYPE_2D, VS::TEXTURE_FLAG_FILTER);
 	VS::get_singleton()->texture_set_data(_texture, image);
 
 	emit_changed();
@@ -1583,7 +1567,7 @@ void GradientTexture::_update() {
 
 	Ref<Image> image = memnew(Image(width, 1, false, Image::FORMAT_RGBA8, data));
 
-	VS::get_singleton()->texture_allocate(texture, width, 1, Image::FORMAT_RGBA8, VS::TEXTURE_FLAG_FILTER);
+	VS::get_singleton()->texture_allocate(texture, width, 1, 0, Image::FORMAT_RGBA8, VS::TEXTURE_TYPE_2D, VS::TEXTURE_FLAG_FILTER);
 	VS::get_singleton()->texture_set_data(texture, image);
 
 	emit_changed();
@@ -1875,4 +1859,328 @@ AnimatedTexture::AnimatedTexture() {
 
 AnimatedTexture::~AnimatedTexture() {
 	VS::get_singleton()->free(proxy);
+}
+///////////////////////////////
+
+void TextureLayered::set_flags(uint32_t p_flags) {
+	flags = p_flags;
+
+	if (texture.is_valid()) {
+		VS::get_singleton()->texture_set_flags(texture, flags);
+	}
+}
+
+uint32_t TextureLayered::get_flags() const {
+	return flags;
+}
+
+Image::Format TextureLayered::get_format() const {
+	return format;
+}
+
+uint32_t TextureLayered::get_width() const {
+	return width;
+}
+
+uint32_t TextureLayered::get_height() const {
+	return height;
+}
+
+uint32_t TextureLayered::get_depth() const {
+	return depth;
+}
+
+void TextureLayered::_set_data(const Dictionary &p_data) {
+	ERR_FAIL_COND(!p_data.has("width"));
+	ERR_FAIL_COND(!p_data.has("height"));
+	ERR_FAIL_COND(!p_data.has("depth"));
+	ERR_FAIL_COND(!p_data.has("format"));
+	ERR_FAIL_COND(!p_data.has("flags"));
+	ERR_FAIL_COND(!p_data.has("layers"));
+	int w = p_data["width"];
+	int h = p_data["height"];
+	int d = p_data["depth"];
+	Image::Format format = Image::Format(int(p_data["format"]));
+	int flags = p_data["flags"];
+	Array layers = p_data["layers"];
+	ERR_FAIL_COND(layers.size() != d);
+
+	create(w, h, d, format, flags);
+
+	for (int i = 0; i < layers.size(); i++) {
+		Ref<Image> img = layers[i];
+		ERR_CONTINUE(!img.is_valid());
+		ERR_CONTINUE(img->get_format() != format);
+		ERR_CONTINUE(img->get_width() != w);
+		ERR_CONTINUE(img->get_height() != h);
+		set_layer_data(img, i);
+	}
+}
+
+Dictionary TextureLayered::_get_data() const {
+	Dictionary d;
+	d["width"] = width;
+	d["height"] = height;
+	d["depth"] = depth;
+	d["flags"] = flags;
+	d["format"] = format;
+
+	Array layers;
+	for (int i = 0; i < depth; i++) {
+		layers.push_back(get_layer_data(i));
+	}
+	d["layers"] = layers;
+	return d;
+}
+
+void TextureLayered::create(uint32_t p_width, uint32_t p_height, uint32_t p_depth, Image::Format p_format, uint32_t p_flags) {
+	VS::get_singleton()->texture_allocate(texture, p_width, p_height, p_depth, p_format, is_3d ? VS::TEXTURE_TYPE_3D : VS::TEXTURE_TYPE_2D_ARRAY, p_flags);
+
+	width = p_width;
+	height = p_height;
+	depth = p_depth;
+
+	flags = p_flags;
+}
+
+void TextureLayered::set_layer_data(const Ref<Image> &p_image, int p_layer) {
+	ERR_FAIL_COND(!texture.is_valid());
+	VS::get_singleton()->texture_set_data(texture, p_image, p_layer);
+}
+
+Ref<Image> TextureLayered::get_layer_data(int p_layer) const {
+
+	ERR_FAIL_COND_V(!texture.is_valid(), Ref<Image>());
+	return VS::get_singleton()->texture_get_data(texture, p_layer);
+}
+
+void TextureLayered::set_data_partial(const Ref<Image> &p_image, int p_x_ofs, int p_y_ofs, int p_z, int p_mipmap) {
+	ERR_FAIL_COND(!texture.is_valid());
+	VS::get_singleton()->texture_set_data_partial(texture, p_image, 0, 0, p_image->get_width(), p_image->get_height(), p_x_ofs, p_y_ofs, p_mipmap, p_z);
+}
+
+RID TextureLayered::get_rid() const {
+	return texture;
+}
+
+void TextureLayered::set_path(const String &p_path, bool p_take_over) {
+	if (texture.is_valid()) {
+		VS::get_singleton()->texture_set_path(texture, p_path);
+	}
+
+	Resource::set_path(p_path, p_take_over);
+}
+
+void TextureLayered::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_flags", "flags"), &TextureLayered::set_flags);
+	ClassDB::bind_method(D_METHOD("get_flags"), &TextureLayered::get_flags);
+
+	ClassDB::bind_method(D_METHOD("get_format"), &TextureLayered::get_format);
+
+	ClassDB::bind_method(D_METHOD("get_width"), &TextureLayered::get_width);
+	ClassDB::bind_method(D_METHOD("get_height"), &TextureLayered::get_height);
+	ClassDB::bind_method(D_METHOD("get_depth"), &TextureLayered::get_depth);
+
+	ClassDB::bind_method(D_METHOD("create", "width", "height", "depth", "format", "flags"), &TextureLayered::create, DEFVAL(FLAGS_DEFAULT));
+	ClassDB::bind_method(D_METHOD("set_layer_data", "image", "layer"), &TextureLayered::set_layer_data);
+	ClassDB::bind_method(D_METHOD("get_layer_data", "layer"), &TextureLayered::set_layer_data);
+	ClassDB::bind_method(D_METHOD("set_data_partial", "image", "x_offset", "y_offset", "layer", "mipmap"), &TextureLayered::set_data_partial, DEFVAL(0));
+
+	ClassDB::bind_method(D_METHOD("_set_data", "data"), &TextureLayered::_set_data);
+	ClassDB::bind_method(D_METHOD("_get_data"), &TextureLayered::_get_data);
+
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "flags", PROPERTY_HINT_FLAGS, "Mipmaps,Repeat,Filter"), "set_flags", "get_flags");
+	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "_set_data", "_get_data");
+
+	BIND_ENUM_CONSTANT(FLAG_MIPMAPS);
+	BIND_ENUM_CONSTANT(FLAG_REPEAT);
+	BIND_ENUM_CONSTANT(FLAG_FILTER);
+	BIND_ENUM_CONSTANT(FLAGS_DEFAULT);
+}
+
+TextureLayered::TextureLayered(bool p_3d) {
+	is_3d = p_3d;
+	format = Image::FORMAT_MAX;
+	flags = FLAGS_DEFAULT;
+
+	width = 0;
+	height = 0;
+	depth = 0;
+
+	texture = VS::get_singleton()->texture_create();
+}
+
+TextureLayered::~TextureLayered() {
+	if (texture.is_valid()) {
+		VS::get_singleton()->free(texture);
+	}
+}
+
+RES ResourceFormatLoaderTextureLayered::load(const String &p_path, const String &p_original_path, Error *r_error) {
+
+	if (r_error) {
+		*r_error = ERR_CANT_OPEN;
+	}
+
+	Ref<TextureLayered> lt;
+	Ref<Texture3D> tex3d;
+	Ref<TextureArray> texarr;
+
+	if (p_path.ends_with("tex3d")) {
+		tex3d.instance();
+		lt = tex3d;
+	} else if (p_path.ends_with("texarr")) {
+		texarr.instance();
+		lt = texarr;
+	} else {
+		ERR_EXPLAIN("Unrecognized layered texture extension");
+		ERR_FAIL_V(RES());
+	}
+
+	FileAccess *f = FileAccess::open(p_path, FileAccess::READ);
+	ERR_FAIL_COND_V(!f, RES());
+
+	uint8_t header[5] = { 0, 0, 0, 0, 0 };
+	f->get_buffer(header, 4);
+
+	if (header[0] == 'G' && header[1] == 'D' && header[2] == '3' && header[3] == 'T') {
+		if (tex3d.is_null()) {
+			memdelete(f);
+			ERR_FAIL_COND_V(tex3d.is_null(), RES())
+		}
+	} else if (header[0] == 'G' && header[1] == 'D' && header[2] == 'A' && header[3] == 'T') {
+		if (texarr.is_null()) {
+			memdelete(f);
+			ERR_FAIL_COND_V(texarr.is_null(), RES())
+		}
+	} else {
+
+		ERR_EXPLAIN("Unrecognized layered texture file format: " + String((const char *)header));
+		ERR_FAIL_V(RES());
+	}
+
+	int tw = f->get_32();
+	int th = f->get_32();
+	int td = f->get_32();
+	int flags = f->get_32(); //texture flags!
+	Image::Format format = Image::Format(f->get_32());
+	uint32_t compression = f->get_32(); // 0 - lossless (PNG), 1 - vram, 2 - uncompressed
+
+	lt->create(tw, th, td, format, flags);
+
+	for (int layer = 0; layer < td; layer++) {
+
+		Ref<Image> image;
+		image.instance();
+
+		if (compression == COMPRESSION_LOSSLESS) {
+			//look for a PNG file inside
+
+			int mipmaps = f->get_32();
+			Vector<Ref<Image> > mipmap_images;
+
+			for (int i = 0; i < mipmaps; i++) {
+				uint32_t size = f->get_32();
+
+				PoolVector<uint8_t> pv;
+				pv.resize(size);
+				{
+					PoolVector<uint8_t>::Write w = pv.write();
+					f->get_buffer(w.ptr(), size);
+				}
+
+				Ref<Image> img = Image::lossless_unpacker(pv);
+
+				if (img.is_null() || img->empty() || format != img->get_format()) {
+					if (r_error) {
+						*r_error = ERR_FILE_CORRUPT;
+					}
+					memdelete(f);
+					ERR_FAIL_V(RES());
+				}
+
+				mipmap_images.push_back(img);
+			}
+
+			if (mipmap_images.size() == 1) {
+
+				image = mipmap_images[0];
+
+			} else {
+				int total_size = Image::get_image_data_size(tw, th, format, true);
+				PoolVector<uint8_t> img_data;
+				img_data.resize(total_size);
+
+				{
+					PoolVector<uint8_t>::Write w = img_data.write();
+
+					int ofs = 0;
+					for (int i = 0; i < mipmap_images.size(); i++) {
+
+						PoolVector<uint8_t> id = mipmap_images[i]->get_data();
+						int len = id.size();
+						PoolVector<uint8_t>::Read r = id.read();
+						copymem(&w[ofs], r.ptr(), len);
+						ofs += len;
+					}
+				}
+
+				image->create(tw, th, true, format, img_data);
+				if (image->empty()) {
+					if (r_error) {
+						*r_error = ERR_FILE_CORRUPT;
+					}
+					memdelete(f);
+					ERR_FAIL_V(RES());
+				}
+			}
+
+		} else {
+
+			//look for regular format
+			bool mipmaps = (flags & Texture::FLAG_MIPMAPS);
+			int total_size = Image::get_image_data_size(tw, th, format, mipmaps);
+
+			PoolVector<uint8_t> img_data;
+			img_data.resize(total_size);
+
+			{
+				PoolVector<uint8_t>::Write w = img_data.write();
+				int bytes = f->get_buffer(w.ptr(), total_size);
+				if (bytes != total_size) {
+					if (r_error) {
+						*r_error = ERR_FILE_CORRUPT;
+						memdelete(f);
+					}
+					ERR_FAIL_V(RES());
+				}
+			}
+
+			image->create(tw, th, mipmaps, format, img_data);
+		}
+
+		lt->set_layer_data(image, layer);
+	}
+
+	if (r_error)
+		*r_error = OK;
+
+	return lt;
+}
+
+void ResourceFormatLoaderTextureLayered::get_recognized_extensions(List<String> *p_extensions) const {
+
+	p_extensions->push_back("tex3d");
+	p_extensions->push_back("texarr");
+}
+bool ResourceFormatLoaderTextureLayered::handles_type(const String &p_type) const {
+	return p_type == "Texture3D" || p_type == "TextureArray";
+}
+String ResourceFormatLoaderTextureLayered::get_resource_type(const String &p_path) const {
+
+	if (p_path.get_extension().to_lower() == "tex3d")
+		return "Texture3D";
+	if (p_path.get_extension().to_lower() == "texarr")
+		return "TextureArray";
+	return "";
 }

@@ -204,6 +204,7 @@
 #include "scene/3d/sprite_3d.h"
 #include "scene/3d/vehicle_body.h"
 #include "scene/3d/visibility_notifier.h"
+#include "scene/animation/skeleton_ik.h"
 #include "scene/resources/environment.h"
 #include "scene/resources/physics_material.h"
 #endif
@@ -216,6 +217,7 @@ static ResourceFormatLoaderText *resource_loader_text = NULL;
 static ResourceFormatLoaderDynamicFont *resource_loader_dynamic_font = NULL;
 
 static ResourceFormatLoaderStreamTexture *resource_loader_stream_texture = NULL;
+static ResourceFormatLoaderTextureLayered *resource_loader_texture_layered = NULL;
 
 static ResourceFormatLoaderBMFont *resource_loader_bmfont = NULL;
 
@@ -235,6 +237,9 @@ void register_scene_types() {
 
 	resource_loader_stream_texture = memnew(ResourceFormatLoaderStreamTexture);
 	ResourceLoader::add_resource_format_loader(resource_loader_stream_texture);
+
+	resource_loader_texture_layered = memnew(ResourceFormatLoaderTextureLayered);
+	ResourceLoader::add_resource_format_loader(resource_loader_texture_layered);
 
 	resource_loader_theme = memnew(ResourceFormatLoaderTheme);
 	ResourceLoader::add_resource_format_loader(resource_loader_theme);
@@ -361,6 +366,7 @@ void register_scene_types() {
 	ClassDB::register_class<Spatial>();
 	ClassDB::register_virtual_class<SpatialGizmo>();
 	ClassDB::register_class<Skeleton>();
+	ClassDB::register_class<SkeletonIK>();
 	ClassDB::register_class<AnimationPlayer>();
 	ClassDB::register_class<Tween>();
 
@@ -613,6 +619,9 @@ void register_scene_types() {
 	ClassDB::register_class<ProxyTexture>();
 	ClassDB::register_class<AnimatedTexture>();
 	ClassDB::register_class<CubeMap>();
+	ClassDB::register_virtual_class<TextureLayered>();
+	ClassDB::register_class<Texture3D>();
+	ClassDB::register_class<TextureArray>();
 	ClassDB::register_class<Animation>();
 	ClassDB::register_virtual_class<Font>();
 	ClassDB::register_class<BitmapFont>();
@@ -726,6 +735,7 @@ void unregister_scene_types() {
 
 	memdelete(resource_loader_dynamic_font);
 	memdelete(resource_loader_stream_texture);
+	memdelete(resource_loader_texture_layered);
 	memdelete(resource_loader_theme);
 
 	DynamicFont::finish_dynamic_fonts();
