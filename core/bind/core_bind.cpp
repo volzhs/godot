@@ -112,11 +112,22 @@ PoolStringArray _ResourceLoader::get_dependencies(const String &p_path) {
 	return ret;
 };
 
+#ifndef DISABLE_DEPRECATED
 bool _ResourceLoader::has(const String &p_path) {
+	WARN_PRINTS("ResourceLoader.has() is deprecated, please replace it with the equivalent has_cached() or the new exists().");
+	return has_cached(p_path);
+}
+#endif // DISABLE_DEPRECATED
+
+bool _ResourceLoader::has_cached(const String &p_path) {
 
 	String local_path = ProjectSettings::get_singleton()->localize_path(p_path);
 	return ResourceCache::has(local_path);
-};
+}
+
+bool _ResourceLoader::exists(const String &p_path, const String &p_type_hint) {
+	return ResourceLoader::exists(p_path, p_type_hint);
+}
 
 void _ResourceLoader::_bind_methods() {
 
@@ -125,7 +136,11 @@ void _ResourceLoader::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_recognized_extensions_for_type", "type"), &_ResourceLoader::get_recognized_extensions_for_type);
 	ClassDB::bind_method(D_METHOD("set_abort_on_missing_resources", "abort"), &_ResourceLoader::set_abort_on_missing_resources);
 	ClassDB::bind_method(D_METHOD("get_dependencies", "path"), &_ResourceLoader::get_dependencies);
+	ClassDB::bind_method(D_METHOD("has_cached", "path"), &_ResourceLoader::has_cached);
+	ClassDB::bind_method(D_METHOD("exists", "path", "type_hint"), &_ResourceLoader::exists, DEFVAL(""));
+#ifndef DISABLE_DEPRECATED
 	ClassDB::bind_method(D_METHOD("has", "path"), &_ResourceLoader::has);
+#endif // DISABLE_DEPRECATED
 }
 
 _ResourceLoader::_ResourceLoader() {

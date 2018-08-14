@@ -116,11 +116,24 @@ void GDScriptLanguage::make_template(const String &p_class_name, const String &p
 	p_script->set_source_code(src);
 }
 
-bool GDScriptLanguage::validate(const String &p_script, int &r_line_error, int &r_col_error, String &r_test_error, const String &p_path, List<String> *r_functions, Set<int> *r_safe_lines) const {
+bool GDScriptLanguage::validate(const String &p_script, int &r_line_error, int &r_col_error, String &r_test_error, const String &p_path, List<String> *r_functions, List<ScriptLanguage::Warning> *r_warnings, Set<int> *r_safe_lines) const {
 
 	GDScriptParser parser;
 
 	Error err = parser.parse(p_script, p_path.get_base_dir(), true, p_path, false, r_safe_lines);
+#ifdef DEBUG_ENABLED
+	if (r_warnings) {
+		for (const List<GDScriptWarning>::Element *E = parser.get_warnings().front(); E; E = E->next()) {
+			const GDScriptWarning &warn = E->get();
+			ScriptLanguage::Warning w;
+			w.line = warn.line;
+			w.code = (int)warn.code;
+			w.string_code = GDScriptWarning::get_name_from_code(warn.code);
+			w.message = warn.get_message();
+			r_warnings->push_back(w);
+		}
+	}
+#endif
 	if (err) {
 		r_line_error = parser.get_error_line();
 		r_col_error = parser.get_error_column();
@@ -2442,7 +2455,7 @@ Error GDScriptLanguage::complete_code(const String &p_code, const String &p_base
 		} break;
 		case GDScriptParser::COMPLETION_BUILT_IN_TYPE_CONSTANT: {
 			List<StringName> constants;
-			Variant::get_numeric_constants_for_type(parser.get_completion_built_in_constant(), &constants);
+			Variant::get_constants_for_type(parser.get_completion_built_in_constant(), &constants);
 			for (List<StringName>::Element *E = constants.front(); E; E = E->next()) {
 				options.insert(E->get().operator String());
 			}
@@ -3065,7 +3078,7 @@ static Error _lookup_symbol_from_base(const GDScriptParser::DataType &p_base, co
 			case GDScriptParser::DataType::BUILTIN: {
 				base_type.has_type = false;
 
-				if (Variant::has_numeric_constant(base_type.builtin_type, p_symbol)) {
+				if (Variant::has_constant(base_type.builtin_type, p_symbol)) {
 					r_result.type = ScriptLanguage::LookupResult::RESULT_CLASS_CONSTANT;
 					r_result.class_name = Variant::get_type_name(base_type.builtin_type);
 					r_result.class_member = p_symbol;
