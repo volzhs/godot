@@ -10,10 +10,6 @@
 	</demos>
 	<methods>
 	</methods>
-	<members>
-		<member name="scale" type="float" setter="set_scale" getter="get_scale">
-		</member>
-	</members>
 	<constants>
 	</constants>
 </class>

@@ -677,7 +677,7 @@ void EditorSpatialGizmo::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_collision_segments", "segments"), &EditorSpatialGizmo::add_collision_segments);
 	ClassDB::bind_method(D_METHOD("add_collision_triangles", "triangles"), &EditorSpatialGizmo::add_collision_triangles);
 	ClassDB::bind_method(D_METHOD("add_unscaled_billboard", "material", "default_scale"), &EditorSpatialGizmo::add_unscaled_billboard, DEFVAL(1));
-	ClassDB::bind_method(D_METHOD("add_handles", "handles", "billboard", "secondary"), &EditorSpatialGizmo::add_handles, DEFVAL(false), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("add_handles", "handles", "material", "billboard", "secondary"), &EditorSpatialGizmo::add_handles, DEFVAL(false), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("set_spatial_node", "node"), &EditorSpatialGizmo::_set_spatial_node);
 	ClassDB::bind_method(D_METHOD("clear"), &EditorSpatialGizmo::clear);
 	ClassDB::bind_method(D_METHOD("set_hidden", "hidden"), &EditorSpatialGizmo::set_hidden);
@@ -1916,6 +1916,38 @@ void RayCastSpatialGizmoPlugin::redraw(EditorSpatialGizmo *p_gizmo) {
 
 	p_gizmo->add_lines(lines, material);
 	p_gizmo->add_collision_segments(lines);
+}
+
+/////
+
+void SpringArmSpatialGizmoPlugin::redraw(EditorSpatialGizmo *p_gizmo) {
+
+	SpringArm *spring_arm = Object::cast_to<SpringArm>(p_gizmo->get_spatial_node());
+
+	p_gizmo->clear();
+
+	Vector<Vector3> lines;
+
+	lines.push_back(Vector3());
+	lines.push_back(Vector3(0, 0, 1.0) * spring_arm->get_length());
+
+	Ref<SpatialMaterial> material = get_material("shape_material", p_gizmo);
+
+	p_gizmo->add_lines(lines, material);
+	p_gizmo->add_collision_segments(lines);
+}
+
+SpringArmSpatialGizmoPlugin::SpringArmSpatialGizmoPlugin() {
+	Color gizmo_color = EDITOR_DEF("editors/3d_gizmos/gizmo_colors/shape", Color(0.5, 0.7, 1));
+	create_material("shape_material", gizmo_color);
+}
+
+bool SpringArmSpatialGizmoPlugin::has_gizmo(Spatial *p_spatial) {
+	return Object::cast_to<SpringArm>(p_spatial) != NULL;
+}
+
+String SpringArmSpatialGizmoPlugin::get_name() const {
+	return "SpringArm";
 }
 
 /////
