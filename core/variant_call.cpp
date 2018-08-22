@@ -1920,23 +1920,11 @@ void register_variant_methods() {
 	transform_x.set(1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0);
 	_VariantCall::add_variant_constant(Variant::TRANSFORM, "FLIP_Z", transform_z);
 
-	_VariantCall::add_variant_constant(Variant::PLANE, "X", Plane(Vector3(1, 0, 0), 0));
-	_VariantCall::add_variant_constant(Variant::PLANE, "Y", Plane(Vector3(0, 1, 0), 0));
-	_VariantCall::add_variant_constant(Variant::PLANE, "Z", Plane(Vector3(0, 0, 1), 0));
+	_VariantCall::add_variant_constant(Variant::PLANE, "PLANE_YZ", Plane(Vector3(1, 0, 0), 0));
+	_VariantCall::add_variant_constant(Variant::PLANE, "PLANE_XZ", Plane(Vector3(0, 1, 0), 0));
+	_VariantCall::add_variant_constant(Variant::PLANE, "PLANE_XY", Plane(Vector3(0, 0, 1), 0));
 
 	_VariantCall::add_variant_constant(Variant::QUAT, "IDENTITY", Quat(0, 0, 0, 1));
-
-	CharType black_circle[2] = { 0x25CF, 0 };
-	_VariantCall::add_variant_constant(Variant::STRING, "BLACK_CIRCLE", String(black_circle));
-	CharType white_circle[2] = { 0x25CB, 0 };
-	_VariantCall::add_variant_constant(Variant::STRING, "WHITE_CIRCLE", String(white_circle));
-	CharType black_diamond[2] = { 0x25C6, 0 };
-	_VariantCall::add_variant_constant(Variant::STRING, "BLACK_DIAMOND", String(black_diamond));
-	CharType white_diamond[2] = { 0x25C7, 0 };
-	_VariantCall::add_variant_constant(Variant::STRING, "WHITE_DIAMOND", String(white_diamond));
-
-	_VariantCall::add_variant_constant(Variant::NODE_PATH, "CURRENT", String("."));
-	_VariantCall::add_variant_constant(Variant::NODE_PATH, "PARENT", String(".."));
 }
 
 void unregister_variant_methods() {

@@ -108,6 +108,9 @@ class PhysicsShapeQueryParameters : public Reference {
 	Set<RID> exclude;
 	uint32_t collision_mask;
 
+	bool collide_with_bodies;
+	bool collide_with_areas;
+
 protected:
 	static void _bind_methods();
 
@@ -128,6 +131,12 @@ public:
 	void set_exclude(const Vector<RID> &p_exclude);
 	Vector<RID> get_exclude() const;
 
+	void set_collide_with_bodies(bool p_enable);
+	bool is_collide_with_bodies_enabled() const;
+
+	void set_collide_with_areas(bool p_enable);
+	bool is_collide_with_areas_enabled() const;
+
 	PhysicsShapeQueryParameters();
 };
 
@@ -136,7 +145,7 @@ class PhysicsDirectSpaceState : public Object {
 	GDCLASS(PhysicsDirectSpaceState, Object);
 
 private:
-	Dictionary _intersect_ray(const Vector3 &p_from, const Vector3 &p_to, const Vector<RID> &p_exclude = Vector<RID>(), uint32_t p_collision_mask = 0);
+	Dictionary _intersect_ray(const Vector3 &p_from, const Vector3 &p_to, const Vector<RID> &p_exclude = Vector<RID>(), uint32_t p_collision_mask = 0, bool p_collide_with_bodies = true, bool p_collide_with_areas = false);
 	Array _intersect_shape(const Ref<PhysicsShapeQueryParameters> &p_shape_query, int p_max_results = 32);
 	Array _cast_motion(const Ref<PhysicsShapeQueryParameters> &p_shape_query, const Vector3 &p_motion);
 	Array _collide_shape(const Ref<PhysicsShapeQueryParameters> &p_shape_query, int p_max_results = 32);
@@ -154,7 +163,7 @@ public:
 		int shape;
 	};
 
-	virtual int intersect_point(const Vector3 &p_point, ShapeResult *r_results, int p_result_max, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF) = 0;
+	virtual int intersect_point(const Vector3 &p_point, ShapeResult *r_results, int p_result_max, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false) = 0;
 
 	struct RayResult {
 
@@ -166,9 +175,9 @@ public:
 		int shape;
 	};
 
-	virtual bool intersect_ray(const Vector3 &p_from, const Vector3 &p_to, RayResult &r_result, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_pick_ray = false) = 0;
+	virtual bool intersect_ray(const Vector3 &p_from, const Vector3 &p_to, RayResult &r_result, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false, bool p_pick_ray = false) = 0;
 
-	virtual int intersect_shape(const RID &p_shape, const Transform &p_xform, float p_margin, ShapeResult *r_results, int p_result_max, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF) = 0;
+	virtual int intersect_shape(const RID &p_shape, const Transform &p_xform, float p_margin, ShapeResult *r_results, int p_result_max, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false) = 0;
 
 	struct ShapeRestInfo {
 
@@ -180,11 +189,11 @@ public:
 		Vector3 linear_velocity; //velocity at contact point
 	};
 
-	virtual bool cast_motion(const RID &p_shape, const Transform &p_xform, const Vector3 &p_motion, float p_margin, float &p_closest_safe, float &p_closest_unsafe, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, ShapeRestInfo *r_info = NULL) = 0;
+	virtual bool cast_motion(const RID &p_shape, const Transform &p_xform, const Vector3 &p_motion, float p_margin, float &p_closest_safe, float &p_closest_unsafe, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false, ShapeRestInfo *r_info = NULL) = 0;
 
-	virtual bool collide_shape(RID p_shape, const Transform &p_shape_xform, float p_margin, Vector3 *r_results, int p_result_max, int &r_result_count, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF) = 0;
+	virtual bool collide_shape(RID p_shape, const Transform &p_shape_xform, float p_margin, Vector3 *r_results, int p_result_max, int &r_result_count, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false) = 0;
 
-	virtual bool rest_info(RID p_shape, const Transform &p_shape_xform, float p_margin, ShapeRestInfo *r_info, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF) = 0;
+	virtual bool rest_info(RID p_shape, const Transform &p_shape_xform, float p_margin, ShapeRestInfo *r_info, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false) = 0;
 
 	virtual Vector3 get_closest_point_to_object_volume(RID p_object, const Vector3 p_point) const = 0;
 
@@ -243,6 +252,10 @@ public:
 
 	virtual ShapeType shape_get_type(RID p_shape) const = 0;
 	virtual Variant shape_get_data(RID p_shape) const = 0;
+
+	virtual void shape_set_margin(RID p_shape, real_t p_margin) = 0;
+	virtual real_t shape_get_margin(RID p_shape) const = 0;
+
 	virtual real_t shape_get_custom_solver_bias(RID p_shape) const = 0;
 
 	/* SPACE API */
