@@ -1,36 +1,32 @@
-# Pirate translation of the Godot Engine editor
+# Latvian translation of the Godot Engine editor
 # Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.
 # Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)
 # This file is distributed under the same license as the Godot source code.
-#
-# Calum Knott <calum@calumk.com>, 2017.
-# Zion Nimchuk <zionnimchuk@gmail.com>, 2016-2017.
-#
+# Gustavs Porietis (pg829-) <porietisgustavs@gmail.com>, 2018.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
-"PO-Revision-Date: 2017-11-23 14:48+0000\n"
-"Last-Translator: Calum Knott <calum@calumk.com>\n"
-"Language-Team: Pirate <https://hosted.weblate.org/projects/godot-engine/"
-"godot/pr/>\n"
-"Language: pr\n"
+"PO-Revision-Date: 2018-07-28 12:39+0000\n"
+"Last-Translator: Gustavs Porietis (pg829-) <porietisgustavs@gmail.com>\n"
+"Language-Team: Latvian <https://hosted.weblate.org/projects/godot-engine/"
+"godot/lv/>\n"
+"Language: lv\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8-bit\n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2.18-dev\n"
+"Plural-Forms: nplurals=3; plural=(n % 10 == 0 || n % 100 >= 11 && n % 100 <= "
+"19) ? 0 : ((n % 10 == 1 && n % 100 != 11) ? 1 : 2);\n"
+"X-Generator: Weblate 3.1.1\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
 msgid "Invalid type argument to convert(), use TYPE_* constants."
 msgstr ""
-"Shiver me timbers! ye type argument t' convert() be wrong! use yer TYPE_* "
-"constants!"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/mono/glue/glue_header.h
 #: modules/visual_script/visual_script_builtin_funcs.cpp
 msgid "Not enough bytes for decoding bytes, or invalid format."
-msgstr "Nah enough bytes fer decodin' bytes, or ye got th' wrong ship."
+msgstr ""
 
 #: core/math/expression.cpp
 msgid "Invalid input %i (not passed) in expression"
@@ -41,23 +37,20 @@ msgid "self can't be used because instance is null (not passed)"
 msgstr ""
 
 #: core/math/expression.cpp
-#, fuzzy
 msgid "Invalid operands to operator %s, %s and %s."
-msgstr "Yer index property name '%s' in node %s be walkin' th' plank!"
+msgstr ""
 
 #: core/math/expression.cpp
-#, fuzzy
 msgid "Invalid index of type %s for base type %s"
-msgstr "Yer index property name '%s' in node %s be walkin' th' plank!"
+msgstr ""
 
 #: core/math/expression.cpp
 msgid "Invalid named index '%s' for base type %s"
 msgstr ""
 
 #: core/math/expression.cpp
-#, fuzzy
 msgid "Invalid arguments to construct '%s'"
-msgstr ": Evil argument of th' type: "
+msgstr ""
 
 #: core/math/expression.cpp
 msgid "On call to '%s':"
@@ -83,12 +76,12 @@ msgstr ""
 #: editor/animation_bezier_editor.cpp
 #, fuzzy
 msgid "Duplicate Selected Key(s)"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr "Dublikāta Izvēle"
 
 #: editor/animation_bezier_editor.cpp
 #, fuzzy
 msgid "Delete Selected Key(s)"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr "Izdzēst izvēlētos failus?"
 
 #: editor/animation_bezier_editor.cpp editor/animation_track_editor.cpp
 msgid "Anim Duplicate Keys"
@@ -99,29 +92,24 @@ msgid "Anim Delete Keys"
 msgstr ""
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Anim Change Keyframe Time"
-msgstr "Change yer Anim Value"
+msgstr ""
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Anim Change Transition"
-msgstr "Change yer Anim Transition"
+msgstr ""
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Anim Change Transform"
-msgstr "Change yer Anim Transform"
+msgstr ""
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Anim Change Keyframe Value"
-msgstr "Change yer Anim Value"
+msgstr ""
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Anim Change Call"
-msgstr "Change yer Anim Call"
+msgstr ""
 
 #: editor/animation_track_editor.cpp
 msgid "Property Track"
@@ -152,17 +140,19 @@ msgid "Add Track"
 msgstr ""
 
 #: editor/animation_track_editor.cpp
+#, fuzzy
 msgid "Animation Length Time (seconds)"
-msgstr ""
+msgstr "Animācijas garums (sekundēs)."
 
 #: editor/animation_track_editor.cpp
+#, fuzzy
 msgid "Animation Looping"
-msgstr ""
+msgstr "Animācijas tālummaiņa."
 
 #: editor/animation_track_editor.cpp
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Functions:"
-msgstr "Yer functions:"
+msgstr ""
 
 #: editor/animation_track_editor.cpp
 msgid "Audio Clips:"
@@ -189,13 +179,13 @@ msgid "Loop Wrap Mode (Interpolate end with beginning on loop)"
 msgstr ""
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Remove this track."
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: editor/animation_track_editor.cpp
+#, fuzzy
 msgid "Time (s): "
-msgstr ""
+msgstr "Solis (ļi):"
 
 #: editor/animation_track_editor.cpp
 msgid "Continuous"
@@ -220,7 +210,7 @@ msgstr ""
 #: editor/animation_track_editor.cpp editor/plugins/curve_editor_plugin.cpp
 #: editor/property_editor.cpp
 msgid "Linear"
-msgstr ""
+msgstr "Lineārs"
 
 #: editor/animation_track_editor.cpp
 msgid "Cubic"
@@ -242,12 +232,12 @@ msgstr ""
 #: editor/animation_track_editor.cpp
 #, fuzzy
 msgid "Duplicate Key(s)"
-msgstr "Rename Variable"
+msgstr "Dublikāta Izvēle"
 
 #: editor/animation_track_editor.cpp
 #, fuzzy
 msgid "Delete Key(s)"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr "Izdzēst"
 
 #: editor/animation_track_editor.cpp
 msgid "Remove Anim Track"
@@ -269,7 +259,7 @@ msgstr ""
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 #: editor/plugins/particles_editor_plugin.cpp editor/script_create_dialog.cpp
 msgid "Create"
-msgstr ""
+msgstr "Izveidot"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Insert"
@@ -328,9 +318,8 @@ msgid "Track path is invalid, so can't add a method key."
 msgstr ""
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Method not found in object: "
-msgstr "VariableGet be in davy jones locker! Not in th' script: "
+msgstr ""
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Move Keys"
@@ -358,12 +347,14 @@ msgid "Group tracks by node or display them as plain list."
 msgstr ""
 
 #: editor/animation_track_editor.cpp
+#, fuzzy
 msgid "Snap (s): "
-msgstr ""
+msgstr "Solis (ļi):"
 
 #: editor/animation_track_editor.cpp
+#, fuzzy
 msgid "Animation step value."
-msgstr ""
+msgstr "Animācijas tālummaiņa."
 
 #: editor/animation_track_editor.cpp editor/editor_properties.cpp
 #: editor/plugins/polygon_2d_editor_plugin.cpp
@@ -372,20 +363,20 @@ msgstr ""
 #: editor/project_manager.cpp editor/project_settings_editor.cpp
 #: editor/property_editor.cpp modules/visual_script/visual_script_editor.cpp
 msgid "Edit"
-msgstr "Edit"
+msgstr ""
 
 #: editor/animation_track_editor.cpp
+#, fuzzy
 msgid "Animation properties."
-msgstr ""
+msgstr "Animācijas tālummaiņa."
 
 #: editor/animation_track_editor.cpp
 msgid "Copy Tracks"
 msgstr ""
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Paste Tracks"
-msgstr "Paste yer Node"
+msgstr ""
 
 #: editor/animation_track_editor.cpp
 msgid "Scale Selection"
@@ -398,7 +389,7 @@ msgstr ""
 #: editor/animation_track_editor.cpp editor/plugins/tile_map_editor_plugin.cpp
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Duplicate Selection"
-msgstr ""
+msgstr "Dublikāta Izvēle"
 
 #: editor/animation_track_editor.cpp
 msgid "Duplicate Transposed"
@@ -407,15 +398,15 @@ msgstr ""
 #: editor/animation_track_editor.cpp
 #, fuzzy
 msgid "Delete Selection"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr "Dublikāta Izvēle"
 
 #: editor/animation_track_editor.cpp
 msgid "Goto Next Step"
-msgstr ""
+msgstr "Doties uz nākamo soli"
 
 #: editor/animation_track_editor.cpp
 msgid "Goto Prev Step"
-msgstr ""
+msgstr "Doties uz iepriekšējo soli"
 
 #: editor/animation_track_editor.cpp
 msgid "Optimize Animation"
@@ -451,7 +442,7 @@ msgstr ""
 
 #: editor/animation_track_editor.cpp
 msgid "Optimize"
-msgstr ""
+msgstr "Optimizēt"
 
 #: editor/animation_track_editor.cpp
 msgid "Remove invalid keys"
@@ -475,7 +466,7 @@ msgstr ""
 
 #: editor/animation_track_editor.cpp
 msgid "Scale Ratio:"
-msgstr ""
+msgstr "Mēroga Attiecība:"
 
 #: editor/animation_track_editor.cpp
 msgid "Select tracks to copy:"
@@ -503,7 +494,7 @@ msgstr ""
 
 #: editor/code_editor.cpp
 msgid "Go to Line"
-msgstr ""
+msgstr "Doties uz Rindu"
 
 #: editor/code_editor.cpp
 msgid "Line Number:"
@@ -527,7 +518,7 @@ msgstr ""
 
 #: editor/code_editor.cpp editor/rename_dialog.cpp
 msgid "Replace"
-msgstr ""
+msgstr "Aizvietot"
 
 #: editor/code_editor.cpp
 msgid "Replace All"
@@ -539,31 +530,32 @@ msgstr ""
 
 #: editor/code_editor.cpp editor/plugins/tile_set_editor_plugin.cpp
 msgid "Zoom In"
-msgstr ""
+msgstr "Pietuvināt"
 
 #: editor/code_editor.cpp editor/plugins/tile_set_editor_plugin.cpp
 msgid "Zoom Out"
-msgstr ""
+msgstr "Attālināt"
 
 #: editor/code_editor.cpp editor/plugins/tile_set_editor_plugin.cpp
 msgid "Reset Zoom"
-msgstr ""
+msgstr "Atiestatīt tālummaiņu"
 
 #: editor/code_editor.cpp
 msgid "Warnings:"
 msgstr ""
 
 #: editor/code_editor.cpp
+#, fuzzy
 msgid "Zoom:"
-msgstr ""
+msgstr "Pietuvināt"
 
 #: editor/code_editor.cpp editor/script_editor_debugger.cpp
 msgid "Line:"
-msgstr ""
+msgstr "Rinda:"
 
 #: editor/code_editor.cpp
 msgid "Col:"
-msgstr ""
+msgstr "Kolona:"
 
 #: editor/connections_dialog.cpp
 msgid "Method in target Node must be specified!"
@@ -583,7 +575,7 @@ msgstr ""
 #: editor/groups_editor.cpp editor/plugins/item_list_editor_plugin.cpp
 #: editor/plugins/theme_editor_plugin.cpp editor/project_settings_editor.cpp
 msgid "Add"
-msgstr ""
+msgstr "Pievienot"
 
 #: editor/connections_dialog.cpp editor/dependency_editor.cpp
 #: editor/groups_editor.cpp editor/plugins/animation_player_editor_plugin.cpp
@@ -591,7 +583,7 @@ msgstr ""
 #: editor/plugins/theme_editor_plugin.cpp editor/project_manager.cpp
 #: editor/project_settings_editor.cpp
 msgid "Remove"
-msgstr ""
+msgstr "Noņemt"
 
 #: editor/connections_dialog.cpp
 msgid "Add Extra Call Argument:"
@@ -607,7 +599,7 @@ msgstr ""
 
 #: editor/connections_dialog.cpp
 msgid "Make Function"
-msgstr ""
+msgstr "Izveidot Funkciju"
 
 #: editor/connections_dialog.cpp
 msgid "Deferred"
@@ -629,23 +621,24 @@ msgstr ""
 #: editor/run_settings_dialog.cpp editor/settings_config_dialog.cpp
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Close"
-msgstr "Close"
+msgstr "Aizvērt"
 
 #: editor/connections_dialog.cpp
 msgid "Connect"
-msgstr ""
+msgstr "Savienot"
 
 #: editor/connections_dialog.cpp
 msgid "Connect '%s' to '%s'"
-msgstr ""
+msgstr "Savienot '%s' pie '%s'"
 
 #: editor/connections_dialog.cpp
 msgid "Disconnect '%s' from '%s'"
-msgstr ""
+msgstr "Atvienot '%s' no '%s'"
 
 #: editor/connections_dialog.cpp
+#, fuzzy
 msgid "Disconnect all from signal: '%s'"
-msgstr ""
+msgstr "Atvienot '%s' no '%s'"
 
 #: editor/connections_dialog.cpp
 msgid "Connect..."
@@ -659,12 +652,11 @@ msgstr ""
 #: editor/connections_dialog.cpp
 #, fuzzy
 msgid "Connect Signal: "
-msgstr "Slit th' Node"
+msgstr "Savieno Signālu:"
 
 #: editor/connections_dialog.cpp
-#, fuzzy
 msgid "Edit Connection: "
-msgstr "Slit th' Node"
+msgstr ""
 
 #: editor/connections_dialog.cpp
 msgid "Are you sure you want to remove all connections from the \""
@@ -672,7 +664,7 @@ msgstr ""
 
 #: editor/connections_dialog.cpp editor/editor_help.cpp editor/node_dock.cpp
 msgid "Signals"
-msgstr ""
+msgstr "Signāli"
 
 #: editor/connections_dialog.cpp
 msgid "Are you sure you want to remove all connections from this signal?"
@@ -683,43 +675,41 @@ msgid "Disconnect All"
 msgstr ""
 
 #: editor/connections_dialog.cpp
-#, fuzzy
 msgid "Edit..."
-msgstr "Edit"
+msgstr ""
 
 #: editor/connections_dialog.cpp
 msgid "Go To Method"
 msgstr ""
 
 #: editor/create_dialog.cpp
-#, fuzzy
 msgid "Change %s Type"
-msgstr "th' Base Type:"
+msgstr "Nomainīt %s Tipu"
 
 #: editor/create_dialog.cpp editor/project_settings_editor.cpp
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Change"
-msgstr "Change"
+msgstr "Nomainīt"
 
 #: editor/create_dialog.cpp
 msgid "Create New %s"
-msgstr ""
+msgstr "Izveidot Jaunu %s"
 
 #: editor/create_dialog.cpp editor/editor_file_dialog.cpp
 #: editor/filesystem_dock.cpp
 msgid "Favorites:"
-msgstr ""
+msgstr "Favorīti:"
 
 #: editor/create_dialog.cpp editor/editor_file_dialog.cpp
 msgid "Recent:"
-msgstr ""
+msgstr "Nesenie:"
 
 #: editor/create_dialog.cpp editor/plugins/asset_library_editor_plugin.cpp
 #: editor/plugins/script_editor_plugin.cpp editor/property_selector.cpp
 #: editor/quick_open.cpp
 #: modules/visual_script/visual_script_property_selector.cpp
 msgid "Search:"
-msgstr ""
+msgstr "Meklēt:"
 
 #: editor/create_dialog.cpp editor/editor_help.cpp
 #: editor/plugins/script_editor_plugin.cpp editor/property_selector.cpp
@@ -734,7 +724,7 @@ msgstr ""
 #: editor/script_editor_debugger.cpp
 #: modules/visual_script/visual_script_property_selector.cpp
 msgid "Description:"
-msgstr ""
+msgstr "Apraksts:"
 
 #: editor/dependency_editor.cpp
 msgid "Search Replacement For:"
@@ -763,7 +753,7 @@ msgstr ""
 
 #: editor/dependency_editor.cpp
 msgid "Resource"
-msgstr ""
+msgstr "Resurs"
 
 #: editor/dependency_editor.cpp editor/editor_autoload_settings.cpp
 #: editor/project_manager.cpp editor/project_settings_editor.cpp
@@ -794,11 +784,11 @@ msgstr ""
 #: modules/visual_script/visual_script_property_selector.cpp
 #: scene/gui/file_dialog.cpp
 msgid "Open"
-msgstr ""
+msgstr "Atvērt"
 
 #: editor/dependency_editor.cpp
 msgid "Owners Of:"
-msgstr ""
+msgstr "Īpašnieki:"
 
 #: editor/dependency_editor.cpp
 msgid "Remove selected files from the project? (no undo)"
@@ -810,34 +800,39 @@ msgid ""
 "work.\n"
 "Remove them anyway? (no undo)"
 msgstr ""
+"Faili, kurus Jūs vēlaties noņemt ir nepieciešami citiem resursiem lai tie "
+"varētu strādāt.\n"
+"Tik un tā noņemt tos? (Nevar atsaukt)"
 
 #: editor/dependency_editor.cpp editor/export_template_manager.cpp
 msgid "Cannot remove:"
-msgstr ""
+msgstr "Nevar noņemt:"
 
 #: editor/dependency_editor.cpp
 msgid "Error loading:"
-msgstr ""
+msgstr "Kļūme lādējot:"
 
 #: editor/dependency_editor.cpp
+#, fuzzy
 msgid "Scene failed to load due to missing dependencies:"
-msgstr ""
+msgstr "Ainu nevarēja ielādēt dēļ neatrastiem dependencīem:"
 
 #: editor/dependency_editor.cpp editor/editor_node.cpp
 msgid "Open Anyway"
-msgstr ""
+msgstr "Atvērt jebkurā gadījumā"
 
 #: editor/dependency_editor.cpp
 msgid "Which action should be taken?"
-msgstr ""
+msgstr "Kuru darbību izdarīt?"
 
 #: editor/dependency_editor.cpp
+#, fuzzy
 msgid "Fix Dependencies"
-msgstr ""
+msgstr "Salabot dependecīju"
 
 #: editor/dependency_editor.cpp
 msgid "Errors loading!"
-msgstr ""
+msgstr "Kļūmes lādējot!"
 
 #: editor/dependency_editor.cpp
 msgid "Permanently delete %d item(s)? (No undo!)"
@@ -845,7 +840,7 @@ msgstr ""
 
 #: editor/dependency_editor.cpp
 msgid "Owns"
-msgstr ""
+msgstr "Pieder"
 
 #: editor/dependency_editor.cpp
 msgid "Resources Without Explicit Ownership:"
@@ -857,7 +852,7 @@ msgstr ""
 
 #: editor/dependency_editor.cpp
 msgid "Delete selected files?"
-msgstr ""
+msgstr "Izdzēst izvēlētos failus?"
 
 #: editor/dependency_editor.cpp editor/editor_audio_buses.cpp
 #: editor/editor_file_dialog.cpp editor/editor_node.cpp
@@ -865,7 +860,7 @@ msgstr ""
 #: editor/project_export.cpp editor/project_settings_editor.cpp
 #: editor/scene_tree_dock.cpp
 msgid "Delete"
-msgstr ""
+msgstr "Izdzēst"
 
 #: editor/dictionary_property_edit.cpp
 msgid "Change Dictionary Key"
@@ -877,7 +872,7 @@ msgstr ""
 
 #: editor/editor_about.cpp
 msgid "Thanks from the Godot community!"
-msgstr ""
+msgstr "Paldies no Godot sabiedrības!"
 
 #: editor/editor_about.cpp editor/editor_node.cpp editor/inspector_dock.cpp
 #: editor/plugins/canvas_item_editor_plugin.cpp
@@ -889,63 +884,63 @@ msgstr ""
 
 #: editor/editor_about.cpp
 msgid "Godot Engine contributors"
-msgstr ""
+msgstr "Godot Dzinēja ieguldītāji"
 
 #: editor/editor_about.cpp
 msgid "Project Founders"
-msgstr ""
+msgstr "Projekta Dibinātāji"
 
 #: editor/editor_about.cpp
 msgid "Lead Developer"
-msgstr ""
+msgstr "Galvenais Izstrādātājs"
 
 #: editor/editor_about.cpp
 msgid "Project Manager "
-msgstr ""
+msgstr "Projekta Menedžeris "
 
 #: editor/editor_about.cpp
 msgid "Developers"
-msgstr ""
+msgstr "Izstrādātāji"
 
 #: editor/editor_about.cpp
 msgid "Authors"
-msgstr ""
+msgstr "Autori"
 
 #: editor/editor_about.cpp
 msgid "Platinum Sponsors"
-msgstr ""
+msgstr "Platīna Sponsori"
 
 #: editor/editor_about.cpp
 msgid "Gold Sponsors"
-msgstr ""
+msgstr "Zelta Sponsori"
 
 #: editor/editor_about.cpp
 msgid "Mini Sponsors"
-msgstr ""
+msgstr "Mini Sponsori"
 
 #: editor/editor_about.cpp
 msgid "Gold Donors"
-msgstr ""
+msgstr "Zelta Donors"
 
 #: editor/editor_about.cpp
 msgid "Silver Donors"
-msgstr ""
+msgstr "Sudraba Donors"
 
 #: editor/editor_about.cpp
 msgid "Bronze Donors"
-msgstr ""
+msgstr "Bronzas Donors"
 
 #: editor/editor_about.cpp
 msgid "Donors"
-msgstr ""
+msgstr "Donors"
 
 #: editor/editor_about.cpp
 msgid "License"
-msgstr ""
+msgstr "Licence"
 
 #: editor/editor_about.cpp
 msgid "Thirdparty License"
-msgstr ""
+msgstr "Trešās partijas Licence"
 
 #: editor/editor_about.cpp
 msgid ""
@@ -954,22 +949,26 @@ msgid ""
 "is an exhaustive list of all such thirdparty components with their "
 "respective copyright statements and license terms."
 msgstr ""
+"Godot Dzinējs paļaujas uz citiem trešās partijas brīvajām un atvērtā avota "
+"bibliotēkām, kuri visi sader ar to MIT licences nosacījumiem. Sekojošais ir "
+"saraksts ar šīm trešās partijas komponentēm ar to autortiesību apgalvojumiem "
+"un licences nosacījumiem."
 
 #: editor/editor_about.cpp
 msgid "All Components"
-msgstr ""
+msgstr "Visas Komponentes"
 
 #: editor/editor_about.cpp
 msgid "Components"
-msgstr ""
+msgstr "Komponentes"
 
 #: editor/editor_about.cpp
 msgid "Licenses"
-msgstr ""
+msgstr "Licences"
 
 #: editor/editor_asset_installer.cpp editor/project_manager.cpp
 msgid "Error opening package file, not in zip format."
-msgstr ""
+msgstr "Kļūme atverot arhīvu failu, nav ZIP formātā."
 
 #: editor/editor_asset_installer.cpp
 msgid "Uncompressing Assets"
@@ -982,12 +981,12 @@ msgstr ""
 #: editor/editor_asset_installer.cpp
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Success!"
-msgstr ""
+msgstr "Izdevās!"
 
 #: editor/editor_asset_installer.cpp
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Install"
-msgstr ""
+msgstr "Ieinstalēt"
 
 #: editor/editor_asset_installer.cpp
 msgid "Package Installer"
@@ -995,21 +994,19 @@ msgstr ""
 
 #: editor/editor_audio_buses.cpp
 msgid "Speakers"
-msgstr ""
+msgstr "Skaļruņi"
 
 #: editor/editor_audio_buses.cpp
 msgid "Add Effect"
-msgstr ""
+msgstr "Pievienot Efektu"
 
 #: editor/editor_audio_buses.cpp
-#, fuzzy
 msgid "Rename Audio Bus"
-msgstr "Rename Function"
+msgstr "Pārsaukt Audio Kopni"
 
 #: editor/editor_audio_buses.cpp
-#, fuzzy
 msgid "Change Audio Bus Volume"
-msgstr "Rename Function"
+msgstr "Nomainīt Audio Kopnes Skaļumu"
 
 #: editor/editor_audio_buses.cpp
 msgid "Toggle Audio Bus Solo"
@@ -1036,9 +1033,8 @@ msgid "Move Bus Effect"
 msgstr ""
 
 #: editor/editor_audio_buses.cpp
-#, fuzzy
 msgid "Delete Bus Effect"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr ""
 
 #: editor/editor_audio_buses.cpp
 msgid "Audio Bus, Drag and Drop to rearrange."
@@ -1058,7 +1054,7 @@ msgstr ""
 
 #: editor/editor_audio_buses.cpp
 msgid "Bus options"
-msgstr ""
+msgstr "Kopnes iestatījumi"
 
 #: editor/editor_audio_buses.cpp editor/filesystem_dock.cpp
 #: editor/plugins/animation_player_editor_plugin.cpp
@@ -1071,17 +1067,16 @@ msgid "Reset Volume"
 msgstr ""
 
 #: editor/editor_audio_buses.cpp
-#, fuzzy
 msgid "Delete Effect"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr "Izdzēst Efektu"
 
 #: editor/editor_audio_buses.cpp
 msgid "Audio"
-msgstr ""
+msgstr "Audio"
 
 #: editor/editor_audio_buses.cpp
 msgid "Add Audio Bus"
-msgstr ""
+msgstr "Pievienot Audio Kopni"
 
 #: editor/editor_audio_buses.cpp
 msgid "Master bus can't be deleted!"
@@ -1125,7 +1120,7 @@ msgstr ""
 
 #: editor/editor_audio_buses.cpp
 msgid "Add Bus"
-msgstr ""
+msgstr "Pievienot Kopni"
 
 #: editor/editor_audio_buses.cpp
 msgid "Create a new Bus Layout."
@@ -1135,43 +1130,47 @@ msgstr ""
 #: editor/plugins/animation_player_editor_plugin.cpp editor/property_editor.cpp
 #: editor/script_create_dialog.cpp
 msgid "Load"
-msgstr ""
+msgstr "Ielādēt"
 
 #: editor/editor_audio_buses.cpp
 msgid "Load an existing Bus Layout."
-msgstr ""
+msgstr "Ielādēt eksistējošu Kopnes Izkārtojumu."
 
 #: editor/editor_audio_buses.cpp
 msgid "Save As"
-msgstr ""
+msgstr "Saglabāt Kā"
 
 #: editor/editor_audio_buses.cpp
 msgid "Save this Bus Layout to a file."
-msgstr ""
+msgstr "Saglabāt šo Kopni failā."
 
 #: editor/editor_audio_buses.cpp editor/import_dock.cpp
 msgid "Load Default"
-msgstr ""
+msgstr "Ielādēt Noklusējumu"
 
 #: editor/editor_audio_buses.cpp
 msgid "Load the default Bus Layout."
-msgstr ""
+msgstr "Ielādēt Kopnes Izkārtojuma noklusējumu."
 
 #: editor/editor_autoload_settings.cpp
 msgid "Invalid name."
-msgstr ""
+msgstr "Nederīgs nosaukums."
 
 #: editor/editor_autoload_settings.cpp
 msgid "Valid characters:"
-msgstr ""
+msgstr "Derīgie simboli:"
 
 #: editor/editor_autoload_settings.cpp
 msgid "Invalid name. Must not collide with an existing engine class name."
 msgstr ""
+"Nederīgs nosaukums. Nedrīkst sadurties ar eksistējošu dzinēja klases "
+"nosaukumu."
 
 #: editor/editor_autoload_settings.cpp
 msgid "Invalid name. Must not collide with an existing buit-in type name."
 msgstr ""
+"Nederīgs nosaukums. Nedrīkst sadurties ar eksistējošu iebūvēto tipa "
+"nosaukumu."
 
 #: editor/editor_autoload_settings.cpp
 msgid "Invalid name. Must not collide with an existing global constant name."
@@ -1199,7 +1198,7 @@ msgstr ""
 
 #: editor/editor_autoload_settings.cpp
 msgid "Enable"
-msgstr ""
+msgstr "Iespējot"
 
 #: editor/editor_autoload_settings.cpp
 msgid "Rearrange Autoloads"
@@ -1233,7 +1232,7 @@ msgstr ""
 #: editor/editor_autoload_settings.cpp editor/editor_profiler.cpp
 #: editor/project_manager.cpp editor/settings_config_dialog.cpp
 msgid "Name"
-msgstr ""
+msgstr "Nosaukums"
 
 #: editor/editor_autoload_settings.cpp
 msgid "Singleton"
@@ -1241,7 +1240,7 @@ msgstr ""
 
 #: editor/editor_data.cpp
 msgid "Updating Scene"
-msgstr ""
+msgstr "Atjaunina Ainu"
 
 #: editor/editor_data.cpp
 msgid "Storing local changes..."
@@ -1253,11 +1252,11 @@ msgstr ""
 
 #: editor/editor_data.cpp editor/editor_properties.cpp
 msgid "[empty]"
-msgstr ""
+msgstr "[tukšs]"
 
 #: editor/editor_data.cpp
 msgid "[unsaved]"
-msgstr ""
+msgstr "[nesaglabāts]"
 
 #: editor/editor_dir_dialog.cpp
 msgid "Please select a base directory first"
@@ -1305,9 +1304,8 @@ msgid "File Exists, Overwrite?"
 msgstr ""
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
-#, fuzzy
 msgid "Select Current Folder"
-msgstr "Slit th' Node"
+msgstr ""
 
 #: editor/editor_file_dialog.cpp editor/filesystem_dock.cpp
 msgid "Copy Path"
@@ -1464,13 +1462,12 @@ msgid "Brief Description:"
 msgstr ""
 
 #: editor/editor_help.cpp
-#, fuzzy
 msgid "Members"
-msgstr "th' Members:"
+msgstr ""
 
 #: editor/editor_help.cpp modules/visual_script/visual_script_editor.cpp
 msgid "Members:"
-msgstr "th' Members:"
+msgstr ""
 
 #: editor/editor_help.cpp
 msgid "Public Methods"
@@ -1490,17 +1487,15 @@ msgstr ""
 
 #: editor/editor_help.cpp modules/visual_script/visual_script_editor.cpp
 msgid "Signals:"
-msgstr "Yer signals:"
+msgstr ""
 
 #: editor/editor_help.cpp
-#, fuzzy
 msgid "Enumerations"
-msgstr "Yer functions:"
+msgstr ""
 
 #: editor/editor_help.cpp
-#, fuzzy
 msgid "Enumerations:"
-msgstr "Yer functions:"
+msgstr ""
 
 #: editor/editor_help.cpp
 msgid "enum  "
@@ -1563,7 +1558,7 @@ msgstr ""
 
 #: editor/editor_inspector.cpp editor/property_editor.cpp
 msgid "Set"
-msgstr "Set"
+msgstr ""
 
 #: editor/editor_inspector.cpp
 msgid "Set Multiple:"
@@ -1616,9 +1611,8 @@ msgid "Can't open '%s'. The file could have been moved or deleted."
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Error while parsing '%s'."
-msgstr "Blimey! I can't make th' signature object!"
+msgstr ""
 
 #: editor/editor_node.cpp
 msgid "Unexpected end of file '%s'."
@@ -1629,9 +1623,8 @@ msgid "Missing '%s' or its dependencies."
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Error while loading '%s'."
-msgstr "Blimey! I can't make th' signature object!"
+msgstr ""
 
 #: editor/editor_node.cpp
 msgid "Saving Scene"
@@ -1929,7 +1922,7 @@ msgstr ""
 #: editor/editor_node.cpp
 #, fuzzy
 msgid "Close Tab"
-msgstr "Close"
+msgstr "Aizvērt"
 
 #: editor/editor_node.cpp
 msgid "Switch Scene Tab"
@@ -2064,7 +2057,7 @@ msgstr ""
 #: editor/editor_node.cpp
 #, fuzzy
 msgid "Open Project Data Folder"
-msgstr "Slit th' Node"
+msgstr "Projekta Dibinātāji"
 
 #: editor/editor_node.cpp
 msgid "Quit to Project List"
@@ -2143,9 +2136,8 @@ msgid ""
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Editor"
-msgstr "Edit"
+msgstr ""
 
 #: editor/editor_node.cpp editor/settings_config_dialog.cpp
 msgid "Editor Settings"
@@ -2374,9 +2366,8 @@ msgid "Thumbnail..."
 msgstr ""
 
 #: editor/editor_plugin_settings.cpp
-#, fuzzy
 msgid "Edit Plugin"
-msgstr "Ye be fixin' Signal:"
+msgstr ""
 
 #: editor/editor_plugin_settings.cpp
 msgid "Installed Plugins:"
@@ -2400,9 +2391,8 @@ msgid "Status:"
 msgstr ""
 
 #: editor/editor_plugin_settings.cpp
-#, fuzzy
 msgid "Edit:"
-msgstr "Edit"
+msgstr ""
 
 #: editor/editor_profiler.cpp editor/plugins/animation_state_machine_editor.cpp
 #: editor/rename_dialog.cpp
@@ -2450,9 +2440,8 @@ msgid "Time"
 msgstr ""
 
 #: editor/editor_profiler.cpp
-#, fuzzy
 msgid "Calls"
-msgstr "Call"
+msgstr ""
 
 #: editor/editor_properties.cpp editor/property_editor.cpp
 msgid "On"
@@ -2516,9 +2505,8 @@ msgstr ""
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
-#, fuzzy
 msgid "Open Editor"
-msgstr "Edit"
+msgstr ""
 
 #: editor/editor_properties.cpp editor/property_editor.cpp
 msgid "Selected node is not a Viewport!"
@@ -2633,18 +2621,16 @@ msgid "Can't open export templates zip."
 msgstr ""
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Invalid version.txt format inside templates: %s."
-msgstr "Yer index property name be thrown overboard!"
+msgstr ""
 
 #: editor/export_template_manager.cpp
 msgid "No version.txt found inside templates."
 msgstr ""
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Error creating path for templates:"
-msgstr "Blimey! I can't make th' signature object!"
+msgstr ""
 
 #: editor/export_template_manager.cpp
 msgid "Extracting Export Templates"
@@ -2726,14 +2712,12 @@ msgid "Connecting..."
 msgstr ""
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Can't Connect"
-msgstr "Slit th' Node"
+msgstr ""
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Connected"
-msgstr "Slit th' Node"
+msgstr ""
 
 #: editor/export_template_manager.cpp
 #: editor/plugins/asset_library_editor_plugin.cpp
@@ -2745,9 +2729,8 @@ msgid "Downloading"
 msgstr ""
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Connection Error"
-msgstr "Slit th' Node"
+msgstr ""
 
 #: editor/export_template_manager.cpp
 msgid "SSL Handshake Error"
@@ -2766,9 +2749,8 @@ msgid "Install From File"
 msgstr ""
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Remove Template"
-msgstr "Discharge ye' Variable"
+msgstr ""
 
 #: editor/export_template_manager.cpp
 msgid "Select template file"
@@ -2779,9 +2761,8 @@ msgid "Export Template Manager"
 msgstr ""
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Download Templates"
-msgstr "Discharge ye' Variable"
+msgstr ""
 
 #: editor/export_template_manager.cpp
 msgid "Select mirror from list: (Shift+Click: Open in Browser)"
@@ -2816,14 +2797,12 @@ msgid "Cannot move a folder into itself."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "Error moving:"
-msgstr "Error loading yer Calligraphy Pen."
+msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "Error duplicating:"
-msgstr "Rename Variable"
+msgstr ""
 
 #: editor/filesystem_dock.cpp
 msgid "Unable to update dependencies:"
@@ -2850,18 +2829,16 @@ msgid "A file or folder with this name already exists."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "Renaming file:"
-msgstr "Rename Variable"
+msgstr ""
 
 #: editor/filesystem_dock.cpp
 msgid "Renaming folder:"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "Duplicating file:"
-msgstr "Rename Variable"
+msgstr ""
 
 #: editor/filesystem_dock.cpp
 msgid "Duplicating folder:"
@@ -2908,8 +2885,9 @@ msgid "New Script..."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
+#, fuzzy
 msgid "New Resource..."
-msgstr ""
+msgstr "Resurs"
 
 #: editor/filesystem_dock.cpp
 #: editor/plugins/animation_tree_player_editor_plugin.cpp
@@ -2935,9 +2913,8 @@ msgid "Toggle folder status as Favorite."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "Show current scene file."
-msgstr "Slit th' Node"
+msgstr ""
 
 #: editor/filesystem_dock.cpp
 msgid "Instance the selected scene(s) as child of the selected node."
@@ -2948,8 +2925,9 @@ msgid "Enter tree-view."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
+#, fuzzy
 msgid "Search files"
-msgstr ""
+msgstr "Meklēt:"
 
 #: editor/filesystem_dock.cpp
 msgid ""
@@ -2994,9 +2972,8 @@ msgid "Folder: "
 msgstr ""
 
 #: editor/find_in_files.cpp
-#, fuzzy
 msgid "Filter: "
-msgstr "Paste yer Node"
+msgstr ""
 
 #: editor/find_in_files.cpp editor/plugins/script_editor_plugin.cpp
 #: editor/plugins/script_text_editor.cpp
@@ -3012,16 +2989,18 @@ msgid "Cancel"
 msgstr ""
 
 #: editor/find_in_files.cpp
+#, fuzzy
 msgid "Replace: "
-msgstr ""
+msgstr "Aizvietot"
 
 #: editor/find_in_files.cpp
 msgid "Replace all (no undo)"
 msgstr ""
 
 #: editor/find_in_files.cpp
+#, fuzzy
 msgid "Searching..."
-msgstr ""
+msgstr "Meklēt:"
 
 #: editor/find_in_files.cpp
 msgid "Search complete"
@@ -3034,7 +3013,7 @@ msgstr ""
 #: editor/groups_editor.cpp
 #, fuzzy
 msgid "invalid Group name."
-msgstr "Yer unique name be evil."
+msgstr "Nederīgs nosaukums."
 
 #: editor/groups_editor.cpp editor/node_dock.cpp
 msgid "Groups"
@@ -3045,9 +3024,8 @@ msgid "Nodes not in Group"
 msgstr ""
 
 #: editor/groups_editor.cpp editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "Filter nodes"
-msgstr "Paste yer Node"
+msgstr ""
 
 #: editor/groups_editor.cpp
 msgid "Nodes in Group"
@@ -3241,9 +3219,8 @@ msgid "Object properties."
 msgstr ""
 
 #: editor/inspector_dock.cpp
-#, fuzzy
 msgid "Filter properties"
-msgstr "Paste yer Node"
+msgstr ""
 
 #: editor/inspector_dock.cpp
 msgid "Changes may be lost!"
@@ -3323,9 +3300,8 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/abstract_polygon_2d_editor.cpp
-#, fuzzy
 msgid "Delete points"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr ""
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
@@ -3339,8 +3315,9 @@ msgstr ""
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/animation_state_machine_editor.cpp
+#, fuzzy
 msgid "Load.."
-msgstr ""
+msgstr "Ielādēt"
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
@@ -3371,12 +3348,11 @@ msgstr ""
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 #, fuzzy
 msgid "Create points."
-msgstr "Yar, Blow th' Selected Down!"
+msgstr "Izveidot"
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
-#, fuzzy
 msgid "Erase points."
-msgstr "Yar, Blow th' Selected Down!"
+msgstr ""
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
@@ -3387,8 +3363,9 @@ msgstr ""
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/animation_state_machine_editor.cpp
+#, fuzzy
 msgid "Open Animation Node"
-msgstr ""
+msgstr "Animācijas tālummaiņa."
 
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 msgid "Triangle already exists"
@@ -3422,9 +3399,8 @@ msgstr ""
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/animation_tree_player_editor_plugin.cpp
-#, fuzzy
 msgid "Edit Filters"
-msgstr "Edit yer Variable:"
+msgstr ""
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 msgid "Output node can't be added to the blend tree."
@@ -3452,15 +3428,13 @@ msgstr ""
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Add Node.."
-msgstr "Add Node"
+msgstr ""
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/root_motion_editor_plugin.cpp
-#, fuzzy
 msgid "Edit Filtered Tracks:"
-msgstr "Edit yer Variable:"
+msgstr ""
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 msgid "Enable filtering"
@@ -3494,7 +3468,7 @@ msgstr ""
 #: editor/plugins/animation_player_editor_plugin.cpp
 #, fuzzy
 msgid "Invalid animation name!"
-msgstr "Yer unique name be evil."
+msgstr "Nederīgs nosaukums."
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "Animation name already exists!"
@@ -3522,8 +3496,9 @@ msgid "Duplicate Animation"
 msgstr ""
 
 #: editor/plugins/animation_player_editor_plugin.cpp
+#, fuzzy
 msgid "No animation to copy!"
-msgstr ""
+msgstr "Animācijas tālummaiņa."
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "No animation resource on clipboard!"
@@ -3607,9 +3582,8 @@ msgid "Enable Onion Skinning"
 msgstr ""
 
 #: editor/plugins/animation_player_editor_plugin.cpp
-#, fuzzy
 msgid "Directions"
-msgstr "Yer functions:"
+msgstr ""
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "Past"
@@ -3715,17 +3689,19 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/animation_state_machine_editor.cpp
+#, fuzzy
 msgid "Create new nodes."
-msgstr ""
+msgstr "Izveidot Jaunu %s"
 
 #: editor/plugins/animation_state_machine_editor.cpp
 #, fuzzy
 msgid "Connect nodes."
-msgstr "Slit th' Node"
+msgstr "Savienot"
 
 #: editor/plugins/animation_state_machine_editor.cpp
+#, fuzzy
 msgid "Remove selected node or transition"
-msgstr ""
+msgstr "Noņemt Izvēlēto"
 
 #: editor/plugins/animation_state_machine_editor.cpp
 msgid "Toggle autoplay this animation on start, restart or seek to zero."
@@ -4080,9 +4056,8 @@ msgid "Create new vertical guide"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Remove vertical guide"
-msgstr "Discharge ye' Variable"
+msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Move horizontal guide"
@@ -4093,18 +4068,16 @@ msgid "Create new horizontal guide"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Remove horizontal guide"
-msgstr "Discharge ye' Variable"
+msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Create new horizontal and vertical guides"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Move pivot"
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Rotate CanvasItem"
@@ -4139,16 +4112,19 @@ msgid "Paste Pose"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
 msgid "Zoom out"
-msgstr ""
+msgstr "Attālināt"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
 msgid "Zoom reset"
-msgstr ""
+msgstr "Attālināt"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
 msgid "Zoom in"
-msgstr ""
+msgstr "Pietuvināt"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Select Mode"
@@ -4194,9 +4170,8 @@ msgid "Pan Mode"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Toggle snapping."
-msgstr "Toggle ye Breakpoint"
+msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Use Snap"
@@ -4446,14 +4421,12 @@ msgid "Load Curve Preset"
 msgstr ""
 
 #: editor/plugins/curve_editor_plugin.cpp
-#, fuzzy
 msgid "Add point"
-msgstr "Add Signal"
+msgstr ""
 
 #: editor/plugins/curve_editor_plugin.cpp
-#, fuzzy
 msgid "Remove point"
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: editor/plugins/curve_editor_plugin.cpp
 msgid "Left linear"
@@ -4468,9 +4441,8 @@ msgid "Load preset"
 msgstr ""
 
 #: editor/plugins/curve_editor_plugin.cpp
-#, fuzzy
 msgid "Remove Curve Point"
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: editor/plugins/curve_editor_plugin.cpp
 msgid "Toggle Curve Linear Tangent"
@@ -4965,19 +4937,16 @@ msgid "Curve Point #"
 msgstr ""
 
 #: editor/plugins/path_editor_plugin.cpp
-#, fuzzy
 msgid "Set Curve Point Position"
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: editor/plugins/path_editor_plugin.cpp
-#, fuzzy
 msgid "Set Curve In Position"
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: editor/plugins/path_editor_plugin.cpp
-#, fuzzy
 msgid "Set Curve Out Position"
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: editor/plugins/path_editor_plugin.cpp
 msgid "Split Path"
@@ -4988,18 +4957,16 @@ msgid "Remove Path Point"
 msgstr ""
 
 #: editor/plugins/path_editor_plugin.cpp
-#, fuzzy
 msgid "Remove Out-Control Point"
-msgstr "Discharge ye' Function"
+msgstr ""
 
 #: editor/plugins/path_editor_plugin.cpp
 msgid "Remove In-Control Point"
 msgstr ""
 
 #: editor/plugins/physical_bone_plugin.cpp
-#, fuzzy
 msgid "Move joint"
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 msgid ""
@@ -5031,19 +4998,18 @@ msgid "Split already exists."
 msgstr ""
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
-#, fuzzy
 msgid "Add Split"
-msgstr "Add Signal"
+msgstr ""
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 #, fuzzy
 msgid "Invalid Split: "
-msgstr ": Evil arguments: "
+msgstr "Nederīgs fonta izmērs."
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 #, fuzzy
 msgid "Remove Split"
-msgstr "Discharge ye' Signal"
+msgstr "Noņemt Izvēlēto"
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 msgid "Transform UV Map"
@@ -5074,8 +5040,9 @@ msgid "Bones"
 msgstr ""
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
+#, fuzzy
 msgid "Create Polygon"
-msgstr ""
+msgstr "Izveidot"
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 msgid "Move Point"
@@ -5250,7 +5217,7 @@ msgstr ""
 #: editor/plugins/script_editor_plugin.cpp
 #, fuzzy
 msgid "Error saving file!"
-msgstr "Error loading yer Calligraphy Pen."
+msgstr "Kļūmes lādējot!"
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Error while saving theme"
@@ -5273,12 +5240,14 @@ msgid "New TextFile..."
 msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
+#, fuzzy
 msgid "Open File"
-msgstr ""
+msgstr "Atvērt"
 
 #: editor/plugins/script_editor_plugin.cpp
+#, fuzzy
 msgid "Save File As..."
-msgstr ""
+msgstr "Saglabāt Kā"
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Import Theme"
@@ -5337,9 +5306,8 @@ msgid "Soft Reload Script"
 msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
-#, fuzzy
 msgid "Copy Script Path"
-msgstr "Forge yer Node!"
+msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Show In File System"
@@ -5467,9 +5435,8 @@ msgid "Search results"
 msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
-#, fuzzy
 msgid "Search in files"
-msgstr "Rename Variable"
+msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid ""
@@ -5477,8 +5444,9 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
+#, fuzzy
 msgid "Line"
-msgstr ""
+msgstr "Rinda:"
 
 #: editor/plugins/script_text_editor.cpp
 msgid "(ignore)"
@@ -5531,9 +5499,8 @@ msgid "Select All"
 msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
-#, fuzzy
 msgid "Delete Line"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
 msgid "Indent Left"
@@ -5548,9 +5515,8 @@ msgid "Toggle Comment"
 msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
-#, fuzzy
 msgid "Fold/Unfold Line"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
 msgid "Fold All Lines"
@@ -5587,7 +5553,7 @@ msgstr ""
 #: editor/plugins/script_text_editor.cpp
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Toggle Breakpoint"
-msgstr "Toggle ye Breakpoint"
+msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
 msgid "Remove All Breakpoints"
@@ -5850,9 +5816,8 @@ msgid "Material Changes"
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Shader Changes"
-msgstr "Change"
+msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Surface Changes"
@@ -6011,9 +5976,8 @@ msgid "XForm Dialog"
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Select Mode (Q)"
-msgstr "Slit th' Node"
+msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid ""
@@ -6091,9 +6055,8 @@ msgid "Align Selection With View"
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Tool Select"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Tool Move"
@@ -6112,9 +6075,8 @@ msgid "Snap To Floor"
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Toggle Freelook"
-msgstr "Toggle ye Breakpoint"
+msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Transform"
@@ -6250,8 +6212,9 @@ msgid "Convert to 2D Mesh"
 msgstr ""
 
 #: editor/plugins/sprite_editor_plugin.cpp
+#, fuzzy
 msgid "Create 2D Mesh"
-msgstr ""
+msgstr "Izveidot Jaunu %s"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Simplification: "
@@ -6326,9 +6289,8 @@ msgid "Insert Empty (After)"
 msgstr ""
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
-#, fuzzy
 msgid "Move (Before)"
-msgstr "Forge yer Node!"
+msgstr ""
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "Move (After)"
@@ -6391,14 +6353,12 @@ msgid "Add All"
 msgstr ""
 
 #: editor/plugins/theme_editor_plugin.cpp
-#, fuzzy
 msgid "Remove All Items"
-msgstr "Discharge ye' Variable"
+msgstr ""
 
 #: editor/plugins/theme_editor_plugin.cpp
-#, fuzzy
 msgid "Remove All"
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: editor/plugins/theme_editor_plugin.cpp
 msgid "Edit theme..."
@@ -6509,8 +6469,9 @@ msgid "Erase Selection"
 msgstr ""
 
 #: editor/plugins/tile_map_editor_plugin.cpp
+#, fuzzy
 msgid "Fix Invalid Tiles"
-msgstr ""
+msgstr "Nederīgs nosaukums."
 
 #: editor/plugins/tile_map_editor_plugin.cpp
 msgid "Paint TileMap"
@@ -6533,9 +6494,8 @@ msgid "Erase TileMap"
 msgstr ""
 
 #: editor/plugins/tile_map_editor_plugin.cpp
-#, fuzzy
 msgid "Find Tile"
-msgstr "Find ye Node Type"
+msgstr ""
 
 #: editor/plugins/tile_map_editor_plugin.cpp
 msgid "Transpose"
@@ -6560,7 +6520,7 @@ msgstr ""
 #: editor/plugins/tile_map_editor_plugin.cpp
 #, fuzzy
 msgid "Move Selection"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr "Noņemt Izvēlēto"
 
 #: editor/plugins/tile_map_editor_plugin.cpp
 msgid "Rotate 0 degrees"
@@ -6579,14 +6539,12 @@ msgid "Rotate 270 degrees"
 msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Add Texture(s) to TileSet"
-msgstr "Add Node(s) From yer Tree"
+msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Remove current Texture from TileSet"
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Create from Scene"
@@ -6640,11 +6598,10 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid ""
 "Select current edited sub-tile.\n"
 "Click on another Tile to edit it."
-msgstr "Slit th' Node"
+msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid ""
@@ -6798,9 +6755,8 @@ msgid "Imported Project"
 msgstr ""
 
 #: editor/project_manager.cpp
-#, fuzzy
 msgid "Invalid Project Name."
-msgstr "Yer index property name be thrown overboard!"
+msgstr ""
 
 #: editor/project_manager.cpp
 msgid "Couldn't create folder."
@@ -6837,9 +6793,8 @@ msgid "The following files failed extraction from package:"
 msgstr ""
 
 #: editor/project_manager.cpp
-#, fuzzy
 msgid "Rename Project"
-msgstr "Rename Function"
+msgstr ""
 
 #: editor/project_manager.cpp
 msgid "New Game Project"
@@ -6955,9 +6910,8 @@ msgid "New Project"
 msgstr ""
 
 #: editor/project_manager.cpp
-#, fuzzy
 msgid "Templates"
-msgstr "Discharge ye' Variable"
+msgstr ""
 
 #: editor/project_manager.cpp
 msgid "Exit"
@@ -7128,9 +7082,8 @@ msgid "Wheel Down."
 msgstr ""
 
 #: editor/project_settings_editor.cpp
-#, fuzzy
 msgid "Add Global Property"
-msgstr "Add yer Getter Property"
+msgstr ""
 
 #: editor/project_settings_editor.cpp
 msgid "Select a setting item first!"
@@ -7145,9 +7098,8 @@ msgid "Setting '%s' is internal, and it can't be deleted."
 msgstr ""
 
 #: editor/project_settings_editor.cpp
-#, fuzzy
 msgid "Delete Item"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr ""
 
 #: editor/project_settings_editor.cpp
 msgid ""
@@ -7242,7 +7194,7 @@ msgstr ""
 #: editor/project_settings_editor.cpp
 #, fuzzy
 msgid "Action"
-msgstr "Add Function"
+msgstr "Visa Izvēle"
 
 #: editor/project_settings_editor.cpp
 msgid "Deadzone"
@@ -7297,9 +7249,8 @@ msgid "Show only selected locales"
 msgstr ""
 
 #: editor/project_settings_editor.cpp
-#, fuzzy
 msgid "Filter mode:"
-msgstr "Paste yer Node"
+msgstr ""
 
 #: editor/project_settings_editor.cpp
 msgid "Locales:"
@@ -7342,18 +7293,16 @@ msgid "Assign"
 msgstr ""
 
 #: editor/property_editor.cpp
-#, fuzzy
 msgid "Select Node"
-msgstr "Slit th' Node"
+msgstr ""
 
 #: editor/property_editor.cpp
 msgid "Error loading file: Not a resource!"
 msgstr ""
 
 #: editor/property_editor.cpp
-#, fuzzy
 msgid "Pick a Node"
-msgstr "Paste yer Node"
+msgstr ""
 
 #: editor/property_editor.cpp
 msgid "Bit %d, val %d."
@@ -7412,9 +7361,8 @@ msgid "Node's parent name, if available"
 msgstr ""
 
 #: editor/rename_dialog.cpp
-#, fuzzy
 msgid "Node type"
-msgstr "Find ye Node Type"
+msgstr ""
 
 #: editor/rename_dialog.cpp
 msgid "Current scene name"
@@ -7443,8 +7391,9 @@ msgid "Initial value for the counter"
 msgstr ""
 
 #: editor/rename_dialog.cpp
+#, fuzzy
 msgid "Step"
-msgstr ""
+msgstr "Solis (ļi):"
 
 #: editor/rename_dialog.cpp
 msgid "Ammount by which counter is incremented for each node"
@@ -7461,9 +7410,8 @@ msgid ""
 msgstr ""
 
 #: editor/rename_dialog.cpp
-#, fuzzy
 msgid "Regular Expressions"
-msgstr "Swap yer Expression"
+msgstr ""
 
 #: editor/rename_dialog.cpp
 msgid "Post-Process"
@@ -7494,8 +7442,9 @@ msgid "To Uppercase"
 msgstr ""
 
 #: editor/rename_dialog.cpp
+#, fuzzy
 msgid "Reset"
-msgstr ""
+msgstr "Atiestatīt tālummaiņu"
 
 #: editor/rename_dialog.cpp editor/script_editor_debugger.cpp
 msgid "Error"
@@ -7604,8 +7553,9 @@ msgid "Make Local"
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
+#, fuzzy
 msgid "Create Root Node:"
-msgstr ""
+msgstr "Izveidot Jaunu %s"
 
 #: editor/scene_tree_dock.cpp
 msgid "2D Scene"
@@ -7620,9 +7570,8 @@ msgid "User Interface"
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "Custom Node"
-msgstr "Slit th' Node"
+msgstr ""
 
 #: editor/scene_tree_dock.cpp
 msgid "Can't operate on nodes from a foreign scene!"
@@ -7691,9 +7640,8 @@ msgid "Save Branch as Scene"
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "Copy Node Path"
-msgstr "Forge yer Node!"
+msgstr ""
 
 #: editor/scene_tree_dock.cpp
 msgid "Delete (No Confirm)"
@@ -7718,9 +7666,8 @@ msgid "Clear a script for the selected node."
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "Remote"
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: editor/scene_tree_dock.cpp
 msgid "Local"
@@ -7731,9 +7678,8 @@ msgid "Clear Inheritance? (No Undo!)"
 msgstr ""
 
 #: editor/scene_tree_editor.cpp
-#, fuzzy
 msgid "Toggle Visible"
-msgstr "Toggle ye Breakpoint"
+msgstr ""
 
 #: editor/scene_tree_editor.cpp
 msgid "Node configuration warning:"
@@ -7804,9 +7750,8 @@ msgid "Select a Node"
 msgstr ""
 
 #: editor/script_create_dialog.cpp
-#, fuzzy
 msgid "Error loading template '%s'"
-msgstr "Blimey! I can't make th' signature object!"
+msgstr ""
 
 #: editor/script_create_dialog.cpp
 msgid "Error - Could not create script in filesystem."
@@ -7853,18 +7798,16 @@ msgid "Wrong extension chosen"
 msgstr ""
 
 #: editor/script_create_dialog.cpp
-#, fuzzy
 msgid "Invalid Path"
-msgstr ": Evil arguments: "
+msgstr ""
 
 #: editor/script_create_dialog.cpp
 msgid "Invalid class name"
 msgstr ""
 
 #: editor/script_create_dialog.cpp
-#, fuzzy
 msgid "Invalid inherited parent name or path"
-msgstr "Yer index property name be thrown overboard!"
+msgstr ""
 
 #: editor/script_create_dialog.cpp
 msgid "Script valid"
@@ -7899,9 +7842,8 @@ msgid "Class Name"
 msgstr ""
 
 #: editor/script_create_dialog.cpp
-#, fuzzy
 msgid "Template"
-msgstr "Discharge ye' Variable"
+msgstr ""
 
 #: editor/script_create_dialog.cpp
 msgid "Built-in Script"
@@ -7912,9 +7854,8 @@ msgid "Attach Node Script"
 msgstr ""
 
 #: editor/script_editor_debugger.cpp
-#, fuzzy
 msgid "Remote "
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: editor/script_editor_debugger.cpp
 msgid "Bytes:"
@@ -7949,9 +7890,8 @@ msgid "Child Process Connected"
 msgstr ""
 
 #: editor/script_editor_debugger.cpp
-#, fuzzy
 msgid "Copy Error"
-msgstr "Slit th' Node"
+msgstr ""
 
 #: editor/script_editor_debugger.cpp
 msgid "Inspect Previous Instance"
@@ -8130,9 +8070,8 @@ msgid "Select dependencies of the library for this entry"
 msgstr ""
 
 #: modules/gdnative/gdnative_library_editor_plugin.cpp
-#, fuzzy
 msgid "Remove current entry"
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: modules/gdnative/gdnative_library_editor_plugin.cpp
 msgid "Double click to create a new entry"
@@ -8176,38 +8115,35 @@ msgstr ""
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "step argument is zero!"
-msgstr "Blimey! Ye step argument be marooned!"
+msgstr ""
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "Not a script with an instance"
-msgstr "Arr! Yer script is marooned!"
+msgstr ""
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "Not based on a script"
-msgstr "Ye be loaded to the gunwalls? It's anchorage be not on a script!"
+msgstr ""
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "Not based on a resource file"
-msgstr "Yer anchorage not be on a resource file, ye bilge rat!"
+msgstr ""
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "Invalid instance dictionary format (missing @path)"
-msgstr "Ye got th' wrong dictionary getup! (ye be missin' yer @path!)"
+msgstr ""
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "Invalid instance dictionary format (can't load script at @path)"
-msgstr "Ye got th' wrong dictionary getup! (yer script aint' at ye @path)"
+msgstr ""
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "Invalid instance dictionary format (invalid script at @path)"
 msgstr ""
-"Ye got th' wrong dictionary getup! (ye be drinkin'? Ye got yerself a bad "
-"script at @path!)"
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "Invalid instance dictionary (invalid subclasses)"
 msgstr ""
-"Ye got th' wrong dictionary getup! (yer subclasses be walkin' the plank!)"
 
 #: modules/gdscript/gdscript_functions.cpp
 msgid "Object can't provide a length."
@@ -8238,14 +8174,13 @@ msgid "Floor:"
 msgstr ""
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
-#, fuzzy
 msgid "GridMap Delete Selection"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr ""
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 #, fuzzy
 msgid "GridMap Fill Selection"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr "Visa Izvēle"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "GridMap Duplicate Selection"
@@ -8324,14 +8259,13 @@ msgid "Erase Area"
 msgstr ""
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
-#, fuzzy
 msgid "Clear Selection"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr ""
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 #, fuzzy
 msgid "Fill Selection"
-msgstr "All yer Booty"
+msgstr "Visa Izvēle"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "GridMap Settings"
@@ -8470,43 +8404,34 @@ msgid ""
 "A node yielded without working memory, please read the docs on how to yield "
 "properly!"
 msgstr ""
-"Yer scurvy node yielded but she got n' workin' memry'! Ye should keep a "
-"lookout for em' docs, she knows how t' yield like yer captain!"
 
 #: modules/visual_script/visual_script.cpp
 msgid ""
 "Node yielded, but did not return a function state in the first working "
 "memory."
 msgstr ""
-"Yer scurvy node yielded but er' booty didn't have no function state in er' "
-"maiden workin' memry'!"
 
 #: modules/visual_script/visual_script.cpp
 msgid ""
 "Return value must be assigned to first element of node working memory! Fix "
 "your node please."
 msgstr ""
-"Yer value best be comin' back posted to ye first element of yer node's "
-"workin' memry'! Swab the decks!"
 
 #: modules/visual_script/visual_script.cpp
 msgid "Node returned an invalid sequence output: "
-msgstr "Blow the man down! Yer node's booty got ye n' a evil sequence output: "
+msgstr ""
 
 #: modules/visual_script/visual_script.cpp
 msgid "Found sequence bit but not the node in the stack, report bug!"
 msgstr ""
-"Arrr! I found yer sequence bit but there be no node in yer stack. Tell th' "
-"Captain!"
 
 #: modules/visual_script/visual_script.cpp
 msgid "Stack overflow with stack depth: "
-msgstr "Avast! Yer stack has burst! Her depth be: "
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Change Signal Arguments"
-msgstr "Edit ye Signal Arguments:"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Change Argument Type"
@@ -8521,140 +8446,124 @@ msgid "Set Variable Default Value"
 msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Set Variable Type"
-msgstr "Edit yer Variable:"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Variables:"
-msgstr "Yer variables:"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Name is not a valid identifier:"
-msgstr "Yer name's got no valid identifier: "
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Name already in use by another func/var/signal:"
 msgstr ""
-"Yer name be backstabin'! She be used by another dastardly func/var/signal:"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Rename Function"
-msgstr "Rename Function"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Rename Variable"
-msgstr "Rename Variable"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Rename Signal"
-msgstr "Rename Signal"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Function"
-msgstr "Add Function"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Variable"
-msgstr "Add Variable"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Signal"
-msgstr "Add Signal"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Change Expression"
-msgstr "Swap yer Expression"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Node"
-msgstr "Add Node"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Remove VisualScript Nodes"
-msgstr "Discharge ye' Variable"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Duplicate VisualScript Nodes"
 msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Hold %s to drop a Getter. Hold Shift to drop a generic signature."
 msgstr ""
-"Smash yer Meta key t' sink yer Getter. Smash yer Shift t' sink a generic "
-"signature."
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Hold Ctrl to drop a Getter. Hold Shift to drop a generic signature."
 msgstr ""
-"Smash yer Ctrl key t' sink yer Getter. Smash yer Shift t' sink a generic "
-"signature."
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Hold %s to drop a simple reference to the node."
-msgstr "Smash yer Meta key t' sink a naked reference t' th' node."
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Hold Ctrl to drop a simple reference to the node."
-msgstr "Smash yer Ctrl key t' sink a naked reference t' th' node."
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Hold %s to drop a Variable Setter."
-msgstr "Smash yer Meta key t' sink a Variable Setter."
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Hold Ctrl to drop a Variable Setter."
-msgstr "Smash yer Ctrl key t' sink a Variable Setter."
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Preload Node"
-msgstr "Add yer Preload Node"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Node(s) From Tree"
-msgstr "Add Node(s) From yer Tree"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Getter Property"
-msgstr "Add yer Getter Property"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Setter Property"
-msgstr "Add yer Setter Property"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Change Base Type"
-msgstr "th' Base Type:"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Move Node(s)"
-msgstr "Forge yer Node!"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Remove VisualScript Node"
-msgstr "Discharge ye' Variable"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Connect Nodes"
-msgstr "Slit th' Node"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Connect Node Data"
-msgstr "Slit th' Node"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Connect Node Sequence"
-msgstr "Slit th' Node"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Script already has function '%s'"
@@ -8673,139 +8582,134 @@ msgid "Clipboard is empty!"
 msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Paste VisualScript Nodes"
-msgstr "Paste yer Node"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Remove Function"
-msgstr "Discharge ye' Function"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Remove Variable"
-msgstr "Discharge ye' Variable"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Editing Variable:"
-msgstr "Ye be fixin' Variable:"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Remove Signal"
-msgstr "Discharge ye' Signal"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Editing Signal:"
-msgstr "Ye be fixin' Signal:"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Base Type:"
-msgstr "th' Base Type:"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Available Nodes:"
-msgstr "yer Nodes doing nothin':"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Select or create a function to edit graph"
-msgstr "Grab or make yer function t' edit ye graph"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Edit Signal Arguments:"
-msgstr "Edit ye Signal Arguments:"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Edit Variable:"
-msgstr "Edit yer Variable:"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Delete Selected"
-msgstr "Yar, Blow th' Selected Down!"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Find Node Type"
-msgstr "Find ye Node Type"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Copy Nodes"
-msgstr "Forge yer Node!"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Cut Nodes"
-msgstr "Slit th' Node"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Paste Nodes"
-msgstr "Paste yer Node"
+msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Edit Member"
-msgstr "th' Members:"
+msgstr ""
 
 #: modules/visual_script/visual_script_flow_control.cpp
 msgid "Input type not iterable: "
-msgstr "Yar! Yer input aint iterable: "
+msgstr ""
 
 #: modules/visual_script/visual_script_flow_control.cpp
 msgid "Iterator became invalid"
-msgstr "Yer Iterator be no good"
+msgstr ""
 
 #: modules/visual_script/visual_script_flow_control.cpp
 msgid "Iterator became invalid: "
-msgstr "Yer Iterator be no good: "
+msgstr ""
 
 #: modules/visual_script/visual_script_func_nodes.cpp
 msgid "Invalid index property name."
-msgstr "Yer index property name be thrown overboard!"
+msgstr ""
 
 #: modules/visual_script/visual_script_func_nodes.cpp
 msgid "Base object is not a Node!"
-msgstr "Yer Base object aint' a Node!"
+msgstr ""
 
 #: modules/visual_script/visual_script_func_nodes.cpp
 msgid "Path does not lead Node!"
-msgstr "There be no Node at ye path's end!"
+msgstr ""
 
 #: modules/visual_script/visual_script_func_nodes.cpp
 msgid "Invalid index property name '%s' in node %s."
-msgstr "Yer index property name '%s' in node %s be walkin' th' plank!"
+msgstr ""
 
 #: modules/visual_script/visual_script_nodes.cpp
 msgid ": Invalid argument of type: "
-msgstr ": Evil argument of th' type: "
+msgstr ""
 
 #: modules/visual_script/visual_script_nodes.cpp
 msgid ": Invalid arguments: "
-msgstr ": Evil arguments: "
+msgstr ""
 
 #: modules/visual_script/visual_script_nodes.cpp
 msgid "VariableGet not found in script: "
-msgstr "VariableGet be in davy jones locker! Not in th' script: "
+msgstr ""
 
 #: modules/visual_script/visual_script_nodes.cpp
 msgid "VariableSet not found in script: "
-msgstr "VariableSet be in davy jones locker! Not in th' script: "
+msgstr ""
 
 #: modules/visual_script/visual_script_nodes.cpp
 msgid "Custom node has no _step() method, can't process graph."
-msgstr "Yer fancy node got no _step() method, we can't get th' graph."
+msgstr ""
 
 #: modules/visual_script/visual_script_nodes.cpp
 msgid ""
 "Invalid return value from _step(), must be integer (seq out), or string "
 "(error)."
 msgstr ""
-"Yer return value from _step() be no good! She must be th' integer (seq out) "
-"or th' string (error)."
 
 #: modules/visual_script/visual_script_property_selector.cpp
-#, fuzzy
 msgid "Search VisualScript"
-msgstr "Discharge ye' Variable"
+msgstr ""
 
 #: modules/visual_script/visual_script_property_selector.cpp
 msgid "Get"
-msgstr "Get"
+msgstr ""
 
 #: modules/visual_script/visual_script_property_selector.cpp
 msgid "Set "
@@ -8828,9 +8732,8 @@ msgid "Could not open template for export:"
 msgstr ""
 
 #: platform/javascript/export/export.cpp
-#, fuzzy
 msgid "Invalid export template:"
-msgstr "Yer index property name be thrown overboard!"
+msgstr ""
 
 #: platform/javascript/export/export.cpp
 msgid "Could not read custom HTML shell:"
@@ -9115,8 +9018,9 @@ msgid "On BlendTree node '%s', animation not found: '%s'"
 msgstr ""
 
 #: scene/animation/animation_blend_tree.cpp
+#, fuzzy
 msgid "Animation not found: '%s'"
-msgstr ""
+msgstr "Animācijas garums (sekundēs)."
 
 #: scene/animation/animation_tree.cpp
 msgid "In node '%s', invalid animation: '%s'."
@@ -9125,11 +9029,12 @@ msgstr ""
 #: scene/animation/animation_tree.cpp
 #, fuzzy
 msgid "Invalid animation: '%s'."
-msgstr "Yer Calligraphy be wrongly sized."
+msgstr "Nederīgs fonta izmērs."
 
 #: scene/animation/animation_tree.cpp
+#, fuzzy
 msgid "Nothing connected to input '%s' of node '%s'."
-msgstr ""
+msgstr "Atvienot '%s' no '%s'"
 
 #: scene/animation/animation_tree.cpp
 msgid "A root AnimationNode for the graph is not set."
@@ -9153,20 +9058,19 @@ msgstr ""
 
 #: scene/gui/color_picker.cpp
 msgid "Add current color as a preset"
-msgstr ""
+msgstr "Pievienot pašreizējo krāsu kā iepriekšnoteiktu krāsu"
 
 #: scene/gui/dialogs.cpp
 msgid "Alert!"
-msgstr ""
+msgstr "Brīdinājums!"
 
 #: scene/gui/dialogs.cpp
 msgid "Please Confirm..."
-msgstr ""
+msgstr "Lūdzu Apstipriniet..."
 
 #: scene/gui/file_dialog.cpp
-#, fuzzy
 msgid "Select this Folder"
-msgstr "Slit th' Node"
+msgstr "Izvēlēties šo Mapi"
 
 #: scene/gui/popup.cpp
 msgid ""
@@ -9184,7 +9088,7 @@ msgstr ""
 
 #: scene/gui/tree.cpp
 msgid "(Other)"
-msgstr ""
+msgstr "(Cits(i))"
 
 #: scene/main/scene_tree.cpp
 msgid ""
@@ -9202,19 +9106,19 @@ msgstr ""
 
 #: scene/resources/dynamic_font.cpp
 msgid "Error initializing FreeType."
-msgstr "Cant Load the FreeType Captain."
+msgstr "Kļūme inicializējot FreeType."
 
 #: scene/resources/dynamic_font.cpp
 msgid "Unknown font format."
-msgstr "Unknown Calligraphy format."
+msgstr "Nezināms fonta formāts."
 
 #: scene/resources/dynamic_font.cpp
 msgid "Error loading font."
-msgstr "Error loading yer Calligraphy Pen."
+msgstr "Kļūda lādējot fontu."
 
 #: scene/resources/dynamic_font.cpp
 msgid "Invalid font size."
-msgstr "Yer Calligraphy be wrongly sized."
+msgstr "Nederīgs fonta izmērs."
 
 #: scene/resources/visual_shader.cpp
 msgid "Input"
@@ -9227,7 +9131,7 @@ msgstr ""
 #: scene/resources/visual_shader_nodes.cpp
 #, fuzzy
 msgid "Invalid source for shader."
-msgstr "Yer Calligraphy be wrongly sized."
+msgstr "Nederīgs fonta izmērs."
 
 #: servers/visual/shader_language.cpp
 msgid "Assignment to function."
@@ -9242,107 +9146,10 @@ msgid "Varyings can only be assigned in vertex function."
 msgstr ""
 
 #~ msgid "Disabled"
-#~ msgstr "Cursed"
+#~ msgstr "Atspējots"
 
-#, fuzzy
-#~ msgid "Set pivot at mouse position"
-#~ msgstr "Discharge ye' Signal"
+#~ msgid "Length (s):"
+#~ msgstr "Garums (i):"
 
-#~ msgid "Condition"
-#~ msgstr "Condition"
-
-#~ msgid "Sequence"
-#~ msgstr "Sequence"
-
-#~ msgid "Switch"
-#~ msgstr "Switch"
-
-#~ msgid "Iterator"
-#~ msgstr "Iterator"
-
-#~ msgid "While"
-#~ msgstr "While"
-
-#~ msgid "Return"
-#~ msgstr "Return"
-
-#~ msgid "Call"
-#~ msgstr "Call"
-
-#, fuzzy
-#~ msgid "Edit Variable"
-#~ msgstr "Edit yer Variable:"
-
-#~ msgid "Move Add Key"
-#~ msgstr "Move yer Add Key"
-
-#~ msgid "just pressed"
-#~ msgstr "just smashed"
-
-#~ msgid "just released"
-#~ msgstr "just released"
-
-#, fuzzy
-#~ msgid ""
-#~ "Couldn't read the certificate file. Are the path and password both "
-#~ "correct?"
-#~ msgstr ""
-#~ "Blimey! I can't read th' certificate file! Are yer path n' password "
-#~ "trusty?"
-
-#~ msgid "Error creating the signature object."
-#~ msgstr "Blimey! I can't make th' signature object!"
-
-#~ msgid "Error creating the package signature."
-#~ msgstr "Blimey! I can't create th' package signature."
-
-#~ msgid ""
-#~ "No export templates found.\n"
-#~ "Download and install export templates."
-#~ msgstr ""
-#~ "Ye got no export templates!\n"
-#~ "Download and install yer export templates."
-
-#~ msgid "Custom debug package not found."
-#~ msgstr "Yer fancy debug package be nowhere."
-
-#~ msgid "Custom release package not found."
-#~ msgstr "Yer fancy release package be nowhere."
-
-#~ msgid "Invalid product GUID."
-#~ msgstr "Yer product GUID be evil."
-
-#~ msgid "Invalid publisher GUID."
-#~ msgstr "Yer publisher GUID be evil! Walk th' plank!"
-
-#~ msgid "Invalid background color."
-#~ msgstr "Yer background color be evil!"
-
-#~ msgid "Invalid Store Logo image dimensions (should be 50x50)."
-#~ msgstr ""
-#~ "Yer Store Logo got th' wrong dimensions! She should be 50x50 I reckon."
-
-#~ msgid "Invalid square 44x44 logo image dimensions (should be 44x44)."
-#~ msgstr "Yer square 44x44 logo image dimensions aint' 44x44!"
-
-#~ msgid "Invalid square 71x71 logo image dimensions (should be 71x71)."
-#~ msgstr "Yer square 71x71 logo image dimensions aint' 71x71!"
-
-#~ msgid "Invalid square 150x150 logo image dimensions (should be 150x150)."
-#~ msgstr "Yer square 150x150 logo image dimensions aint' 150x150!"
-
-#~ msgid "Invalid square 310x310 logo image dimensions (should be 310x310)."
-#~ msgstr "Yer square 310x310 logo image dimensions aint' 310x310!"
-
-#~ msgid "Invalid wide 310x150 logo image dimensions (should be 310x150)."
-#~ msgstr "Yer wide 310x150 logo image dimensions aint' 310x150!"
-
-#~ msgid "Invalid splash screen image dimensions (should be 620x300)."
-#~ msgstr "Yer splash screen image dimensions aint' 620x300!"
-
-#~ msgid ""
-#~ "Paths cannot start with '/', absolute paths must start with 'res://', "
-#~ "'user://', or 'local://'"
-#~ msgstr ""
-#~ "Avast! Ye cannot steer yer ship with a '/'! Yer need t' start wit' "
-#~ "'res://', 'user://', or 'local://' ye knave!"
+#~ msgid "Thanks!"
+#~ msgstr "Paldies!"

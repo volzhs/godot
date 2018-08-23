@@ -384,6 +384,10 @@ void RasterizerStorageGLES2::texture_allocate(RID p_texture, int p_width, int p_
 		case VS::TEXTURE_TYPE_3D: {
 			texture->images.resize(p_depth_3d);
 		} break;
+		default: {
+			ERR_PRINT("Unknown texture type!");
+			return;
+		}
 	}
 
 	Image::Format real_format;
@@ -1302,6 +1306,10 @@ void RasterizerStorageGLES2::shader_get_param_list(RID p_shader, List<PropertyIn
 				pi.type = Variant::OBJECT;
 				pi.hint = PROPERTY_HINT_RESOURCE_TYPE;
 				pi.hint_string = "CubeMap";
+			} break;
+
+			default: {
+
 			} break;
 		}
 
@@ -2848,7 +2856,11 @@ void RasterizerStorageGLES2::skeleton_allocate(RID p_skeleton, int p_bones, bool
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, skeleton->tex_id);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, p_bones * 3, 1, 0, GL_RGB, GL_FLOAT, NULL);
+#ifdef GLES_OVER_GL
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, p_bones * 3, 1, 0, GL_RGBA, GL_FLOAT, NULL);
+#else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, p_bones * 3, 1, 0, GL_RGBA, GL_FLOAT, NULL);
+#endif
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
