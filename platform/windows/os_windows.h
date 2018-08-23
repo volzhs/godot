@@ -125,6 +125,7 @@ class OS_Windows : public OS {
 	bool force_quit;
 	bool window_has_focus;
 	uint32_t last_button_state;
+	bool use_raw_input;
 
 	HCURSOR cursors[CURSOR_MAX] = { NULL };
 	CursorShape cursor_shape;
