@@ -435,8 +435,6 @@ DynamicFontAtSize::TexturePosition DynamicFontAtSize::_find_texture_pos_for_glyp
 		break;
 	}
 
-	//print_line("CHAR: "+String::chr(p_char)+" TEX INDEX: "+itos(tex_index)+" X: "+itos(tex_x)+" Y: "+itos(tex_y));
-
 	if (ret.index == -1) {
 		//could not find texture to fit, create one
 		ret.x = 0;
@@ -1036,6 +1034,8 @@ SelfList<DynamicFont>::List DynamicFont::dynamic_fonts;
 DynamicFont::DynamicFont() :
 		font_list(this) {
 
+	cache_id.size = 16;
+	outline_cache_id.size = 16;
 	spacing_top = 0;
 	spacing_bottom = 0;
 	spacing_char = 0;

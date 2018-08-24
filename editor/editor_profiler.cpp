@@ -100,6 +100,8 @@ void EditorProfiler::clear() {
 	updating_frame = false;
 	hover_metric = -1;
 	seeking = false;
+
+	_update_plot();
 }
 
 static String _get_percent_txt(float p_value, float p_total) {
@@ -167,7 +169,7 @@ void EditorProfiler::_update_plot() {
 	int w = graph->get_size().width;
 	int h = graph->get_size().height;
 
-	bool reset_texture = false;
+	bool reset_texture = graph_texture.is_null();
 
 	int desired_len = w * h * 4;
 
@@ -342,7 +344,6 @@ void EditorProfiler::_update_plot() {
 		}
 
 		time = OS::get_singleton()->get_ticks_usec() - time;
-		//print_line("Taken: "+rtos(USEC_TO_SEC(time)));
 	}
 
 	wr = PoolVector<uint8_t>::Write();

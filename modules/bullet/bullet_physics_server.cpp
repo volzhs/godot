@@ -1001,11 +1001,13 @@ void BulletPhysicsServer::soft_body_get_collision_exceptions(RID p_body, List<RI
 }
 
 void BulletPhysicsServer::soft_body_set_state(RID p_body, BodyState p_state, const Variant &p_variant) {
-	print_line("TODO MUST BE IMPLEMENTED");
+	// FIXME: Must be implemented.
+	WARN_PRINT("soft_body_state is not implemented yet in Bullet backend.");
 }
 
 Variant BulletPhysicsServer::soft_body_get_state(RID p_body, BodyState p_state) const {
-	print_line("TODO MUST BE IMPLEMENTED");
+	// FIXME: Must be implemented.
+	WARN_PRINT("soft_body_state is not implemented yet in Bullet backend.");
 	return Variant();
 }
 
@@ -1439,7 +1441,7 @@ RID BulletPhysicsServer::joint_create_generic_6dof(RID p_body_A, const Transform
 
 	ERR_FAIL_COND_V(body_A == body_B, RID());
 
-	JointBullet *joint = bulletnew(Generic6DOFJointBullet(body_A, body_B, p_local_frame_A, p_local_frame_B, true));
+	JointBullet *joint = bulletnew(Generic6DOFJointBullet(body_A, body_B, p_local_frame_A, p_local_frame_B));
 	AddJointToSpace(body_A, joint);
 
 	CreateThenReturnRID(joint_owner, joint);
