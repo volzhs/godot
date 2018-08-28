@@ -1549,10 +1549,11 @@ void ScriptTextEditor::register_editor() {
 	ED_SHORTCUT("script_text_editor/unfold_all_lines", TTR("Unfold All Lines"), 0);
 #ifdef OSX_ENABLED
 	ED_SHORTCUT("script_text_editor/clone_down", TTR("Clone Down"), KEY_MASK_SHIFT | KEY_MASK_CMD | KEY_C);
+	ED_SHORTCUT("script_text_editor/complete_symbol", TTR("Complete Symbol"), KEY_MASK_CTRL | KEY_SPACE);
 #else
 	ED_SHORTCUT("script_text_editor/clone_down", TTR("Clone Down"), KEY_MASK_CMD | KEY_B);
-#endif
 	ED_SHORTCUT("script_text_editor/complete_symbol", TTR("Complete Symbol"), KEY_MASK_CMD | KEY_SPACE);
+#endif
 	ED_SHORTCUT("script_text_editor/trim_trailing_whitespace", TTR("Trim Trailing Whitespace"), KEY_MASK_CMD | KEY_MASK_ALT | KEY_T);
 	ED_SHORTCUT("script_text_editor/convert_indent_to_spaces", TTR("Convert Indent To Spaces"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_Y);
 	ED_SHORTCUT("script_text_editor/convert_indent_to_tabs", TTR("Convert Indent To Tabs"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_X);
@@ -1575,15 +1576,20 @@ void ScriptTextEditor::register_editor() {
 #ifdef OSX_ENABLED
 	ED_SHORTCUT("script_text_editor/find_next", TTR("Find Next"), KEY_MASK_CMD | KEY_G);
 	ED_SHORTCUT("script_text_editor/find_previous", TTR("Find Previous"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_G);
+	ED_SHORTCUT("script_text_editor/replace", TTR("Replace..."), KEY_MASK_ALT | KEY_MASK_CMD | KEY_F);
 #else
 	ED_SHORTCUT("script_text_editor/find_next", TTR("Find Next"), KEY_F3);
 	ED_SHORTCUT("script_text_editor/find_previous", TTR("Find Previous"), KEY_MASK_SHIFT | KEY_F3);
-#endif
 	ED_SHORTCUT("script_text_editor/replace", TTR("Replace..."), KEY_MASK_CMD | KEY_R);
+#endif
 
 	ED_SHORTCUT("script_text_editor/find_in_files", TTR("Find in files..."), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_F);
 
+#ifdef OSX_ENABLED
+	ED_SHORTCUT("script_text_editor/goto_function", TTR("Goto Function..."), KEY_MASK_CTRL | KEY_MASK_CMD | KEY_J);
+#else
 	ED_SHORTCUT("script_text_editor/goto_function", TTR("Goto Function..."), KEY_MASK_ALT | KEY_MASK_CMD | KEY_F);
+#endif
 	ED_SHORTCUT("script_text_editor/goto_line", TTR("Goto Line..."), KEY_MASK_CMD | KEY_L);
 
 #ifdef OSX_ENABLED
