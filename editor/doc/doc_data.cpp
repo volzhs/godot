@@ -382,7 +382,11 @@ void DocData::generate(bool p_basic_types) {
 					PropertyInfo arginfo = EV->get().arguments[i];
 					ArgumentDoc argument;
 					argument.name = arginfo.name;
-					argument.type = Variant::get_type_name(arginfo.type);
+					if (arginfo.type == Variant::OBJECT && arginfo.class_name != StringName()) {
+						argument.type = arginfo.class_name.operator String();
+					} else {
+						argument.type = Variant::get_type_name(arginfo.type);
+					}
 					signal.arguments.push_back(argument);
 				}
 
@@ -501,7 +505,7 @@ void DocData::generate(bool p_basic_types) {
 				ad.name = arginfo.name;
 
 				if (arginfo.type == Variant::NIL)
-					ad.type = "var";
+					ad.type = "Variant";
 				else
 					ad.type = Variant::get_type_name(arginfo.type);
 
@@ -514,7 +518,7 @@ void DocData::generate(bool p_basic_types) {
 
 			if (mi.return_val.type == Variant::NIL) {
 				if (mi.return_val.name != "")
-					method.return_type = "var";
+					method.return_type = "Variant";
 			} else {
 				method.return_type = Variant::get_type_name(mi.return_val.type);
 			}

@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  cpu_particles.h                                                      */
+/*  cpu_particles_2d.h                                                   */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,10 +28,10 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef CPU_PARTICLES_H
-#define CPU_PARTICLES_H
+#ifndef CPU_PARTICLES_2D_H
+#define CPU_PARTICLES_2D_H
 #include "rid.h"
-#include "scene/3d/visual_instance.h"
+#include "scene/2d/node_2d.h"
 #include "scene/main/timer.h"
 #include "scene/resources/material.h"
 
@@ -39,22 +39,21 @@
 	@author Juan Linietsky <reduzio@gmail.com>
 */
 
-class CPUParticles : public GeometryInstance {
+class CPUParticles2D : public Node2D {
 private:
-	GDCLASS(CPUParticles, GeometryInstance);
+	GDCLASS(CPUParticles2D, Node2D);
 
 public:
 	enum DrawOrder {
 		DRAW_ORDER_INDEX,
 		DRAW_ORDER_LIFETIME,
-		DRAW_ORDER_VIEW_DEPTH,
 	};
 
 	enum Parameter {
 
 		PARAM_INITIAL_LINEAR_VELOCITY,
 		PARAM_ANGULAR_VELOCITY,
-		//PARAM_ORBIT_VELOCITY,
+		PARAM_ORBIT_VELOCITY,
 		PARAM_LINEAR_ACCEL,
 		PARAM_RADIAL_ACCEL,
 		PARAM_TANGENTIAL_ACCEL,
@@ -69,16 +68,14 @@ public:
 
 	enum Flags {
 		FLAG_ALIGN_Y_TO_VELOCITY,
-		FLAG_ROTATE_Y,
-		FLAG_DISABLE_Z,
 		FLAG_ANIM_LOOP,
 		FLAG_MAX
 	};
 
 	enum EmissionShape {
 		EMISSION_SHAPE_POINT,
-		EMISSION_SHAPE_SPHERE,
-		EMISSION_SHAPE_BOX,
+		EMISSION_SHAPE_CIRCLE,
+		EMISSION_SHAPE_RECTANGLE,
 		EMISSION_SHAPE_POINTS,
 		EMISSION_SHAPE_DIRECTED_POINTS,
 	};
@@ -87,10 +84,10 @@ private:
 	bool emitting;
 
 	struct Particle {
-		Transform transform;
+		Transform2D transform;
 		Color color;
 		float custom[4];
-		Vector3 velocity;
+		Vector2 velocity;
 		bool active;
 		float angle_rand;
 		float scale_rand;
@@ -107,6 +104,7 @@ private:
 	float frame_remainder;
 	int cycle;
 
+	RID mesh;
 	RID multimesh;
 
 	PoolVector<Particle> particles;
@@ -123,10 +121,10 @@ private:
 
 	struct SortAxis {
 		const Particle *particles;
-		Vector3 axis;
+		Vector2 axis;
 		bool operator()(int p_a, int p_b) const {
 
-			return axis.dot(particles[p_a].transform.origin) < axis.dot(particles[p_b].transform.origin);
+			return axis.dot(particles[p_a].transform[2]) < axis.dot(particles[p_b].transform[2]);
 		}
 	};
 
@@ -145,7 +143,8 @@ private:
 
 	DrawOrder draw_order;
 
-	Ref<Mesh> mesh;
+	Ref<Texture> texture;
+	Ref<Texture> normalmap;
 
 	////////
 
@@ -163,14 +162,14 @@ private:
 
 	EmissionShape emission_shape;
 	float emission_sphere_radius;
-	Vector3 emission_box_extents;
-	PoolVector<Vector3> emission_points;
-	PoolVector<Vector3> emission_normals;
+	Vector2 emission_rect_extents;
+	PoolVector<Vector2> emission_points;
+	PoolVector<Vector2> emission_normals;
 	PoolVector<Color> emission_colors;
 	int emission_point_count;
 
 	bool anim_loop;
-	Vector3 gravity;
+	Vector2 gravity;
 
 	void _particles_process(float p_delta);
 	void _update_particle_data_buffer();
@@ -179,15 +178,14 @@ private:
 
 	void _update_render_thread();
 
+	void _update_mesh_texture();
+
 protected:
 	static void _bind_methods();
 	void _notification(int p_what);
 	virtual void _validate_property(PropertyInfo &property) const;
 
 public:
-	AABB get_aabb() const;
-	PoolVector<Face3> get_faces(uint32_t p_usage_flags) const;
-
 	void set_emitting(bool p_emitting);
 	void set_amount(int p_amount);
 	void set_lifetime(float p_lifetime);
@@ -195,7 +193,7 @@ public:
 	void set_pre_process_time(float p_time);
 	void set_explosiveness_ratio(float p_ratio);
 	void set_randomness_ratio(float p_ratio);
-	void set_visibility_aabb(const AABB &p_aabb);
+	void set_visibility_aabb(const Rect2 &p_aabb);
 	void set_use_local_coordinates(bool p_enable);
 	void set_speed_scale(float p_scale);
 
@@ -206,7 +204,7 @@ public:
 	float get_pre_process_time() const;
 	float get_explosiveness_ratio() const;
 	float get_randomness_ratio() const;
-	AABB get_visibility_aabb() const;
+	Rect2 get_visibility_aabb() const;
 	bool get_use_local_coordinates() const;
 	float get_speed_scale() const;
 
@@ -222,8 +220,11 @@ public:
 	void set_draw_passes(int p_count);
 	int get_draw_passes() const;
 
-	void set_mesh(const Ref<Mesh> &p_mesh);
-	Ref<Mesh> get_mesh() const;
+	void set_texture(const Ref<Texture> &p_texture);
+	Ref<Texture> get_texture() const;
+
+	void set_normalmap(const Ref<Texture> &p_normalmap);
+	Ref<Texture> get_normalmap() const;
 
 	///////////////////
 
@@ -253,22 +254,22 @@ public:
 
 	void set_emission_shape(EmissionShape p_shape);
 	void set_emission_sphere_radius(float p_radius);
-	void set_emission_box_extents(Vector3 p_extents);
-	void set_emission_points(const PoolVector<Vector3> &p_points);
-	void set_emission_normals(const PoolVector<Vector3> &p_normals);
+	void set_emission_rect_extents(Vector2 p_extents);
+	void set_emission_points(const PoolVector<Vector2> &p_points);
+	void set_emission_normals(const PoolVector<Vector2> &p_normals);
 	void set_emission_colors(const PoolVector<Color> &p_colors);
 	void set_emission_point_count(int p_count);
 
 	EmissionShape get_emission_shape() const;
 	float get_emission_sphere_radius() const;
-	Vector3 get_emission_box_extents() const;
-	PoolVector<Vector3> get_emission_points() const;
-	PoolVector<Vector3> get_emission_normals() const;
+	Vector2 get_emission_rect_extents() const;
+	PoolVector<Vector2> get_emission_points() const;
+	PoolVector<Vector2> get_emission_normals() const;
 	PoolVector<Color> get_emission_colors() const;
 	int get_emission_point_count() const;
 
-	void set_gravity(const Vector3 &p_gravity);
-	Vector3 get_gravity() const;
+	void set_gravity(const Vector2 &p_gravity);
+	Vector2 get_gravity() const;
 
 	virtual String get_configuration_warning() const;
 
@@ -276,13 +277,13 @@ public:
 
 	void convert_from_particles(Node *p_particles);
 
-	CPUParticles();
-	~CPUParticles();
+	CPUParticles2D();
+	~CPUParticles2D();
 };
 
-VARIANT_ENUM_CAST(CPUParticles::DrawOrder)
-VARIANT_ENUM_CAST(CPUParticles::Parameter)
-VARIANT_ENUM_CAST(CPUParticles::Flags)
-VARIANT_ENUM_CAST(CPUParticles::EmissionShape)
+VARIANT_ENUM_CAST(CPUParticles2D::DrawOrder)
+VARIANT_ENUM_CAST(CPUParticles2D::Parameter)
+VARIANT_ENUM_CAST(CPUParticles2D::Flags)
+VARIANT_ENUM_CAST(CPUParticles2D::EmissionShape)
 
-#endif // CPU_PARTICLES_H
+#endif // CPU_PARTICLES_2D_H
