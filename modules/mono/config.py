@@ -99,6 +99,8 @@ def configure(env):
         if not mono_root:
             raise RuntimeError('Mono installation directory not found')
 
+        print('Found Mono root directory: ' + mono_root)
+
         mono_version = mono_root_try_find_mono_version(mono_root)
         configure_for_mono_version(env, mono_version)
 
@@ -164,6 +166,14 @@ def configure(env):
             if os.getenv('MONO64_PREFIX'):
                 mono_root = os.getenv('MONO64_PREFIX')
 
+        if not mono_root and sys.platform == 'darwin':
+            # Try with some known directories under OSX
+            hint_dirs = ['/Library/Frameworks/Mono.framework/Versions/Current', '/usr/local/var/homebrew/linked/mono']
+            for hint_dir in hint_dirs:
+                if os.path.isdir(hint_dir):
+                    mono_root = hint_dir
+                    break
+
         # We can't use pkg-config to link mono statically,
         # but we can still use it to find the mono root directory
         if not mono_root and mono_static:
@@ -172,6 +182,8 @@ def configure(env):
                 raise RuntimeError('Building with mono_static=yes, but failed to find the mono prefix with pkg-config. Specify one manually')
 
         if mono_root:
+            print('Found Mono root directory: ' + mono_root)
+
             mono_version = mono_root_try_find_mono_version(mono_root)
             configure_for_mono_version(env, mono_version)
 
@@ -216,6 +228,9 @@ def configure(env):
         else:
             assert not mono_static
 
+            # TODO: Add option to force using pkg-config
+            print('Mono root directory not found. Using pkg-config instead')
+
             mono_version = pkgconfig_try_find_mono_version()
             configure_for_mono_version(env, mono_version)
 
@@ -248,7 +263,7 @@ def configure(env):
 def configure_for_mono_version(env, mono_version):
     if mono_version is None:
         raise RuntimeError('Mono JIT compiler version not found')
-    print('Mono JIT compiler version: ' + str(mono_version))
+    print('Found Mono JIT compiler version: ' + str(mono_version))
     if mono_version >= LooseVersion("5.12.0"):
         env.Append(CPPFLAGS=['-DHAS_PENDING_EXCEPTIONS'])
 
@@ -282,7 +297,14 @@ def pkgconfig_try_find_mono_version():
 def mono_root_try_find_mono_version(mono_root):
     from compat import decode_utf8
 
-    output = subprocess.check_output([os.path.join(mono_root, 'bin', 'mono'), '--version'])
+    mono_bin = os.path.join(mono_root, 'bin')
+    if os.path.isfile(os.path.join(mono_bin, 'mono')):
+        mono_binary = os.path.join(mono_bin, 'mono')
+    elif os.path.isfile(os.path.join(mono_bin, 'mono.exe')):
+        mono_binary = os.path.join(mono_bin, 'mono.exe')
+    else:
+        return None
+    output = subprocess.check_output([mono_binary, '--version'])
     first_line = decode_utf8(output.splitlines()[0])
     try:
         return LooseVersion(first_line.split()[len('Mono JIT compiler version'.split())])

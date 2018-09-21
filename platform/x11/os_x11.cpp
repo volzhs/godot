@@ -29,12 +29,12 @@
 /*************************************************************************/
 
 #include "os_x11.h"
+#include "core/os/dir_access.h"
+#include "core/print_string.h"
 #include "drivers/gles2/rasterizer_gles2.h"
 #include "drivers/gles3/rasterizer_gles3.h"
 #include "errno.h"
 #include "key_mapping_x11.h"
-#include "os/dir_access.h"
-#include "print_string.h"
 #include "servers/visual/visual_server_raster.h"
 #include "servers/visual/visual_server_wrap_mt.h"
 
@@ -581,6 +581,8 @@ Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 		}
 	}
 
+	update_real_mouse_position();
+
 	return OK;
 }
 
@@ -742,12 +744,15 @@ void OS_X11::set_mouse_mode(MouseMode p_mode) {
 			ERR_PRINT("NO GRAB");
 		}
 
-		center.x = current_videomode.width / 2;
-		center.y = current_videomode.height / 2;
-		XWarpPointer(x11_display, None, x11_window,
-				0, 0, 0, 0, (int)center.x, (int)center.y);
+		if (mouse_mode == MOUSE_MODE_CAPTURED) {
+			center.x = current_videomode.width / 2;
+			center.y = current_videomode.height / 2;
 
-		input->set_mouse_position(center);
+			XWarpPointer(x11_display, None, x11_window,
+					0, 0, 0, 0, (int)center.x, (int)center.y);
+
+			input->set_mouse_position(center);
+		}
 	} else {
 		do_mouse_warp = false;
 	}
@@ -1050,6 +1055,7 @@ Point2 OS_X11::get_window_position() const {
 
 void OS_X11::set_window_position(const Point2 &p_position) {
 	XMoveWindow(x11_display, x11_window, p_position.x, p_position.y);
+	update_real_mouse_position();
 }
 
 Size2 OS_X11::get_window_size() const {
@@ -1079,6 +1085,16 @@ Size2 OS_X11::get_real_window_size() const {
 }
 
 void OS_X11::set_window_size(const Size2 p_size) {
+
+	if (current_videomode.width == p_size.width && current_videomode.height == p_size.height)
+		return;
+
+	XWindowAttributes xwa;
+	XSync(x11_display, False);
+	XGetWindowAttributes(x11_display, x11_window, &xwa);
+	int old_w = xwa.width;
+	int old_h = xwa.height;
+
 	// If window resizable is disabled we need to update the attributes first
 	if (is_window_resizable() == false) {
 		XSizeHints *xsh;
@@ -1098,6 +1114,16 @@ void OS_X11::set_window_size(const Size2 p_size) {
 	// Update our videomode width and height
 	current_videomode.width = p_size.x;
 	current_videomode.height = p_size.y;
+
+	for (int timeout = 0; timeout < 50; ++timeout) {
+		XSync(x11_display, False);
+		XGetWindowAttributes(x11_display, x11_window, &xwa);
+
+		if (old_w != xwa.width || old_h != xwa.height)
+			break;
+
+		usleep(10000);
+	}
 }
 
 void OS_X11::set_window_fullscreen(bool p_enabled) {
@@ -2044,6 +2070,10 @@ void OS_X11::process_xevents() {
 
 				Point2i rel = pos - last_mouse_pos;
 
+				if (mouse_mode == MOUSE_MODE_CAPTURED) {
+					pos = Point2i(current_videomode.width / 2, current_videomode.height / 2);
+				}
+
 				Ref<InputEventMouseMotion> mm;
 				mm.instance();
 
@@ -2494,13 +2524,16 @@ void OS_X11::set_cursor_shape(CursorShape p_shape) {
 
 	ERR_FAIL_INDEX(p_shape, CURSOR_MAX);
 
-	if (p_shape == current_cursor)
+	if (p_shape == current_cursor) {
 		return;
-	if (mouse_mode == MOUSE_MODE_VISIBLE && mouse_mode != MOUSE_MODE_CONFINED) {
-		if (cursors[p_shape] != None)
+	}
+
+	if (mouse_mode == MOUSE_MODE_VISIBLE || mouse_mode == MOUSE_MODE_CONFINED) {
+		if (cursors[p_shape] != None) {
 			XDefineCursor(x11_display, x11_window, cursors[p_shape]);
-		else if (cursors[CURSOR_ARROW] != None)
+		} else if (cursors[CURSOR_ARROW] != None) {
 			XDefineCursor(x11_display, x11_window, cursors[CURSOR_ARROW]);
+		}
 	}
 
 	current_cursor = p_shape;
@@ -2576,8 +2609,10 @@ void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 		// Save it for a further usage
 		cursors[p_shape] = XcursorImageLoadCursor(x11_display, cursor_image);
 
-		if (p_shape == CURSOR_ARROW) {
-			XDefineCursor(x11_display, x11_window, cursors[p_shape]);
+		if (p_shape == current_cursor) {
+			if (mouse_mode == MOUSE_MODE_VISIBLE || mouse_mode == MOUSE_MODE_CONFINED) {
+				XDefineCursor(x11_display, x11_window, cursors[p_shape]);
+			}
 		}
 
 		memfree(cursor_image->pixels);
@@ -2588,8 +2623,9 @@ void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 			cursors[p_shape] = XcursorImageLoadCursor(x11_display, img[p_shape]);
 		}
 
+		CursorShape c = current_cursor;
 		current_cursor = CURSOR_MAX;
-		set_cursor_shape(p_shape);
+		set_cursor_shape(c);
 	}
 }
 
@@ -2970,6 +3006,25 @@ OS::LatinKeyboardVariant OS_X11::get_latin_keyboard_variant() const {
 	}
 
 	return LATIN_KEYBOARD_QWERTY;
+}
+
+void OS_X11::update_real_mouse_position() {
+	Window root_return, child_return;
+	int root_x, root_y, win_x, win_y;
+	unsigned int mask_return;
+
+	Bool xquerypointer_result = XQueryPointer(x11_display, x11_window, &root_return, &child_return, &root_x, &root_y,
+			&win_x, &win_y, &mask_return);
+
+	if (xquerypointer_result) {
+		if (win_x > 0 && win_y > 0 && win_x <= current_videomode.width && win_y <= current_videomode.height) {
+
+			last_mouse_pos.x = win_x;
+			last_mouse_pos.y = win_y;
+			last_mouse_pos_valid = true;
+			input->set_mouse_position(last_mouse_pos);
+		}
+	}
 }
 
 OS_X11::OS_X11() {

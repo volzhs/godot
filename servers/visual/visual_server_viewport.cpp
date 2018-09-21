@@ -30,7 +30,7 @@
 
 #include "visual_server_viewport.h"
 
-#include "project_settings.h"
+#include "core/project_settings.h"
 #include "visual_server_canvas.h"
 #include "visual_server_global.h"
 #include "visual_server_scene.h"
@@ -294,7 +294,7 @@ void VisualServerViewport::draw_viewports() {
 				arvr_interface->commit_for_eye(ARVRInterface::EYE_RIGHT, vp->render_target, vp->viewport_to_screen_rect);
 			}
 
-			// and for our frame timing, mark when we've finished commiting our eyes
+			// and for our frame timing, mark when we've finished committing our eyes
 			ARVRServer::get_singleton()->_mark_commit();
 		} else {
 			VSG::rasterizer->set_current_render_target(vp->render_target);

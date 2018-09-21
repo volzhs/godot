@@ -31,10 +31,10 @@
 #include "visual_shader_editor_plugin.h"
 
 #include "core/io/resource_loader.h"
+#include "core/os/input.h"
+#include "core/os/keyboard.h"
 #include "core/project_settings.h"
 #include "editor/editor_properties.h"
-#include "os/input.h"
-#include "os/keyboard.h"
 #include "scene/animation/animation_player.h"
 #include "scene/gui/menu_button.h"
 #include "scene/gui/panel.h"
@@ -510,6 +510,17 @@ void VisualShaderEditor::_connection_request(const String &p_from, int p_from_in
 	}
 
 	undo_redo->create_action("Nodes Connected");
+
+	List<VisualShader::Connection> conns;
+	visual_shader->get_node_connections(type, &conns);
+
+	for (List<VisualShader::Connection>::Element *E = conns.front(); E; E = E->next()) {
+		if (E->get().to_node == to && E->get().to_port == p_to_index) {
+			undo_redo->add_do_method(visual_shader.ptr(), "disconnect_nodes", type, E->get().from_node, E->get().from_port, E->get().to_node, E->get().to_port);
+			undo_redo->add_undo_method(visual_shader.ptr(), "connect_nodes", type, E->get().from_node, E->get().from_port, E->get().to_node, E->get().to_port);
+		}
+	}
+
 	undo_redo->add_do_method(visual_shader.ptr(), "connect_nodes", type, from, p_from_index, to, p_to_index);
 	undo_redo->add_undo_method(visual_shader.ptr(), "disconnect_nodes", type, from, p_from_index, to, p_to_index);
 	undo_redo->add_do_method(this, "_update_graph");
@@ -629,7 +640,7 @@ void VisualShaderEditor::_duplicate_nodes() {
 			int id = String(graph->get_child(i)->get_name()).to_int();
 			Ref<VisualShaderNode> node = visual_shader->get_node(type, id);
 			Ref<VisualShaderNodeOutput> output = node;
-			if (output.is_valid()) //cant duplicate output
+			if (output.is_valid()) //can't duplicate output
 				continue;
 			if (node.is_valid()) {
 				nodes.push_back(id);
@@ -932,7 +943,10 @@ public:
 class VisualShaderNodePluginDefaultEditor : public VBoxContainer {
 	GDCLASS(VisualShaderNodePluginDefaultEditor, VBoxContainer)
 public:
-	void _property_changed(const String &prop, const Variant &p_value) {
+	void _property_changed(const String &prop, const Variant &p_value, bool p_changing = false) {
+
+		if (p_changing)
+			return;
 
 		UndoRedo *undo_redo = EditorNode::get_singleton()->get_undo_redo();
 
@@ -979,7 +993,7 @@ public:
 	}
 
 	static void _bind_methods() {
-		ClassDB::bind_method("_property_changed", &VisualShaderNodePluginDefaultEditor::_property_changed);
+		ClassDB::bind_method("_property_changed", &VisualShaderNodePluginDefaultEditor::_property_changed, DEFVAL(false));
 		ClassDB::bind_method("_node_changed", &VisualShaderNodePluginDefaultEditor::_node_changed);
 		ClassDB::bind_method("_refresh_request", &VisualShaderNodePluginDefaultEditor::_refresh_request);
 	}
@@ -1158,7 +1172,7 @@ bool EditorInspectorShaderModePlugin::parse_property(Object *p_object, Variant::
 		return true;
 	}
 
-	return false; //can be overriden, although it will most likely be last anyway
+	return false; //can be overridden, although it will most likely be last anyway
 }
 
 void EditorInspectorShaderModePlugin::parse_end() {

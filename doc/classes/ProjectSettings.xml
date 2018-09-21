@@ -157,6 +157,8 @@
 		</method>
 	</methods>
 	<members>
+		<member name="application/boot_splash/bg_color" type="Color" setter="" getter="">
+		</member>
 		<member name="application/boot_splash/fullsize" type="bool" setter="" getter="">
 			Scale the boot splash image to the full window length when engine starts (will leave it as default pixel size otherwise).
 		</member>
@@ -208,7 +210,7 @@
 		<member name="audio/output_latency" type="int" setter="" getter="">
 		</member>
 		<member name="audio/video_delay_compensation_ms" type="int" setter="" getter="">
-			Setting to harcode audio delay when playing video. Best to leave this untouched unless you know what you are doing.
+			Setting to hardcode audio delay when playing video. Best to leave this untouched unless you know what you are doing.
 		</member>
 		<member name="compression/formats/gzip/compression_level" type="int" setter="" getter="">
 			Default compression level for gzip. Affects compressed scenes and resources.
@@ -225,6 +227,8 @@
 		<member name="compression/formats/zstd/window_log_size" type="int" setter="" getter="">
 		</member>
 		<member name="debug/gdscript/warnings/constant_used_as_function" type="bool" setter="" getter="">
+		</member>
+		<member name="debug/gdscript/warnings/deprecated_keyword" type="bool" setter="" getter="">
 		</member>
 		<member name="debug/gdscript/warnings/enable" type="bool" setter="" getter="">
 		</member>
@@ -605,9 +609,6 @@
 		<member name="network/remote_fs/page_size" type="int" setter="" getter="">
 			Page size used by remote filesystem.
 		</member>
-		<member name="network/ssl/certificates" type="String" setter="" getter="">
-			If your game or application uses HTTPS, a certificates file is needed. It must be set here.
-		</member>
 		<member name="node/name_casing" type="int" setter="" getter="">
 			When creating nodes names automatically, set the type of casing in this project. This is mostly an editor setting.
 		</member>
@@ -630,7 +631,7 @@
 			Fix to improve physics jitter, specially on monitors where refresh rate is different than physics FPS.
 		</member>
 		<member name="rendering/environment/default_clear_color" type="Color" setter="" getter="">
-			Default background clear color.
+			Default background clear color. Overridable per [Viewport] using its [Environment]. See [member Environment.background_mode] and [member Environment.background_color] in particular. To change this default color programmatically, use [method VisualServer.set_default_clear_color].
 		</member>
 		<member name="rendering/limits/buffers/blend_shape_max_buffer_size_kb" type="int" setter="" getter="">
 			Max buffer size for blend shapes. Any blend shape bigger than this will not work.

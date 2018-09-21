@@ -30,117 +30,142 @@
 
 #include "main.h"
 
-#include "app_icon.gen.h"
+#include "core/input_map.h"
+#include "core/io/file_access_network.h"
+#include "core/io/file_access_pack.h"
+#include "core/io/file_access_zip.h"
+#include "core/io/ip.h"
+#include "core/io/resource_loader.h"
+#include "core/io/stream_peer_ssl.h"
+#include "core/io/stream_peer_tcp.h"
+#include "core/message_queue.h"
+#include "core/os/dir_access.h"
+#include "core/os/os.h"
+#include "core/project_settings.h"
 #include "core/register_core_types.h"
+#include "core/script_debugger_local.h"
+#include "core/script_debugger_remote.h"
+#include "core/script_language.h"
+#include "core/translation.h"
+#include "core/version.h"
+#include "core/version_hash.gen.h"
 #include "drivers/register_driver_types.h"
-#include "message_queue.h"
+#include "main/app_icon.gen.h"
+#include "main/input_default.h"
+#include "main/performance.h"
+#include "main/splash.gen.h"
+#include "main/splash_editor.gen.h"
+#include "main/tests/test_main.h"
+#include "main/timer_sync.h"
 #include "modules/register_module_types.h"
-#include "os/os.h"
 #include "platform/register_platform_apis.h"
-#include "project_settings.h"
-#include "scene/register_scene_types.h"
-#include "script_debugger_local.h"
-#include "script_debugger_remote.h"
-#include "servers/register_server_types.h"
-#include "splash.gen.h"
-#include "splash_editor.gen.h"
-
-#include "input_map.h"
-#include "io/resource_loader.h"
 #include "scene/main/scene_tree.h"
+#include "scene/main/viewport.h"
+#include "scene/register_scene_types.h"
+#include "scene/resources/packed_scene.h"
 #include "servers/arvr_server.h"
 #include "servers/audio_server.h"
 #include "servers/physics_2d_server.h"
 #include "servers/physics_server.h"
-
-#include "io/resource_loader.h"
-#include "script_language.h"
-
-#include "core/io/ip.h"
-#include "main/tests/test_main.h"
-#include "os/dir_access.h"
-#include "scene/main/viewport.h"
-#include "scene/resources/packed_scene.h"
+#include "servers/register_server_types.h"
 
 #ifdef TOOLS_ENABLED
 #include "editor/doc/doc_data.h"
 #include "editor/doc/doc_data_class_path.gen.h"
 #include "editor/editor_node.h"
+#include "editor/editor_settings.h"
 #include "editor/project_manager.h"
 #endif
 
-#include "io/file_access_network.h"
-#include "servers/physics_2d_server.h"
+/* Static members */
 
-#include "core/io/file_access_pack.h"
-#include "core/io/file_access_zip.h"
-#include "core/io/stream_peer_ssl.h"
-#include "core/io/stream_peer_tcp.h"
-#include "main/input_default.h"
-#include "performance.h"
-#include "translation.h"
-#include "version.h"
-#include "version_hash.gen.h"
+// Singletons
 
-#include "main/timer_sync.h"
-
-static ProjectSettings *globals = NULL;
+// Initialized in setup()
 static Engine *engine = NULL;
+static ProjectSettings *globals = NULL;
 static InputMap *input_map = NULL;
-static bool _start_success = false;
-static ScriptDebugger *script_debugger = NULL;
-AudioServer *audio_server = NULL;
-ARVRServer *arvr_server = NULL;
-PhysicsServer *physics_server = NULL;
-Physics2DServer *physics_2d_server = NULL;
-
-static MessageQueue *message_queue = NULL;
+static TranslationServer *translation_server = NULL;
 static Performance *performance = NULL;
-
 static PackedData *packed_data = NULL;
 #ifdef MINIZIP_ENABLED
 static ZipArchive *zip_packed_data = NULL;
 #endif
 static FileAccessNetworkClient *file_access_network_client = NULL;
-static TranslationServer *translation_server = NULL;
+static ScriptDebugger *script_debugger = NULL;
+static MessageQueue *message_queue = NULL;
+
+// Initialized in setup2()
+static AudioServer *audio_server = NULL;
+static ARVRServer *arvr_server = NULL;
+static PhysicsServer *physics_server = NULL;
+static Physics2DServer *physics_2d_server = NULL;
+// We error out if setup2() doesn't turn this true
+static bool _start_success = false;
+
+// Drivers
+
+static int video_driver_idx = -1;
+static int audio_driver_idx = -1;
+
+// Engine config/tools
+
+static bool editor = false;
+static bool project_manager = false;
+static String locale;
+static bool show_help = false;
+static bool auto_build_solutions = false;
+static bool auto_quit = false;
+static OS::ProcessID allow_focus_steal_pid = 0;
+
+// Display
 
 static OS::VideoMode video_mode;
+static int init_screen = -1;
+static bool init_fullscreen = false;
 static bool init_maximized = false;
 static bool init_windowed = false;
-static bool init_fullscreen = false;
 static bool init_always_on_top = false;
 static bool init_use_custom_pos = false;
+static Vector2 init_custom_pos;
+static bool force_lowdpi = false;
+static bool use_vsync = true;
+
+// Debug
+
+static bool use_debug_profiler = false;
 #ifdef DEBUG_ENABLED
 static bool debug_collisions = false;
 static bool debug_navigation = false;
 #endif
 static int frame_delay = 0;
-static Vector2 init_custom_pos;
-static int video_driver_idx = -1;
-static int audio_driver_idx = -1;
-static String locale;
-static bool use_debug_profiler = false;
-static bool force_lowdpi = false;
-static int init_screen = -1;
-static bool use_vsync = true;
-static bool editor = false;
-static bool show_help = false;
 static bool disable_render_loop = false;
 static int fixed_fps = -1;
-static bool auto_build_solutions = false;
-static bool auto_quit = false;
 static bool print_fps = false;
 
-static OS::ProcessID allow_focus_steal_pid = 0;
+/* Helper methods */
 
-static bool project_manager = false;
-
+// Used by Mono module, should likely be registered in Engine singleton instead
+// FIXME: This is also not 100% accurate, `project_manager` is only true when it was requested,
+// but not if e.g. we fail to load and project and fallback to the manager.
 bool Main::is_project_manager() {
 	return project_manager;
 }
 
-void initialize_physics() {
+static String unescape_cmdline(const String &p_str) {
+	return p_str.replace("%20", " ");
+}
 
+static String get_full_version_string() {
+	String hash = String(VERSION_HASH);
+	if (hash.length() != 0)
+		hash = "." + hash.left(7);
+	return String(VERSION_FULL_BUILD) + hash;
+}
+
+// FIXME: Could maybe be moved to PhysicsServerManager and Physics2DServerManager directly
+// to have less code in main.cpp.
+void initialize_physics() {
 	/// 3D Physics Server
 	physics_server = PhysicsServerManager::new_server(ProjectSettings::get_singleton()->get(PhysicsServerManager::setting_property_name));
 	if (!physics_server) {
@@ -166,19 +191,6 @@ void finalize_physics() {
 
 	physics_2d_server->finish();
 	memdelete(physics_2d_server);
-}
-
-static String unescape_cmdline(const String &p_str) {
-
-	return p_str.replace("%20", " ");
-}
-
-static String get_full_version_string() {
-
-	String hash = String(VERSION_HASH);
-	if (hash.length() != 0)
-		hash = "." + hash.left(7);
-	return String(VERSION_FULL_BUILD) + hash;
 }
 
 //#define DEBUG_INIT
@@ -284,6 +296,32 @@ void Main::print_help(const char *p_binary) {
 	OS::get_singleton()->print(").\n");
 #endif
 }
+
+/* Engine initialization
+ *
+ * Consists of several methods that are called by each platform's specific main(argc, argv).
+ * To fully understand engine init, one should therefore start from the platform's main and
+ * see how it calls into the Main class' methods.
+ *
+ * The initialization is typically done in 3 steps (with the setup2 step triggered either
+ * automatically by setup, or manually in the platform's main).
+ *
+ * - setup(execpath, argc, argv, p_second_phase) is the main entry point for all platforms,
+ *   responsible for the initialization of all low level singletons and core types, and parsing
+ *   command line arguments to configure things accordingly.
+ *   If p_second_phase is true, it will chain into setup2() (default behaviour). This is
+ *   disabled on some platforms (Android, iOS, UWP) which trigger the second step in their
+ *   own time.
+ *
+ * - setup2(p_main_tid_override) registers high level servers and singletons, displays the
+ *   boot splash, then registers higher level types (scene, editor, etc.).
+ *
+ * - start() is the last step and that's where command line tools can run, or the main loop
+ *   can be created eventually and the project settings put into action. That's also where
+ *   the editor node is created, if relevant.
+ *   start() does it own argument parsing for a subset of the command line arguments described
+ *   in help, it's a bit messy and should be globalized with the setup() parsing somehow.
+ */
 
 Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_phase) {
 	RID_OwnerBase::init_rid();
@@ -764,7 +802,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	if (editor) {
 		packed_data->set_disabled(true);
 		globals->set_disable_feature_overrides(true);
-		StreamPeerSSL::initialize_certs = false; //will be initialized by editor
 	}
 
 #endif
@@ -1011,15 +1048,6 @@ error:
 	if (file_access_network_client)
 		memdelete(file_access_network_client);
 
-	// Note 1: *zip_packed_data live into *packed_data
-	// Note 2: PackedData::~PackedData destroy this.
-	/*
-#ifdef MINIZIP_ENABLED
-	if (zip_packed_data)
-		memdelete( zip_packed_data );
-#endif
-*/
-
 	unregister_core_driver_types();
 	unregister_core_types();
 
@@ -1104,30 +1132,24 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 				ERR_PRINTS("Non-existing or invalid boot splash at: " + boot_logo_path + ". Loading default splash.");
 		}
 
+		Color boot_bg_color = GLOBAL_DEF("application/boot_splash/bg_color", boot_splash_bg_color);
 		if (boot_logo.is_valid()) {
 			OS::get_singleton()->_msec_splash = OS::get_singleton()->get_ticks_msec();
-			Color boot_bg = GLOBAL_DEF("application/boot_splash/bg_color", clear);
-			VisualServer::get_singleton()->set_boot_image(boot_logo, boot_bg, boot_logo_scale);
-#ifndef TOOLS_ENABLED
-//no tools, so free the boot logo (no longer needed)
-//ProjectSettings::get_singleton()->set("application/boot_logo",Image());
-#endif
+			VisualServer::get_singleton()->set_boot_image(boot_logo, boot_bg_color, boot_logo_scale);
 
 		} else {
 #ifndef NO_DEFAULT_BOOT_LOGO
-
 			MAIN_PRINT("Main: Create bootsplash");
 #if defined(TOOLS_ENABLED) && !defined(NO_EDITOR_SPLASH)
-
 			Ref<Image> splash = (editor || project_manager) ? memnew(Image(boot_splash_editor_png)) : memnew(Image(boot_splash_png));
 #else
 			Ref<Image> splash = memnew(Image(boot_splash_png));
 #endif
 
 			MAIN_PRINT("Main: ClearColor");
-			VisualServer::get_singleton()->set_default_clear_color(boot_splash_bg_color);
+			VisualServer::get_singleton()->set_default_clear_color(boot_bg_color);
 			MAIN_PRINT("Main: Image");
-			VisualServer::get_singleton()->set_boot_image(splash, boot_splash_bg_color, false);
+			VisualServer::get_singleton()->set_boot_image(splash, boot_bg_color, false);
 #endif
 		}
 
@@ -1224,7 +1246,6 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 }
 
 // everything the main loop needs to know about frame timings
-
 static MainTimerSync main_timer_sync;
 
 bool Main::start() {
@@ -1609,6 +1630,7 @@ bool Main::start() {
 			sml->set_use_font_oversampling(font_oversampling);
 
 		} else {
+
 			GLOBAL_DEF("display/window/stretch/mode", "disabled");
 			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/mode", PropertyInfo(Variant::STRING, "display/window/stretch/mode", PROPERTY_HINT_ENUM, "disabled,2d,viewport"));
 			GLOBAL_DEF("display/window/stretch/aspect", "ignore");
@@ -1668,6 +1690,10 @@ bool Main::start() {
 		}
 
 		if (!project_manager && !editor) { // game
+
+			// Load SSL Certificates from Project Settings (or builtin)
+			StreamPeerSSL::load_certs_from_memory(StreamPeerSSL::get_project_cert_array());
+
 			if (game_path != "") {
 				Node *scene = NULL;
 				Ref<PackedScene> scenedata = ResourceLoader::load(local_game_path);
@@ -1693,11 +1719,21 @@ bool Main::start() {
 #ifdef TOOLS_ENABLED
 		if (project_manager || (script == "" && test == "" && game_path == "" && !editor)) {
 
+			Engine::get_singleton()->set_editor_hint(true);
 			ProjectManager *pmanager = memnew(ProjectManager);
 			ProgressDialog *progress_dialog = memnew(ProgressDialog);
 			pmanager->add_child(progress_dialog);
 			sml->get_root()->add_child(pmanager);
 			OS::get_singleton()->set_context(OS::CONTEXT_PROJECTMAN);
+		}
+
+		if (project_manager || editor) {
+			// Load SSL Certificates from Editor Settings (or builtin)
+			String certs = EditorSettings::get_singleton()->get_setting("network/ssl/editor_ssl_certificates").operator String();
+			if (certs != "")
+				StreamPeerSSL::load_certs_from_file(certs);
+			else
+				StreamPeerSSL::load_certs_from_memory(StreamPeerSSL::get_project_cert_array());
 		}
 #endif
 	}
@@ -1712,13 +1748,23 @@ bool Main::start() {
 	return true;
 }
 
+/* Main iteration
+ *
+ * This is the iteration of the engine's game loop, advancing the state of physics,
+ * rendering and audio.
+ * It's called directly by the platform's OS::run method, where the loop is created
+ * and monitored.
+ *
+ * The OS implementation can impact its draw step with the Main::force_redraw() method.
+ */
+
 uint64_t Main::last_ticks = 0;
 uint64_t Main::target_ticks = 0;
 uint32_t Main::frames = 0;
 uint32_t Main::frame = 0;
 bool Main::force_redraw_requested = false;
 
-//for performance metrics
+// For performance metrics
 static uint64_t physics_process_max = 0;
 static uint64_t idle_process_max = 0;
 
@@ -1741,11 +1787,6 @@ bool Main::iteration() {
 	double scaled_step = step * time_scale;
 
 	Engine::get_singleton()->_frame_step = step;
-
-	/*
-	if (time_accum+step < frame_slice)
-		return false;
-	*/
 
 	uint64_t physics_process_ticks = 0;
 	uint64_t idle_process_ticks = 0;
@@ -1890,9 +1931,15 @@ bool Main::iteration() {
 }
 
 void Main::force_redraw() {
-
 	force_redraw_requested = true;
-};
+}
+
+/* Engine deinitialization
+ *
+ * Responsible for freeing all the memory allocated by previous setup steps,
+ * so that the engine closes cleanly without leaking memory or crashing.
+ * The order matters as some of those steps are linked with each other.
+ */
 
 void Main::cleanup() {
 

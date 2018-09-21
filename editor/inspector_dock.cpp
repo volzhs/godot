@@ -104,6 +104,7 @@ void InspectorDock::_menu_option(int p_option) {
 								res = duplicates[res];
 
 								current->set(E->get().name, res);
+								editor->get_inspector()->update_property(E->get().name);
 							}
 						}
 					}
@@ -158,7 +159,6 @@ void InspectorDock::_resource_file_selected(String p_file) {
 	RES res = ResourceLoader::load(p_file);
 
 	if (res.is_null()) {
-		warning_dialog->get_ok()->set_text(TTR("OK"));
 		warning_dialog->set_text(TTR("Failed to load resource."));
 		return;
 	};
@@ -231,11 +231,10 @@ void InspectorDock::_prepare_history() {
 
 		already.insert(id);
 
-		Ref<Texture> icon = get_icon("Object", "EditorIcons");
-		if (has_icon(obj->get_class(), "EditorIcons"))
-			icon = get_icon(obj->get_class(), "EditorIcons");
-		else
+		Ref<Texture> icon = EditorNode::get_singleton()->get_object_icon(obj, "");
+		if (icon.is_null()) {
 			icon = base_icon;
+		}
 
 		String text;
 		if (Object::cast_to<Resource>(obj)) {
@@ -320,7 +319,6 @@ void InspectorDock::_transform_keyed(Object *sp, const String &p_sub, const Tran
 }
 
 void InspectorDock::_warning_pressed() {
-	warning_dialog->get_ok()->set_text(TTR("Ok"));
 	warning_dialog->popup_centered_minsize();
 }
 
@@ -405,8 +403,8 @@ void InspectorDock::update(Object *p_object) {
 	PopupMenu *p = object_menu->get_popup();
 
 	p->clear();
-	p->add_shortcut(ED_SHORTCUT("property_editor/expand_all", TTR("Expand all properties")), EXPAND_ALL);
-	p->add_shortcut(ED_SHORTCUT("property_editor/collapse_all", TTR("Collapse all properties")), COLLAPSE_ALL);
+	p->add_shortcut(ED_SHORTCUT("property_editor/expand_all", TTR("Expand All Properties")), EXPAND_ALL);
+	p->add_shortcut(ED_SHORTCUT("property_editor/collapse_all", TTR("Collapse All Properties")), COLLAPSE_ALL);
 	p->add_separator();
 	if (is_resource) {
 		p->add_item(TTR("Save"), RESOURCE_SAVE);

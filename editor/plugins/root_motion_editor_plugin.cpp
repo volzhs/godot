@@ -109,11 +109,7 @@ void EditorPropertyRootMotion::_node_assign() {
 
 				if (base->has_node(accum)) {
 					Node *node = base->get_node(accum);
-					if (has_icon(node->get_class(), "EditorIcons")) {
-						ti->set_icon(0, get_icon(node->get_class(), "EditorIcons"));
-					} else {
-						ti->set_icon(0, get_icon("Node", "EditorIcons"));
-					}
+					ti->set_icon(0, EditorNode::get_singleton()->get_object_icon(node, "Node"));
 				}
 
 			} else {
@@ -126,7 +122,7 @@ void EditorPropertyRootMotion::_node_assign() {
 			node = base->get_node(accum);
 		}
 		if (!node)
-			continue; //no node, cant edit
+			continue; //no node, can't edit
 
 		if (path.get_subname_count()) {
 
@@ -235,14 +231,7 @@ void EditorPropertyRootMotion::update_property() {
 	ERR_FAIL_COND(!target_node);
 
 	assign->set_text(target_node->get_name());
-
-	Ref<Texture> icon;
-	if (has_icon(target_node->get_class(), "EditorIcons"))
-		icon = get_icon(target_node->get_class(), "EditorIcons");
-	else
-		icon = get_icon("Node", "EditorIcons");
-
-	assign->set_icon(icon);
+	assign->set_icon(EditorNode::get_singleton()->get_object_icon(target_node, "Node"));
 }
 
 void EditorPropertyRootMotion::setup(const NodePath &p_base_hint) {
@@ -314,7 +303,7 @@ bool EditorInspectorRootMotionPlugin::parse_property(Object *p_object, Variant::
 		return true;
 	}
 
-	return false; //can be overriden, although it will most likely be last anyway
+	return false; //can be overridden, although it will most likely be last anyway
 }
 
 void EditorInspectorRootMotionPlugin::parse_end() {

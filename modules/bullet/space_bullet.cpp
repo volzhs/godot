@@ -34,13 +34,13 @@
 #include "bullet_types_converter.h"
 #include "bullet_utilities.h"
 #include "constraint_bullet.h"
+#include "core/project_settings.h"
+#include "core/ustring.h"
 #include "godot_collision_configuration.h"
 #include "godot_collision_dispatcher.h"
-#include "project_settings.h"
 #include "rigid_body_bullet.h"
 #include "servers/physics_server.h"
 #include "soft_body_bullet.h"
-#include "ustring.h"
 
 #include <BulletCollision/CollisionDispatch/btCollisionObject.h>
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
@@ -295,11 +295,10 @@ Vector3 BulletPhysicsDirectSpaceState::get_closest_point_to_object_volume(RID p_
 
 	bool shapes_found = false;
 
-	btCompoundShape *compound = rigid_object->get_compound_shape();
-	for (int i = compound->getNumChildShapes() - 1; 0 <= i; --i) {
-		shape = compound->getChildShape(i);
+	for (int i = rigid_object->get_shape_count() - 1; 0 <= i; --i) {
+		shape = rigid_object->get_bt_shape(i);
 		if (shape->isConvex()) {
-			child_transform = compound->getChildTransform(i);
+			child_transform = rigid_object->get_bt_shape_transform(i);
 			convex_shape = static_cast<btConvexShape *>(shape);
 
 			input.m_transformB = body_transform * child_transform;
@@ -598,6 +597,7 @@ void SpaceBullet::create_empty_world(bool p_create_soft_world) {
 	godotFilterCallback = bulletnew(GodotFilterCallback);
 	gCalculateCombinedRestitutionCallback = &calculateGodotCombinedRestitution;
 	gCalculateCombinedFrictionCallback = &calculateGodotCombinedFriction;
+	gContactAddedCallback = &godotContactAddedCallback;
 
 	dynamicsWorld->setWorldUserInfo(this);
 
@@ -684,18 +684,18 @@ void SpaceBullet::check_ghost_overlaps() {
 			bool hasOverlap = false;
 
 			// For each area shape
-			for (y = area->get_compound_shape()->getNumChildShapes() - 1; 0 <= y; --y) {
-				if (!area->get_compound_shape()->getChildShape(y)->isConvex())
+			for (y = area->get_shape_count() - 1; 0 <= y; --y) {
+				if (!area->get_bt_shape(y)->isConvex())
 					continue;
 
-				gjk_input.m_transformA = area->get_transform__bullet() * area->get_compound_shape()->getChildTransform(y);
-				area_shape = static_cast<btConvexShape *>(area->get_compound_shape()->getChildShape(y));
+				gjk_input.m_transformA = area->get_transform__bullet() * area->get_bt_shape_transform(y);
+				area_shape = static_cast<btConvexShape *>(area->get_bt_shape(y));
 
 				// For each other object shape
-				for (z = otherObject->get_compound_shape()->getNumChildShapes() - 1; 0 <= z; --z) {
+				for (z = otherObject->get_shape_count() - 1; 0 <= z; --z) {
 
-					other_body_shape = static_cast<btCollisionShape *>(otherObject->get_compound_shape()->getChildShape(z));
-					gjk_input.m_transformB = otherObject->get_transform__bullet() * otherObject->get_compound_shape()->getChildTransform(z);
+					other_body_shape = static_cast<btCollisionShape *>(otherObject->get_bt_shape(z));
+					gjk_input.m_transformB = otherObject->get_transform__bullet() * otherObject->get_bt_shape_transform(z);
 
 					if (other_body_shape->isConvex()) {
 
@@ -786,30 +786,32 @@ void SpaceBullet::check_body_collision() {
 			if (numContacts) {
 				btManifoldPoint &pt = contactManifold->getContactPoint(0);
 #endif
-				Vector3 collisionWorldPosition;
-				Vector3 collisionLocalPosition;
-				Vector3 normalOnB;
-				float appliedImpulse = pt.m_appliedImpulse;
-				B_TO_G(pt.m_normalWorldOnB, normalOnB);
+				if (pt.getDistance() <= 0.0) {
+					Vector3 collisionWorldPosition;
+					Vector3 collisionLocalPosition;
+					Vector3 normalOnB;
+					float appliedImpulse = pt.m_appliedImpulse;
+					B_TO_G(pt.m_normalWorldOnB, normalOnB);
 
-				if (bodyA->can_add_collision()) {
-					B_TO_G(pt.getPositionWorldOnB(), collisionWorldPosition);
-					/// pt.m_localPointB Doesn't report the exact point in local space
-					B_TO_G(pt.getPositionWorldOnB() - contactManifold->getBody1()->getWorldTransform().getOrigin(), collisionLocalPosition);
-					bodyA->add_collision_object(bodyB, collisionWorldPosition, collisionLocalPosition, normalOnB, appliedImpulse, pt.m_index1, pt.m_index0);
-				}
-				if (bodyB->can_add_collision()) {
-					B_TO_G(pt.getPositionWorldOnA(), collisionWorldPosition);
-					/// pt.m_localPointA Doesn't report the exact point in local space
-					B_TO_G(pt.getPositionWorldOnA() - contactManifold->getBody0()->getWorldTransform().getOrigin(), collisionLocalPosition);
-					bodyB->add_collision_object(bodyA, collisionWorldPosition, collisionLocalPosition, normalOnB * -1, appliedImpulse * -1, pt.m_index0, pt.m_index1);
-				}
+					if (bodyA->can_add_collision()) {
+						B_TO_G(pt.getPositionWorldOnB(), collisionWorldPosition);
+						/// pt.m_localPointB Doesn't report the exact point in local space
+						B_TO_G(pt.getPositionWorldOnB() - contactManifold->getBody1()->getWorldTransform().getOrigin(), collisionLocalPosition);
+						bodyA->add_collision_object(bodyB, collisionWorldPosition, collisionLocalPosition, normalOnB, appliedImpulse, pt.m_index1, pt.m_index0);
+					}
+					if (bodyB->can_add_collision()) {
+						B_TO_G(pt.getPositionWorldOnA(), collisionWorldPosition);
+						/// pt.m_localPointA Doesn't report the exact point in local space
+						B_TO_G(pt.getPositionWorldOnA() - contactManifold->getBody0()->getWorldTransform().getOrigin(), collisionLocalPosition);
+						bodyB->add_collision_object(bodyA, collisionWorldPosition, collisionLocalPosition, normalOnB * -1, appliedImpulse * -1, pt.m_index0, pt.m_index1);
+					}
 
 #ifdef DEBUG_ENABLED
-				if (is_debugging_contacts()) {
-					add_debug_contact(collisionWorldPosition);
-				}
+					if (is_debugging_contacts()) {
+						add_debug_contact(collisionWorldPosition);
+					}
 #endif
+				}
 			}
 		}
 	}

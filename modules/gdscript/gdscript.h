@@ -31,10 +31,10 @@
 #ifndef GDSCRIPT_H
 #define GDSCRIPT_H
 
+#include "core/io/resource_loader.h"
+#include "core/io/resource_saver.h"
+#include "core/script_language.h"
 #include "gdscript_function.h"
-#include "io/resource_loader.h"
-#include "io/resource_saver.h"
-#include "script_language.h"
 
 class GDScriptNativeClass : public Reference {
 
@@ -286,9 +286,10 @@ struct GDScriptWarning {
 		FUNCTION_USED_AS_PROPERTY, // Property not found, but there's a function with the same name
 		INTEGER_DIVISION, // Integer divide by integer, decimal part is discarded
 		UNSAFE_PROPERTY_ACCESS, // Property not found in the detected type (but can be in subtypes)
-		UNSAFE_METHOD_ACCESS, // Fucntion not found in the detected type (but can be in subtypes)
+		UNSAFE_METHOD_ACCESS, // Function not found in the detected type (but can be in subtypes)
 		UNSAFE_CAST, // Cast used in an unknown type
 		UNSAFE_CALL_ARGUMENT, // Function call argument is of a supertype of the require argument
+		DEPRECATED_KEYWORD, // The keyword is deprecated and should be replaced
 		WARNING_MAX,
 	} code;
 	Vector<String> symbols;

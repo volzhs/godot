@@ -846,18 +846,11 @@ void EditorPropertyObjectID::update_property() {
 	if (type == "")
 		type = "Object";
 
-	String icon_type = type;
-	if (has_icon(icon_type, "EditorIcons")) {
-		type = icon_type;
-	} else {
-		type = "Object";
-	}
-
 	ObjectID id = get_edited_object()->get(get_edited_property());
 	if (id != 0) {
 		edit->set_text(type + " ID: " + itos(id));
 		edit->set_disabled(false);
-		edit->set_icon(get_icon(icon_type, "EditorIcons"));
+		edit->set_icon(EditorNode::get_singleton()->get_class_icon(type));
 	} else {
 		edit->set_text(TTR("[Empty]"));
 		edit->set_disabled(true);
@@ -1858,14 +1851,7 @@ void EditorPropertyNodePath::update_property() {
 	ERR_FAIL_COND(!target_node);
 
 	assign->set_text(target_node->get_name());
-
-	Ref<Texture> icon;
-	if (has_icon(target_node->get_class(), "EditorIcons"))
-		icon = get_icon(target_node->get_class(), "EditorIcons");
-	else
-		icon = get_icon("Node", "EditorIcons");
-
-	assign->set_icon(icon);
+	assign->set_icon(EditorNode::get_singleton()->get_object_icon(target_node, "Node"));
 }
 
 void EditorPropertyNodePath::setup(const NodePath &p_base_hint, Vector<StringName> p_valid_types) {
@@ -1905,7 +1891,7 @@ EditorPropertyNodePath::EditorPropertyNodePath() {
 	clear->connect("pressed", this, "_node_clear");
 	hbc->add_child(clear);
 
-	scene_tree = NULL; //do not allocate unnecesarily
+	scene_tree = NULL; //do not allocate unnecessarily
 }
 
 ////////////// RESOURCE //////////////////////
@@ -2363,13 +2349,7 @@ void EditorPropertyResource::update_property() {
 		assign->set_text(TTR("[empty]"));
 	} else {
 
-		Ref<Texture> icon;
-		if (has_icon(res->get_class(), "EditorIcons"))
-			icon = get_icon(res->get_class(), "EditorIcons");
-		else
-			icon = get_icon("Node", "EditorIcons");
-
-		assign->set_icon(icon);
+		assign->set_icon(EditorNode::get_singleton()->get_object_icon(res.operator->(), "Node"));
 
 		if (res->get_name() != String()) {
 			assign->set_text(res->get_name());
@@ -2670,7 +2650,7 @@ bool EditorInspectorDefaultPlugin::parse_property(Object *p_object, Variant::Typ
 					case PROPERTY_HINT_LAYERS_3D_PHYSICS:
 						lt = EditorPropertyLayers::LAYER_PHYSICS_3D;
 						break;
-					default: {} //compiler could be smarter here and realize this cant happen
+					default: {} //compiler could be smarter here and realize this can't happen
 				}
 				EditorPropertyLayers *editor = memnew(EditorPropertyLayers);
 				editor->setup(lt);
@@ -2687,7 +2667,7 @@ bool EditorInspectorDefaultPlugin::parse_property(Object *p_object, Variant::Typ
 				bool greater = true, lesser = true;
 
 				if (p_hint == PROPERTY_HINT_RANGE && p_hint_text.get_slice_count(",") >= 2) {
-					greater = false; //if using ranged, asume false by default
+					greater = false; //if using ranged, assume false by default
 					lesser = false;
 					min = p_hint_text.get_slice(",", 0).to_int();
 					max = p_hint_text.get_slice(",", 1).to_int();
@@ -2735,7 +2715,7 @@ bool EditorInspectorDefaultPlugin::parse_property(Object *p_object, Variant::Typ
 				bool greater = true, lesser = true;
 
 				if ((p_hint == PROPERTY_HINT_RANGE || p_hint == PROPERTY_HINT_EXP_RANGE) && p_hint_text.get_slice_count(",") >= 2) {
-					greater = false; //if using ranged, asume false by default
+					greater = false; //if using ranged, assume false by default
 					lesser = false;
 					min = p_hint_text.get_slice(",", 0).to_double();
 					max = p_hint_text.get_slice(",", 1).to_double();
@@ -3068,7 +3048,7 @@ bool EditorInspectorDefaultPlugin::parse_property(Object *p_object, Variant::Typ
 		default: {}
 	}
 
-	return false; //can be overriden, although it will most likely be last anyway
+	return false; //can be overridden, although it will most likely be last anyway
 }
 
 void EditorInspectorDefaultPlugin::parse_end() {

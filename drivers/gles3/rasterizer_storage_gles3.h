@@ -31,11 +31,12 @@
 #ifndef RASTERIZERSTORAGEGLES3_H
 #define RASTERIZERSTORAGEGLES3_H
 
-#include "self_list.h"
+#include "core/self_list.h"
 #include "servers/visual/rasterizer.h"
 #include "servers/visual/shader_language.h"
 #include "shader_compiler_gles3.h"
 #include "shader_gles3.h"
+
 #include "shaders/blend_shape.glsl.gen.h"
 #include "shaders/canvas.glsl.gen.h"
 #include "shaders/copy.glsl.gen.h"
@@ -582,6 +583,7 @@ public:
 
 	virtual void material_set_param(RID p_material, const StringName &p_param, const Variant &p_value);
 	virtual Variant material_get_param(RID p_material, const StringName &p_param) const;
+	virtual Variant material_get_param_default(RID p_material, const StringName &p_param) const;
 
 	virtual void material_set_line_width(RID p_material, float p_width);
 	virtual void material_set_next_pass(RID p_material, RID p_next_material);

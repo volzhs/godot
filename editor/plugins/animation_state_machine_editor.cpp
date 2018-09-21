@@ -31,10 +31,10 @@
 #include "animation_state_machine_editor.h"
 
 #include "core/io/resource_loader.h"
+#include "core/math/delaunay.h"
+#include "core/os/input.h"
+#include "core/os/keyboard.h"
 #include "core/project_settings.h"
-#include "math/delaunay.h"
-#include "os/input.h"
-#include "os/keyboard.h"
 #include "scene/animation/animation_blend_tree.h"
 #include "scene/animation/animation_player.h"
 #include "scene/gui/menu_button.h"
@@ -663,7 +663,7 @@ void AnimationNodeStateMachineEditor::_state_machine_draw() {
 
 	transition_lines.clear();
 
-	//draw conecting line for potential new transition
+	//draw connecting line for potential new transition
 	if (connecting) {
 		Vector2 from = (state_machine->get_node_position(connecting_from) * EDSCALE) - state_machine->get_graph_offset() * EDSCALE;
 		Vector2 to;

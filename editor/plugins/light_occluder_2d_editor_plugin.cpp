@@ -31,8 +31,8 @@
 #include "light_occluder_2d_editor_plugin.h"
 
 #include "canvas_item_editor_plugin.h"
+#include "core/os/file_access.h"
 #include "editor/editor_settings.h"
-#include "os/file_access.h"
 
 void LightOccluder2DEditor::_notification(int p_what) {
 
@@ -319,12 +319,10 @@ bool LightOccluder2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 	return false;
 }
 
-void LightOccluder2DEditor::forward_draw_over_viewport(Control *p_overlay) {
+void LightOccluder2DEditor::forward_canvas_draw_over_viewport(Control *p_overlay) {
 
 	if (!node || !node->get_occluder_polygon().is_valid())
 		return;
-
-	Control *vpc = canvas_item_editor->get_viewport_control();
 
 	Vector<Vector2> poly;
 
@@ -353,9 +351,9 @@ void LightOccluder2DEditor::forward_draw_over_viewport(Control *p_overlay) {
 		if (i == poly.size() - 1 && (!node->get_occluder_polygon()->is_closed() || wip_active)) {
 
 		} else {
-			vpc->draw_line(point, next_point, col, 2);
+			p_overlay->draw_line(point, next_point, col, 2);
 		}
-		vpc->draw_texture(handle, point - handle->get_size() * 0.5);
+		p_overlay->draw_texture(handle, point - handle->get_size() * 0.5);
 	}
 }
 

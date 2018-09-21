@@ -31,16 +31,16 @@
 #include "gdscript.h"
 
 #include "core/engine.h"
+#include "core/global_constants.h"
+#include "core/os/file_access.h"
 #include "editor/editor_settings.h"
 #include "gdscript_compiler.h"
-#include "global_constants.h"
-#include "os/file_access.h"
 
 #ifdef TOOLS_ENABLED
+#include "core/engine.h"
 #include "core/reference.h"
 #include "editor/editor_file_system.h"
 #include "editor/editor_settings.h"
-#include "engine.h"
 #endif
 
 void GDScriptLanguage::get_comment_delimiters(List<String> *p_delimiters) const {
@@ -1189,6 +1189,7 @@ static bool _guess_identifier_type(const GDScriptCompletionContext &p_context, c
 				c.line = op->line;
 				c.block = blk;
 				if (_guess_expression_type(p_context, op->arguments[1], r_type)) {
+					r_type.type.is_meta_type = false;
 					return true;
 				}
 			}
@@ -1221,7 +1222,7 @@ static bool _guess_identifier_type(const GDScriptCompletionContext &p_context, c
 
 				int def_from = p_context.function->arguments.size() - p_context.function->default_values.size();
 				if (i >= def_from) {
-					int def_idx = def_from - i;
+					int def_idx = i - def_from;
 					if (p_context.function->default_values[def_idx]->type == GDScriptParser::Node::TYPE_OPERATOR) {
 						const GDScriptParser::OperatorNode *op = static_cast<const GDScriptParser::OperatorNode *>(p_context.function->default_values[def_idx]);
 						if (op->arguments.size() < 2) {
@@ -1376,11 +1377,11 @@ static bool _guess_identifier_type_from_base(const GDScriptCompletionContext &p_
 					for (int i = 0; i < base_type.class_type->variables.size(); i++) {
 						GDScriptParser::ClassNode::Member m = base_type.class_type->variables[i];
 						if (m.identifier == p_identifier) {
-							if (m.data_type.has_type) {
-								r_type.type = m.data_type;
-								return true;
-							}
 							if (m.expression) {
+								if (p_context.line == m.expression->line) {
+									// Variable used in the same expression
+									return false;
+								}
 								if (_guess_expression_type(p_context, m.expression, r_type)) {
 									return true;
 								}
@@ -1388,6 +1389,10 @@ static bool _guess_identifier_type_from_base(const GDScriptCompletionContext &p_
 									r_type.type = m.expression->get_datatype();
 									return true;
 								}
+							}
+							if (m.data_type.has_type) {
+								r_type.type = m.data_type;
+								return true;
 							}
 							return false;
 						}
@@ -2109,8 +2114,8 @@ static void _find_identifiers(const GDScriptCompletionContext &p_context, bool p
 		"and", "in", "not", "or", "false", "PI", "TAU", "INF", "NAN", "self", "true", "as", "assert",
 		"breakpoint", "class", "extends", "is", "func", "preload", "setget", "signal", "tool", "yield",
 		"const", "enum", "export", "onready", "static", "var", "break", "continue", "if", "elif",
-		"else", "for", "pass", "return", "match", "while", "remote", "sync", "master", "slave",
-		"remotesync", "mastersync", "slavesync",
+		"else", "for", "pass", "return", "match", "while", "remote", "sync", "master", "puppet", "slave",
+		"remotesync", "mastersync", "puppetsync",
 		0
 	};
 
@@ -3304,7 +3309,7 @@ Error GDScriptLanguage::lookup_code(const String &p_code, const String &p_symbol
 						}
 					} else {
 						/*
-						// Because get_integer_constant_enum and get_integer_constant dont work on @GlobalScope
+						// Because get_integer_constant_enum and get_integer_constant don't work on @GlobalScope
 						// We cannot determine the exact nature of the identifier here
 						// Otherwise these codes would work
 						StringName enumName = ClassDB::get_integer_constant_enum("@GlobalScope", p_symbol, true);

@@ -32,10 +32,10 @@
 
 #include "resource_importer_texture.h"
 
+#include "core/io/config_file.h"
+#include "core/io/image_loader.h"
 #include "editor/editor_file_system.h"
 #include "editor/editor_node.h"
-#include "io/config_file.h"
-#include "io/image_loader.h"
 #include "scene/resources/texture.h"
 
 String ResourceImporterLayeredTexture::get_importer_name() const {
@@ -304,7 +304,7 @@ Error ResourceImporterLayeredTexture::import(const String &p_source_file, const 
 		}
 
 		if (!ok_on_pc) {
-			EditorNode::add_io_error("Warning, no suitable PC VRAM compression enabled in Project Settings. This texture will not display correcly on PC.");
+			EditorNode::add_io_error("Warning, no suitable PC VRAM compression enabled in Project Settings. This texture will not display correctly on PC.");
 		}
 	} else {
 		//import normally

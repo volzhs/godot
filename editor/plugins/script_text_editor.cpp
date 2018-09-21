@@ -30,10 +30,10 @@
 
 #include "script_text_editor.h"
 
+#include "core/os/keyboard.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "editor/script_editor_debugger.h"
-#include "os/keyboard.h"
 
 Vector<String> ScriptTextEditor::get_functions() {
 
@@ -317,6 +317,7 @@ void ScriptTextEditor::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_READY:
 			_load_theme_settings();
+			_change_syntax_highlighter(EditorSettings::get_singleton()->get_project_metadata("script_text_editor", "syntax_highlighter", 0));
 			break;
 	}
 }
@@ -1058,6 +1059,7 @@ void ScriptTextEditor::_change_syntax_highlighter(int p_idx) {
 	}
 	// highlighter_menu->set_item_checked(p_idx, true);
 	set_syntax_highlighter(highlighters[highlighter_menu->get_item_text(p_idx)]);
+	EditorSettings::get_singleton()->set_project_metadata("script_text_editor", "syntax_highlighter", p_idx);
 }
 
 void ScriptTextEditor::_bind_methods() {
@@ -1256,7 +1258,7 @@ void ScriptTextEditor::_text_edit_gui_input(const Ref<InputEvent> &ev) {
 					int to_column = tx->get_selection_to_column();
 
 					if (row < from_line || row > to_line || (row == from_line && col < from_column) || (row == to_line && col > to_column)) {
-						// Right click is outside the seleted text
+						// Right click is outside the selected text
 						tx->deselect();
 					}
 				}
@@ -1556,7 +1558,7 @@ void ScriptTextEditor::register_editor() {
 #endif
 	ED_SHORTCUT("script_text_editor/trim_trailing_whitespace", TTR("Trim Trailing Whitespace"), KEY_MASK_CMD | KEY_MASK_ALT | KEY_T);
 	ED_SHORTCUT("script_text_editor/convert_indent_to_spaces", TTR("Convert Indent To Spaces"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_Y);
-	ED_SHORTCUT("script_text_editor/convert_indent_to_tabs", TTR("Convert Indent To Tabs"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_X);
+	ED_SHORTCUT("script_text_editor/convert_indent_to_tabs", TTR("Convert Indent To Tabs"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_I);
 	ED_SHORTCUT("script_text_editor/auto_indent", TTR("Auto Indent"), KEY_MASK_CMD | KEY_I);
 
 #ifdef OSX_ENABLED

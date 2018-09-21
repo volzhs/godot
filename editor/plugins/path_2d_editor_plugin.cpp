@@ -31,9 +31,9 @@
 #include "path_2d_editor_plugin.h"
 
 #include "canvas_item_editor_plugin.h"
+#include "core/os/file_access.h"
+#include "core/os/keyboard.h"
 #include "editor/editor_settings.h"
-#include "os/file_access.h"
-#include "os/keyboard.h"
 
 void Path2DEditor::_notification(int p_what) {
 
@@ -288,7 +288,7 @@ bool Path2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 	return false;
 }
 
-void Path2DEditor::forward_draw_over_viewport(Control *p_overlay) {
+void Path2DEditor::forward_canvas_draw_over_viewport(Control *p_overlay) {
 
 	if (!node)
 		return;

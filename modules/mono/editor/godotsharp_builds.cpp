@@ -30,8 +30,10 @@
 
 #include "godotsharp_builds.h"
 
+#include "core/vector.h"
 #include "main/main.h"
 
+#include "../glue/cs_glue_version.gen.h"
 #include "../godotsharp_dirs.h"
 #include "../mono_gd/gd_mono_class.h"
 #include "../mono_gd/gd_mono_marshal.h"
@@ -50,6 +52,16 @@ void godot_icall_BuildInstance_ExitCallback(MonoString *p_solution, MonoString *
 	GodotSharpBuilds::get_singleton()->build_exit_callback(MonoBuildInfo(solution, config), p_exit_code);
 }
 
+static Vector<const char *> _get_msbuild_hint_dirs() {
+	Vector<const char *> ret;
+#ifdef OSX_ENABLED
+	ret.push_back("/Library/Frameworks/Mono.framework/Versions/Current/bin/");
+	ret.push_back("/usr/local/var/homebrew/linked/mono/bin/");
+#endif
+	ret.push_back("/opt/novell/mono/bin/");
+	return ret;
+}
+
 #ifdef UNIX_ENABLED
 String _find_build_engine_on_unix(const String &p_name) {
 	String ret = path_which(p_name);
@@ -61,15 +73,9 @@ String _find_build_engine_on_unix(const String &p_name) {
 	if (ret_fallback.length())
 		return ret_fallback;
 
-	const char *locations[] = {
-#ifdef OSX_ENABLED
-		"/Library/Frameworks/Mono.framework/Versions/Current/bin/",
-		"/usr/local/var/homebrew/linked/mono/bin/",
-#endif
-		"/opt/novell/mono/bin/"
-	};
+	static Vector<const char *> locations = _get_msbuild_hint_dirs();
 
-	for (int i = 0; i < sizeof(locations) / sizeof(const char *); i++) {
+	for (int i = 0; i < locations.size(); i++) {
 		String hint_path = locations[i] + p_name;
 
 		if (FileAccess::exists(hint_path)) {
@@ -88,7 +94,12 @@ MonoString *godot_icall_BuildInstance_get_MSBuildPath() {
 #if defined(WINDOWS_ENABLED)
 	switch (build_tool) {
 		case GodotSharpBuilds::MSBUILD_VS: {
-			static String msbuild_tools_path = MonoRegUtils::find_msbuild_tools_path();
+			static String msbuild_tools_path;
+
+			if (msbuild_tools_path.empty() || !FileAccess::exists(msbuild_tools_path)) {
+				// Try to search it again if it wasn't found last time or if it was removed from its location
+				msbuild_tools_path = MonoRegUtils::find_msbuild_tools_path();
+			}
 
 			if (msbuild_tools_path.length()) {
 				if (!msbuild_tools_path.ends_with("\\"))
@@ -122,15 +133,25 @@ MonoString *godot_icall_BuildInstance_get_MSBuildPath() {
 			CRASH_NOW();
 	}
 #elif defined(UNIX_ENABLED)
-	static String msbuild_path = _find_build_engine_on_unix("msbuild");
-	static String xbuild_path = _find_build_engine_on_unix("xbuild");
+	static String msbuild_path;
+	static String xbuild_path;
 
 	if (build_tool == GodotSharpBuilds::XBUILD) {
+		if (xbuild_path.empty() || !FileAccess::exists(xbuild_path)) {
+			// Try to search it again if it wasn't found last time or if it was removed from its location
+			xbuild_path = _find_build_engine_on_unix("msbuild");
+		}
+
 		if (xbuild_path.empty()) {
 			WARN_PRINT("Cannot find binary for '" PROP_NAME_XBUILD "'");
 			return NULL;
 		}
 	} else {
+		if (msbuild_path.empty() || !FileAccess::exists(msbuild_path)) {
+			// Try to search it again if it wasn't found last time or if it was removed from its location
+			msbuild_path = _find_build_engine_on_unix("msbuild");
+		}
+
 		if (msbuild_path.empty()) {
 			WARN_PRINT("Cannot find binary for '" PROP_NAME_MSBUILD_MONO "'");
 			return NULL;
@@ -186,7 +207,11 @@ MonoBoolean godot_icall_BuildInstance_get_UsingMonoMSBuildOnWindows() {
 #endif
 }
 
-void GodotSharpBuilds::_register_internal_calls() {
+void GodotSharpBuilds::register_internal_calls() {
+
+	static bool registered = false;
+	ERR_FAIL_COND(registered);
+	registered = true;
 
 	mono_add_internal_call("GodotSharpTools.Build.BuildSystem::godot_icall_BuildInstance_ExitCallback", (void *)godot_icall_BuildInstance_ExitCallback);
 	mono_add_internal_call("GodotSharpTools.Build.BuildInstance::godot_icall_BuildInstance_get_MSBuildPath", (void *)godot_icall_BuildInstance_get_MSBuildPath);
@@ -263,7 +288,7 @@ String GodotSharpBuilds::_api_folder_name(APIAssembly::Type p_api_type) {
 								GDMono::get_singleton()->get_api_editor_hash();
 	return String::num_uint64(api_hash) +
 		   "_" + String::num_uint64(BindingsGenerator::get_version()) +
-		   "_" + String::num_uint64(BindingsGenerator::get_cs_glue_version());
+		   "_" + String::num_uint64(CS_GLUE_VERSION);
 }
 
 bool GodotSharpBuilds::make_api_sln(APIAssembly::Type p_api_type) {

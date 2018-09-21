@@ -30,9 +30,9 @@
 
 #include "variant.h"
 
-#include "core_string_names.h"
-#include "object.h"
-#include "script_language.h"
+#include "core/core_string_names.h"
+#include "core/object.h"
+#include "core/script_language.h"
 
 #define CASE_TYPE_ALL(PREFIX, OP) \
 	CASE_TYPE(PREFIX, OP, INT)    \
@@ -1656,13 +1656,13 @@ Variant Variant::get_named(const StringName &p_index, bool *r_valid) const {
 			} else if (p_index == CoreStringNames::singleton->a) {
 				return v->a;
 			} else if (p_index == CoreStringNames::singleton->r8) {
-				return int(v->r * 255.0);
+				return int(Math::round(v->r * 255.0));
 			} else if (p_index == CoreStringNames::singleton->g8) {
-				return int(v->g * 255.0);
+				return int(Math::round(v->g * 255.0));
 			} else if (p_index == CoreStringNames::singleton->b8) {
-				return int(v->b * 255.0);
+				return int(Math::round(v->b * 255.0));
 			} else if (p_index == CoreStringNames::singleton->a8) {
-				return int(v->a * 255.0);
+				return int(Math::round(v->a * 255.0));
 			} else if (p_index == CoreStringNames::singleton->h) {
 				return v->get_h();
 			} else if (p_index == CoreStringNames::singleton->s) {

@@ -30,13 +30,13 @@
 
 #include "visual_script_editor.h"
 
+#include "core/object.h"
+#include "core/os/input.h"
+#include "core/os/keyboard.h"
 #include "core/script_language.h"
+#include "core/variant.h"
 #include "editor/editor_node.h"
 #include "editor/editor_resource_preview.h"
-#include "object.h"
-#include "os/input.h"
-#include "os/keyboard.h"
-#include "variant.h"
 #include "visual_script_expression.h"
 #include "visual_script_flow_control.h"
 #include "visual_script_func_nodes.h"
@@ -321,7 +321,7 @@ protected:
 		p_list->push_back(PropertyInfo(Variant::INT, "type", PROPERTY_HINT_ENUM, argt));
 		p_list->push_back(PropertyInfo(script->get_variable_info(var).type, "value", script->get_variable_info(var).hint, script->get_variable_info(var).hint_string, PROPERTY_USAGE_DEFAULT));
 		// Update this when PropertyHint changes
-		p_list->push_back(PropertyInfo(Variant::INT, "hint", PROPERTY_HINT_ENUM, "None,Range,ExpRange,Enum,ExpEasing,Length,SpriteFrame,KeyAccel,Flags,Layers2dRender,Layers2dPhysics,Layer3dRender,Layer3dPhysics,File,Dir,GlobalFile,GlobalDir,ResourceType,MultilineText,ColorNoAlpha,ImageCompressLossy,ImageCompressLossLess,ObjectId,String,NodePathToEditedNode,MethodOfVariantType,MethodOfBaseType,MethodOfInstance,MethodOfScript,PropertyOfVariantType,PropertyOfBaseType,PropertyOfInstance,PropertyOfScript,ObjectTooBig"));
+		p_list->push_back(PropertyInfo(Variant::INT, "hint", PROPERTY_HINT_ENUM, "None,Range,ExpRange,Enum,ExpEasing,Length,SpriteFrame,KeyAccel,Flags,Layers2dRender,Layers2dPhysics,Layer3dRender,Layer3dPhysics,File,Dir,GlobalFile,GlobalDir,ResourceType,MultilineText,PlaceholderText,ColorNoAlpha,ImageCompressLossy,ImageCompressLossLess,ObjectId,String,NodePathToEditedNode,MethodOfVariantType,MethodOfBaseType,MethodOfInstance,MethodOfScript,PropertyOfVariantType,PropertyOfBaseType,PropertyOfInstance,PropertyOfScript,ObjectTooBig,NodePathValidTypes"));
 		p_list->push_back(PropertyInfo(Variant::STRING, "hint_string"));
 		p_list->push_back(PropertyInfo(Variant::BOOL, "export"));
 	}
@@ -2343,7 +2343,7 @@ void VisualScriptEditor::_graph_connected(const String &p_from, int p_from_slot,
 	int from_port;
 
 	if (!_get_out_slot(from_node, p_from_slot, from_port, from_seq))
-		return; //can't  connect this, it' s invalid
+		return; //can't connect this, it's invalid
 
 	Ref<VisualScriptNode> to_node = script->get_node(edited_func, p_to.to_int());
 	ERR_FAIL_COND(!to_node.is_valid());
@@ -2352,7 +2352,7 @@ void VisualScriptEditor::_graph_connected(const String &p_from, int p_from_slot,
 	int to_port;
 
 	if (!_get_in_slot(to_node, p_to_slot, to_port, to_seq))
-		return; //can't  connect this, it' s invalid
+		return; //can't connect this, it's invalid
 
 	ERR_FAIL_COND(from_seq != to_seq);
 
@@ -2363,7 +2363,7 @@ void VisualScriptEditor::_graph_connected(const String &p_from, int p_from_slot,
 		undo_redo->add_undo_method(script.ptr(), "sequence_disconnect", edited_func, p_from.to_int(), from_port, p_to.to_int());
 	} else {
 
-		// disconect current, and connect the new one
+		// disconnect current, and connect the new one
 		if (script->is_input_value_port_connected(edited_func, p_to.to_int(), to_port)) {
 			int conn_from;
 			int conn_port;
@@ -2396,7 +2396,7 @@ void VisualScriptEditor::_graph_disconnected(const String &p_from, int p_from_sl
 	int from_port;
 
 	if (!_get_out_slot(from_node, p_from_slot, from_port, from_seq))
-		return; //can't  connect this, it' s invalid
+		return; //can't connect this, it's invalid
 
 	Ref<VisualScriptNode> to_node = script->get_node(edited_func, p_to.to_int());
 	ERR_FAIL_COND(!to_node.is_valid());
@@ -2405,7 +2405,7 @@ void VisualScriptEditor::_graph_disconnected(const String &p_from, int p_from_sl
 	int to_port;
 
 	if (!_get_in_slot(to_node, p_to_slot, to_port, to_seq))
-		return; //can't  connect this, it' s invalid
+		return; //can't connect this, it's invalid
 
 	ERR_FAIL_COND(from_seq != to_seq);
 
@@ -3615,8 +3615,7 @@ VisualScriptEditor::VisualScriptEditor() {
 	edit_signal_dialog->set_title(TTR("Edit Signal Arguments:"));
 
 	signal_editor = memnew(VisualScriptEditorSignalEdit);
-	edit_signal_edit = memnew(PropertyEditor);
-	edit_signal_edit->hide_top_label();
+	edit_signal_edit = memnew(EditorInspector);
 	edit_signal_dialog->add_child(edit_signal_edit);
 
 	edit_signal_edit->edit(signal_editor);
@@ -3627,8 +3626,7 @@ VisualScriptEditor::VisualScriptEditor() {
 	edit_variable_dialog->set_title(TTR("Edit Variable:"));
 
 	variable_editor = memnew(VisualScriptEditorVariableEdit);
-	edit_variable_edit = memnew(PropertyEditor);
-	edit_variable_edit->hide_top_label();
+	edit_variable_edit = memnew(EditorInspector);
 	edit_variable_dialog->add_child(edit_variable_edit);
 
 	edit_variable_edit->edit(variable_editor);

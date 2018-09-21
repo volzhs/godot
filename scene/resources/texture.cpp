@@ -29,11 +29,12 @@
 /*************************************************************************/
 
 #include "texture.h"
-#include "bit_mask.h"
+
+#include "core/core_string_names.h"
+#include "core/io/image_loader.h"
 #include "core/method_bind_ext.gen.inc"
 #include "core/os/os.h"
-#include "core_string_names.h"
-#include "io/image_loader.h"
+#include "scene/resources/bit_mask.h"
 
 Size2 Texture::get_size() const {
 
@@ -1606,7 +1607,7 @@ void GradientTexture::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_update"), &GradientTexture::_update);
 
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "gradient", PROPERTY_HINT_RESOURCE_TYPE, "Gradient"), "set_gradient", "get_gradient");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "width"), "set_width", "get_width");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "width", PROPERTY_HINT_RANGE, "1,2048,1,or_greater"), "set_width", "get_width");
 }
 
 void GradientTexture::set_gradient(Ref<Gradient> p_gradient) {
@@ -1632,15 +1633,16 @@ void GradientTexture::_queue_update() {
 	if (update_pending)
 		return;
 
+	update_pending = true;
 	call_deferred("_update");
 }
 
 void GradientTexture::_update() {
 
+	update_pending = false;
+
 	if (gradient.is_null())
 		return;
-
-	update_pending = false;
 
 	PoolVector<uint8_t> data;
 	data.resize(width * 4);
@@ -1944,8 +1946,8 @@ void AnimatedTexture::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "fps", PROPERTY_HINT_RANGE, "0,1024,0.1"), "set_fps", "get_fps");
 
 	for (int i = 0; i < MAX_FRAMES; i++) {
-		ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "frame_" + itos(i) + "/texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture"), "set_frame_texture", "get_frame_texture", i);
-		ADD_PROPERTYI(PropertyInfo(Variant::REAL, "frame_" + itos(i) + "/delay_sec", PROPERTY_HINT_RANGE, "0.0,16.0,0.01"), "set_frame_delay", "get_frame_delay", i);
+		ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "frame_" + itos(i) + "/texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL), "set_frame_texture", "get_frame_texture", i);
+		ADD_PROPERTYI(PropertyInfo(Variant::REAL, "frame_" + itos(i) + "/delay_sec", PROPERTY_HINT_RANGE, "0.0,16.0,0.01", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL), "set_frame_delay", "get_frame_delay", i);
 	}
 }
 

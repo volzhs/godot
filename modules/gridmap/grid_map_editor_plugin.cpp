@@ -29,14 +29,14 @@
 /*************************************************************************/
 
 #include "grid_map_editor_plugin.h"
+#include "core/os/input.h"
 #include "editor/editor_scale.h"
 #include "editor/editor_settings.h"
 #include "editor/plugins/spatial_editor_plugin.h"
-#include "os/input.h"
 #include "scene/3d/camera.h"
 
-#include "geometry.h"
-#include "os/keyboard.h"
+#include "core/math/geometry.h"
+#include "core/os/keyboard.h"
 
 void GridMapEditor::_node_removed(Node *p_node) {
 
@@ -645,7 +645,7 @@ bool GridMapEditor::forward_spatial_input_event(Camera *p_camera, const Ref<Inpu
 				}
 				set_items.clear();
 				input_action = INPUT_NONE;
-				return true;
+				return set_items.size() > 0;
 			}
 
 			if (mb->get_button_index() == BUTTON_LEFT && input_action != INPUT_NONE) {

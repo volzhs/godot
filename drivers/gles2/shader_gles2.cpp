@@ -27,12 +27,12 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "shader_gles2.h"
 
-#include "memory.h"
-#include "print_string.h"
-#include "string_builder.h"
-
+#include "core/os/memory.h"
+#include "core/print_string.h"
+#include "core/string_builder.h"
 #include "rasterizer_gles2.h"
 #include "rasterizer_storage_gles2.h"
 
@@ -293,7 +293,7 @@ ShaderGLES2::Version *ShaderGLES2::get_current_version() {
 		}
 	}
 
-	// keep them around during the functino
+	// keep them around during the function
 	CharString code_string;
 	CharString code_string2;
 	CharString code_globals;

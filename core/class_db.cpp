@@ -30,8 +30,9 @@
 
 #include "class_db.h"
 
-#include "os/mutex.h"
-#include "version.h"
+#include "core/engine.h"
+#include "core/os/mutex.h"
+#include "core/version.h"
 
 #define OBJTYPE_RLOCK RWLockRead _rw_lockr_(lock);
 #define OBJTYPE_WLOCK RWLockWrite _rw_lockw_(lock);
@@ -512,7 +513,12 @@ Object *ClassDB::instance(const StringName &p_class) {
 		ERR_FAIL_COND_V(ti->disabled, NULL);
 		ERR_FAIL_COND_V(!ti->creation_func, NULL);
 	}
-
+#ifdef TOOLS_ENABLED
+	if (ti->api == API_EDITOR && !Engine::get_singleton()->is_editor_hint()) {
+		ERR_PRINTS("Class '" + String(p_class) + "' can only be instantiated by editor.");
+		return NULL;
+	}
+#endif
 	return ti->creation_func();
 }
 bool ClassDB::can_instance(const StringName &p_class) {

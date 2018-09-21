@@ -29,14 +29,14 @@
 /*************************************************************************/
 
 #include "editor_file_dialog.h"
+#include "core/os/file_access.h"
+#include "core/os/keyboard.h"
+#include "core/os/os.h"
+#include "core/print_string.h"
 #include "dependency_editor.h"
 #include "editor_resource_preview.h"
 #include "editor_scale.h"
 #include "editor_settings.h"
-#include "os/file_access.h"
-#include "os/keyboard.h"
-#include "os/os.h"
-#include "print_string.h"
 #include "scene/gui/center_container.h"
 #include "scene/gui/label.h"
 #include "scene/gui/margin_container.h"
@@ -269,7 +269,7 @@ void EditorFileDialog::_post_popup() {
 	set_process_unhandled_input(true);
 }
 
-void EditorFileDialog::_thumbnail_result(const String &p_path, const Ref<Texture> &p_preview, const Variant &p_udata) {
+void EditorFileDialog::_thumbnail_result(const String &p_path, const Ref<Texture> &p_preview, const Ref<Texture> &p_small_preview, const Variant &p_udata) {
 
 	if (display_mode == DISPLAY_LIST || p_preview.is_null())
 		return;
@@ -284,7 +284,7 @@ void EditorFileDialog::_thumbnail_result(const String &p_path, const Ref<Texture
 	}
 }
 
-void EditorFileDialog::_thumbnail_done(const String &p_path, const Ref<Texture> &p_preview, const Variant &p_udata) {
+void EditorFileDialog::_thumbnail_done(const String &p_path, const Ref<Texture> &p_preview, const Ref<Texture> &p_small_preview, const Variant &p_udata) {
 
 	set_process(false);
 	preview_waiting = false;
@@ -1115,7 +1115,7 @@ void EditorFileDialog::_update_drives() {
 
 void EditorFileDialog::_favorite_selected(int p_idx) {
 
-	Vector<String> favorited = EditorSettings::get_singleton()->get_favorite_dirs();
+	Vector<String> favorited = EditorSettings::get_singleton()->get_favorites();
 	ERR_FAIL_INDEX(p_idx, favorited.size());
 
 	dir_access->change_dir(favorited[p_idx]);
@@ -1130,7 +1130,7 @@ void EditorFileDialog::_favorite_move_up() {
 	int current = favorites->get_current();
 
 	if (current > 0 && current < favorites->get_item_count()) {
-		Vector<String> favorited = EditorSettings::get_singleton()->get_favorite_dirs();
+		Vector<String> favorited = EditorSettings::get_singleton()->get_favorites();
 
 		int a_idx = favorited.find(String(favorites->get_item_metadata(current - 1)));
 		int b_idx = favorited.find(String(favorites->get_item_metadata(current)));
@@ -1139,7 +1139,7 @@ void EditorFileDialog::_favorite_move_up() {
 			return;
 		SWAP(favorited.write[a_idx], favorited.write[b_idx]);
 
-		EditorSettings::get_singleton()->set_favorite_dirs(favorited);
+		EditorSettings::get_singleton()->set_favorites(favorited);
 
 		_update_favorites();
 		update_file_list();
@@ -1150,7 +1150,7 @@ void EditorFileDialog::_favorite_move_down() {
 	int current = favorites->get_current();
 
 	if (current >= 0 && current < favorites->get_item_count() - 1) {
-		Vector<String> favorited = EditorSettings::get_singleton()->get_favorite_dirs();
+		Vector<String> favorited = EditorSettings::get_singleton()->get_favorites();
 
 		int a_idx = favorited.find(String(favorites->get_item_metadata(current + 1)));
 		int b_idx = favorited.find(String(favorites->get_item_metadata(current)));
@@ -1159,7 +1159,7 @@ void EditorFileDialog::_favorite_move_down() {
 			return;
 		SWAP(favorited.write[a_idx], favorited.write[b_idx]);
 
-		EditorSettings::get_singleton()->set_favorite_dirs(favorited);
+		EditorSettings::get_singleton()->set_favorites(favorited);
 
 		_update_favorites();
 		update_file_list();
@@ -1176,7 +1176,7 @@ void EditorFileDialog::_update_favorites() {
 
 	favorite->set_pressed(false);
 
-	Vector<String> favorited = EditorSettings::get_singleton()->get_favorite_dirs();
+	Vector<String> favorited = EditorSettings::get_singleton()->get_favorites();
 	for (int i = 0; i < favorited.size(); i++) {
 		bool cres = favorited[i].begins_with("res://");
 		if (cres != res)
@@ -1206,7 +1206,7 @@ void EditorFileDialog::_favorite_toggled(bool p_toggle) {
 
 	String cd = get_current_dir();
 
-	Vector<String> favorited = EditorSettings::get_singleton()->get_favorite_dirs();
+	Vector<String> favorited = EditorSettings::get_singleton()->get_favorites();
 
 	bool found = false;
 	for (int i = 0; i < favorited.size(); i++) {
@@ -1228,7 +1228,7 @@ void EditorFileDialog::_favorite_toggled(bool p_toggle) {
 		favorite->set_pressed(true);
 	}
 
-	EditorSettings::get_singleton()->set_favorite_dirs(favorited);
+	EditorSettings::get_singleton()->set_favorites(favorited);
 
 	_update_favorites();
 }

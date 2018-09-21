@@ -31,12 +31,12 @@
 #include "tree.h"
 #include <limits.h>
 
-#include "math_funcs.h"
-#include "os/input.h"
-#include "os/keyboard.h"
-#include "os/os.h"
-#include "print_string.h"
-#include "project_settings.h"
+#include "core/math/math_funcs.h"
+#include "core/os/input.h"
+#include "core/os/keyboard.h"
+#include "core/os/os.h"
+#include "core/print_string.h"
+#include "core/project_settings.h"
 #include "scene/main/viewport.h"
 
 #ifdef TOOLS_ENABLED
@@ -1721,7 +1721,7 @@ int Tree::propagate_mouse_event(const Point2i &p_pos, int x_ofs, int y_ofs, bool
 		if (p_button == BUTTON_LEFT || (p_button == BUTTON_RIGHT && allow_rmb_select)) {
 			/* process selection */
 
-			if (p_doubleclick && (!c.editable || c.mode == TreeItem::CELL_MODE_CUSTOM || c.mode == TreeItem::CELL_MODE_ICON /*|| c.mode==TreeItem::CELL_MODE_CHECK*/)) { //it' s confusing for check
+			if (p_doubleclick && (!c.editable || c.mode == TreeItem::CELL_MODE_CUSTOM || c.mode == TreeItem::CELL_MODE_ICON /*|| c.mode==TreeItem::CELL_MODE_CHECK*/)) { //it's confusing for check
 
 				emit_signal("item_activated");
 				incr_search.clear();
@@ -2239,13 +2239,13 @@ void Tree::_gui_input(Ref<InputEvent> p_event) {
 			_go_left();
 		}
 
-	} else if (p_event->is_action("ui_up") && p_event->is_pressed()) {
+	} else if (p_event->is_action("ui_up") && p_event->is_pressed() && !k->get_command()) {
 
 		if (!cursor_can_exit_tree) accept_event();
 
 		_go_up();
 
-	} else if (p_event->is_action("ui_down") && p_event->is_pressed()) {
+	} else if (p_event->is_action("ui_down") && p_event->is_pressed() && !k->get_command()) {
 
 		if (!cursor_can_exit_tree) accept_event();
 

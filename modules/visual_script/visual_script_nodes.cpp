@@ -30,11 +30,11 @@
 
 #include "visual_script_nodes.h"
 
-#include "engine.h"
-#include "global_constants.h"
-#include "os/input.h"
-#include "os/os.h"
-#include "project_settings.h"
+#include "core/engine.h"
+#include "core/global_constants.h"
+#include "core/os/input.h"
+#include "core/os/os.h"
+#include "core/project_settings.h"
 #include "scene/main/node.h"
 #include "scene/main/scene_tree.h"
 
@@ -167,7 +167,7 @@ void VisualScriptFunction::_get_property_list(List<PropertyInfo> *p_list) const 
 		p_list->push_back(PropertyInfo(Variant::INT, "stack/size", PROPERTY_HINT_RANGE, "1,100000"));
 	}
 	p_list->push_back(PropertyInfo(Variant::BOOL, "stack/stackless"));
-	p_list->push_back(PropertyInfo(Variant::INT, "rpc/mode", PROPERTY_HINT_ENUM, "Disabled,Remote,Sync,Master,Slave"));
+	p_list->push_back(PropertyInfo(Variant::INT, "rpc/mode", PROPERTY_HINT_ENUM, "Disabled,Remote,Master,Puppet,Remote Sync,Master Sync,Puppet Sync"));
 }
 
 int VisualScriptFunction::get_output_sequence_port_count() const {

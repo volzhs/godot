@@ -32,8 +32,8 @@
 #define BULLET_PHYSICS_SERVER_H
 
 #include "area_bullet.h"
+#include "core/rid.h"
 #include "joint_bullet.h"
-#include "rid.h"
 #include "rigid_body_bullet.h"
 #include "servers/physics_server.h"
 #include "shape_bullet.h"
@@ -61,7 +61,7 @@ class BulletPhysicsServer : public PhysicsServer {
 	mutable RID_Owner<JointBullet> joint_owner;
 
 private:
-	/// This is used when a collision shape is not active, so the bullet compound shapes index are always sync with godot index
+	/// This is used as replacement of collision shape inside a compound or main shape
 	static btEmptyShape *emptyShape;
 
 public:

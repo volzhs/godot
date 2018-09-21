@@ -31,13 +31,13 @@
 #ifndef NODE_H
 #define NODE_H
 
-#include "class_db.h"
-#include "map.h"
-#include "node_path.h"
-#include "object.h"
-#include "project_settings.h"
+#include "core/class_db.h"
+#include "core/map.h"
+#include "core/node_path.h"
+#include "core/object.h"
+#include "core/project_settings.h"
+#include "core/script_language.h"
 #include "scene/main/scene_tree.h"
-#include "script_language.h"
 
 class Viewport;
 class SceneState;
@@ -166,6 +166,7 @@ private:
 	void _propagate_enter_tree();
 	void _propagate_ready();
 	void _propagate_exit_tree();
+	void _propagate_after_exit_tree();
 	void _propagate_validate_owner();
 	void _print_stray_nodes();
 	void _propagate_pause_owner(Node *p_owner);

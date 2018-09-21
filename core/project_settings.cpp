@@ -30,16 +30,17 @@
 
 #include "project_settings.h"
 
-#include "bind/core_bind.h"
-#include "core_string_names.h"
-#include "io/file_access_network.h"
-#include "io/file_access_pack.h"
-#include "io/marshalls.h"
-#include "os/dir_access.h"
-#include "os/file_access.h"
-#include "os/keyboard.h"
-#include "os/os.h"
-#include "variant_parser.h"
+#include "core/bind/core_bind.h"
+#include "core/core_string_names.h"
+#include "core/io/file_access_network.h"
+#include "core/io/file_access_pack.h"
+#include "core/io/marshalls.h"
+#include "core/os/dir_access.h"
+#include "core/os/file_access.h"
+#include "core/os/keyboard.h"
+#include "core/os/os.h"
+#include "core/variant_parser.h"
+
 #include <zlib.h>
 
 #define FORMAT_VERSION 4
@@ -59,7 +60,7 @@ String ProjectSettings::get_resource_path() const {
 String ProjectSettings::localize_path(const String &p_path) const {
 
 	if (resource_path == "")
-		return p_path; //not initialied yet
+		return p_path; //not initialized yet
 
 	if (p_path.begins_with("res://") || p_path.begins_with("user://") ||
 			(p_path.is_abs_path() && !p_path.begins_with(resource_path)))

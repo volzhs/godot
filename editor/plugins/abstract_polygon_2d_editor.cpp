@@ -275,6 +275,10 @@ bool AbstractPolygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 		return (mb.is_valid() && mb->get_button_index() == 1);
 	}
 
+	CanvasItemEditor::Tool tool = CanvasItemEditor::get_singleton()->get_current_tool();
+	if (tool != CanvasItemEditor::TOOL_SELECT)
+		return false;
+
 	if (mb.is_valid()) {
 
 		Transform2D xform = canvas_item_editor->get_canvas_transform() * _get_node()->get_global_transform();
@@ -283,10 +287,10 @@ bool AbstractPolygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 		Vector2 cpoint = _get_node()->get_global_transform().affine_inverse().xform(canvas_item_editor->snap_point(canvas_item_editor->get_canvas_transform().affine_inverse().xform(mb->get_position())));
 
 		if (mode == MODE_EDIT || (_is_line() && mode == MODE_CREATE)) {
-
 			if (mb->get_button_index() == BUTTON_LEFT) {
-
 				if (mb->is_pressed()) {
+					if (mb->get_control() || mb->get_shift() || mb->get_alt())
+						return false;
 
 					const PosVertex insert = closest_edge_point(gpoint);
 
@@ -512,11 +516,9 @@ bool AbstractPolygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 	return false;
 }
 
-void AbstractPolygon2DEditor::forward_draw_over_viewport(Control *p_overlay) {
+void AbstractPolygon2DEditor::forward_canvas_draw_over_viewport(Control *p_overlay) {
 	if (!_get_node())
 		return;
-
-	Control *vpc = canvas_item_editor->get_viewport_control();
 
 	Transform2D xform = canvas_item_editor->get_canvas_transform() * _get_node()->get_global_transform();
 	const Ref<Texture> handle = get_icon("EditorHandle", "EditorIcons");
@@ -558,7 +560,7 @@ void AbstractPolygon2DEditor::forward_draw_over_viewport(Control *p_overlay) {
 				Vector2 point = xform.xform(p);
 				Vector2 next_point = xform.xform(p2);
 
-				vpc->draw_line(point, next_point, col, 2 * EDSCALE);
+				p_overlay->draw_line(point, next_point, col, 2 * EDSCALE);
 			}
 		}
 
@@ -582,7 +584,7 @@ void AbstractPolygon2DEditor::forward_draw_over_viewport(Control *p_overlay) {
 					p2 = points[(i + 1) % n_points] + offset;
 
 				const Vector2 next_point = xform.xform(p2);
-				vpc->draw_line(point, next_point, col, 2 * EDSCALE);
+				p_overlay->draw_line(point, next_point, col, 2 * EDSCALE);
 			}
 		}
 
@@ -594,14 +596,14 @@ void AbstractPolygon2DEditor::forward_draw_over_viewport(Control *p_overlay) {
 			const Vector2 point = xform.xform(p);
 
 			const Color modulate = vertex == active_point ? Color(0.5, 1, 2) : Color(1, 1, 1);
-			vpc->draw_texture(handle, point - handle->get_size() * 0.5, modulate);
+			p_overlay->draw_texture(handle, point - handle->get_size() * 0.5, modulate);
 		}
 	}
 
 	if (edge_point.valid()) {
 
 		Ref<Texture> add_handle = get_icon("EditorHandleAdd", "EditorIcons");
-		vpc->draw_texture(add_handle, edge_point.pos - add_handle->get_size() * 0.5);
+		p_overlay->draw_texture(add_handle, edge_point.pos - add_handle->get_size() * 0.5);
 	}
 }
 

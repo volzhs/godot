@@ -42,6 +42,9 @@
 
 class RigidBodyBullet;
 
+/// This callback is injected inside bullet server and allow me to smooth contacts against trimesh
+bool godotContactAddedCallback(btManifoldPoint &cp, const btCollisionObjectWrapper *colObj0Wrap, int partId0, int index0, const btCollisionObjectWrapper *colObj1Wrap, int partId1, int index1);
+
 /// This class is required to implement custom collision behaviour in the broadphase
 struct GodotFilterCallback : public btOverlapFilterCallback {
 	static bool test_collision_filters(uint32_t body0_collision_layer, uint32_t body0_collision_mask, uint32_t body1_collision_layer, uint32_t body1_collision_mask);
@@ -71,7 +74,10 @@ public:
 	virtual bool needsCollision(btBroadphaseProxy *proxy0) const;
 
 	virtual btScalar addSingleResult(btCollisionWorld::LocalRayResult &rayResult, bool normalInWorldSpace) {
-		m_shapeId = rayResult.m_localShapeInfo->m_triangleIndex; // "m_triangleIndex" Is a odd name but contains the compound shape ID
+		if (rayResult.m_localShapeInfo)
+			m_shapeId = rayResult.m_localShapeInfo->m_triangleIndex; // "m_triangleIndex" Is a odd name but contains the compound shape ID
+		else
+			m_shapeId = 0;
 		return btCollisionWorld::ClosestRayResultCallback::addSingleResult(rayResult, normalInWorldSpace);
 	}
 };

@@ -54,7 +54,6 @@
 #include "editor/editor_audio_buses.h"
 #include "editor/editor_file_system.h"
 #include "editor/editor_help.h"
-#include "editor/editor_initialize_ssl.h"
 #include "editor/editor_properties.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_themes.h"
@@ -141,12 +140,7 @@ void EditorNode::_update_scene_tabs() {
 		String type = editor_data.get_scene_type(i);
 		Ref<Texture> icon;
 		if (type != String()) {
-
-			if (!gui_base->has_icon(type, "EditorIcons")) {
-				type = "Node";
-			}
-
-			icon = gui_base->get_icon(type, "EditorIcons");
+			icon = get_class_icon(type, "Node");
 		}
 
 		int current = editor_data.get_edited_scene();
@@ -1174,6 +1168,16 @@ void EditorNode::_dialog_action(String p_file) {
 			int scene_idx = (current_option == FILE_SAVE_SCENE || current_option == FILE_SAVE_AS_SCENE) ? -1 : tab_closing;
 
 			if (file->get_mode() == EditorFileDialog::MODE_SAVE_FILE) {
+				bool same_open_scene = false;
+				for (int i = 0; i < editor_data.get_edited_scene_count(); i++) {
+					if (editor_data.get_scene_path(i) == p_file && i != scene_idx)
+						same_open_scene = true;
+				}
+
+				if (same_open_scene) {
+					show_warning(TTR("Can't overwrite scene that is still open!"));
+					return;
+				}
 
 				_save_default_environment();
 				_save_scene_with_preview(p_file, scene_idx);
@@ -2035,6 +2039,14 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			emit_signal("stop_pressed");
 
 		} break;
+
+		case FILE_SHOW_IN_FILESYSTEM: {
+			String path = editor_data.get_scene_path(editor_data.get_edited_scene());
+			if (path != String()) {
+				filesystem_dock->navigate_to_path(path);
+			}
+		} break;
+
 		case RUN_PLAY_SCENE: {
 
 			_save_default_environment();
@@ -2068,7 +2080,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		} break;
 		case RUN_PROJECT_DATA_FOLDER: {
 
-			OS::get_singleton()->shell_open(OS::get_singleton()->get_user_data_dir());
+			OS::get_singleton()->shell_open(String("file://") + OS::get_singleton()->get_user_data_dir());
 		} break;
 		case FILE_QUIT:
 		case RUN_PROJECT_MANAGER: {
@@ -2204,11 +2216,11 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		} break;
 		case SETTINGS_EDITOR_DATA_FOLDER: {
 
-			OS::get_singleton()->shell_open(EditorSettings::get_singleton()->get_data_dir());
+			OS::get_singleton()->shell_open(String("file://") + EditorSettings::get_singleton()->get_data_dir());
 		} break;
 		case SETTINGS_EDITOR_CONFIG_FOLDER: {
 
-			OS::get_singleton()->shell_open(EditorSettings::get_singleton()->get_settings_dir());
+			OS::get_singleton()->shell_open(String("file://") + EditorSettings::get_singleton()->get_settings_dir());
 		} break;
 		case SETTINGS_MANAGE_EXPORT_TEMPLATES: {
 
@@ -2747,6 +2759,8 @@ void EditorNode::set_current_scene(int p_idx) {
 	Dictionary state = editor_data.restore_edited_scene_state(editor_selection, &editor_history);
 	_edit_current();
 
+	_update_title();
+
 	call_deferred("_set_main_scene_state", state, get_edited_scene()); //do after everything else is done setting up
 }
 
@@ -3114,6 +3128,86 @@ void EditorNode::stop_child_process() {
 	_menu_option_confirm(RUN_STOP, false);
 }
 
+Ref<Texture> EditorNode::get_object_icon(const Object *p_object, const String &p_fallback) const {
+	ERR_FAIL_COND_V(!p_object || !gui_base, NULL);
+
+	Ref<Script> script = p_object->get_script();
+	if (script.is_null() && p_object->is_class("Script")) {
+		script = p_object;
+	}
+
+	StringName name;
+	String icon_path;
+	if (script.is_valid()) {
+		name = EditorNode::get_editor_data().script_class_get_name(script->get_path());
+		icon_path = EditorNode::get_editor_data().script_class_get_icon_path(name);
+		name = script->get_instance_base_type();
+	}
+
+	if (gui_base->has_icon(p_object->get_class(), "EditorIcons"))
+		return gui_base->get_icon(p_object->get_class(), "EditorIcons");
+
+	if (icon_path.length())
+		return ResourceLoader::load(icon_path);
+
+	if (p_object->has_meta("_editor_icon"))
+		return p_object->get_meta("_editor_icon");
+
+	if (name != StringName()) {
+		const Map<String, Vector<EditorData::CustomType> > &p_map = EditorNode::get_editor_data().get_custom_types();
+		for (const Map<String, Vector<EditorData::CustomType> >::Element *E = p_map.front(); E; E = E->next()) {
+			const Vector<EditorData::CustomType> &ct = E->value();
+			for (int i = 0; i < ct.size(); ++i) {
+				if (ct[i].name == name && ct[i].icon.is_valid()) {
+					return ct[i].icon;
+				}
+			}
+		}
+	}
+
+	if (p_fallback.length())
+		return gui_base->get_icon(p_fallback, "EditorIcons");
+
+	return NULL;
+}
+
+Ref<Texture> EditorNode::get_class_icon(const String &p_class, const String &p_fallback) const {
+	ERR_FAIL_COND_V(p_class.empty(), NULL);
+
+	if (gui_base->has_icon(p_class, "EditorIcons")) {
+		return gui_base->get_icon(p_class, "EditorIcons");
+	}
+
+	if (ScriptServer::is_global_class(p_class)) {
+		String icon_path = EditorNode::get_editor_data().script_class_get_icon_path(p_class);
+		RES icon;
+		if (FileAccess::exists(icon_path)) {
+			icon = ResourceLoader::load(icon_path);
+		}
+		if (!icon.is_valid()) {
+			icon = gui_base->get_icon(ScriptServer::get_global_class_base(p_class), "EditorIcons");
+		}
+		return icon;
+	}
+
+	const Map<String, Vector<EditorData::CustomType> > &p_map = EditorNode::get_editor_data().get_custom_types();
+	for (const Map<String, Vector<EditorData::CustomType> >::Element *E = p_map.front(); E; E = E->next()) {
+		const Vector<EditorData::CustomType> &ct = E->value();
+		for (int i = 0; i < ct.size(); ++i) {
+			if (ct[i].name == p_class) {
+				if (ct[i].icon.is_valid()) {
+					return ct[i].icon;
+				}
+			}
+		}
+	}
+
+	if (p_fallback.length())
+		return gui_base->get_icon(p_fallback, "EditorIcons");
+
+	return NULL;
+}
+
 void EditorNode::progress_add_task(const String &p_task, const String &p_label, int p_steps, bool p_can_cancel) {
 
 	singleton->progress_dialog->add_task(p_task, p_label, p_steps, p_can_cancel);
@@ -3271,19 +3365,12 @@ void EditorNode::_dock_select_input(const Ref<InputEvent> &p_input) {
 			dock_slot[nrect]->show();
 			dock_select->update();
 
-			VSplitContainer *splits[DOCK_SLOT_MAX / 2] = {
-				left_l_vsplit,
-				left_r_vsplit,
-				right_l_vsplit,
-				right_r_vsplit,
-			};
-
-			for (int i = 0; i < 4; i++) {
+			for (int i = 0; i < vsplits.size(); i++) {
 				bool in_use = dock_slot[i * 2 + 0]->get_tab_count() || dock_slot[i * 2 + 1]->get_tab_count();
 				if (in_use)
-					splits[i]->show();
+					vsplits[i]->show();
 				else
-					splits[i]->hide();
+					vsplits[i]->hide();
 			}
 
 			if (right_l_vsplit->is_visible() || right_r_vsplit->is_visible())
@@ -3455,30 +3542,16 @@ void EditorNode::_save_docks_to_config(Ref<ConfigFile> p_layout, const String &p
 
 	p_layout->set_value(p_section, "dock_filesystem_split", filesystem_dock->get_split_offset());
 
-	VSplitContainer *splits[DOCK_SLOT_MAX / 2] = {
-		left_l_vsplit,
-		left_r_vsplit,
-		right_l_vsplit,
-		right_r_vsplit,
-	};
+	for (int i = 0; i < vsplits.size(); i++) {
 
-	for (int i = 0; i < DOCK_SLOT_MAX / 2; i++) {
-
-		if (splits[i]->is_visible_in_tree()) {
-			p_layout->set_value(p_section, "dock_split_" + itos(i + 1), splits[i]->get_split_offset());
+		if (vsplits[i]->is_visible_in_tree()) {
+			p_layout->set_value(p_section, "dock_split_" + itos(i + 1), vsplits[i]->get_split_offset());
 		}
 	}
 
-	HSplitContainer *h_splits[4] = {
-		left_l_hsplit,
-		left_r_hsplit,
-		main_hsplit,
-		right_hsplit,
-	};
+	for (int i = 0; i < hsplits.size(); i++) {
 
-	for (int i = 0; i < 4; i++) {
-
-		p_layout->set_value(p_section, "dock_hsplit_" + itos(i + 1), h_splits[i]->get_split_offset());
+		p_layout->set_value(p_section, "dock_hsplit_" + itos(i + 1), hsplits[i]->get_split_offset());
 	}
 }
 
@@ -3524,21 +3597,14 @@ void EditorNode::_load_docks() {
 
 void EditorNode::_update_dock_slots_visibility() {
 
-	VSplitContainer *splits[DOCK_SLOT_MAX / 2] = {
-		left_l_vsplit,
-		left_r_vsplit,
-		right_l_vsplit,
-		right_r_vsplit,
-	};
-
 	if (!docks_visible) {
 
 		for (int i = 0; i < DOCK_SLOT_MAX; i++) {
 			dock_slot[i]->hide();
 		}
 
-		for (int i = 0; i < DOCK_SLOT_MAX / 2; i++) {
-			splits[i]->hide();
+		for (int i = 0; i < vsplits.size(); i++) {
+			vsplits[i]->hide();
 		}
 
 		right_hsplit->hide();
@@ -3552,12 +3618,12 @@ void EditorNode::_update_dock_slots_visibility() {
 				dock_slot[i]->hide();
 		}
 
-		for (int i = 0; i < DOCK_SLOT_MAX / 2; i++) {
+		for (int i = 0; i < vsplits.size(); i++) {
 			bool in_use = dock_slot[i * 2 + 0]->get_tab_count() || dock_slot[i * 2 + 1]->get_tab_count();
 			if (in_use)
-				splits[i]->show();
+				vsplits[i]->show();
 			else
-				splits[i]->hide();
+				vsplits[i]->hide();
 		}
 
 		for (int i = 0; i < DOCK_SLOT_MAX; i++) {
@@ -3577,13 +3643,7 @@ void EditorNode::_update_dock_slots_visibility() {
 
 void EditorNode::_dock_tab_changed(int p_tab) {
 
-	// update visibility but dont set current tab
-	VSplitContainer *splits[DOCK_SLOT_MAX / 2] = {
-		left_l_vsplit,
-		left_r_vsplit,
-		right_l_vsplit,
-		right_r_vsplit,
-	};
+	// update visibility but don't set current tab
 
 	if (!docks_visible) {
 
@@ -3591,8 +3651,8 @@ void EditorNode::_dock_tab_changed(int p_tab) {
 			dock_slot[i]->hide();
 		}
 
-		for (int i = 0; i < DOCK_SLOT_MAX / 2; i++) {
-			splits[i]->hide();
+		for (int i = 0; i < vsplits.size(); i++) {
+			vsplits[i]->hide();
 		}
 
 		right_hsplit->hide();
@@ -3606,12 +3666,12 @@ void EditorNode::_dock_tab_changed(int p_tab) {
 				dock_slot[i]->hide();
 		}
 
-		for (int i = 0; i < DOCK_SLOT_MAX / 2; i++) {
+		for (int i = 0; i < vsplits.size(); i++) {
 			bool in_use = dock_slot[i * 2 + 0]->get_tab_count() || dock_slot[i * 2 + 1]->get_tab_count();
 			if (in_use)
-				splits[i]->show();
+				vsplits[i]->show();
 			else
-				splits[i]->hide();
+				vsplits[i]->hide();
 		}
 		bottom_panel->show();
 
@@ -3670,42 +3730,28 @@ void EditorNode::_load_docks_from_config(Ref<ConfigFile> p_layout, const String 
 	}
 	filesystem_dock->set_split_offset(fs_split_ofs);
 
-	VSplitContainer *splits[DOCK_SLOT_MAX / 2] = {
-		left_l_vsplit,
-		left_r_vsplit,
-		right_l_vsplit,
-		right_r_vsplit,
-	};
-
-	for (int i = 0; i < DOCK_SLOT_MAX / 2; i++) {
+	for (int i = 0; i < vsplits.size(); i++) {
 
 		if (!p_layout->has_section_key(p_section, "dock_split_" + itos(i + 1)))
 			continue;
 
 		int ofs = p_layout->get_value(p_section, "dock_split_" + itos(i + 1));
-		splits[i]->set_split_offset(ofs);
+		vsplits[i]->set_split_offset(ofs);
 	}
 
-	HSplitContainer *h_splits[4] = {
-		left_l_hsplit,
-		left_r_hsplit,
-		main_hsplit,
-		right_hsplit,
-	};
-
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < hsplits.size(); i++) {
 		if (!p_layout->has_section_key(p_section, "dock_hsplit_" + itos(i + 1)))
 			continue;
 		int ofs = p_layout->get_value(p_section, "dock_hsplit_" + itos(i + 1));
-		h_splits[i]->set_split_offset(ofs);
+		hsplits[i]->set_split_offset(ofs);
 	}
 
-	for (int i = 0; i < DOCK_SLOT_MAX / 2; i++) {
+	for (int i = 0; i < vsplits.size(); i++) {
 		bool in_use = dock_slot[i * 2 + 0]->get_tab_count() || dock_slot[i * 2 + 1]->get_tab_count();
 		if (in_use)
-			splits[i]->show();
+			vsplits[i]->show();
 		else
-			splits[i]->hide();
+			vsplits[i]->hide();
 	}
 
 	if (right_l_vsplit->is_visible() || right_r_vsplit->is_visible())
@@ -3889,6 +3935,7 @@ void EditorNode::_scene_tab_input(const Ref<InputEvent> &p_input) {
 			scene_tabs_context_menu->add_shortcut(ED_GET_SHORTCUT("editor/save_all_scenes"), FILE_SAVE_ALL_SCENES);
 			if (scene_tabs->get_hovered_tab() >= 0) {
 				scene_tabs_context_menu->add_separator();
+				scene_tabs_context_menu->add_item(TTR("Show in filesystem"), FILE_SHOW_IN_FILESYSTEM);
 				scene_tabs_context_menu->add_item(TTR("Play This Scene"), RUN_PLAY_SCENE);
 				scene_tabs_context_menu->add_item(TTR("Close Tab"), FILE_CLOSE);
 			}
@@ -3903,7 +3950,7 @@ void EditorNode::_reposition_active_tab(int idx_to) {
 	_update_scene_tabs();
 }
 
-void EditorNode::_thumbnail_done(const String &p_path, const Ref<Texture> &p_preview, const Variant &p_udata) {
+void EditorNode::_thumbnail_done(const String &p_path, const Ref<Texture> &p_preview, const Ref<Texture> &p_small_preview, const Variant &p_udata) {
 	int p_tab = p_udata.operator signed int();
 	if (p_preview.is_valid()) {
 		Rect2 rect = scene_tabs->get_tab_rect(p_tab);
@@ -4595,11 +4642,10 @@ EditorNode::EditorNode() {
 	Physics2DServer::get_singleton()->set_active(false); // no physics by default if editor
 	ScriptServer::set_scripting_enabled(false); // no scripting by default if editor
 
-	EditorHelp::generate_doc(); //before any editor classes are crated
+	EditorHelp::generate_doc(); //before any editor classes are created
 	SceneState::set_disable_placeholders(true);
 	ResourceLoader::clear_translation_remaps(); //no remaps using during editor
 	ResourceLoader::clear_path_remaps();
-	editor_initialize_certificates(); //for asset sharing
 
 	InputDefault *id = Object::cast_to<InputDefault>(Input::get_singleton());
 
@@ -4840,9 +4886,6 @@ EditorNode::EditorNode() {
 	left_l_vsplit->add_child(dock_slot[DOCK_SLOT_LEFT_UL]);
 	dock_slot[DOCK_SLOT_LEFT_BL] = memnew(TabContainer);
 	left_l_vsplit->add_child(dock_slot[DOCK_SLOT_LEFT_BL]);
-	left_l_vsplit->hide();
-	dock_slot[DOCK_SLOT_LEFT_UL]->hide();
-	dock_slot[DOCK_SLOT_LEFT_BL]->hide();
 
 	left_r_hsplit = memnew(HSplitContainer);
 	left_l_hsplit->add_child(left_r_hsplit);
@@ -4880,19 +4923,22 @@ EditorNode::EditorNode() {
 	right_r_vsplit->add_child(dock_slot[DOCK_SLOT_RIGHT_UR]);
 	dock_slot[DOCK_SLOT_RIGHT_BR] = memnew(TabContainer);
 	right_r_vsplit->add_child(dock_slot[DOCK_SLOT_RIGHT_BR]);
-	right_r_vsplit->hide();
-	dock_slot[DOCK_SLOT_RIGHT_UR]->hide();
-	dock_slot[DOCK_SLOT_RIGHT_BR]->hide();
 
-	left_l_vsplit->connect("dragged", this, "_dock_split_dragged");
-	left_r_vsplit->connect("dragged", this, "_dock_split_dragged");
-	right_l_vsplit->connect("dragged", this, "_dock_split_dragged");
-	right_r_vsplit->connect("dragged", this, "_dock_split_dragged");
+	// Store them for easier access
+	vsplits.push_back(left_l_vsplit);
+	vsplits.push_back(left_r_vsplit);
+	vsplits.push_back(right_l_vsplit);
+	vsplits.push_back(right_r_vsplit);
 
-	left_l_hsplit->connect("dragged", this, "_dock_split_dragged");
-	left_r_hsplit->connect("dragged", this, "_dock_split_dragged");
-	main_hsplit->connect("dragged", this, "_dock_split_dragged");
-	right_hsplit->connect("dragged", this, "_dock_split_dragged");
+	hsplits.push_back(left_l_hsplit);
+	hsplits.push_back(left_r_hsplit);
+	hsplits.push_back(main_hsplit);
+	hsplits.push_back(right_hsplit);
+
+	for (int i = 0; i < vsplits.size(); i++) {
+		vsplits[i]->connect("dragged", this, "_dock_split_dragged");
+		hsplits[i]->connect("dragged", this, "_dock_split_dragged");
+	}
 
 	dock_select_popup = memnew(PopupPanel);
 	gui_base->add_child(dock_select_popup);
@@ -5346,22 +5392,20 @@ EditorNode::EditorNode() {
 	play_custom_scene_button->set_shortcut(ED_SHORTCUT("editor/play_custom_scene", TTR("Play Custom Scene"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_F5));
 #endif
 
+	// Toggle for video driver
 	video_driver = memnew(OptionButton);
 	video_driver->set_flat(true);
 	video_driver->set_focus_mode(Control::FOCUS_NONE);
 	video_driver->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
+	video_driver->connect("item_selected", this, "_video_driver_selected");
+	menu_hb->add_child(video_driver);
+
 	String video_drivers = ProjectSettings::get_singleton()->get_custom_property_info()["rendering/quality/driver/driver_name"].hint_string;
 	String current_video_driver = OS::get_singleton()->get_video_driver_name(OS::get_singleton()->get_current_video_driver());
-	menu_hb->add_child(video_driver);
 	video_driver_current = 0;
 	for (int i = 0; i < video_drivers.get_slice_count(","); i++) {
 		String driver = video_drivers.get_slice(",", i);
-		if (gui_base->has_icon(driver, "EditorIcons")) {
-			video_driver->add_icon_item(gui_base->get_icon(driver, "EditorIcons"), "");
-		} else {
-			video_driver->add_item(driver);
-		}
-
+		video_driver->add_item(driver);
 		video_driver->set_item_metadata(i, driver);
 
 		if (current_video_driver == driver) {
@@ -5370,7 +5414,6 @@ EditorNode::EditorNode() {
 		}
 	}
 
-	video_driver->connect("item_selected", this, "_video_driver_selected");
 	video_restart_dialog = memnew(ConfirmationDialog);
 	video_restart_dialog->set_text(TTR("Changing the video driver requires restarting the editor."));
 	video_restart_dialog->get_ok()->set_text(TTR("Save & Restart"));
@@ -5405,62 +5448,71 @@ EditorNode::EditorNode() {
 		_menu_option(SETTINGS_UPDATE_SPINNER_HIDE);
 	}
 
+	// Instantiate and place editor docks
+
 	scene_tree_dock = memnew(SceneTreeDock(this, scene_root, editor_selection, editor_data));
-	dock_slot[DOCK_SLOT_RIGHT_UL]->add_child(scene_tree_dock);
-	dock_slot[DOCK_SLOT_RIGHT_UL]->set_tab_title(scene_tree_dock->get_index(), TTR("Scene"));
-	dock_slot[DOCK_SLOT_LEFT_BR]->hide();
-
 	inspector_dock = memnew(InspectorDock(this, editor_data));
-	dock_slot[DOCK_SLOT_RIGHT_BL]->add_child(inspector_dock);
-	dock_slot[DOCK_SLOT_RIGHT_BL]->set_tab_title(inspector_dock->get_index(), TTR("Inspector"));
-
-	Button *property_editable_warning;
-
 	import_dock = memnew(ImportDock);
-	dock_slot[DOCK_SLOT_RIGHT_UL]->add_child(import_dock);
-	dock_slot[DOCK_SLOT_RIGHT_UL]->set_tab_title(import_dock->get_index(), TTR("Import"));
-
-	bool use_single_dock_column = (OS::get_singleton()->get_screen_size(OS::get_singleton()->get_current_screen()).x < 1200);
-
 	node_dock = memnew(NodeDock);
-	if (use_single_dock_column) {
-		dock_slot[DOCK_SLOT_RIGHT_UL]->add_child(node_dock);
-		dock_slot[DOCK_SLOT_RIGHT_UL]->set_tab_title(node_dock->get_index(), TTR("Node"));
-	} else {
-		dock_slot[DOCK_SLOT_RIGHT_BL]->add_child(node_dock);
-		dock_slot[DOCK_SLOT_RIGHT_BL]->set_tab_title(node_dock->get_index(), TTR("Node"));
-	}
 
 	filesystem_dock = memnew(FileSystemDock(this));
-	filesystem_dock->set_file_list_display_mode(int(EditorSettings::get_singleton()->get("docks/filesystem/display_mode")));
-
-	if (use_single_dock_column) {
-		dock_slot[DOCK_SLOT_RIGHT_BL]->add_child(filesystem_dock);
-		dock_slot[DOCK_SLOT_RIGHT_BL]->set_tab_title(filesystem_dock->get_index(), TTR("FileSystem"));
-		left_r_vsplit->hide();
-		dock_slot[DOCK_SLOT_LEFT_UR]->hide();
-		dock_slot[DOCK_SLOT_LEFT_BR]->hide();
-	} else {
-		dock_slot[DOCK_SLOT_LEFT_UR]->add_child(filesystem_dock);
-		dock_slot[DOCK_SLOT_LEFT_UR]->set_tab_title(filesystem_dock->get_index(), TTR("FileSystem"));
-	}
+	filesystem_dock->set_file_list_display_mode(int(EditorSettings::get_singleton()->get("docks/filesystem/files_display_mode")));
 	filesystem_dock->connect("open", this, "open_request");
 	filesystem_dock->connect("instance", this, "_instance_request");
 
-	const String docks_section = "docks";
+	// Scene: Top left
+	dock_slot[DOCK_SLOT_LEFT_UR]->add_child(scene_tree_dock);
+	dock_slot[DOCK_SLOT_LEFT_UR]->set_tab_title(scene_tree_dock->get_index(), TTR("Scene"));
 
+	// Import: Top left, behind Scene
+	dock_slot[DOCK_SLOT_LEFT_UR]->add_child(import_dock);
+	dock_slot[DOCK_SLOT_LEFT_UR]->set_tab_title(import_dock->get_index(), TTR("Import"));
+
+	// FileSystem: Bottom left
+	dock_slot[DOCK_SLOT_LEFT_BR]->add_child(filesystem_dock);
+	dock_slot[DOCK_SLOT_LEFT_BR]->set_tab_title(filesystem_dock->get_index(), TTR("FileSystem"));
+
+	// Inspector: Full height right
+	dock_slot[DOCK_SLOT_RIGHT_UL]->add_child(inspector_dock);
+	dock_slot[DOCK_SLOT_RIGHT_UL]->set_tab_title(inspector_dock->get_index(), TTR("Inspector"));
+
+	// Node: Full height right, behind Inspector
+	dock_slot[DOCK_SLOT_RIGHT_UL]->add_child(node_dock);
+	dock_slot[DOCK_SLOT_RIGHT_UL]->set_tab_title(node_dock->get_index(), TTR("Node"));
+
+	// Hide unused dock slots and vsplits
+	dock_slot[DOCK_SLOT_LEFT_UL]->hide();
+	dock_slot[DOCK_SLOT_LEFT_BL]->hide();
+	dock_slot[DOCK_SLOT_RIGHT_BL]->hide();
+	dock_slot[DOCK_SLOT_RIGHT_UR]->hide();
+	dock_slot[DOCK_SLOT_RIGHT_BR]->hide();
+	left_l_vsplit->hide();
+	right_r_vsplit->hide();
+
+	// Add some offsets to left_r and main hsplits to make LEFT_R and RIGHT_L docks wider than minsize
+	left_r_hsplit->set_split_offset(40 * EDSCALE);
+	main_hsplit->set_split_offset(-40 * EDSCALE);
+
+	// Define corresponding default layout
+
+	const String docks_section = "docks";
 	overridden_default_layout = -1;
 	default_layout.instance();
-	default_layout->set_value(docks_section, "dock_3", "FileSystem");
-	default_layout->set_value(docks_section, "dock_5", "Scene,Import");
-	default_layout->set_value(docks_section, "dock_6", "Inspector,Node");
+	// Dock numbers are based on DockSlot enum value + 1
+	default_layout->set_value(docks_section, "dock_3", "Scene,Import");
+	default_layout->set_value(docks_section, "dock_4", "FileSystem");
+	default_layout->set_value(docks_section, "dock_5", "Inspector,Node");
 
-	for (int i = 0; i < DOCK_SLOT_MAX / 2; i++)
-		default_layout->set_value(docks_section, "dock_hsplit_" + itos(i + 1), 0);
-	for (int i = 0; i < DOCK_SLOT_MAX / 2; i++)
+	for (int i = 0; i < vsplits.size(); i++)
 		default_layout->set_value(docks_section, "dock_split_" + itos(i + 1), 0);
+	default_layout->set_value(docks_section, "dock_hsplit_1", 0);
+	default_layout->set_value(docks_section, "dock_hsplit_2", 40 * EDSCALE);
+	default_layout->set_value(docks_section, "dock_hsplit_3", -40 * EDSCALE);
+	default_layout->set_value(docks_section, "dock_hsplit_4", 0);
 
 	_update_layouts_menu();
+
+	// Bottom panels
 
 	bottom_panel = memnew(PanelContainer);
 	bottom_panel->add_style_override("panel", gui_base->get_stylebox("panel", "TabContainer"));
@@ -5634,10 +5686,6 @@ EditorNode::EditorNode() {
 	add_editor_plugin(memnew(SkeletonIKEditorPlugin(this)));
 	add_editor_plugin(memnew(PhysicalBonePlugin(this)));
 
-	// FIXME: Disabled as (according to reduz) users were complaining that it gets in the way
-	// Waiting for PropertyEditor rewrite (planned for 3.1) to be refactored.
-	//add_editor_plugin(memnew(MaterialEditorPlugin(this)));
-
 	for (int i = 0; i < EditorPlugins::get_plugin_count(); i++)
 		add_editor_plugin(EditorPlugins::create(i, this));
 
@@ -5780,7 +5828,7 @@ EditorNode::EditorNode() {
 #else
 	ED_SHORTCUT("editor/editor_2d", TTR("Open 2D Editor"), KEY_F1);
 	ED_SHORTCUT("editor/editor_3d", TTR("Open 3D Editor"), KEY_F2);
-	ED_SHORTCUT("editor/editor_script", TTR("Open Script Editor"), KEY_F3); //hack neded for script editor F3 search to work :) Assign like this or don't use F3
+	ED_SHORTCUT("editor/editor_script", TTR("Open Script Editor"), KEY_F3); //hack needed for script editor F3 search to work :) Assign like this or don't use F3
 	ED_SHORTCUT("editor/editor_help", TTR("Search Help"), KEY_F4);
 #endif
 	ED_SHORTCUT("editor/editor_assetlib", TTR("Open Asset Library"));
@@ -5850,17 +5898,31 @@ bool EditorPluginList::forward_spatial_gui_input(Camera *p_camera, const Ref<Inp
 	return discard;
 }
 
-void EditorPluginList::forward_draw_over_viewport(Control *p_overlay) {
+void EditorPluginList::forward_canvas_draw_over_viewport(Control *p_overlay) {
 
 	for (int i = 0; i < plugins_list.size(); i++) {
-		plugins_list[i]->forward_draw_over_viewport(p_overlay);
+		plugins_list[i]->forward_canvas_draw_over_viewport(p_overlay);
 	}
 }
 
-void EditorPluginList::forward_force_draw_over_viewport(Control *p_overlay) {
+void EditorPluginList::forward_canvas_force_draw_over_viewport(Control *p_overlay) {
 
 	for (int i = 0; i < plugins_list.size(); i++) {
-		plugins_list[i]->forward_force_draw_over_viewport(p_overlay);
+		plugins_list[i]->forward_canvas_force_draw_over_viewport(p_overlay);
+	}
+}
+
+void EditorPluginList::forward_spatial_draw_over_viewport(Control *p_overlay) {
+
+	for (int i = 0; i < plugins_list.size(); i++) {
+		plugins_list[i]->forward_spatial_draw_over_viewport(p_overlay);
+	}
+}
+
+void EditorPluginList::forward_spatial_force_draw_over_viewport(Control *p_overlay) {
+
+	for (int i = 0; i < plugins_list.size(); i++) {
+		plugins_list[i]->forward_spatial_force_draw_over_viewport(p_overlay);
 	}
 }
 

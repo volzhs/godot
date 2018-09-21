@@ -30,6 +30,7 @@
 
 #include "area_bullet.h"
 
+#include "bullet_physics_server.h"
 #include "bullet_types_converter.h"
 #include "bullet_utilities.h"
 #include "collision_object_bullet.h"
@@ -57,7 +58,7 @@ AreaBullet::AreaBullet() :
 		spOv_priority(0) {
 
 	btGhost = bulletnew(btGhostObject);
-	btGhost->setCollisionShape(compoundShape);
+	btGhost->setCollisionShape(BulletPhysicsServer::get_empty_shape());
 	setupBulletCollisionObject(btGhost);
 	/// Collision objects with a callback still have collision response with dynamic rigid bodies.
 	/// In order to use collision objects as trigger, you have to disable the collision response.
@@ -160,6 +161,13 @@ void AreaBullet::set_monitorable(bool p_monitorable) {
 
 bool AreaBullet::is_monitoring() const {
 	return get_godot_object_flags() & GOF_IS_MONITORING_AREA;
+}
+
+void AreaBullet::main_shape_resetted() {
+	if (get_main_shape())
+		btGhost->setCollisionShape(get_main_shape());
+	else
+		btGhost->setCollisionShape(BulletPhysicsServer::get_empty_shape());
 }
 
 void AreaBullet::reload_body() {

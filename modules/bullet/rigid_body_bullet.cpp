@@ -279,7 +279,7 @@ RigidBodyBullet::RigidBodyBullet() :
 
 	// Initial properties
 	const btVector3 localInertia(0, 0, 0);
-	btRigidBody::btRigidBodyConstructionInfo cInfo(mass, godotMotionState, compoundShape, localInertia);
+	btRigidBody::btRigidBodyConstructionInfo cInfo(mass, godotMotionState, BulletPhysicsServer::get_empty_shape(), localInertia);
 
 	btBody = bulletnew(btRigidBody(cInfo));
 	setupBulletCollisionObject(btBody);
@@ -314,10 +314,19 @@ void RigidBodyBullet::destroy_kinematic_utilities() {
 	}
 }
 
+void RigidBodyBullet::main_shape_resetted() {
+	if (get_main_shape())
+		btBody->setCollisionShape(get_main_shape());
+	else
+		btBody->setCollisionShape(BulletPhysicsServer::get_empty_shape());
+	set_continuous_collision_detection(is_continuous_collision_detection_enabled()); // Reset
+}
+
 void RigidBodyBullet::reload_body() {
 	if (space) {
 		space->remove_rigid_body(this);
-		space->add_rigid_body(this);
+		if (get_main_shape())
+			space->add_rigid_body(this);
 	}
 }
 
@@ -342,7 +351,7 @@ void RigidBodyBullet::set_space(SpaceBullet *p_space) {
 
 void RigidBodyBullet::dispatch_callbacks() {
 	/// The check isTransformChanged is necessary in order to call integrated forces only when the first transform is sent
-	if ((btBody->isActive() || previousActiveState != btBody->isActive()) && force_integration_callback && isTransformChanged) {
+	if ((btBody->isKinematicObject() || btBody->isActive() || previousActiveState != btBody->isActive()) && force_integration_callback && isTransformChanged) {
 
 		if (omit_forces_integration)
 			btBody->clearForces();
@@ -711,15 +720,19 @@ void RigidBodyBullet::set_continuous_collision_detection(bool p_enable) {
 	if (p_enable) {
 		// This threshold enable CCD if the object moves more than
 		// 1 meter in one simulation frame
-		btBody->setCcdMotionThreshold(1);
+		btBody->setCcdMotionThreshold(0.1);
 
 		/// Calculate using the rule writte below the CCD swept sphere radius
 		///     CCD works on an embedded sphere of radius, make sure this radius
 		///     is embedded inside the convex objects, preferably smaller:
 		///     for an object of dimensions 1 meter, try 0.2
-		btVector3 center;
 		btScalar radius;
-		btBody->getCollisionShape()->getBoundingSphere(center, radius);
+		if (btBody->getCollisionShape()) {
+			btVector3 center;
+			btBody->getCollisionShape()->getBoundingSphere(center, radius);
+		} else {
+			radius = 0;
+		}
 		btBody->setCcdSweptSphereRadius(radius * 0.2);
 	} else {
 		btBody->setCcdMotionThreshold(0.);
@@ -728,7 +741,7 @@ void RigidBodyBullet::set_continuous_collision_detection(bool p_enable) {
 }
 
 bool RigidBodyBullet::is_continuous_collision_detection_enabled() const {
-	return 0. != btBody->getCcdMotionThreshold();
+	return 0. < btBody->getCcdMotionThreshold();
 }
 
 void RigidBodyBullet::set_linear_velocity(const Vector3 &p_velocity) {
@@ -761,10 +774,13 @@ Vector3 RigidBodyBullet::get_angular_velocity() const {
 
 void RigidBodyBullet::set_transform__bullet(const btTransform &p_global_transform) {
 	if (mode == PhysicsServer::BODY_MODE_KINEMATIC) {
+		if (space)
+			btBody->setLinearVelocity((p_global_transform.getOrigin() - btBody->getWorldTransform().getOrigin()) / space->get_delta_time());
 		// The kinematic use MotionState class
 		godotMotionState->moveBody(p_global_transform);
 	}
 	btBody->setWorldTransform(p_global_transform);
+	scratch();
 }
 
 const btTransform &RigidBodyBullet::get_transform__bullet() const {
@@ -783,9 +799,11 @@ void RigidBodyBullet::on_shapes_changed() {
 	const btScalar invMass = btBody->getInvMass();
 	const btScalar mass = invMass == 0 ? 0 : 1 / invMass;
 
-	btVector3 inertia;
-	btBody->getCollisionShape()->calculateLocalInertia(mass, inertia);
-	btBody->setMassProps(mass, inertia);
+	if (mainShape) {
+		btVector3 inertia;
+		mainShape->calculateLocalInertia(mass, inertia);
+		btBody->setMassProps(mass, inertia);
+	}
 	btBody->updateInertiaTensor();
 
 	reload_kinematic_shapes();
@@ -834,7 +852,7 @@ void RigidBodyBullet::on_exit_area(AreaBullet *p_area) {
 	bool wasTheAreaFound = false;
 	for (int i = 0; i < areaWhereIamCount; ++i) {
 		if (p_area == areasWhereIam[i]) {
-			// The area was fount, just shift down all elements
+			// The area was found, just shift down all elements
 			for (int j = i; j < areaWhereIamCount; ++j) {
 				areasWhereIam.write[j] = areasWhereIam[j + 1];
 			}
@@ -986,7 +1004,8 @@ void RigidBodyBullet::_internal_set_mass(real_t p_mass) {
 			return;
 
 		m_isStatic = false;
-		compoundShape->calculateLocalInertia(p_mass, localInertia);
+		if (mainShape)
+			mainShape->calculateLocalInertia(p_mass, localInertia);
 
 		if (PhysicsServer::BODY_MODE_RIGID == mode) {
 

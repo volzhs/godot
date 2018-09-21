@@ -30,15 +30,15 @@
 
 #include "os_osx.h"
 
+#include "core/os/keyboard.h"
+#include "core/print_string.h"
+#include "core/version_generated.gen.h"
 #include "dir_access_osx.h"
 #include "drivers/gles2/rasterizer_gles2.h"
 #include "drivers/gles3/rasterizer_gles3.h"
 #include "main/main.h"
-#include "os/keyboard.h"
-#include "print_string.h"
 #include "sem_osx.h"
 #include "servers/visual/visual_server_raster.h"
-#include "version_generated.gen.h"
 
 #include <mach-o/dyld.h>
 
@@ -1662,8 +1662,10 @@ void OS_OSX::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 		[cursors[p_shape] release];
 		cursors[p_shape] = cursor;
 
-		if (p_shape == CURSOR_ARROW) {
-			[cursor set];
+		if (p_shape == cursor_shape) {
+			if (mouse_mode == MOUSE_MODE_VISIBLE || mouse_mode == MOUSE_MODE_CONFINED) {
+				[cursor set];
+			}
 		}
 
 		[imgrep release];
@@ -1671,8 +1673,10 @@ void OS_OSX::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 	} else {
 		// Reset to default system cursor
 		cursors[p_shape] = NULL;
+
+		CursorShape c = cursor_shape;
 		cursor_shape = CURSOR_MAX;
-		set_cursor_shape(p_shape);
+		set_cursor_shape(c);
 	}
 }
 

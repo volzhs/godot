@@ -30,9 +30,9 @@
 
 #include "viewport.h"
 
-#include "os/input.h"
-#include "os/os.h"
-#include "project_settings.h"
+#include "core/os/input.h"
+#include "core/os/os.h"
+#include "core/project_settings.h"
 #include "scene/2d/collision_object_2d.h"
 #include "scene/3d/camera.h"
 #include "scene/3d/collision_object.h"
@@ -2788,6 +2788,8 @@ void Viewport::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("gui_has_modal_stack"), &Viewport::gui_has_modal_stack);
 	ClassDB::bind_method(D_METHOD("gui_get_drag_data"), &Viewport::gui_get_drag_data);
 	ClassDB::bind_method(D_METHOD("gui_is_dragging"), &Viewport::gui_is_dragging);
+
+	ClassDB::bind_method(D_METHOD("get_modal_stack_top"), &Viewport::get_modal_stack_top);
 
 	ClassDB::bind_method(D_METHOD("set_disable_input", "disable"), &Viewport::set_disable_input);
 	ClassDB::bind_method(D_METHOD("is_input_disabled"), &Viewport::is_input_disabled);

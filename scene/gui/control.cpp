@@ -29,15 +29,15 @@
 /*************************************************************************/
 
 #include "control.h"
-#include "project_settings.h"
+#include "core/project_settings.h"
 #include "scene/main/canvas_layer.h"
 #include "scene/main/viewport.h"
 #include "servers/visual_server.h"
 
-#include "message_queue.h"
-#include "os/keyboard.h"
-#include "os/os.h"
-#include "print_string.h"
+#include "core/message_queue.h"
+#include "core/os/keyboard.h"
+#include "core/os/os.h"
+#include "core/print_string.h"
 #include "scene/gui/label.h"
 #include "scene/gui/panel.h"
 #include "scene/scene_string_names.h"
@@ -2062,8 +2062,11 @@ void Control::grab_focus() {
 	if (!is_inside_tree()) {
 		ERR_FAIL_COND(!is_inside_tree());
 	}
-	if (data.focus_mode == FOCUS_NONE)
+
+	if (data.focus_mode == FOCUS_NONE) {
+		WARN_PRINT("This control can't grab focus. Use set_focus_mode() to allow a control to get focus.");
 		return;
+	}
 
 	get_viewport()->_gui_control_grab_focus(this);
 }
@@ -2874,7 +2877,7 @@ void Control::_bind_methods() {
 
 	ADD_GROUP("Mouse", "mouse_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "mouse_filter", PROPERTY_HINT_ENUM, "Stop,Pass,Ignore"), "set_mouse_filter", "get_mouse_filter");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "mouse_default_cursor_shape", PROPERTY_HINT_ENUM, "Arrow,Ibeam,Pointing hand,Cross,Wait,Busy,Drag,Can drop,Forbidden,Vertical resize,Horizontal resize,Secondary diagonal resize,Main diagonal resize,Move,Vertial split,Horizontal split,Help"), "set_default_cursor_shape", "get_default_cursor_shape");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "mouse_default_cursor_shape", PROPERTY_HINT_ENUM, "Arrow,Ibeam,Pointing hand,Cross,Wait,Busy,Drag,Can drop,Forbidden,Vertical resize,Horizontal resize,Secondary diagonal resize,Main diagonal resize,Move,Vertical split,Horizontal split,Help"), "set_default_cursor_shape", "get_default_cursor_shape");
 
 	ADD_GROUP("Size Flags", "size_flags_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "size_flags_horizontal", PROPERTY_HINT_FLAGS, "Fill,Expand,Shrink Center,Shrink End"), "set_h_size_flags", "get_h_size_flags");

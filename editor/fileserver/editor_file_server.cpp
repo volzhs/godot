@@ -31,7 +31,7 @@
 #include "editor_file_server.h"
 
 #include "../editor_settings.h"
-#include "io/marshalls.h"
+#include "core/io/marshalls.h"
 
 //#define DEBUG_PRINT(m_p) print_line(m_p)
 //#define DEBUG_TIME(m_what) printf("MS: %s - %lu\n", m_what, OS::get_singleton()->get_ticks_usec());
@@ -330,7 +330,7 @@ void EditorFileServer::stop() {
 
 EditorFileServer::EditorFileServer() {
 
-	server = TCP_Server::create_ref();
+	server.instance();
 	wait_mutex = Mutex::create();
 	quit = false;
 	active = false;

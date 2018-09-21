@@ -31,8 +31,8 @@
 #ifndef VISUAL_SERVER_RASTER_H
 #define VISUAL_SERVER_RASTER_H
 
-#include "allocators.h"
-#include "octree.h"
+#include "core/allocators.h"
+#include "core/math/octree.h"
 #include "servers/visual/rasterizer.h"
 #include "servers/visual_server.h"
 #include "visual_server_canvas.h"
@@ -203,6 +203,7 @@ public:
 
 	BIND3(material_set_param, RID, const StringName &, const Variant &)
 	BIND2RC(Variant, material_get_param, RID, const StringName &)
+	BIND2RC(Variant, material_get_param_default, RID, const StringName &)
 
 	BIND2(material_set_render_priority, RID, int)
 	BIND2(material_set_line_width, RID, float)

@@ -28,23 +28,23 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
+// Must include Winsock before windows.h (included by os_uwp.h)
+#include "drivers/unix/net_socket_posix.h"
+
 #include "os_uwp.h"
 
+#include "core/io/marshalls.h"
+#include "core/project_settings.h"
 #include "drivers/gles2/rasterizer_gles2.h"
 #include "drivers/gles3/rasterizer_gles3.h"
 #include "drivers/unix/ip_unix.h"
 #include "drivers/windows/dir_access_windows.h"
 #include "drivers/windows/file_access_windows.h"
 #include "drivers/windows/mutex_windows.h"
-#include "drivers/windows/packet_peer_udp_winsock.h"
 #include "drivers/windows/rw_lock_windows.h"
 #include "drivers/windows/semaphore_windows.h"
-#include "drivers/windows/stream_peer_tcp_winsock.h"
-#include "drivers/windows/tcp_server_winsock.h"
-#include "io/marshalls.h"
 #include "main/main.h"
 #include "platform/windows/windows_terminal_logger.h"
-#include "project_settings.h"
 #include "servers/audio_server.h"
 #include "servers/visual/visual_server_raster.h"
 #include "thread_uwp.h"
@@ -151,9 +151,7 @@ void OSUWP::initialize_core() {
 	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_USERDATA);
 	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_FILESYSTEM);
 
-	TCPServerWinsock::make_default();
-	StreamPeerTCPWinsock::make_default();
-	PacketPeerUDPWinsock::make_default();
+	NetSocketPosix::make_default();
 
 	// We need to know how often the clock is updated
 	if (!QueryPerformanceFrequency((LARGE_INTEGER *)&ticks_per_second))
@@ -408,6 +406,8 @@ void OSUWP::finalize() {
 }
 
 void OSUWP::finalize_core() {
+
+	NetSocketPosix::cleanup();
 }
 
 void OSUWP::alert(const String &p_alert, const String &p_title) {

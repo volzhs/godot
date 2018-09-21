@@ -30,15 +30,16 @@
 
 #include "os_javascript.h"
 
+#include "core/io/file_access_buffered_fa.h"
 #include "gles2/rasterizer_gles2.h"
 #include "gles3/rasterizer_gles3.h"
-#include "io/file_access_buffered_fa.h"
 #include "main/main.h"
 #include "servers/visual/visual_server_raster.h"
 #include "unix/dir_access_unix.h"
 #include "unix/file_access_unix.h"
 
 #include <emscripten.h>
+#include <png.h>
 #include <stdlib.h>
 
 #include "dom_keys.inc"
@@ -708,7 +709,7 @@ Error OS_JavaScript::initialize(const VideoMode &p_desired, int p_video_driver, 
 	video_driver_index = p_video_driver;
 
 	video_mode = p_desired;
-	// Can't fulfil fullscreen request during start-up due to browser security.
+	// Can't fulfill fullscreen request during start-up due to browser security.
 	video_mode.fullscreen = false;
 	/* clang-format off */
 	if (EM_ASM_INT_V({ return Module.resizeCanvasOnStart })) {
@@ -909,6 +910,57 @@ void OS_JavaScript::set_window_title(const String &p_title) {
 	EM_ASM_({
 		document.title = UTF8ToString($0);
 	}, p_title.utf8().get_data());
+	/* clang-format on */
+}
+
+void OS_JavaScript::set_icon(const Ref<Image> &p_icon) {
+
+	ERR_FAIL_COND(p_icon.is_null());
+	Ref<Image> icon = p_icon;
+	if (icon->is_compressed()) {
+		icon = icon->duplicate();
+		ERR_FAIL_COND(icon->decompress() != OK)
+	}
+	if (icon->get_format() != Image::FORMAT_RGBA8) {
+		if (icon == p_icon)
+			icon = icon->duplicate();
+		icon->convert(Image::FORMAT_RGBA8);
+	}
+
+	png_image png_meta;
+	memset(&png_meta, 0, sizeof png_meta);
+	png_meta.version = PNG_IMAGE_VERSION;
+	png_meta.width = icon->get_width();
+	png_meta.height = icon->get_height();
+	png_meta.format = PNG_FORMAT_RGBA;
+
+	PoolByteArray png;
+	size_t len;
+	PoolByteArray::Read r = icon->get_data().read();
+	ERR_FAIL_COND(!png_image_write_get_memory_size(png_meta, len, 0, r.ptr(), 0, NULL));
+
+	png.resize(len);
+	PoolByteArray::Write w = png.write();
+	ERR_FAIL_COND(!png_image_write_to_memory(&png_meta, w.ptr(), &len, 0, r.ptr(), 0, NULL));
+	w = PoolByteArray::Write();
+
+	r = png.read();
+	/* clang-format off */
+	EM_ASM_ARGS({
+		var PNG_PTR = $0;
+		var PNG_LEN = $1;
+
+		var png = new Blob([HEAPU8.slice(PNG_PTR, PNG_PTR + PNG_LEN)], { type: "image/png" });
+		var url = URL.createObjectURL(png);
+		var link = document.getElementById('-gd-engine-icon');
+		if (link === null) {
+			link = document.createElement('link');
+			link.rel = 'icon';
+			link.id = '-gd-engine-icon';
+			document.head.appendChild(link);
+		}
+		link.href = url;
+	}, r.ptr(), len);
 	/* clang-format on */
 }
 

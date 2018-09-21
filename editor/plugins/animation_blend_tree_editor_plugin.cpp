@@ -31,10 +31,10 @@
 #include "animation_blend_tree_editor_plugin.h"
 
 #include "core/io/resource_loader.h"
+#include "core/os/input.h"
+#include "core/os/keyboard.h"
 #include "core/project_settings.h"
 #include "editor/editor_inspector.h"
-#include "os/input.h"
-#include "os/keyboard.h"
 #include "scene/animation/animation_player.h"
 #include "scene/gui/menu_button.h"
 #include "scene/gui/panel.h"
@@ -241,7 +241,7 @@ void AnimationNodeBlendTreeEditor::_update_graph() {
 			mb->get_popup()->connect("index_pressed", this, "_anim_selected", varray(options, E->get()), CONNECT_DEFERRED);
 		}
 
-		/* should be no longer necesary, as the boolean works
+		/* should be no longer necessary, as the boolean works
 		Ref<AnimationNodeOneShot> oneshot = agnode;
 		if (oneshot.is_valid()) {
 
@@ -542,11 +542,7 @@ bool AnimationNodeBlendTreeEditor::_update_filters(const Ref<AnimationNode> &ano
 
 				if (base->has_node(accum)) {
 					Node *node = base->get_node(accum);
-					if (has_icon(node->get_class(), "EditorIcons")) {
-						ti->set_icon(0, get_icon(node->get_class(), "EditorIcons"));
-					} else {
-						ti->set_icon(0, get_icon("Node", "EditorIcons"));
-					}
+					ti->set_icon(0, EditorNode::get_singleton()->get_object_icon(node, "Node"));
 				}
 
 			} else {
@@ -559,7 +555,7 @@ bool AnimationNodeBlendTreeEditor::_update_filters(const Ref<AnimationNode> &ano
 			node = base->get_node(accum);
 		}
 		if (!node)
-			continue; //no node, cant edit
+			continue; //no node, can't edit
 
 		if (path.get_subname_count()) {
 

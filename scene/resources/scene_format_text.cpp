@@ -30,15 +30,15 @@
 
 #include "scene_format_text.h"
 #include "core/io/resource_format_binary.h"
-#include "os/dir_access.h"
-#include "project_settings.h"
-#include "version.h"
+#include "core/os/dir_access.h"
+#include "core/project_settings.h"
+#include "core/version.h"
 
 //version 2: changed names for basis, aabb, poolvectors, etc.
 #define FORMAT_VERSION 2
 
-#include "os/dir_access.h"
-#include "version.h"
+#include "core/os/dir_access.h"
+#include "core/version.h"
 
 #define _printerr() ERR_PRINT(String(res_path + ":" + itos(lines) + " - Parse Error: " + error_text).utf8().get_data());
 
@@ -294,25 +294,25 @@ Ref<PackedScene> ResourceInteractiveLoaderText::_parse_node_tag(VariantParser::R
 
 			if (!next_tag.fields.has("from")) {
 				error = ERR_FILE_CORRUPT;
-				error_text = "missing 'from' field fron connection tag";
+				error_text = "missing 'from' field from connection tag";
 				return Ref<PackedScene>();
 			}
 
 			if (!next_tag.fields.has("to")) {
 				error = ERR_FILE_CORRUPT;
-				error_text = "missing 'to' field fron connection tag";
+				error_text = "missing 'to' field from connection tag";
 				return Ref<PackedScene>();
 			}
 
 			if (!next_tag.fields.has("signal")) {
 				error = ERR_FILE_CORRUPT;
-				error_text = "missing 'signal' field fron connection tag";
+				error_text = "missing 'signal' field from connection tag";
 				return Ref<PackedScene>();
 			}
 
 			if (!next_tag.fields.has("method")) {
 				error = ERR_FILE_CORRUPT;
-				error_text = "missing 'method' field fron connection tag";
+				error_text = "missing 'method' field from connection tag";
 				return Ref<PackedScene>();
 			}
 
@@ -358,7 +358,7 @@ Ref<PackedScene> ResourceInteractiveLoaderText::_parse_node_tag(VariantParser::R
 
 			if (!next_tag.fields.has("path")) {
 				error = ERR_FILE_CORRUPT;
-				error_text = "missing 'path' field fron connection tag";
+				error_text = "missing 'path' field from connection tag";
 				_printerr();
 				return Ref<PackedScene>();
 			}

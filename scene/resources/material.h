@@ -31,10 +31,10 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "resource.h"
+#include "core/resource.h"
+#include "core/self_list.h"
 #include "scene/resources/shader.h"
 #include "scene/resources/texture.h"
-#include "self_list.h"
 #include "servers/visual/shader_language.h"
 #include "servers/visual_server.h"
 /**
@@ -85,6 +85,8 @@ protected:
 	bool _set(const StringName &p_name, const Variant &p_value);
 	bool _get(const StringName &p_name, Variant &r_ret) const;
 	void _get_property_list(List<PropertyInfo> *p_list) const;
+	bool property_can_revert(const String &p_name);
+	Variant property_get_revert(const String &p_name);
 
 	static void _bind_methods();
 

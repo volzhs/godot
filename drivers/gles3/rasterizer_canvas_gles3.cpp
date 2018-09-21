@@ -29,10 +29,12 @@
 /*************************************************************************/
 
 #include "rasterizer_canvas_gles3.h"
-#include "os/os.h"
-#include "project_settings.h"
+
+#include "core/os/os.h"
+#include "core/project_settings.h"
 #include "rasterizer_scene_gles3.h"
 #include "servers/visual/visual_server_raster.h"
+
 #ifndef GLES_OVER_GL
 #define glClearDepth glClearDepthf
 #endif
@@ -1418,7 +1420,7 @@ void RasterizerCanvasGLES3::canvas_render_items(Item *p_item_list, int p_z, cons
 		if (blend_mode == RasterizerStorageGLES3::Shader::CanvasItem::BLEND_MODE_DISABLED && (!storage->frame.current_rt || !storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_TRANSPARENT])) {
 			blend_mode = RasterizerStorageGLES3::Shader::CanvasItem::BLEND_MODE_MIX;
 		}
-		bool unshaded = shader_cache && (shader_cache->canvas_item.light_mode == RasterizerStorageGLES3::Shader::CanvasItem::LIGHT_MODE_UNSHADED || blend_mode != RasterizerStorageGLES3::Shader::CanvasItem::BLEND_MODE_MIX);
+		bool unshaded = shader_cache && (shader_cache->canvas_item.light_mode == RasterizerStorageGLES3::Shader::CanvasItem::LIGHT_MODE_UNSHADED || (blend_mode != RasterizerStorageGLES3::Shader::CanvasItem::BLEND_MODE_MIX && blend_mode != RasterizerStorageGLES3::Shader::CanvasItem::BLEND_MODE_PMALPHA));
 		bool reclip = false;
 
 		if (last_blend_mode != blend_mode) {
@@ -1591,6 +1593,7 @@ void RasterizerCanvasGLES3::canvas_render_items(Item *p_item_list, int p_z, cons
 					if (!t) {
 						glBindTexture(GL_TEXTURE_2D, storage->resources.white_tex);
 					} else {
+						t = t->get_ptr();
 
 						glBindTexture(t->target, t->tex_id);
 					}

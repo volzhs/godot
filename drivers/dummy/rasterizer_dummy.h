@@ -27,15 +27,15 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #ifndef RASTERIZER_DUMMY_H
 #define RASTERIZER_DUMMY_H
 
-#include "camera_matrix.h"
+#include "core/math/camera_matrix.h"
+#include "core/self_list.h"
 #include "scene/resources/mesh.h"
 #include "servers/visual/rasterizer.h"
 #include "servers/visual_server.h"
-
-#include "self_list.h"
 
 class RasterizerSceneDummy : public RasterizerScene {
 public:
@@ -267,6 +267,7 @@ public:
 
 	void material_set_param(RID p_material, const StringName &p_param, const Variant &p_value) {}
 	Variant material_get_param(RID p_material, const StringName &p_param) const { return Variant(); }
+	Variant material_get_param_default(RID p_material, const StringName &p_param) const { return Variant(); }
 
 	void material_set_line_width(RID p_material, float p_width) {}
 

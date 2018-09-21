@@ -19,7 +19,7 @@ comments.
 ## bullet
 
 - Upstream: https://github.com/bulletphysics/bullet3
-- Version: git (d05ad4b, 2017)
+- Version: git (12409f1118a7c7a266f9071350c70789dfe73bb9, Commits on Sep 6, 2018 )
 - License: zlib
 
 Files extracted from upstream source:
@@ -266,6 +266,8 @@ File extracted from upstream source:
 - Also copy `win32helpers/` from `win32port/` inside `thirdparty/libwebsockets`
 - A small fix has been added in `libwebsockets/libwebsockets.h` to `#include <sys/socket.h>` for the BSD family.
   This change has been PRed upstream, and should be merged before the next update. Remember to check and remove this line.
+- Another fix has been added to allow building for 32-bits UWP, replacing `GetFileSize[Ex]` and `CreateFileW` with supported functions.
+  There is a diff for this change in `thirdparty/libwebsockets/uwp_fixes.diff`
 
 Important: `lws_config.h` and `lws_config_private.h` contains custom
 Godot build configurations, check them out when updating.
@@ -354,6 +356,11 @@ Collection of single-file libraries used in Godot components.
   * Upstream: https://github.com/ivanfratric/polypartition (`src/polypartition.cpp`)
   * Version: TBD, class was renamed
   * License: MIT
+- `open-simplex-noise.{c,h}`
+  * Upstream: https://github.com/smcameron/open-simplex-noise-in-c
+  * Version: git (0d555e7, 2015)
+  * License: Unlicense
+
 
 ### modules
 
@@ -523,3 +530,5 @@ Files extracted from upstream source:
 
 - lib/{common/,compress/,decompress/,zstd.h}
 - LICENSE
+
+- Applied the patch in `thirdparty/zstd/1314.diff` (PR 1314 upstream, already merged). Needed to build on UWP ARM. Can be removed when a new version is released with the patch.

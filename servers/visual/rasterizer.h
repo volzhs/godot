@@ -31,10 +31,10 @@
 #ifndef RASTERIZER_H
 #define RASTERIZER_H
 
-#include "camera_matrix.h"
+#include "core/math/camera_matrix.h"
 #include "servers/visual_server.h"
 
-#include "self_list.h"
+#include "core/self_list.h"
 
 class RasterizerScene {
 public:
@@ -249,6 +249,7 @@ public:
 
 	virtual void material_set_param(RID p_material, const StringName &p_param, const Variant &p_value) = 0;
 	virtual Variant material_get_param(RID p_material, const StringName &p_param) const = 0;
+	virtual Variant material_get_param_default(RID p_material, const StringName &p_param) const = 0;
 
 	virtual void material_set_line_width(RID p_material, float p_width) = 0;
 

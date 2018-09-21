@@ -29,8 +29,8 @@
 /*************************************************************************/
 
 #include "visual_shader.h"
+#include "core/vmap.h"
 #include "servers/visual/shader_types.h"
-#include "vmap.h"
 
 void VisualShaderNode::set_output_port_for_preview(int p_index) {
 
@@ -412,6 +412,10 @@ Vector2 VisualShader::get_graph_offset() const {
 
 Shader::Mode VisualShader::get_mode() const {
 	return shader_mode;
+}
+
+bool VisualShader::is_text_shader() const {
+	return false;
 }
 
 String VisualShader::generate_preview_shader(Type p_type, int p_node, int p_port, Vector<DefaultTextureParam> &default_tex_params) const {

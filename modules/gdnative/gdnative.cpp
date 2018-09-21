@@ -30,11 +30,11 @@
 
 #include "gdnative.h"
 
-#include "global_constants.h"
-#include "io/file_access_encrypted.h"
-#include "os/file_access.h"
-#include "os/os.h"
-#include "project_settings.h"
+#include "core/global_constants.h"
+#include "core/io/file_access_encrypted.h"
+#include "core/os/file_access.h"
+#include "core/os/os.h"
+#include "core/project_settings.h"
 
 #include "scene/main/scene_tree.h"
 
@@ -390,7 +390,7 @@ bool GDNative::terminate() {
 	if (library->should_load_once()) {
 		Vector<Ref<GDNative> > *gdnatives = &(*GDNativeLibrary::loaded_libraries)[library->get_current_library_path()];
 		if (gdnatives->size() > 1) {
-			// there are other GDNative's still using this library, so we actually don't terminte
+			// there are other GDNative's still using this library, so we actually don't terminate
 			gdnatives->erase(Ref<GDNative>(this));
 			initialized = false;
 			return true;
