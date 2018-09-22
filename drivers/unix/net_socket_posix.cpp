@@ -68,24 +68,28 @@
 #define SOCK_BUF(x) x
 #define SOCK_CBUF(x) x
 #define SOCK_IOCTL ioctl
-#define SOCK_POLL ::poll
 #define SOCK_CLOSE ::close
 
 /* Windows */
 #elif defined(WINDOWS_ENABLED)
 #include <winsock2.h>
 #include <ws2tcpip.h>
+
+#include <mswsock.h>
 // Some custom defines to minimize ifdefs
 #define SOCK_EMPTY INVALID_SOCKET
 #define SOCK_BUF(x) (char *)(x)
 #define SOCK_CBUF(x) (const char *)(x)
 #define SOCK_IOCTL ioctlsocket
-#define SOCK_POLL WSAPoll
 #define SOCK_CLOSE closesocket
 
 // Windows doesn't have this flag
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0
+#endif
+// Workaround missing flag in MinGW
+#if defined(__MINGW32__) && !defined(SIO_UDP_NETRESET)
+#define SIO_UDP_NETRESET _WSAIOW(IOC_VENDOR, 15)
 #endif
 
 #endif
@@ -260,6 +264,21 @@ Error NetSocketPosix::open(Type p_sock_type, IP::Type &ip_type) {
 	}
 
 	_is_stream = p_sock_type == TYPE_TCP;
+
+#if defined(WINDOWS_ENABLED)
+	if (!_is_stream) {
+		// Disable windows feature/bug reporting WSAECONNRESET/WSAENETRESET when
+		// recv/recvfrom and an ICMP reply was received from a previous send/sendto.
+		unsigned long disable = 0;
+		if (ioctlsocket(_sock, SIO_UDP_CONNRESET, &disable) == SOCKET_ERROR) {
+			print_verbose("Unable to turn off UDP WSAECONNRESET behaviour on Windows");
+		}
+		if (ioctlsocket(_sock, SIO_UDP_NETRESET, &disable) == SOCKET_ERROR) {
+			// This feature seems not to be supported on wine.
+			print_verbose("Unable to turn off UDP WSAENETRESET behaviour on Windows");
+		}
+	}
+#endif
 	return OK;
 }
 
@@ -331,10 +350,58 @@ Error NetSocketPosix::connect_to_host(IP_Address p_host, uint16_t p_port) {
 	return OK;
 }
 
-Error NetSocketPosix::poll(PollType p_type, int timeout) const {
+Error NetSocketPosix::poll(PollType p_type, int p_timeout) const {
 
 	ERR_FAIL_COND_V(!is_open(), ERR_UNCONFIGURED);
 
+#if defined(WINDOWS_ENABLED)
+	bool ready = false;
+	fd_set rd, wr, ex;
+	fd_set *rdp = NULL;
+	fd_set *wrp = NULL;
+	FD_ZERO(&rd);
+	FD_ZERO(&wr);
+	FD_ZERO(&ex);
+	FD_SET(_sock, &ex);
+	struct timeval timeout = { p_timeout, 0 };
+	// For blocking operation, pass NULL timeout pointer to select.
+	struct timeval *tp = NULL;
+	if (p_timeout >= 0) {
+		//  If timeout is non-negative, we want to specify the timeout instead.
+		tp = &timeout;
+	}
+
+	switch (p_type) {
+		case POLL_TYPE_IN:
+			FD_SET(_sock, &rd);
+			rdp = &rd;
+			break;
+		case POLL_TYPE_OUT:
+			FD_SET(_sock, &wr);
+			wrp = &wr;
+			break;
+		case POLL_TYPE_IN_OUT:
+			FD_SET(_sock, &rd);
+			FD_SET(_sock, &wr);
+			rdp = &rd;
+			wrp = &wr;
+	}
+	int ret = select(1, rdp, wrp, &ex, tp);
+
+	ERR_FAIL_COND_V(ret == SOCKET_ERROR, FAILED);
+
+	if (ret == 0)
+		return ERR_BUSY;
+
+	ERR_FAIL_COND_V(FD_ISSET(_sock, &ex), FAILED);
+
+	if (rdp && FD_ISSET(_sock, rdp))
+		ready = true;
+	if (wrp && FD_ISSET(_sock, wrp))
+		ready = true;
+
+	return ready ? OK : ERR_BUSY;
+#else
 	struct pollfd pfd;
 	pfd.fd = _sock;
 	pfd.events = POLLIN;
@@ -351,14 +418,16 @@ Error NetSocketPosix::poll(PollType p_type, int timeout) const {
 			pfd.events = POLLOUT || POLLIN;
 	}
 
-	int ret = SOCK_POLL(&pfd, 1, timeout);
+	int ret = ::poll(&pfd, 1, p_timeout);
 
 	ERR_FAIL_COND_V(ret < 0, FAILED);
+	ERR_FAIL_COND_V(pfd.revents & POLLERR, FAILED);
 
 	if (ret == 0)
 		return ERR_BUSY;
 
 	return OK;
+#endif
 }
 
 Error NetSocketPosix::recv(uint8_t *p_buffer, int p_len, int &r_read) {
