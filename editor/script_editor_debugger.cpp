@@ -30,6 +30,7 @@
 
 #include "script_editor_debugger.h"
 
+#include "core/io/marshalls.h"
 #include "core/project_settings.h"
 #include "core/ustring.h"
 #include "editor_node.h"
@@ -501,8 +502,12 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 				String str = var;
 				var = str.substr(4, str.length());
 
-				if (str.begins_with("PATH"))
-					var = ResourceLoader::load(var);
+				if (str.begins_with("PATH")) {
+					if (String(var).empty())
+						var = RES();
+					else
+						var = ResourceLoader::load(var);
+				}
 			}
 
 			debugObj->prop_values[pinfo.name] = var;
@@ -576,11 +581,9 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 			String hs = String();
 
 			if (v.get_type() == Variant::OBJECT) {
+				v = Object::cast_to<EncodedObjectAsID>(v)->get_object_id();
 				h = PROPERTY_HINT_OBJECT_ID;
-				String s = v;
-				s = s.replace("[", "");
-				hs = s.get_slice(":", 0);
-				v = s.get_slice(":", 1).to_int();
+				hs = "Object";
 			}
 
 			variables->add_property("Locals/" + n, v, h, hs);
@@ -597,11 +600,9 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 			String hs = String();
 
 			if (v.get_type() == Variant::OBJECT) {
+				v = Object::cast_to<EncodedObjectAsID>(v)->get_object_id();
 				h = PROPERTY_HINT_OBJECT_ID;
-				String s = v;
-				s = s.replace("[", "");
-				hs = s.get_slice(":", 0);
-				v = s.get_slice(":", 1).to_int();
+				hs = "Object";
 			}
 
 			variables->add_property("Members/" + n, v, h, hs);
@@ -618,11 +619,9 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 			String hs = String();
 
 			if (v.get_type() == Variant::OBJECT) {
+				v = Object::cast_to<EncodedObjectAsID>(v)->get_object_id();
 				h = PROPERTY_HINT_OBJECT_ID;
-				String s = v;
-				s = s.replace("[", "");
-				hs = s.get_slice(":", 0);
-				v = s.get_slice(":", 1).to_int();
+				hs = "Object";
 			}
 
 			variables->add_property("Globals/" + n, v, h, hs);
@@ -1293,9 +1292,6 @@ void ScriptEditorDebugger::stop() {
 	EditorNode::get_singleton()->get_pause_button()->set_disabled(true);
 	EditorNode::get_singleton()->get_scene_tree_dock()->hide_remote_tree();
 	EditorNode::get_singleton()->get_scene_tree_dock()->hide_tab_buttons();
-
-	Node *node = editor->get_scene_tree_dock()->get_tree_editor()->get_selected();
-	editor->push_item(node);
 
 	if (hide_on_stop) {
 		if (is_visible_in_tree())

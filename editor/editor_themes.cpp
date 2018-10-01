@@ -36,7 +36,6 @@
 #include "editor_scale.h"
 #include "editor_settings.h"
 #include "modules/svg/image_loader_svg.h"
-#include "time.h"
 
 static Ref<StyleBoxTexture> make_stylebox(Ref<Texture> p_texture, float p_left, float p_top, float p_right, float p_botton, float p_margin_left = -1, float p_margin_top = -1, float p_margin_right = -1, float p_margin_botton = -1, bool p_draw_center = true) {
 	Ref<StyleBoxTexture> style(memnew(StyleBoxTexture));
@@ -79,12 +78,6 @@ static Ref<StyleBoxLine> make_line_stylebox(Color p_color, int p_thickness = 1, 
 	style->set_grow_end(p_grow_end);
 	style->set_thickness(p_thickness);
 	style->set_vertical(p_vertical);
-	return style;
-}
-
-static Ref<StyleBoxFlat> change_border_color(Ref<StyleBoxFlat> p_style, Color p_color) {
-	Ref<StyleBoxFlat> style = p_style->duplicate();
-	style->set_border_color_all(p_color);
 	return style;
 }
 
@@ -199,8 +192,6 @@ void editor_register_and_generate_icons(Ref<Theme> p_theme, bool p_dark_theme = 
 	exceptions.push_back("StatusWarning");
 	exceptions.push_back("NodeWarning");
 
-	clock_t begin_time = clock();
-
 	ImageLoaderSVG::set_convert_colors(&dark_icon_color_dictionary);
 
 	// generate icons
@@ -235,8 +226,6 @@ void editor_register_and_generate_icons(Ref<Theme> p_theme, bool p_dark_theme = 
 	}
 
 	ImageLoaderSVG::set_convert_colors(NULL);
-
-	clock_t end_time = clock();
 #else
 	print_line("SVG support disabled, editor icons won't be rendered.");
 #endif
@@ -259,8 +248,6 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	int border_size = EDITOR_DEF("interface/theme/border_size", 1);
 
 	bool use_gn_headers = EDITOR_DEF("interface/theme/use_graph_node_headers", false);
-
-	Color script_bg_color = EDITOR_DEF("text_editor/highlighting/background_color", Color(0, 0, 0, 0));
 
 	Color preset_accent_color;
 	Color preset_base_color;
@@ -491,8 +478,8 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	style_tab_selected->set_bg_color(tab_color);
 
 	Ref<StyleBoxFlat> style_tab_unselected = style_tab_selected->duplicate();
-	style_tab_unselected->set_draw_center(false);
-	style_tab_unselected->set_border_width_all(0);
+	style_tab_unselected->set_bg_color(dark_color_1);
+	style_tab_unselected->set_border_color_all(dark_color_2);
 
 	// Editor background
 	theme->set_stylebox("Background", "EditorStyles", make_flat_stylebox(background_color, default_margin_size, default_margin_size, default_margin_size, default_margin_size));
@@ -1069,8 +1056,7 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	const float mono_value = mono_color.r;
 	const Color alpha1 = Color(mono_value, mono_value, mono_value, 0.07);
 	const Color alpha2 = Color(mono_value, mono_value, mono_value, 0.14);
-	const Color alpha3 = Color(mono_value, mono_value, mono_value, 0.5);
-	const Color alpha4 = Color(mono_value, mono_value, mono_value, 0.7);
+	const Color alpha3 = Color(mono_value, mono_value, mono_value, 0.7);
 
 	// editor main color
 	const Color main_color = Color::html(dark_theme ? "#57b3ff" : "#0480ff");
@@ -1104,9 +1090,9 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	const Color member_variable_color = main_color.linear_interpolate(mono_color, 0.6);
 	const Color mark_color = Color(error_color.r, error_color.g, error_color.b, 0.3);
 	const Color breakpoint_color = error_color;
-	const Color code_folding_color = alpha4;
+	const Color code_folding_color = alpha3;
 	const Color search_result_color = alpha1;
-	const Color search_result_border_color = alpha4;
+	const Color search_result_border_color = alpha3;
 
 	EditorSettings *setting = EditorSettings::get_singleton();
 	String text_editor_color_theme = setting->get("text_editor/theme/color_theme");

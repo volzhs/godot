@@ -5079,7 +5079,7 @@ void GDScriptParser::_determine_inheritance(ClassNode *p_class) {
 				if (found) continue;
 
 				if (p->constant_expressions.has(base)) {
-					if (!p->constant_expressions[base].expression->type == Node::TYPE_CONSTANT) {
+					if (p->constant_expressions[base].expression->type != Node::TYPE_CONSTANT) {
 						_set_error("Could not resolve constant '" + base + "'.", p_class->line);
 						return;
 					}
@@ -5218,6 +5218,8 @@ String GDScriptParser::DataType::to_string() const {
 				return "self";
 			}
 			return class_type->name.operator String();
+		} break;
+		case UNRESOLVED: {
 		} break;
 	}
 
@@ -5791,7 +5793,10 @@ bool GDScriptParser::_is_type_compatible(const DataType &p_container, const Data
 				expr_native = base->base_type.native_type;
 				expr_script = base->base_type.script_type;
 			}
-		}
+		} break;
+		case DataType::BUILTIN: // Already handled above
+		case DataType::UNRESOLVED: // Not allowed, see above
+			break;
 	}
 
 	switch (p_container.kind) {
@@ -5834,7 +5839,10 @@ bool GDScriptParser::_is_type_compatible(const DataType &p_container, const Data
 				expr_class = expr_class->base_type.class_type;
 			}
 			return false;
-		}
+		} break;
+		case DataType::BUILTIN: // Already handled above
+		case DataType::UNRESOLVED: // Not allowed, see above
+			break;
 	}
 
 	return false;
@@ -6228,6 +6236,7 @@ GDScriptParser::DataType GDScriptParser::_reduce_node_type(Node *p_node) {
 									case Variant::COLOR: {
 										error = index_type.builtin_type != Variant::INT && index_type.builtin_type != Variant::STRING;
 									} break;
+									default: {}
 								}
 							}
 							if (error) {
@@ -6345,6 +6354,7 @@ GDScriptParser::DataType GDScriptParser::_reduce_node_type(Node *p_node) {
 				}
 			}
 		} break;
+		default: {}
 	}
 
 	p_node->set_datatype(_resolve_type(node_type, p_node->line));
@@ -7825,7 +7835,7 @@ void GDScriptParser::_check_block_types(BlockNode *p_block) {
 							// Figure out function name for warning
 							String func_name = _find_function_name(op);
 							if (func_name.empty()) {
-								func_name == "<undetected name>";
+								func_name = "<undetected name>";
 							}
 							_add_warning(GDScriptWarning::RETURN_VALUE_DISCARDED, op->line, func_name);
 						}

@@ -568,15 +568,21 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 				return;
 
 			editor_data->get_undo_redo().create_action("Make node as Root");
-			_node_replace_owner(root, node, node, MODE_DO);
 			editor_data->get_undo_redo().add_do_method(node->get_parent(), "remove_child", node);
+			editor_data->get_undo_redo().add_do_method(root->get_parent(), "remove_child", root);
+			editor_data->get_undo_redo().add_do_method(node, "add_child", root);
 			editor_data->get_undo_redo().add_do_method(editor, "set_edited_scene", node);
 			editor_data->get_undo_redo().add_do_method(node, "set_filename", root->get_filename());
+			editor_data->get_undo_redo().add_do_method(root, "set_filename", String());
+			_node_replace_owner(root, root, node, MODE_DO);
 
+			editor_data->get_undo_redo().add_undo_method(root, "set_filename", root->get_filename());
 			editor_data->get_undo_redo().add_undo_method(node, "set_filename", String());
+			editor_data->get_undo_redo().add_undo_method(node, "remove_child", root);
 			editor_data->get_undo_redo().add_undo_method(editor, "set_edited_scene", root);
 			editor_data->get_undo_redo().add_undo_method(node->get_parent(), "add_child", node);
-			_node_replace_owner(root, node, root, MODE_UNDO);
+			_node_replace_owner(root, root, root, MODE_UNDO);
+
 			editor_data->get_undo_redo().add_do_method(scene_tree, "update_tree");
 			editor_data->get_undo_redo().add_undo_method(scene_tree, "update_tree");
 			editor_data->get_undo_redo().add_undo_reference(root);
@@ -975,24 +981,22 @@ void SceneTreeDock::_notification(int p_what) {
 
 void SceneTreeDock::_node_replace_owner(Node *p_base, Node *p_node, Node *p_root, ReplaceOwnerMode p_mode) {
 
-	if (p_base != p_node) {
-		if (p_node->get_owner() == p_base) {
-			UndoRedo *undo_redo = &editor_data->get_undo_redo();
-			switch (p_mode) {
-				case MODE_BIDI: {
-					undo_redo->add_do_method(p_node, "set_owner", p_root);
-					undo_redo->add_undo_method(p_node, "set_owner", p_base);
+	if (p_node->get_owner() == p_base || !p_node->get_owner()) {
+		UndoRedo *undo_redo = &editor_data->get_undo_redo();
+		switch (p_mode) {
+			case MODE_BIDI: {
+				undo_redo->add_do_method(p_node, "set_owner", p_root);
+				undo_redo->add_undo_method(p_node, "set_owner", p_base);
 
-				} break;
-				case MODE_DO: {
-					undo_redo->add_do_method(p_node, "set_owner", p_root);
+			} break;
+			case MODE_DO: {
+				undo_redo->add_do_method(p_node, "set_owner", p_root);
 
-				} break;
-				case MODE_UNDO: {
-					undo_redo->add_undo_method(p_node, "set_owner", p_root);
+			} break;
+			case MODE_UNDO: {
+				undo_redo->add_undo_method(p_node, "set_owner", p_root);
 
-				} break;
-			}
+			} break;
 		}
 	}
 
@@ -1570,7 +1574,7 @@ void SceneTreeDock::_delete_confirm() {
 	// Fixes the EditorHistory from still offering deleted notes
 	EditorHistory *editor_history = EditorNode::get_singleton()->get_editor_history();
 	editor_history->cleanup_history();
-	EditorNode::get_singleton()->call("_prepare_history");
+	EditorNode::get_singleton()->get_inspector_dock()->call("_prepare_history");
 }
 
 void SceneTreeDock::_update_script_button() {
@@ -1587,6 +1591,10 @@ void SceneTreeDock::_selection_changed() {
 	if (selection_size > 1) {
 		//automatically turn on multi-edit
 		_tool_selected(TOOL_MULTI_EDIT);
+	} else if (selection_size == 1) {
+		editor->push_item(EditorNode::get_singleton()->get_editor_selection()->get_selected_node_list()[0]);
+	} else {
+		editor->push_item(NULL);
 	}
 	_update_script_button();
 }
@@ -1850,32 +1858,6 @@ static bool _has_visible_children(Node *p_node) {
 	}
 
 	return false;
-}
-
-static Node *_find_last_visible(Node *p_node) {
-
-	Node *last = NULL;
-
-	bool collapsed = p_node->is_displayed_folded();
-
-	if (!collapsed) {
-		for (int i = 0; i < p_node->get_child_count(); i++) {
-			if (_is_node_visible(p_node->get_child(i))) {
-				last = p_node->get_child(i);
-			}
-		}
-	}
-
-	if (last) {
-		Node *lastc = _find_last_visible(last);
-		if (lastc)
-			last = lastc;
-
-	} else {
-		last = p_node;
-	}
-
-	return last;
 }
 
 void SceneTreeDock::_normalize_drop(Node *&to_node, int &to_pos, int p_type) {

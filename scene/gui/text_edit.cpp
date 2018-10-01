@@ -650,8 +650,6 @@ void TextEdit::_notification(int p_what) {
 
 			int visible_rows = get_visible_rows() + 1;
 
-			int tab_w = cache.font->get_char_size(' ').width * indent_size;
-
 			Color color = cache.font_color;
 			color.a *= readonly_alpha;
 
@@ -3796,7 +3794,7 @@ Vector<String> TextEdit::get_wrap_rows_text(int p_line) const {
 	int tab_offset_px = get_indent_level(p_line) * cache.font->get_char_size(' ').width;
 
 	while (col < line_text.length()) {
-		char c = line_text[col];
+		CharType c = line_text[col];
 		int w = text.get_char_width(c, line_text[col + 1], px + word_px);
 
 		int indent_ofs = (cur_wrap_index != 0 ? tab_offset_px : 0);
@@ -4402,7 +4400,7 @@ int TextEdit::_is_line_in_region(int p_line) {
 
 	// if not find the closest line we have
 	int previous_line = p_line - 1;
-	for (previous_line; previous_line > -1; previous_line--) {
+	for (; previous_line > -1; previous_line--) {
 		if (color_region_cache.has(p_line)) {
 			break;
 		}
@@ -4547,9 +4545,13 @@ void TextEdit::cut() {
 void TextEdit::copy() {
 
 	if (!selection.active) {
-		String clipboard = _base_get_text(cursor.line, 0, cursor.line, text[cursor.line].length());
-		OS::get_singleton()->set_clipboard(clipboard);
-		cut_copy_line = clipboard;
+
+		if (text[cursor.line].length() != 0) {
+
+			String clipboard = _base_get_text(cursor.line, 0, cursor.line, text[cursor.line].length());
+			OS::get_singleton()->set_clipboard(clipboard);
+			cut_copy_line = clipboard;
+		}
 	} else {
 		String clipboard = _base_get_text(selection.from_line, selection.from_column, selection.to_line, selection.to_column);
 		OS::get_singleton()->set_clipboard(clipboard);
@@ -5152,7 +5154,7 @@ bool TextEdit::can_fold(int p_line) const {
 		return false;
 	if (p_line + 1 >= text.size())
 		return false;
-	if (text[p_line].size() == 0)
+	if (text[p_line].strip_edges().size() == 0)
 		return false;
 	if (is_folded(p_line))
 		return false;
@@ -5164,7 +5166,7 @@ bool TextEdit::can_fold(int p_line) const {
 	int start_indent = get_indent_level(p_line);
 
 	for (int i = p_line + 1; i < text.size(); i++) {
-		if (text[i].size() == 0)
+		if (text[i].strip_edges().size() == 0)
 			continue;
 		int next_indent = get_indent_level(i);
 		if (is_line_comment(i)) {
@@ -5866,7 +5868,7 @@ String TextEdit::get_word_at_pos(const Vector2 &p_pos) const {
 	if (select_word(s, col, beg, end)) {
 
 		bool inside_quotes = false;
-		char selected_quote = '\0';
+		CharType selected_quote = '\0';
 		int qbegin = 0, qend = 0;
 		for (int i = 0; i < s.length(); i++) {
 			if (s[i] == '"' || s[i] == '\'') {

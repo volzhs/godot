@@ -123,6 +123,7 @@ env_base.__class__.add_shared_library = methods.add_shared_library
 env_base.__class__.add_library = methods.add_library
 env_base.__class__.add_program = methods.add_program
 env_base.__class__.CommandNoCache = methods.CommandNoCache
+env_base.__class__.disable_warnings = methods.disable_warnings
 
 env_base["x86_libtheora_opt_gcc"] = False
 env_base["x86_libtheora_opt_vc"] = False
@@ -156,7 +157,6 @@ opts.Add(BoolVariable('deprecated', "Enable deprecated features", True))
 opts.Add(BoolVariable('gdscript', "Enable GDScript support", True))
 opts.Add(BoolVariable('minizip', "Enable ZIP archive support using minizip", True))
 opts.Add(BoolVariable('xaudio2', "Enable the XAudio2 audio driver", False))
-opts.Add(BoolVariable('xml', "Enable XML format support for resources", True))
 
 # Advanced options
 opts.Add(BoolVariable('disable_3d', "Disable 3D nodes for a smaller executable", False))
@@ -190,6 +190,7 @@ opts.Add(BoolVariable('builtin_pcre2', "Use the built-in PCRE2 library)", True))
 opts.Add(BoolVariable('builtin_recast', "Use the built-in Recast library", True))
 opts.Add(BoolVariable('builtin_squish', "Use the built-in squish library", True))
 opts.Add(BoolVariable('builtin_thekla_atlas', "Use the built-in thekla_altas library", True))
+opts.Add(BoolVariable('builtin_xatlas', "Use the built-in xatlas library", True))
 opts.Add(BoolVariable('builtin_zlib', "Use the built-in zlib library", True))
 opts.Add(BoolVariable('builtin_zstd', "Use the built-in Zstd library", True))
 
@@ -226,14 +227,14 @@ Help(opts.GenerateHelpText(env_base))  # generate help
 
 # add default include paths
 
-env_base.Append(CPPPATH=['#editor', '#drivers', '#'])
+env_base.Append(CPPPATH=['#editor', '#'])
 
 # configure ENV for platform
 env_base.platform_exporters = platform_exporters
 env_base.platform_apis = platform_apis
 
 if (env_base['target'] == 'debug'):
-    env_base.Append(CPPDEFINES=['DEBUG_MEMORY_ALLOC', 'SCI_NAMESPACE'])
+    env_base.Append(CPPDEFINES=['DEBUG_MEMORY_ALLOC'])
 
 if (env_base['no_editor_splash']):
     env_base.Append(CPPDEFINES=['NO_EDITOR_SPLASH'])
@@ -333,12 +334,13 @@ if selected_platform in platform_list:
         # Set exception handling model to avoid warnings caused by Windows system headers.
         env.Append(CCFLAGS=['/EHsc'])
     else: # Rest of the world
+        disable_nonessential_warnings = ['-Wno-sign-compare']
         if (env["warnings"] == 'extra'):
             env.Append(CCFLAGS=['-Wall', '-Wextra'])
         elif (env["warnings"] == 'all' or env["warnings"] == 'yes'):
-            env.Append(CCFLAGS=['-Wall'])
+            env.Append(CCFLAGS=['-Wall'] + disable_nonessential_warnings)
         elif (env["warnings"] == 'moderate'):
-            env.Append(CCFLAGS=['-Wall', '-Wno-unused'])
+            env.Append(CCFLAGS=['-Wall', '-Wno-unused'] + disable_nonessential_warnings)
         else: # 'no'
             env.Append(CCFLAGS=['-w'])
         env.Append(CCFLAGS=['-Werror=return-type'])
@@ -441,8 +443,6 @@ if selected_platform in platform_list:
             env.Append(CPPDEFINES=['ADVANCED_GUI_DISABLED'])
     if env['minizip']:
         env.Append(CPPDEFINES=['MINIZIP_ENABLED'])
-    if env['xml']:
-        env.Append(CPPDEFINES=['XML_ENABLED'])
 
     if not env['verbose']:
         methods.no_verbose(sys, env)

@@ -51,26 +51,6 @@ static const GLenum _cube_side_enum[6] = {
 
 };
 
-static _FORCE_INLINE_ void store_transform2d(const Transform2D &p_mtx, float *p_array) {
-
-	p_array[0] = p_mtx.elements[0][0];
-	p_array[1] = p_mtx.elements[0][1];
-	p_array[2] = 0;
-	p_array[3] = 0;
-	p_array[4] = p_mtx.elements[1][0];
-	p_array[5] = p_mtx.elements[1][1];
-	p_array[6] = 0;
-	p_array[7] = 0;
-	p_array[8] = 0;
-	p_array[9] = 0;
-	p_array[10] = 1;
-	p_array[11] = 0;
-	p_array[12] = p_mtx.elements[2][0];
-	p_array[13] = p_mtx.elements[2][1];
-	p_array[14] = 0;
-	p_array[15] = 1;
-}
-
 static _FORCE_INLINE_ void store_transform(const Transform &p_mtx, float *p_array) {
 	p_array[0] = p_mtx.basis.elements[0][0];
 	p_array[1] = p_mtx.basis.elements[1][0];
@@ -1202,7 +1182,7 @@ bool RasterizerSceneGLES3::_setup_material(RasterizerStorageGLES3::Material *p_m
 
 		glActiveTexture(GL_TEXTURE0 + i);
 
-		GLenum target;
+		GLenum target = GL_TEXTURE_2D;
 		GLuint tex = 0;
 
 		RasterizerStorageGLES3::Texture *t = storage->texture_owner.getptr(textures[i]);
@@ -1282,6 +1262,8 @@ bool RasterizerSceneGLES3::_setup_material(RasterizerStorageGLES3::Material *p_m
 				case ShaderLanguage::TYPE_SAMPLER2DARRAY: {
 					// TODO
 				} break;
+
+				default: {}
 			}
 		}
 
@@ -1509,6 +1491,7 @@ void RasterizerSceneGLES3::_setup_geometry(RenderList::Element *e, const Transfo
 			}
 
 		} break;
+		default: {}
 	}
 }
 
@@ -1830,6 +1813,7 @@ void RasterizerSceneGLES3::_render_geometry(RenderList::Element *e) {
 			}
 
 		} break;
+		default: {}
 	}
 }
 
@@ -3036,13 +3020,14 @@ void RasterizerSceneGLES3::_setup_reflections(RID *p_reflection_probe_cull_resul
 			reflection_ubo.ambient[3] = rpi->probe_ptr->interior_ambient_probe_contrib;
 		} else {
 			Color ambient_linear;
-			float contrib = 0;
+			// FIXME: contrib was retrieved but never used, is it meant to be set as ambient[3]? (GH-20361)
+			//float contrib = 0;
 			if (p_env) {
 				ambient_linear = p_env->ambient_color.to_linear();
 				ambient_linear.r *= p_env->ambient_energy;
 				ambient_linear.g *= p_env->ambient_energy;
 				ambient_linear.b *= p_env->ambient_energy;
-				contrib = p_env->ambient_sky_contribution;
+				//contrib = p_env->ambient_sky_contribution;
 			}
 
 			reflection_ubo.ambient[0] = ambient_linear.r;
@@ -3209,6 +3194,7 @@ void RasterizerSceneGLES3::_fill_render_list(InstanceBase **p_cull_result, int p
 				}
 
 			} break;
+			default: {}
 		}
 	}
 }
@@ -4295,7 +4281,6 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 	if (env) {
 		switch (env->bg_mode) {
 			case VS::ENV_BG_COLOR_SKY:
-
 			case VS::ENV_BG_SKY:
 
 				sky = storage->sky_owner.getornull(env->sky);
@@ -4333,6 +4318,7 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 				glEnable(GL_DEPTH_TEST);
 				glEnable(GL_CULL_FACE);
 				break;
+			default: {}
 		}
 	}
 
@@ -4501,7 +4487,7 @@ void RasterizerSceneGLES3::render_shadow(RID p_light, RID p_shadow_atlas, int p_
 	RasterizerStorageGLES3::Light *light = storage->light_owner.getornull(light_instance->light);
 	ERR_FAIL_COND(!light);
 
-	uint32_t x, y, width, height, vp_height;
+	uint32_t x, y, width, height;
 
 	float dp_direction = 0.0;
 	float zfar = 0;
@@ -4583,7 +4569,6 @@ void RasterizerSceneGLES3::render_shadow(RID p_light, RID p_shadow_atlas, int p_
 		bias = light->param[VS::LIGHT_PARAM_SHADOW_BIAS] * bias_mult;
 		normal_bias = light->param[VS::LIGHT_PARAM_SHADOW_NORMAL_BIAS] * bias_mult;
 		fbo = directional_shadow.fbo;
-		vp_height = directional_shadow.size;
 
 	} else {
 		//set from shadow atlas
@@ -4593,7 +4578,6 @@ void RasterizerSceneGLES3::render_shadow(RID p_light, RID p_shadow_atlas, int p_
 		ERR_FAIL_COND(!shadow_atlas->shadow_owners.has(p_light));
 
 		fbo = shadow_atlas->fbo;
-		vp_height = shadow_atlas->size;
 
 		uint32_t key = shadow_atlas->shadow_owners[p_light];
 

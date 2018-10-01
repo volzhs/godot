@@ -531,12 +531,12 @@ void SpatialEditorViewport::_select_region() {
 
 void SpatialEditorViewport::_update_name() {
 
-	String ortho = orthogonal ? TTR("Orthogonal") : TTR("Perspective");
+	String view_mode = orthogonal ? TTR("Orthogonal") : TTR("Perspective");
 
 	if (name != "")
-		view_menu->set_text("[ " + name + " " + ortho + " ]");
+		view_menu->set_text("[ " + name + " " + view_mode + " ]");
 	else
-		view_menu->set_text("[ " + ortho + " ]");
+		view_menu->set_text("[ " + view_mode + " ]");
 
 	view_menu->set_size(Vector2(0, 0)); // resets the button size
 }
@@ -996,6 +996,10 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 							_edit.plane = TRANSFORM_VIEW;
 							set_message(TTR("View Plane Transform."), 2);
 
+						} break;
+						case TRANSFORM_YZ:
+						case TRANSFORM_XZ:
+						case TRANSFORM_XY: {
 						} break;
 					}
 				}
@@ -1545,6 +1549,10 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 								plane = Plane(_edit.center, spatial_editor->get_gizmo_transform().basis.get_axis(2));
 								axis = Vector3(0, 0, 1);
 								break;
+							case TRANSFORM_YZ:
+							case TRANSFORM_XZ:
+							case TRANSFORM_XY:
+								break;
 						}
 
 						Vector3 intersection;
@@ -1904,7 +1912,7 @@ void SpatialEditorViewport::_nav_orbit(Ref<InputEventWithModifiers> p_event, con
 void SpatialEditorViewport::_nav_look(Ref<InputEventWithModifiers> p_event, const Vector2 &p_relative) {
 
 	// Freelook only works properly in perspective.
-	// It technically works too in ortho, but it's awful for a user due to fov being near zero
+	// It could technically work in ortho, but it's terrible for a user due to FOV being a fixed width.
 	if (!orthogonal) {
 		real_t degrees_per_pixel = EditorSettings::get_singleton()->get("editors/3d/navigation_feel/orbit_sensitivity");
 		real_t radians_per_pixel = Math::deg2rad(degrees_per_pixel);
@@ -2075,7 +2083,7 @@ void SpatialEditorViewport::set_message(String p_message, float p_time) {
 }
 
 void SpatialEditorPlugin::edited_scene_changed() {
-	for (int i = 0; i < SpatialEditor::VIEWPORTS_COUNT; i++) {
+	for (uint32_t i = 0; i < SpatialEditor::VIEWPORTS_COUNT; i++) {
 		SpatialEditorViewport *viewport = SpatialEditor::get_singleton()->get_editor_viewport(i);
 		if (viewport->is_visible()) {
 			viewport->notification(Control::NOTIFICATION_VISIBILITY_CHANGED);
@@ -2199,7 +2207,7 @@ void SpatialEditorViewport::_notification(int p_what) {
 
 		bool shrink = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_HALF_RESOLUTION));
 
-		if (shrink != viewport_container->get_stretch_shrink() > 1) {
+		if (shrink != (viewport_container->get_stretch_shrink() > 1)) {
 			viewport_container->set_stretch_shrink(shrink ? 2 : 1);
 		}
 
@@ -4093,7 +4101,7 @@ void SpatialEditor::set_state(const Dictionary &p_state) {
 		for (int j = 0; j < gizmo_plugins.size(); ++j) {
 			if (!gizmo_plugins[j]->can_be_hidden()) continue;
 			int state = EditorSpatialGizmoPlugin::ON_TOP;
-			for (uint32_t i = 0; i < keys.size(); i++) {
+			for (int i = 0; i < keys.size(); i++) {
 				if (gizmo_plugins.write[j]->get_name() == keys[i]) {
 					state = gizmos_status[keys[i]];
 				}
@@ -4979,32 +4987,29 @@ void SpatialEditor::_unhandled_key_input(Ref<InputEvent> p_event) {
 			if (!k->is_pressed())
 				return;
 
-			if (ED_IS_SHORTCUT("spatial_editor/tool_select", p_event))
+			if (ED_IS_SHORTCUT("spatial_editor/tool_select", p_event)) {
 				_menu_item_pressed(MENU_TOOL_SELECT);
-
-			else if (ED_IS_SHORTCUT("spatial_editor/tool_move", p_event))
+			} else if (ED_IS_SHORTCUT("spatial_editor/tool_move", p_event)) {
 				_menu_item_pressed(MENU_TOOL_MOVE);
-
-			else if (ED_IS_SHORTCUT("spatial_editor/tool_rotate", p_event))
+			} else if (ED_IS_SHORTCUT("spatial_editor/tool_rotate", p_event)) {
 				_menu_item_pressed(MENU_TOOL_ROTATE);
-
-			else if (ED_IS_SHORTCUT("spatial_editor/tool_scale", p_event))
+			} else if (ED_IS_SHORTCUT("spatial_editor/tool_scale", p_event)) {
 				_menu_item_pressed(MENU_TOOL_SCALE);
-			else if (ED_IS_SHORTCUT("spatial_editor/snap_to_floor", p_event))
+			} else if (ED_IS_SHORTCUT("spatial_editor/snap_to_floor", p_event)) {
 				snap_selected_nodes_to_floor();
-
-			else if (ED_IS_SHORTCUT("spatial_editor/local_coords", p_event))
+			} else if (ED_IS_SHORTCUT("spatial_editor/local_coords", p_event)) {
 				if (are_local_coords_enabled()) {
 					_menu_item_toggled(false, MENU_TOOL_LOCAL_COORDS);
 				} else {
 					_menu_item_toggled(true, MENU_TOOL_LOCAL_COORDS);
 				}
-			else if (ED_IS_SHORTCUT("spatial_editor/snap", p_event))
+			} else if (ED_IS_SHORTCUT("spatial_editor/snap", p_event)) {
 				if (is_snap_enabled()) {
 					_menu_item_toggled(false, MENU_TOOL_USE_SNAP);
 				} else {
 					_menu_item_toggled(true, MENU_TOOL_USE_SNAP);
 				}
+			}
 		}
 	}
 }

@@ -36,9 +36,6 @@
 #include "multi_node_edit.h"
 #include "scene/resources/packed_scene.h"
 
-// TODO:
-// arrays and dictionary
-
 Size2 EditorProperty::get_minimum_size() const {
 
 	Size2 ms;
@@ -267,11 +264,6 @@ void EditorProperty::_notification(int p_what) {
 		} else {
 			keying_rect = Rect2();
 		}
-
-		//int vs = get_constant("vseparation", "Tree");
-		Color guide_color = get_color("guide_color", "Tree");
-		int vs_height = get_size().height; // vs / 2;
-		//	draw_line(Point2(0, vs_height), Point2(get_size().width, vs_height), guide_color);
 	}
 }
 
@@ -1454,6 +1446,9 @@ void EditorInspector::update_tree() {
 		} else if (!(p.usage & PROPERTY_USAGE_EDITOR))
 			continue;
 
+		if (p.usage & PROPERTY_USAGE_HIGH_END_GFX && VS::get_singleton()->is_low_end())
+			continue; //do not show this property in low end gfx
+
 		if (p.name == "script" && (hide_script || bool(object->call("_hide_script_from_inspector")))) {
 			continue;
 		}
@@ -1986,7 +1981,7 @@ void EditorInspector::_property_keyed(const String &p_path) {
 	if (!object)
 		return;
 
-	emit_signal("property_keyed", p_path, object->get(p_path), false); //second param is deprecated
+	emit_signal("property_keyed", p_path, object->get(p_path), true); //second param is deprecated
 }
 
 void EditorInspector::_property_keyed_with_value(const String &p_path, const Variant &p_value) {

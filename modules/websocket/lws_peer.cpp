@@ -30,6 +30,7 @@
 #ifndef JAVASCRIPT_ENABLED
 
 #include "lws_peer.h"
+
 #include "core/io/ip.h"
 
 // Needed for socket_helpers on Android at least. UNIXes has it, just include if not windows
@@ -38,7 +39,7 @@
 #include <sys/socket.h>
 #endif
 
-#include "drivers/unix/socket_helpers.h"
+#include "drivers/unix/net_socket_posix.h"
 
 void LWSPeer::set_wsi(struct lws *p_wsi) {
 	ERR_FAIL_COND(wsi != NULL);
@@ -60,7 +61,6 @@ Error LWSPeer::read_wsi(void *in, size_t len) {
 
 	ERR_FAIL_COND_V(!is_connected_to_host(), FAILED);
 
-	PeerData *peer_data = (PeerData *)(lws_wsi_user(wsi));
 	uint32_t size = in_size;
 	uint8_t is_string = lws_frame_is_binary(wsi) ? 0 : 1;
 
@@ -88,7 +88,6 @@ Error LWSPeer::write_wsi() {
 
 	ERR_FAIL_COND_V(!is_connected_to_host(), FAILED);
 
-	PeerData *peer_data = (PeerData *)(lws_wsi_user(wsi));
 	PoolVector<uint8_t> tmp;
 	int left = rbw.data_left();
 	uint32_t to_write = 0;
@@ -119,7 +118,6 @@ Error LWSPeer::put_packet(const uint8_t *p_buffer, int p_buffer_size) {
 
 	ERR_FAIL_COND_V(!is_connected_to_host(), FAILED);
 
-	PeerData *peer_data = (PeerData *)lws_wsi_user(wsi);
 	rbw.write((uint8_t *)&p_buffer_size, 4);
 	rbw.write(p_buffer, MIN(p_buffer_size, rbw.space_left()));
 	out_count++;
@@ -131,8 +129,6 @@ Error LWSPeer::put_packet(const uint8_t *p_buffer, int p_buffer_size) {
 Error LWSPeer::get_packet(const uint8_t **r_buffer, int &r_buffer_size) {
 
 	ERR_FAIL_COND_V(!is_connected_to_host(), FAILED);
-
-	PeerData *peer_data = (PeerData *)lws_wsi_user(wsi);
 
 	if (in_count == 0)
 		return ERR_UNAVAILABLE;
@@ -236,7 +232,7 @@ IP_Address LWSPeer::get_connected_host() const {
 	ERR_FAIL_COND_V(!is_connected_to_host(), IP_Address());
 
 	IP_Address ip;
-	int port = 0;
+	uint16_t port = 0;
 
 	struct sockaddr_storage addr;
 	socklen_t len = sizeof(addr);
@@ -247,7 +243,7 @@ IP_Address LWSPeer::get_connected_host() const {
 	int ret = getpeername(fd, (struct sockaddr *)&addr, &len);
 	ERR_FAIL_COND_V(ret != 0, IP_Address());
 
-	_set_ip_addr_port(ip, port, &addr);
+	NetSocketPosix::_set_ip_port(&addr, ip, port);
 
 	return ip;
 };
@@ -257,7 +253,7 @@ uint16_t LWSPeer::get_connected_port() const {
 	ERR_FAIL_COND_V(!is_connected_to_host(), 0);
 
 	IP_Address ip;
-	int port = 0;
+	uint16_t port = 0;
 
 	struct sockaddr_storage addr;
 	socklen_t len = sizeof(addr);
@@ -268,7 +264,7 @@ uint16_t LWSPeer::get_connected_port() const {
 	int ret = getpeername(fd, (struct sockaddr *)&addr, &len);
 	ERR_FAIL_COND_V(ret != 0, 0);
 
-	_set_ip_addr_port(ip, port, &addr);
+	NetSocketPosix::_set_ip_port(&addr, ip, port);
 
 	return port;
 };

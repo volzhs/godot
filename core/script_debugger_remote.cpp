@@ -98,36 +98,6 @@ Error ScriptDebuggerRemote::connect_to_host(const String &p_host, uint16_t p_por
 	return OK;
 }
 
-static int _ScriptDebuggerRemote_found_id = 0;
-static Object *_ScriptDebuggerRemote_find = NULL;
-static void _ScriptDebuggerRemote_debug_func(Object *p_obj) {
-
-	if (_ScriptDebuggerRemote_find == p_obj) {
-		_ScriptDebuggerRemote_found_id = p_obj->get_instance_id();
-	}
-}
-
-static ObjectID safe_get_instance_id(const Variant &p_v) {
-
-	Object *o = p_v;
-	if (o == NULL)
-		return 0;
-	else {
-
-		REF r = p_v;
-		if (r.is_valid()) {
-
-			return r->get_instance_id();
-		} else {
-
-			_ScriptDebuggerRemote_found_id = 0;
-			_ScriptDebuggerRemote_find = NULL;
-			ObjectDB::debug_objects(_ScriptDebuggerRemote_debug_func);
-			return _ScriptDebuggerRemote_found_id;
-		}
-	}
-}
-
 void ScriptDebuggerRemote::_put_variable(const String &p_name, const Variant &p_variable) {
 
 	packet_peer_stream->put_var(p_name);
@@ -1094,12 +1064,12 @@ ScriptDebuggerRemote::ScriptDebuggerRemote() :
 		performance(Engine::get_singleton()->get_singleton_object("Performance")),
 		requested_quit(false),
 		mutex(Mutex::create()),
-		max_cps(GLOBAL_GET("network/limits/debugger_stdout/max_chars_per_second")),
 		max_messages_per_frame(GLOBAL_GET("network/limits/debugger_stdout/max_messages_per_frame")),
-		max_errors_per_frame(GLOBAL_GET("network/limits/debugger_stdout/max_errors_per_frame")),
-		char_count(0),
 		n_messages_dropped(0),
+		max_errors_per_frame(GLOBAL_GET("network/limits/debugger_stdout/max_errors_per_frame")),
 		n_errors_dropped(0),
+		max_cps(GLOBAL_GET("network/limits/debugger_stdout/max_chars_per_second")),
+		char_count(0),
 		last_msec(0),
 		msec_count(0),
 		allow_focus_steal_pid(0),

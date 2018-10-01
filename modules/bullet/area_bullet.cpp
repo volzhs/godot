@@ -46,7 +46,6 @@
 AreaBullet::AreaBullet() :
 		RigidCollisionObjectBullet(CollisionObjectBullet::TYPE_AREA),
 		monitorable(true),
-		isScratched(false),
 		spOv_mode(PhysicsServer::AREA_SPACE_OVERRIDE_DISABLED),
 		spOv_gravityPoint(false),
 		spOv_gravityPointDistanceScale(0),
@@ -55,7 +54,8 @@ AreaBullet::AreaBullet() :
 		spOv_gravityMag(10),
 		spOv_linearDump(0.1),
 		spOv_angularDump(1),
-		spOv_priority(0) {
+		spOv_priority(0),
+		isScratched(false) {
 
 	btGhost = bulletnew(btGhostObject);
 	btGhost->setCollisionShape(BulletPhysicsServer::get_empty_shape());
@@ -93,6 +93,9 @@ void AreaBullet::dispatch_callbacks() {
 				call_event(otherObj.object, PhysicsServer::AREA_BODY_REMOVED);
 				otherObj.object->on_exit_area(this);
 				overlappingObjects.remove(i); // Remove after callback
+				break;
+			case OVERLAP_STATE_DIRTY:
+			case OVERLAP_STATE_INSIDE:
 				break;
 		}
 	}
