@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  visibility_notifier_2d.h                                             */
+/*  test_astar.cpp                                                       */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,85 +28,90 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef VISIBILITY_NOTIFIER_2D_H
-#define VISIBILITY_NOTIFIER_2D_H
+#include "test_astar.h"
 
-#include "scene/2d/node_2d.h"
+#include "core/math/a_star.h"
+#include "core/os/os.h"
 
-class Viewport;
-class VisibilityNotifier2D : public Node2D {
+#include <stdio.h>
 
-	GDCLASS(VisibilityNotifier2D, Node2D);
+namespace TestAStar {
 
-	Set<Viewport *> viewports;
-
-	Rect2 rect;
-
-protected:
-	friend struct SpatialIndexer2D;
-
-	void _enter_viewport(Viewport *p_viewport);
-	void _exit_viewport(Viewport *p_viewport);
-
-	virtual void _screen_enter() {}
-	virtual void _screen_exit() {}
-
-	void _notification(int p_what);
-	static void _bind_methods();
-
+class ABCX : public AStar {
 public:
-	virtual Rect2 _edit_get_rect() const;
-	virtual bool _edit_use_rect() const;
+	enum { A,
+		B,
+		C,
+		X };
 
-	void set_rect(const Rect2 &p_rect);
-	Rect2 get_rect() const;
+	ABCX() {
+		add_point(A, Vector3(0, 0, 0));
+		add_point(B, Vector3(1, 0, 0));
+		add_point(C, Vector3(0, 1, 0));
+		add_point(X, Vector3(0, 0, 1));
+		connect_points(A, B);
+		connect_points(A, C);
+		connect_points(B, C);
+		connect_points(X, A);
+	}
 
-	bool is_on_screen() const;
-
-	VisibilityNotifier2D();
+	// Disable heuristic completely
+	float _compute_cost(int p_from, int p_to) {
+		if (p_from == A && p_to == C) {
+			return 1000;
+		}
+		return 100;
+	}
 };
 
-class VisibilityEnabler2D : public VisibilityNotifier2D {
+bool test_abc() {
+	ABCX abcx;
+	PoolVector<int> path = abcx.get_id_path(ABCX::A, ABCX::C);
+	bool ok = path.size() == 3;
+	int i = 0;
+	ok = ok && path[i++] == ABCX::A;
+	ok = ok && path[i++] == ABCX::B;
+	ok = ok && path[i++] == ABCX::C;
+	return ok;
+}
 
-	GDCLASS(VisibilityEnabler2D, VisibilityNotifier2D);
+bool test_abcx() {
+	ABCX abcx;
+	PoolVector<int> path = abcx.get_id_path(ABCX::X, ABCX::C);
+	bool ok = path.size() == 4;
+	int i = 0;
+	ok = ok && path[i++] == ABCX::X;
+	ok = ok && path[i++] == ABCX::A;
+	ok = ok && path[i++] == ABCX::B;
+	ok = ok && path[i++] == ABCX::C;
+	return ok;
+}
 
-public:
-	enum Enabler {
-		ENABLER_PAUSE_ANIMATIONS,
-		ENABLER_FREEZE_BODIES,
-		ENABLER_PAUSE_PARTICLES,
-		ENABLER_PARENT_PROCESS,
-		ENABLER_PARENT_PHYSICS_PROCESS,
-		ENABLER_PAUSE_ANIMATED_SPRITES,
-		ENABLER_MAX
-	};
+typedef bool (*TestFunc)(void);
 
-protected:
-	virtual void _screen_enter();
-	virtual void _screen_exit();
-
-	bool visible;
-
-	void _find_nodes(Node *p_node);
-
-	Map<Node *, Variant> nodes;
-	void _node_removed(Node *p_node);
-	bool enabler[ENABLER_MAX];
-
-	void _change_node_state(Node *p_node, bool p_enabled);
-
-	void _notification(int p_what);
-	static void _bind_methods();
-
-public:
-	void set_enabler(Enabler p_enabler, bool p_enable);
-	bool is_enabler_enabled(Enabler p_enabler) const;
-
-	String get_configuration_warning() const;
-
-	VisibilityEnabler2D();
+TestFunc test_funcs[] = {
+	test_abc,
+	test_abcx,
+	NULL
 };
 
-VARIANT_ENUM_CAST(VisibilityEnabler2D::Enabler);
+MainLoop *test() {
+	int count = 0;
+	int passed = 0;
 
-#endif // VISIBILITY_NOTIFIER_2D_H
+	while (true) {
+		if (!test_funcs[count])
+			break;
+		bool pass = test_funcs[count]();
+		if (pass)
+			passed++;
+		OS::get_singleton()->print("\t%s\n", pass ? "PASS" : "FAILED");
+
+		count++;
+	}
+	OS::get_singleton()->print("\n");
+	OS::get_singleton()->print("Passed %i of %i tests\n", passed, count);
+	return NULL;
+}
+
+} // namespace TestAStar
