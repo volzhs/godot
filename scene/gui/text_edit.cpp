@@ -334,15 +334,12 @@ void TextEdit::_update_scrollbars() {
 	h_scroll->set_begin(Point2(0, size.height - hmin.height));
 	h_scroll->set_end(Point2(size.width - vmin.width, size.height));
 
-	int hscroll_rows = ((hmin.height - 1) / get_row_height()) + 1;
 	int visible_rows = get_visible_rows();
-
 	int total_rows = get_total_visible_rows();
 	if (scroll_past_end_of_file_enabled) {
 		total_rows += visible_rows - 1;
 	}
 
-	int vscroll_pixels = v_scroll->get_combined_minimum_size().width;
 	int visible_width = size.width - cache.style_normal->get_minimum_size().width;
 	int total_width = text.get_max_width(true) + vmin.x;
 
@@ -367,12 +364,12 @@ void TextEdit::_update_scrollbars() {
 
 	} else {
 
-		if (total_rows > visible_rows && total_width <= visible_width - vscroll_pixels) {
+		if (total_rows > visible_rows && total_width <= visible_width) {
 			//thanks yessopie for this clever bit of logic
 			use_hscroll = false;
 		}
 
-		if (total_rows <= visible_rows - hscroll_rows && total_width > visible_width) {
+		if (total_rows <= visible_rows && total_width > visible_width) {
 			//thanks yessopie for this clever bit of logic
 			use_vscroll = false;
 		}
@@ -3260,7 +3257,7 @@ void TextEdit::_scroll_down(real_t p_delta) {
 	}
 
 	if (smooth_scroll_enabled) {
-		int max_v_scroll = v_scroll->get_max() - v_scroll->get_page();
+		int max_v_scroll = round(v_scroll->get_max() - v_scroll->get_page());
 		if (target_v_scroll > max_v_scroll) {
 			target_v_scroll = max_v_scroll;
 			v_scroll->set_value(target_v_scroll);

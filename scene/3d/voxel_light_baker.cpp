@@ -1587,10 +1587,10 @@ Vector3 VoxelLightBaker::_compute_pixel_light_at_pos(const Vector3 &p_pos, const
 	Vector3 bitangent = tangent.cross(p_normal).normalized();
 	Basis normal_xform = Basis(tangent, bitangent, p_normal).transposed();
 
-	const Vector3 *cone_dirs;
-	const float *cone_weights;
-	int cone_dir_count;
-	float cone_aperture;
+	const Vector3 *cone_dirs = NULL;
+	const float *cone_weights = NULL;
+	int cone_dir_count = 0;
+	float cone_aperture = 0;
 
 	switch (bake_quality) {
 		case BAKE_QUALITY_LOW: {

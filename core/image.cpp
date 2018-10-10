@@ -780,9 +780,9 @@ void Image::resize(int p_width, int p_height, Interpolation p_interpolation) {
 
 	// Setup mipmap-aware scaling
 	Image dst2;
-	int mip1;
-	int mip2;
-	float mip1_weight;
+	int mip1 = 0;
+	int mip2 = 0;
+	float mip1_weight = 0;
 	if (mipmap_aware) {
 		float avg_scale = ((float)p_width / width + (float)p_height / height) * 0.5f;
 		if (avg_scale >= 1.0f) {
@@ -1198,7 +1198,9 @@ void Image::expand_x2_hq2x() {
 	if (current != FORMAT_RGBA8)
 		convert(current);
 
-	if (used_mipmaps) {
+	// FIXME: This is likely meant to use "used_mipmaps" as defined above, but if we do,
+	// we end up with a regression: GH-22747
+	if (mipmaps) {
 		generate_mipmaps();
 	}
 }
@@ -1471,7 +1473,8 @@ void Image::create(int p_width, int p_height, bool p_use_mipmaps, Format p_forma
 
 void Image::create(const char **p_xpm) {
 
-	int size_width, size_height;
+	int size_width = 0;
+	int size_height = 0;
 	int pixelchars = 0;
 	mipmaps = false;
 	bool has_alpha = false;
@@ -1487,8 +1490,8 @@ void Image::create(const char **p_xpm) {
 	int line = 0;
 
 	HashMap<String, Color> colormap;
-	int colormap_size;
-	uint32_t pixel_size;
+	int colormap_size = 0;
+	uint32_t pixel_size = 0;
 	PoolVector<uint8_t>::Write w;
 
 	while (status != DONE) {
