@@ -477,33 +477,16 @@ EditorPropertyCheck::EditorPropertyCheck() {
 
 void EditorPropertyEnum::_option_selected(int p_which) {
 
-	String text = options->get_item_text(p_which);
-	Vector<String> text_split = text.split(":");
-	if (text_split.size() == 1) {
-		emit_signal("property_changed", get_edited_property(), p_which);
-		return;
-	}
-	String name = text_split[1];
-	emit_signal("property_changed", get_edited_property(), name.to_int());
+	int val = options->get_item_metadata(p_which);
+	emit_signal("property_changed", get_edited_property(), val);
 }
 
 void EditorPropertyEnum::update_property() {
 
 	int which = get_edited_object()->get(get_edited_property());
-	if (which == 0) {
-		options->select(which);
-		return;
-	}
 
 	for (int i = 0; i < options->get_item_count(); i++) {
-		String text = options->get_item_text(i);
-		Vector<String> text_split = text.split(":");
-		if (text_split.size() == 1) {
-			options->select(which);
-			return;
-		}
-		String name = text_split[1];
-		if (itos(which) == name) {
+		if (which == (int)options->get_item_metadata(i)) {
 			options->select(i);
 			return;
 		}
@@ -511,8 +494,15 @@ void EditorPropertyEnum::update_property() {
 }
 
 void EditorPropertyEnum::setup(const Vector<String> &p_options) {
+
+	int current_val = 0;
 	for (int i = 0; i < p_options.size(); i++) {
-		options->add_item(p_options[i], i);
+		Vector<String> text_split = p_options[i].split(":");
+		if (text_split.size() != 1)
+			current_val = text_split[1].to_int();
+		options->add_item(text_split[0]);
+		options->set_item_metadata(i, current_val);
+		current_val += 1;
 	}
 }
 
@@ -1779,7 +1769,7 @@ void EditorPropertyColor::_color_changed(const Color &p_color) {
 
 void EditorPropertyColor::_popup_closed() {
 
-	emit_signal("property_changed", get_edited_property(), picker->get_pick_color(), true);
+	emit_signal("property_changed", get_edited_property(), picker->get_pick_color(), false);
 }
 
 void EditorPropertyColor::_bind_methods() {
@@ -2380,7 +2370,7 @@ void EditorPropertyResource::update_property() {
 		if (res->get_name() != String()) {
 			assign->set_text(res->get_name());
 		} else if (res->get_path().is_resource_file()) {
-			assign->set_text(res->get_name());
+			assign->set_text(res->get_path().get_file());
 			assign->set_tooltip(res->get_path());
 		} else {
 			assign->set_text(res->get_class());
