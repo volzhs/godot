@@ -412,7 +412,7 @@ void FileSystemDock::_tree_multi_selected(Object *p_item, int p_column, bool p_s
 		return;
 
 	TreeItem *favorites_item = tree->get_root()->get_children();
-	if (selected->get_parent() == favorites_item) {
+	if (selected->get_parent() == favorites_item && !String(selected->get_metadata(0)).ends_with("/")) {
 		// Go to the favorites if we click in the favorites and the path has changed
 		path = "Favorites";
 	} else {
@@ -1217,7 +1217,8 @@ void FileSystemDock::_make_dir_confirm() {
 	if (dir_name.length() == 0) {
 		EditorNode::get_singleton()->show_warning(TTR("No name provided"));
 		return;
-	} else if (dir_name.find("/") != -1 || dir_name.find("\\") != -1 || dir_name.find(":") != -1 || dir_name.ends_with(".") || dir_name.ends_with(" ")) {
+	} else if (dir_name.find("/") != -1 || dir_name.find("\\") != -1 || dir_name.find(":") != -1 || dir_name.find("*") != -1 ||
+			   dir_name.find("|") != -1 || dir_name.find(">") != -1 || dir_name.ends_with(".") || dir_name.ends_with(" ")) {
 		EditorNode::get_singleton()->show_warning(TTR("Provided name contains invalid characters"));
 		return;
 	}
