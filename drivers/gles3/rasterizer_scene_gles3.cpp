@@ -1190,11 +1190,12 @@ bool RasterizerSceneGLES3::_setup_material(RasterizerStorageGLES3::Material *p_m
 
 		if (t) {
 
+			t = t->get_ptr(); //resolve for proxies
+
 			if (t->redraw_if_visible) { //must check before proxy because this is often used with proxies
 				VisualServerRaster::redraw_request();
 			}
 
-			t = t->get_ptr(); //resolve for proxies
 #ifdef TOOLS_ENABLED
 			if (t->detect_3d) {
 				t->detect_3d(t->detect_3d_ud);
@@ -2222,7 +2223,6 @@ void RasterizerSceneGLES3::_render_list(RenderList::Element **p_elements, int p_
 
 		_set_cull(e->sort_key & RenderList::SORT_KEY_MIRROR_FLAG, e->sort_key & RenderList::SORT_KEY_CULL_DISABLED_FLAG, p_reverse_cull);
 
-		state.scene_shader.set_uniform(SceneShaderGLES3::NORMAL_MULT, e->instance->mirror ? -1.0 : 1.0);
 		state.scene_shader.set_uniform(SceneShaderGLES3::WORLD_TRANSFORM, e->instance->transform);
 
 		_render_geometry(e);
@@ -4339,6 +4339,10 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 				break;
 			default: {}
 		}
+	}
+
+	if (probe && probe->probe_ptr->interior) {
+		env_radiance_tex = 0; //for rendering probe interiors, radiance must not be used.
 	}
 
 	state.texscreen_copied = false;
