@@ -70,6 +70,7 @@ void ShaderTextEditor::_load_theme_settings() {
 	Color line_number_color = EDITOR_GET("text_editor/highlighting/line_number_color");
 	Color caret_color = EDITOR_GET("text_editor/highlighting/caret_color");
 	Color caret_background_color = EDITOR_GET("text_editor/highlighting/caret_background_color");
+	Color indent_guide_color = EDITOR_GET("text_editor/highlighting/indent_guide_color");
 	Color text_selected_color = EDITOR_GET("text_editor/highlighting/text_selected_color");
 	Color selection_color = EDITOR_GET("text_editor/highlighting/selection_color");
 	Color brace_mismatch_color = EDITOR_GET("text_editor/highlighting/brace_mismatch_color");
@@ -98,6 +99,7 @@ void ShaderTextEditor::_load_theme_settings() {
 	get_text_edit()->add_color_override("line_number_color", line_number_color);
 	get_text_edit()->add_color_override("caret_color", caret_color);
 	get_text_edit()->add_color_override("caret_background_color", caret_background_color);
+	get_text_edit()->add_color_override("indent_guide_color", indent_guide_color);
 	get_text_edit()->add_color_override("font_selected_color", text_selected_color);
 	get_text_edit()->add_color_override("selection_color", selection_color);
 	get_text_edit()->add_color_override("brace_mismatch_color", brace_mismatch_color);
@@ -368,6 +370,7 @@ void ShaderEditor::_editor_settings_changed() {
 	shader_editor->get_text_edit()->set_indent_size(EditorSettings::get_singleton()->get("text_editor/indent/size"));
 	shader_editor->get_text_edit()->set_indent_using_spaces(EditorSettings::get_singleton()->get("text_editor/indent/type"));
 	shader_editor->get_text_edit()->set_auto_indent(EditorSettings::get_singleton()->get("text_editor/indent/auto_indent"));
+	shader_editor->get_text_edit()->set_draw_indent_guides(EditorSettings::get_singleton()->get("text_editor/indent/draw_indent_guides"));
 	shader_editor->get_text_edit()->set_draw_tabs(EditorSettings::get_singleton()->get("text_editor/indent/draw_tabs"));
 	shader_editor->get_text_edit()->set_show_line_numbers(EditorSettings::get_singleton()->get("text_editor/line_numbers/show_line_numbers"));
 	shader_editor->get_text_edit()->set_syntax_coloring(EditorSettings::get_singleton()->get("text_editor/highlighting/syntax_highlighting"));
@@ -531,9 +534,8 @@ ShaderEditor::ShaderEditor(EditorNode *p_node) {
 	HBoxContainer *hbc = memnew(HBoxContainer);
 
 	edit_menu = memnew(MenuButton);
-	//edit_menu->set_position(Point2(5, -1));
 	edit_menu->set_text(TTR("Edit"));
-
+	edit_menu->set_switch_on_hover(true);
 	edit_menu->get_popup()->set_hide_on_window_lose_focus(true);
 	edit_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/undo"), EDIT_UNDO);
 	edit_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/redo"), EDIT_REDO);
@@ -553,12 +555,11 @@ ShaderEditor::ShaderEditor(EditorNode *p_node) {
 	edit_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/clone_down"), EDIT_CLONE_DOWN);
 	edit_menu->get_popup()->add_separator();
 	edit_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/complete_symbol"), EDIT_COMPLETE);
-
 	edit_menu->get_popup()->connect("id_pressed", this, "_menu_option");
 
 	search_menu = memnew(MenuButton);
-	//search_menu->set_position(Point2(38, -1));
 	search_menu->set_text(TTR("Search"));
+	search_menu->set_switch_on_hover(true);
 	search_menu->get_popup()->set_hide_on_window_lose_focus(true);
 	search_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/find"), SEARCH_FIND);
 	search_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/find_next"), SEARCH_FIND_NEXT);

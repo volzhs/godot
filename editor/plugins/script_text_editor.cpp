@@ -131,6 +131,7 @@ void ScriptTextEditor::_load_theme_settings() {
 	Color safe_line_number_color = EDITOR_GET("text_editor/highlighting/safe_line_number_color");
 	Color caret_color = EDITOR_GET("text_editor/highlighting/caret_color");
 	Color caret_background_color = EDITOR_GET("text_editor/highlighting/caret_background_color");
+	Color indent_guide_color = EDITOR_GET("text_editor/highlighting/indent_guide_color");
 	Color text_selected_color = EDITOR_GET("text_editor/highlighting/text_selected_color");
 	Color selection_color = EDITOR_GET("text_editor/highlighting/selection_color");
 	Color brace_mismatch_color = EDITOR_GET("text_editor/highlighting/brace_mismatch_color");
@@ -163,6 +164,7 @@ void ScriptTextEditor::_load_theme_settings() {
 	text_edit->add_color_override("safe_line_number_color", safe_line_number_color);
 	text_edit->add_color_override("caret_color", caret_color);
 	text_edit->add_color_override("caret_background_color", caret_background_color);
+	text_edit->add_color_override("indent_guide_color", indent_guide_color);
 	text_edit->add_color_override("font_selected_color", text_selected_color);
 	text_edit->add_color_override("selection_color", selection_color);
 	text_edit->add_color_override("brace_mismatch_color", brace_mismatch_color);
@@ -1466,6 +1468,7 @@ ScriptTextEditor::ScriptTextEditor() {
 
 	edit_menu = memnew(MenuButton);
 	edit_menu->set_text(TTR("Edit"));
+	edit_menu->set_switch_on_hover(true);
 	edit_menu->get_popup()->set_hide_on_window_lose_focus(true);
 	edit_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/undo"), EDIT_UNDO);
 	edit_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/redo"), EDIT_REDO);
@@ -1520,6 +1523,7 @@ ScriptTextEditor::ScriptTextEditor() {
 	search_menu = memnew(MenuButton);
 	edit_hb->add_child(search_menu);
 	search_menu->set_text(TTR("Search"));
+	search_menu->set_switch_on_hover(true);
 	search_menu->get_popup()->set_hide_on_window_lose_focus(true);
 	search_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/find"), SEARCH_FIND);
 	search_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/find_next"), SEARCH_FIND_NEXT);
