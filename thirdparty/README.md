@@ -233,7 +233,7 @@ Godot-made change marked with `// -- GODOT --` comments.
 ## libwebp
 
 - Upstream: https://chromium.googlesource.com/webm/libwebp/
-- Version: 1.0.0
+- Version: 1.0.1
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -503,7 +503,7 @@ changes are marked with `// -- GODOT --` comments.
 ## tinyexr
 
 - Upstream: https://github.com/syoyo/tinyexr
-- Version: git (2d5375f, 2018)
+- Version: git (5ae30aa, 2018)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
