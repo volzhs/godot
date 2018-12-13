@@ -425,7 +425,7 @@ bool AbstractPolygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 					return true;
 				} else {
 
-					const real_t grab_threshold = EDITOR_DEF("editors/poly_editor/point_grab_radius", 8);
+					const real_t grab_threshold = EDITOR_GET("editors/poly_editor/point_grab_radius");
 
 					if (!_is_line() && wip.size() > 1 && xform.xform(wip[0]).distance_to(gpoint) < grab_threshold) {
 						//wip closed
@@ -565,7 +565,7 @@ void AbstractPolygon2DEditor::forward_canvas_draw_over_viewport(Control *p_overl
 			offset = _get_offset(j);
 		}
 
-		if (!wip_active && j == edited_point.polygon && EDITOR_DEF("editors/poly_editor/show_previous_outline", true)) {
+		if (!wip_active && j == edited_point.polygon && EDITOR_GET("editors/poly_editor/show_previous_outline")) {
 
 			const Color col = Color(0.5, 0.5, 0.5); // FIXME polygon->get_outline_color();
 			const int n = pre_move_edit.size();
@@ -695,7 +695,7 @@ AbstractPolygon2DEditor::Vertex AbstractPolygon2DEditor::get_active_point() cons
 
 AbstractPolygon2DEditor::PosVertex AbstractPolygon2DEditor::closest_point(const Vector2 &p_pos) const {
 
-	const real_t grab_threshold = EDITOR_DEF("editors/poly_editor/point_grab_radius", 8);
+	const real_t grab_threshold = EDITOR_GET("editors/poly_editor/point_grab_radius");
 
 	const int n_polygons = _get_polygon_count();
 	const Transform2D xform = canvas_item_editor->get_canvas_transform() * _get_node()->get_global_transform();
@@ -726,7 +726,7 @@ AbstractPolygon2DEditor::PosVertex AbstractPolygon2DEditor::closest_point(const 
 
 AbstractPolygon2DEditor::PosVertex AbstractPolygon2DEditor::closest_edge_point(const Vector2 &p_pos) const {
 
-	const real_t grab_threshold = EDITOR_DEF("editors/poly_editor/point_grab_radius", 8);
+	const real_t grab_threshold = EDITOR_GET("editors/poly_editor/point_grab_radius");
 	const real_t eps = grab_threshold * 2;
 	const real_t eps2 = eps * eps;
 
@@ -826,13 +826,11 @@ void AbstractPolygon2DEditorPlugin::make_visible(bool p_visible) {
 	}
 }
 
-AbstractPolygon2DEditorPlugin::AbstractPolygon2DEditorPlugin(EditorNode *p_node, AbstractPolygon2DEditor *p_polygon_editor, String p_class) {
-
-	editor = p_node;
-	polygon_editor = p_polygon_editor;
-	klass = p_class;
+AbstractPolygon2DEditorPlugin::AbstractPolygon2DEditorPlugin(EditorNode *p_node, AbstractPolygon2DEditor *p_polygon_editor, String p_class) :
+		polygon_editor(p_polygon_editor),
+		editor(p_node),
+		klass(p_class) {
 	CanvasItemEditor::get_singleton()->add_control_to_menu_panel(polygon_editor);
-
 	polygon_editor->hide();
 }
 
