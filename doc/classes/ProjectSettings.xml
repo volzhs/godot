@@ -184,6 +184,9 @@
 		<member name="application/config/use_custom_user_dir" type="bool" setter="" getter="">
 			Allow the project to save to its own custom user dir (in AppData on windows or ~/.config on unixes). This setting only works for desktop exporters. A name must be set in the "custom_user_dir_name" setting for this to take effect.
 		</member>
+		<member name="application/config/project_settings_override" type="String" setter="" getter="">
+			Specifies a file to override project settings. For example: user://custom_settings.cfg.
+		</member>
 		<member name="application/run/disable_stderr" type="bool" setter="" getter="">
 			Disable printing to stderr on exported build.
 		</member>
@@ -209,6 +212,9 @@
 			Audio buses will disable automatically when sound goes below a given DB threshold for a given time. This saves CPU as effects assigned to that bus will no longer do any processing.
 		</member>
 		<member name="audio/driver" type="String" setter="" getter="">
+		</member>
+		<member name="audio/enable_audio_input" type="bool" setter="" getter="">
+			This option should be enabled if project works with microphone.
 		</member>
 		<member name="audio/mix_rate" type="int" setter="" getter="">
 			Mix rate used for audio. In general, it's better to not touch this and leave it to the host operating system.
