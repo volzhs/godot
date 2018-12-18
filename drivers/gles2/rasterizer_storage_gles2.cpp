@@ -965,7 +965,7 @@ void RasterizerStorageGLES2::sky_set_texture(RID p_sky, RID p_panorama, int p_ra
 	// attachements for it, so we can fill them by issuing draw calls.
 	GLuint tmp_fb;
 
-	int size = p_radiance_size;
+	int size = p_radiance_size / 4; //divide by four because its a cubemap (this is an approximation because GLES3 uses a dual paraboloid)
 
 	int lod = 0;
 
@@ -4482,6 +4482,8 @@ void RasterizerStorageGLES2::initialize() {
 
 	shaders.copy.init();
 	shaders.cubemap_filter.init();
+	bool ggx_hq = GLOBAL_GET("rendering/quality/reflections/high_quality_ggx.mobile");
+	shaders.cubemap_filter.set_conditional(CubemapFilterShaderGLES2::LOW_QUALITY, !ggx_hq);
 
 	{
 		// quad for copying stuff
