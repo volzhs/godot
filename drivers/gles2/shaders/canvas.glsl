@@ -140,7 +140,12 @@ void main() {
 #else
 	vec4 outvec = vec4(vertex.xy, 0.0, 1.0);
 
+#ifdef USE_UV_ATTRIBUTE
 	uv_interp = uv_attrib;
+#else
+	uv_interp = vertex.xy;
+#endif
+
 #endif
 
 	{
