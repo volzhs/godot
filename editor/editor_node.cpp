@@ -1108,12 +1108,15 @@ void EditorNode::_save_scene(String p_file, int idx) {
 	}
 }
 
-void EditorNode::save_all_scenes_and_restart() {
+void EditorNode::save_all_scenes() {
 
 	_menu_option_confirm(RUN_STOP, true);
-	exiting = true;
-
 	_save_all_scenes();
+}
+
+void EditorNode::restart_editor() {
+
+	exiting = true;
 
 	String to_reopen;
 	if (get_tree()->get_edited_scene_root()) {
@@ -2305,7 +2308,8 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			ProjectSettings::get_singleton()->set("rendering/quality/driver/driver_name", video_driver_request);
 			ProjectSettings::get_singleton()->save();
 
-			save_all_scenes_and_restart();
+			save_all_scenes();
+			restart_editor();
 		} break;
 		default: {
 			if (p_option >= IMPORT_PLUGIN_BASE) {
@@ -4759,6 +4763,8 @@ EditorNode::EditorNode() {
 	SceneState::set_disable_placeholders(true);
 	ResourceLoader::clear_translation_remaps(); //no remaps using during editor
 	ResourceLoader::clear_path_remaps();
+
+	ImageTexture::set_keep_images_cached(true);
 
 	InputDefault *id = Object::cast_to<InputDefault>(Input::get_singleton());
 

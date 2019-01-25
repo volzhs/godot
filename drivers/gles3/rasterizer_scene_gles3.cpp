@@ -4132,9 +4132,19 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 
 	glDepthFunc(GL_LEQUAL);
 
-	state.used_contact_shadows = true;
+	state.used_contact_shadows = false;
 
-	if (!storage->config.no_depth_prepass && storage->frame.current_rt && state.debug_draw != VS::VIEWPORT_DEBUG_DRAW_OVERDRAW) { //detect with state.used_contact_shadows too
+	for (int i = 0; i < p_light_cull_count; i++) {
+
+		ERR_BREAK(i >= RenderList::MAX_LIGHTS);
+
+		LightInstance *li = light_instance_owner.getptr(p_light_cull_result[i]);
+		if (li->light_ptr->param[VS::LIGHT_PARAM_CONTACT_SHADOW_SIZE] > CMP_EPSILON) {
+			state.used_contact_shadows = true;
+		}
+	}
+
+	if (!storage->config.no_depth_prepass && storage->frame.current_rt && state.debug_draw != VS::VIEWPORT_DEBUG_DRAW_OVERDRAW && !storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_NO_3D_EFFECTS]) { //detect with state.used_contact_shadows too
 		//pre z pass
 
 		glDisable(GL_BLEND);
