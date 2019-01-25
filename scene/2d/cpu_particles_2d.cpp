@@ -840,7 +840,7 @@ void CPUParticles2D::_particles_process(float p_delta) {
 		if (flags[FLAG_ALIGN_Y_TO_VELOCITY]) {
 			if (p.velocity.length() > 0.0) {
 
-				p.transform.elements[0] = p.velocity.normalized();
+				p.transform.elements[1] = p.velocity.normalized();
 				p.transform.elements[0] = p.transform.elements[1].tangent();
 			}
 
@@ -1378,6 +1378,7 @@ CPUParticles2D::CPUParticles2D() {
 	set_param(PARAM_INITIAL_LINEAR_VELOCITY, 1);
 	//set_param(PARAM_ORBIT_VELOCITY, 0);
 	set_param(PARAM_LINEAR_ACCEL, 0);
+	set_param(PARAM_ANGULAR_VELOCITY, 0);
 	set_param(PARAM_RADIAL_ACCEL, 0);
 	set_param(PARAM_TANGENTIAL_ACCEL, 0);
 	set_param(PARAM_DAMPING, 0);

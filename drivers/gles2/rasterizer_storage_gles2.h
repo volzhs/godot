@@ -80,6 +80,8 @@ public:
 		bool use_rgba_2d_shadows;
 
 		bool support_32_bits_indices;
+		bool support_write_depth;
+		bool support_half_float_vertices;
 	} config;
 
 	struct Resources {
