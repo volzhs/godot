@@ -195,11 +195,11 @@ Ref<Image> RasterizerStorageGLES2::_get_gl_image_and_format(const Ref<Image> &p_
 		} break;
 		case Image::FORMAT_DXT1: {
 
-			r_compressed = true;
 			if (config.s3tc_supported) {
 				r_gl_internal_format = _EXT_COMPRESSED_RGBA_S3TC_DXT1_EXT;
 				r_gl_format = GL_RGBA;
 				r_gl_type = GL_UNSIGNED_BYTE;
+				r_compressed = true;
 			} else {
 				need_decompress = true;
 			}
@@ -844,6 +844,17 @@ void RasterizerStorageGLES2::texture_set_shrink_all_x2_on_set_data(bool p_enable
 
 void RasterizerStorageGLES2::textures_keep_original(bool p_enable) {
 	config.keep_original_textures = p_enable;
+}
+
+Size2 RasterizerStorageGLES2::texture_size_with_proxy(RID p_texture) const {
+
+	const Texture *texture = texture_owner.getornull(p_texture);
+	ERR_FAIL_COND_V(!texture, Size2());
+	if (texture->proxy) {
+		return Size2(texture->proxy->width, texture->proxy->height);
+	} else {
+		return Size2(texture->width, texture->height);
+	}
 }
 
 void RasterizerStorageGLES2::texture_set_proxy(RID p_texture, RID p_proxy) {
@@ -4868,8 +4879,8 @@ void RasterizerStorageGLES2::initialize() {
 	config.etc1_supported = false;
 #else
 	config.float_texture_supported = config.extensions.has("GL_ARB_texture_float") || config.extensions.has("GL_OES_texture_float");
-	config.s3tc_supported = config.extensions.has("GL_EXT_texture_compression_s3tc");
-	config.etc1_supported = config.extensions.has("GL_OES_compressed_ETC1_RGB8_texture");
+	config.s3tc_supported = config.extensions.has("GL_EXT_texture_compression_s3tc") || config.extensions.has("WEBGL_compressed_texture_s3tc");
+	config.etc1_supported = config.extensions.has("GL_OES_compressed_ETC1_RGB8_texture") || config.extensions.has("WEBGL_compressed_texture_etc1");
 #endif
 #ifdef GLES_OVER_GL
 	config.use_rgba_2d_shadows = false;

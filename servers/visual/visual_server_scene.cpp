@@ -32,6 +32,7 @@
 #include "core/os/os.h"
 #include "visual_server_global.h"
 #include "visual_server_raster.h"
+#include <new>
 /* CAMERA API */
 
 RID VisualServerScene::camera_create() {
@@ -573,6 +574,19 @@ void VisualServerScene::instance_set_transform(RID p_instance, const Transform &
 	if (instance->transform == p_transform)
 		return; //must be checked to avoid worst evil
 
+#ifdef DEBUG_ENABLED
+
+	for (int i = 0; i < 4; i++) {
+		const Vector3 &v = i < 3 ? p_transform.basis.elements[i] : p_transform.origin;
+		ERR_FAIL_COND(Math::is_inf(v.x));
+		ERR_FAIL_COND(Math::is_nan(v.x));
+		ERR_FAIL_COND(Math::is_inf(v.y));
+		ERR_FAIL_COND(Math::is_nan(v.y));
+		ERR_FAIL_COND(Math::is_inf(v.z));
+		ERR_FAIL_COND(Math::is_nan(v.z));
+	}
+
+#endif
 	instance->transform = p_transform;
 	_instance_queue_update(instance, true);
 }
@@ -1240,7 +1254,9 @@ void VisualServerScene::_update_instance_lightmap_captures(Instance *p_instance)
 
 	//print_line("update captures for pos: " + p_instance->transform.origin);
 
-	zeromem(p_instance->lightmap_capture_data.ptrw(), 12 * sizeof(Color));
+	for (int i = 0; i < 12; i++)
+		new (&p_instance->lightmap_capture_data.ptrw()[i]) Color;
+
 	//this could use some sort of blending..
 	for (List<Instance *>::Element *E = geom->lightmap_captures.front(); E; E = E->next()) {
 		const PoolVector<RasterizerStorage::LightmapCaptureOctree> *octree = VSG::storage->lightmap_capture_get_octree_ptr(E->get()->base);
