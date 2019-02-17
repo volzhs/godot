@@ -375,6 +375,7 @@ struct _RestCallbackData2D {
 	real_t best_len;
 	Vector2 valid_dir;
 	real_t valid_depth;
+	real_t min_allowed_depth;
 };
 
 static void _rest_cbk_result(const Vector2 &p_point_A, const Vector2 &p_point_B, void *p_userdata) {
@@ -390,6 +391,10 @@ static void _rest_cbk_result(const Vector2 &p_point_A, const Vector2 &p_point_B,
 
 	Vector2 contact_rel = p_point_B - p_point_A;
 	real_t len = contact_rel.length();
+
+	if (len < rd->min_allowed_depth)
+		return;
+
 	if (len <= rd->best_len)
 		return;
 
@@ -416,6 +421,7 @@ bool Physics2DDirectSpaceStateSW::rest_info(RID p_shape, const Transform2D &p_sh
 	rcd.best_len = 0;
 	rcd.best_object = NULL;
 	rcd.best_shape = 0;
+	rcd.min_allowed_depth = space->test_motion_min_contact_depth;
 
 	for (int i = 0; i < amount; i++) {
 
@@ -555,7 +561,6 @@ int Space2DSW::test_body_ray_separation(Body2DSW *p_body, const Transform2D &p_t
 			bool collided = false;
 
 			int amount = _cull_aabb_for_body(p_body, body_aabb);
-			int ray_index = 0;
 
 			for (int j = 0; j < p_body->get_shape_count(); j++) {
 				if (p_body->is_shape_set_as_disabled(j))
@@ -614,7 +619,19 @@ int Space2DSW::test_body_ray_separation(Body2DSW *p_body, const Transform2D &p_t
 							collided = true;
 						}
 
-						if (ray_index < p_result_max) {
+						int ray_index = -1; //reuse shape
+						for (int k = 0; k < rays_found; k++) {
+							if (r_results[ray_index].collision_local_shape == j) {
+								ray_index = k;
+							}
+						}
+
+						if (ray_index == -1 && rays_found < p_result_max) {
+							ray_index = rays_found;
+							rays_found++;
+						}
+
+						if (ray_index != -1) {
 							Physics2DServer::SeparationResult &result = r_results[ray_index];
 
 							for (int k = 0; k < cbk.amount; k++) {
@@ -629,7 +646,8 @@ int Space2DSW::test_body_ray_separation(Body2DSW *p_body, const Transform2D &p_t
 									result.collision_depth = depth;
 									result.collision_point = b;
 									result.collision_normal = (b - a).normalized();
-									result.collision_local_shape = shape_idx;
+									result.collision_local_shape = j;
+									result.collider_shape = shape_idx;
 									result.collider = col_obj->get_self();
 									result.collider_id = col_obj->get_instance_id();
 									result.collider_metadata = col_obj->get_shape_metadata(shape_idx);
@@ -644,11 +662,7 @@ int Space2DSW::test_body_ray_separation(Body2DSW *p_body, const Transform2D &p_t
 						}
 					}
 				}
-
-				ray_index++;
 			}
-
-			rays_found = MAX(ray_index, rays_found);
 
 			if (!collided || recover_motion == Vector2()) {
 				break;
@@ -1003,12 +1017,17 @@ bool Space2DSW::test_body_motion(Body2DSW *p_body, const Transform2D &p_from, co
 		rcd.best_len = 0;
 		rcd.best_object = NULL;
 		rcd.best_shape = 0;
+		rcd.min_allowed_depth = test_motion_min_contact_depth;
 
 		//optimization
 		int from_shape = best_shape != -1 ? best_shape : 0;
 		int to_shape = best_shape != -1 ? best_shape + 1 : p_body->get_shape_count();
 
 		for (int j = from_shape; j < to_shape; j++) {
+
+			if (p_body->is_shape_set_as_disabled(j))
+				continue;
+
 			Transform2D body_shape_xform = ugt * p_body->get_shape_transform(j);
 			Shape2DSW *body_shape = p_body->get_shape(j);
 
@@ -1262,6 +1281,7 @@ void Space2DSW::set_param(Physics2DServer::SpaceParameter p_param, real_t p_valu
 		case Physics2DServer::SPACE_PARAM_BODY_ANGULAR_VELOCITY_SLEEP_THRESHOLD: body_angular_velocity_sleep_threshold = p_value; break;
 		case Physics2DServer::SPACE_PARAM_BODY_TIME_TO_SLEEP: body_time_to_sleep = p_value; break;
 		case Physics2DServer::SPACE_PARAM_CONSTRAINT_DEFAULT_BIAS: constraint_bias = p_value; break;
+		case Physics2DServer::SPACE_PARAM_TEST_MOTION_MIN_CONTACT_DEPTH: test_motion_min_contact_depth = p_value; break;
 	}
 }
 
@@ -1276,6 +1296,7 @@ real_t Space2DSW::get_param(Physics2DServer::SpaceParameter p_param) const {
 		case Physics2DServer::SPACE_PARAM_BODY_ANGULAR_VELOCITY_SLEEP_THRESHOLD: return body_angular_velocity_sleep_threshold;
 		case Physics2DServer::SPACE_PARAM_BODY_TIME_TO_SLEEP: return body_time_to_sleep;
 		case Physics2DServer::SPACE_PARAM_CONSTRAINT_DEFAULT_BIAS: return constraint_bias;
+		case Physics2DServer::SPACE_PARAM_TEST_MOTION_MIN_CONTACT_DEPTH: return test_motion_min_contact_depth;
 	}
 	return 0;
 }
@@ -1312,6 +1333,7 @@ Space2DSW::Space2DSW() {
 	contact_recycle_radius = 1.0;
 	contact_max_separation = 1.5;
 	contact_max_allowed_penetration = 0.3;
+	test_motion_min_contact_depth = 0.005;
 
 	constraint_bias = 0.2;
 	body_linear_velocity_sleep_threshold = GLOBAL_DEF("physics/2d/sleep_threshold_linear", 2.0);
