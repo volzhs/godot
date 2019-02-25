@@ -394,7 +394,9 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	Vector<String> breakpoints;
 	bool use_custom_res = true;
 	bool force_res = false;
+#ifdef TOOLS_ENABLED
 	bool found_project = false;
+#endif
 
 	packed_data = PackedData::get_singleton();
 	if (!packed_data)
@@ -746,7 +748,9 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 
 	if (globals->setup(project_path, main_pack, upwards) == OK) {
+#ifdef TOOLS_ENABLED
 		found_project = true;
+#endif
 	} else {
 
 #ifdef TOOLS_ENABLED
@@ -784,7 +788,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			memdelete(sdr);
 		} else {
 			script_debugger = sdr;
-			sdr->set_allow_focus_steal_pid(allow_focus_steal_pid);
 		}
 	} else if (debug_mode == "local") {
 
@@ -922,13 +925,12 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		OS::get_singleton()->_allow_hidpi = GLOBAL_DEF("display/window/dpi/allow_hidpi", false);
 	}
 
-	OS::get_singleton()->_allow_layered = GLOBAL_DEF("display/window/allow_per_pixel_transparency", false);
-
 	video_mode.use_vsync = GLOBAL_DEF("display/window/vsync/use_vsync", true);
 	OS::get_singleton()->_use_vsync = video_mode.use_vsync;
 
-	video_mode.layered = GLOBAL_DEF("display/window/per_pixel_transparency", false);
-	video_mode.layered_splash = GLOBAL_DEF("display/window/per_pixel_transparency_splash", false);
+	OS::get_singleton()->_allow_layered = GLOBAL_DEF("display/window/per_pixel_transparency/allowed", false);
+	video_mode.layered = GLOBAL_DEF("display/window/per_pixel_transparency/enabled", false);
+	video_mode.layered_splash = GLOBAL_DEF("display/window/per_pixel_transparency/splash", false);
 
 	GLOBAL_DEF("rendering/quality/intended_usage/framebuffer_allocation", 2);
 	GLOBAL_DEF("rendering/quality/intended_usage/framebuffer_allocation.mobile", 3);
@@ -1126,6 +1128,10 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 		OS::get_singleton()->set_window_always_on_top(true);
 	}
 
+	if (allow_focus_steal_pid) {
+		OS::get_singleton()->enable_for_stealing_focus(allow_focus_steal_pid);
+	}
+
 	register_server_types();
 
 	MAIN_PRINT("Main: Load Remaps");
@@ -1144,8 +1150,8 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 		if (boot_logo_path != String()) {
 			boot_logo.instance();
-			Error err = ImageLoader::load_image(boot_logo_path, boot_logo);
-			if (err)
+			Error load_err = ImageLoader::load_image(boot_logo_path, boot_logo);
+			if (load_err)
 				ERR_PRINTS("Non-existing or invalid boot splash at: " + boot_logo_path + ". Loading default splash.");
 		}
 
@@ -1273,7 +1279,9 @@ bool Main::start() {
 	bool hasicon = false;
 	String doc_tool;
 	List<String> removal_docs;
+#ifdef TOOLS_ENABLED
 	bool doc_base = true;
+#endif
 	String game_path;
 	String script;
 	String test;
@@ -1286,9 +1294,11 @@ bool Main::start() {
 	List<String> args = OS::get_singleton()->get_cmdline_args();
 	for (int i = 0; i < args.size(); i++) {
 		//parameters that do not have an argument to the right
-		if (args[i] == "--no-docbase") {
-			doc_base = false;
+		if (args[i] == "--check-only") {
+			check_only = true;
 #ifdef TOOLS_ENABLED
+		} else if (args[i] == "--no-docbase") {
+			doc_base = false;
 		} else if (args[i] == "-e" || args[i] == "--editor") {
 			editor = true;
 		} else if (args[i] == "-p" || args[i] == "--project-manager") {
@@ -1296,8 +1306,6 @@ bool Main::start() {
 #endif
 		} else if (args[i].length() && args[i][0] != '-' && game_path == "") {
 			game_path = args[i];
-		} else if (args[i] == "--check-only") {
-			check_only = true;
 		}
 		//parameters that have an argument to the right
 		else if (i < (args.size() - 1)) {
@@ -1543,8 +1551,8 @@ bool Main::start() {
 						Ref<PackedScene> ps = res;
 						n = ps->instance();
 					} else if (res->is_class("Script")) {
-						Ref<Script> s = res;
-						StringName ibt = s->get_instance_base_type();
+						Ref<Script> script_res = res;
+						StringName ibt = script_res->get_instance_base_type();
 						bool valid_type = ClassDB::is_parent_class(ibt, "Node");
 						ERR_EXPLAIN("Script does not inherit a Node: " + path);
 						ERR_CONTINUE(!valid_type);
@@ -1555,7 +1563,7 @@ bool Main::start() {
 						ERR_CONTINUE(obj == NULL);
 
 						n = Object::cast_to<Node>(obj);
-						n->set_script(s.get_ref_ptr());
+						n->set_script(script_res.get_ref_ptr());
 					}
 
 					ERR_EXPLAIN("Path in autoload not a node or script: " + path);
