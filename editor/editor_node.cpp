@@ -1017,6 +1017,35 @@ bool EditorNode::_validate_scene_recursive(const String &p_filename, Node *p_nod
 	return false;
 }
 
+static bool _find_edited_resources(const Ref<Resource> &p_resource, Set<Ref<Resource> > &edited_resources) {
+
+	if (p_resource->is_edited()) {
+		edited_resources.insert(p_resource);
+		return true;
+	}
+
+	List<PropertyInfo> plist;
+
+	p_resource->get_property_list(&plist);
+
+	for (List<PropertyInfo>::Element *E = plist.front(); E; E = E->next()) {
+		if (E->get().type == Variant::OBJECT && E->get().usage & PROPERTY_USAGE_STORAGE && !(E->get().usage & PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT)) {
+			RES res = p_resource->get(E->get().name);
+			if (res.is_null()) {
+				continue;
+			}
+			if (res->get_path().is_resource_file()) { //not a subresource, continue
+				continue;
+			}
+			if (_find_edited_resources(res, edited_resources)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 void EditorNode::_save_scene(String p_file, int idx) {
 
 	Node *scene = editor_data.get_edited_scene_root(idx);
@@ -1080,15 +1109,27 @@ void EditorNode::_save_scene(String p_file, int idx) {
 	//_save_edited_subresources(scene, processed, flg);
 	{ //instead, just find globally unsaved subresources and save them
 
+		Set<Ref<Resource> > edited_subresources;
+
 		List<Ref<Resource> > cached;
 		ResourceCache::get_cached_resources(&cached);
 		for (List<Ref<Resource> >::Element *E = cached.front(); E; E = E->next()) {
 
 			Ref<Resource> res = E->get();
-			if (res->is_edited() && res->get_path().is_resource_file()) {
+			if (!res->get_path().is_resource_file())
+				continue;
+			//not only check if this resourec is edited, check contained subresources too
+			if (_find_edited_resources(res, edited_subresources)) {
 				ResourceSaver::save(res->get_path(), res, flg);
-				res->set_edited(false);
 			}
+		}
+
+		// clear later, because user may have put the same subresource in two different resources,
+		// which will be shared until the next reload
+
+		for (Set<Ref<Resource> >::Element *E = edited_subresources.front(); E; E = E->next()) {
+			Ref<Resource> res = E->get();
+			res->set_edited(false);
 		}
 	}
 
@@ -3632,6 +3673,8 @@ void EditorNode::_save_docks_to_config(Ref<ConfigFile> p_layout, const String &p
 	}
 
 	p_layout->set_value(p_section, "dock_filesystem_split", filesystem_dock->get_split_offset());
+	p_layout->set_value(p_section, "dock_filesystem_display_mode", filesystem_dock->get_display_mode());
+	p_layout->set_value(p_section, "dock_filesystem_file_list_display_mode", filesystem_dock->get_file_list_display_mode());
 
 	for (int i = 0; i < vsplits.size(); i++) {
 
@@ -3819,6 +3862,17 @@ void EditorNode::_load_docks_from_config(Ref<ConfigFile> p_layout, const String 
 	int fs_split_ofs = 0;
 	if (p_layout->has_section_key(p_section, "dock_filesystem_split")) {
 		fs_split_ofs = p_layout->get_value(p_section, "dock_filesystem_split");
+		filesystem_dock->set_split_offset(fs_split_ofs);
+	}
+
+	if (p_layout->has_section_key(p_section, "dock_filesystem_display_mode")) {
+		FileSystemDock::DisplayMode dock_filesystem_display_mode = FileSystemDock::DisplayMode(int(p_layout->get_value(p_section, "dock_filesystem_display_mode")));
+		filesystem_dock->set_display_mode(dock_filesystem_display_mode);
+	}
+
+	if (p_layout->has_section_key(p_section, "dock_filesystem_file_list_display_mode")) {
+		FileSystemDock::FileListDisplayMode dock_filesystem_file_list_display_mode = FileSystemDock::FileListDisplayMode(int(p_layout->get_value(p_section, "dock_filesystem_file_list_display_mode")));
+		filesystem_dock->set_file_list_display_mode(dock_filesystem_file_list_display_mode);
 	}
 	filesystem_dock->set_split_offset(fs_split_ofs);
 
@@ -5580,9 +5634,10 @@ EditorNode::EditorNode() {
 	node_dock = memnew(NodeDock);
 
 	filesystem_dock = memnew(FileSystemDock(this));
-	filesystem_dock->set_file_list_display_mode(int(EditorSettings::get_singleton()->get("docks/filesystem/files_display_mode")));
 	filesystem_dock->connect("open", this, "open_request");
+	filesystem_dock->set_file_list_display_mode(FileSystemDock::FILE_LIST_DISPLAY_LIST);
 	filesystem_dock->connect("instance", this, "_instance_request");
+	filesystem_dock->connect("display_mode_changed", this, "_save_docks");
 
 	// Scene: Top left
 	dock_slot[DOCK_SLOT_LEFT_UR]->add_child(scene_tree_dock);

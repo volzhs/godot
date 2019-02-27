@@ -54,8 +54,6 @@ GLuint RasterizerStorageGLES2::system_fbo = 0;
 
 #define _EXT_TEXTURE_CUBE_MAP_SEAMLESS 0x884F
 
-#define _DEPTH_COMPONENT24_OES 0x81A6
-
 #define _RED_OES 0x1903
 
 void RasterizerStorageGLES2::bind_quad_array() const {
@@ -4309,11 +4307,8 @@ void RasterizerStorageGLES2::_render_target_allocate(RenderTarget *rt) {
 	glGenTextures(1, &rt->depth);
 	glBindTexture(GL_TEXTURE_2D, rt->depth);
 
-#ifdef JAVASCRIPT_ENABLED
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, rt->width, rt->height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
-#else
-	glTexImage2D(GL_TEXTURE_2D, 0, _DEPTH_COMPONENT24_OES, rt->width, rt->height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
-#endif
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -4536,15 +4531,17 @@ RID RasterizerStorageGLES2::canvas_light_shadow_buffer_create(int p_width) {
 	glGenFramebuffers(1, &cls->fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, cls->fbo);
 
-	glGenRenderbuffers(1, &cls->depth);
-	glBindRenderbuffer(GL_RENDERBUFFER, cls->depth);
-#ifdef JAVASCRIPT_ENABLED
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, cls->size, cls->height);
-#else
-	glRenderbufferStorage(GL_RENDERBUFFER, _DEPTH_COMPONENT24_OES, cls->size, cls->height);
-#endif
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, cls->depth);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glGenTextures(1, &cls->depth);
+	glBindTexture(GL_TEXTURE_2D, cls->depth);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, cls->size, cls->height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, cls->depth, 0);
 
 	glGenTextures(1, &cls->distance);
 	glBindTexture(GL_TEXTURE_2D, cls->distance);
@@ -4909,7 +4906,7 @@ bool RasterizerStorageGLES2::free(RID p_rid) {
 
 		CanvasLightShadow *cls = canvas_light_shadow_owner.get(p_rid);
 		glDeleteFramebuffers(1, &cls->fbo);
-		glDeleteRenderbuffers(1, &cls->depth);
+		glDeleteTextures(1, &cls->depth);
 		glDeleteTextures(1, &cls->distance);
 		canvas_light_shadow_owner.free(p_rid);
 		memdelete(cls);
@@ -4921,6 +4918,9 @@ bool RasterizerStorageGLES2::free(RID p_rid) {
 }
 
 bool RasterizerStorageGLES2::has_os_feature(const String &p_feature) const {
+
+	if (p_feature == "pvrtc")
+		return config.pvrtc_supported;
 
 	if (p_feature == "s3tc")
 		return config.s3tc_supported;
@@ -4971,12 +4971,14 @@ void RasterizerStorageGLES2::initialize() {
 #ifdef GLES_OVER_GL
 	config.float_texture_supported = true;
 	config.s3tc_supported = true;
+	config.pvrtc_supported = false;
 	config.etc1_supported = false;
 	config.support_npot_repeat_mipmap = true;
 #else
 	config.float_texture_supported = config.extensions.has("GL_ARB_texture_float") || config.extensions.has("GL_OES_texture_float");
 	config.s3tc_supported = config.extensions.has("GL_EXT_texture_compression_s3tc") || config.extensions.has("WEBGL_compressed_texture_s3tc");
 	config.etc1_supported = config.extensions.has("GL_OES_compressed_ETC1_RGB8_texture") || config.extensions.has("WEBGL_compressed_texture_etc1");
+	config.pvrtc_supported = config.extensions.has("IMG_texture_compression_pvrtc");
 	config.support_npot_repeat_mipmap = config.extensions.has("GL_OES_texture_npot");
 
 #endif
