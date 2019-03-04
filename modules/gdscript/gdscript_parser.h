@@ -533,6 +533,8 @@ private:
 	int error_line;
 	int error_column;
 	bool check_types;
+	bool dependencies_only;
+	List<String> dependencies;
 #ifdef DEBUG_ENABLED
 	Set<int> *safe_lines;
 #endif // DEBUG_ENABLED
@@ -605,7 +607,7 @@ private:
 	Variant::Operator _get_variant_operation(const OperatorNode::Operator &p_op) const;
 	bool _get_function_signature(DataType &p_base_type, const StringName &p_function, DataType &r_return_type, List<DataType> &r_arg_types, int &r_default_arg_count, bool &r_static, bool &r_vararg) const;
 	bool _get_member_type(const DataType &p_base_type, const StringName &p_member, DataType &r_member_type) const;
-	bool _is_type_compatible(const DataType &p_container, const DataType &p_expression, bool p_allow_implicit_conversion = false) const;
+	bool _is_type_compatible(const DataType &p_container, const DataType &p_expression) const;
 
 	DataType _reduce_node_type(Node *p_node);
 	DataType _reduce_function_call_type(const OperatorNode *p_call);
@@ -634,7 +636,7 @@ public:
 #ifdef DEBUG_ENABLED
 	const List<GDScriptWarning> &get_warnings() const { return warnings; }
 #endif // DEBUG_ENABLED
-	Error parse(const String &p_code, const String &p_base_path = "", bool p_just_validate = false, const String &p_self_path = "", bool p_for_completion = false, Set<int> *r_safe_lines = NULL);
+	Error parse(const String &p_code, const String &p_base_path = "", bool p_just_validate = false, const String &p_self_path = "", bool p_for_completion = false, Set<int> *r_safe_lines = NULL, bool p_dependencies_only = false);
 	Error parse_bytecode(const Vector<uint8_t> &p_bytecode, const String &p_base_path = "", const String &p_self_path = "");
 
 	bool is_tool_script() const;
@@ -652,6 +654,8 @@ public:
 	FunctionNode *get_completion_function();
 	int get_completion_argument_index();
 	int get_completion_identifier_is_function();
+
+	const List<String> &get_dependencies() const { return dependencies; }
 
 	void clear();
 	GDScriptParser();

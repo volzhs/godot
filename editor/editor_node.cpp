@@ -4850,6 +4850,7 @@ void EditorNode::_print_handler(void *p_this, const String &p_string, bool p_err
 
 EditorNode::EditorNode() {
 
+	Input::get_singleton()->set_use_accumulated_input(true);
 	Resource::_get_local_scene_func = _resource_get_edited_scene;
 
 	VisualServer::get_singleton()->textures_keep_original(true);
@@ -5659,7 +5660,6 @@ EditorNode::EditorNode() {
 
 	filesystem_dock = memnew(FileSystemDock(this));
 	filesystem_dock->connect("open", this, "open_request");
-	filesystem_dock->set_file_list_display_mode(FileSystemDock::FILE_LIST_DISPLAY_LIST);
 	filesystem_dock->connect("instance", this, "_instance_request");
 	filesystem_dock->connect("display_mode_changed", this, "_save_docks");
 
