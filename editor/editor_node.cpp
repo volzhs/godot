@@ -619,7 +619,11 @@ void EditorNode::save_resource_in_path(const Ref<Resource> &p_resource, const St
 	Error err = ResourceSaver::save(path, p_resource, flg | ResourceSaver::FLAG_REPLACE_SUBRESOURCE_PATHS);
 
 	if (err != OK) {
-		show_accept(TTR("Error saving resource!"), TTR("OK"));
+		if (ResourceLoader::is_imported(p_resource->get_path())) {
+			show_accept(TTR("Imported resources can't be saved."), TTR("OK"));
+		} else {
+			show_accept(TTR("Error saving resource!"), TTR("OK"));
+		}
 		return;
 	}
 
@@ -638,6 +642,18 @@ void EditorNode::save_resource(const Ref<Resource> &p_resource) {
 }
 
 void EditorNode::save_resource_as(const Ref<Resource> &p_resource, const String &p_at_path) {
+
+	{
+		String path = p_resource->get_path();
+		int srpos = path.find("::");
+		if (srpos != -1) {
+			String base = path.substr(0, srpos);
+			if (!get_edited_scene() || get_edited_scene()->get_filename() != base) {
+				show_warning(TTR("This resource can't be saved because it does not belong to the edited scene. Make it unique first."));
+				return;
+			}
+		}
+	}
 
 	file->set_mode(EditorFileDialog::MODE_SAVE_FILE);
 	saving_resource = p_resource;
@@ -1444,7 +1460,7 @@ void EditorNode::edit_item(Object *p_object) {
 		_set_editing_top_editors(p_object);
 		_display_top_editors(true);
 	} else {
-		_hide_top_editors();
+		hide_top_editors();
 	}
 }
 
@@ -1482,7 +1498,7 @@ void EditorNode::_save_default_environment() {
 	}
 }
 
-void EditorNode::_hide_top_editors() {
+void EditorNode::hide_top_editors() {
 
 	_display_top_editors(false);
 
@@ -1659,7 +1675,7 @@ void EditorNode::_edit_current() {
 
 		} else if (!editor_plugins_over->get_plugins_list().empty()) {
 
-			_hide_top_editors();
+			hide_top_editors();
 		}
 	}
 
@@ -5888,6 +5904,8 @@ EditorNode::EditorNode() {
 	add_editor_plugin(memnew(SkeletonEditorPlugin(this)));
 	add_editor_plugin(memnew(SkeletonIKEditorPlugin(this)));
 	add_editor_plugin(memnew(PhysicalBonePlugin(this)));
+	add_editor_plugin(memnew(MeshEditorPlugin(this)));
+	add_editor_plugin(memnew(MaterialEditorPlugin(this)));
 
 	for (int i = 0; i < EditorPlugins::get_plugin_count(); i++)
 		add_editor_plugin(EditorPlugins::create(i, this));
