@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  random_pcg.cpp                                                       */
+/*  GodotInstrumentation.java                                            */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,28 +28,23 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "random_pcg.h"
+package org.godotengine.godot;
 
-#include "core/os/os.h"
+import android.app.Instrumentation;
+import android.content.Intent;
+import android.os.Bundle;
 
-RandomPCG::RandomPCG(uint64_t p_seed, uint64_t p_inc) :
-		pcg() {
-	pcg.inc = p_inc;
-	seed(p_seed);
-}
+public class GodotInstrumentation extends Instrumentation {
+	private Intent intent;
 
-void RandomPCG::randomize() {
-	seed(OS::get_singleton()->get_ticks_usec() * pcg.state + PCG_DEFAULT_INC_64);
-}
+	@Override
+	public void onCreate(Bundle arguments) {
+		intent = arguments.getParcelable("intent");
+		start();
+	}
 
-double RandomPCG::random(double p_from, double p_to) {
-	unsigned int r = rand();
-	double ret = (double)r / (double)RANDOM_MAX;
-	return (ret) * (p_to - p_from) + p_from;
-}
-
-float RandomPCG::random(float p_from, float p_to) {
-	unsigned int r = rand();
-	float ret = (float)r / (float)RANDOM_MAX;
-	return (ret) * (p_to - p_from) + p_from;
+	@Override
+	public void onStart() {
+		startActivitySync(intent);
+	}
 }
