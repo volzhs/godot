@@ -54,12 +54,14 @@
 # Raphael Nogueira Campos <raphaelncampos@gmail.com>, 2019.
 # Dimenicius <vinicius.costa.92@gmail.com>, 2019.
 # Davi <wokep.ma.wavid@gmail.com>, 2019.
+# Endrick Gustavo <endrickgb@hotmail.com>, 2019.
+# Hans M. Boron <hansmateusboron@gmail.com>, 2019.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: 2016-05-30\n"
-"PO-Revision-Date: 2019-03-12 15:26+0000\n"
-"Last-Translator: Davi <wokep.ma.wavid@gmail.com>\n"
+"PO-Revision-Date: 2019-04-08 10:35+0000\n"
+"Last-Translator: Hans M. Boron <hansmateusboron@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/"
 "godot-engine/godot/pt_BR/>\n"
 "Language: pt_BR\n"
@@ -67,7 +69,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 3.5.1\n"
+"X-Generator: Weblate 3.6-dev\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -170,9 +172,8 @@ msgid "Anim Change Call"
 msgstr "Alterar Chamada da Anim"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Change Animation Length"
-msgstr "Alterar Repetição da Animação"
+msgstr "Alterar Duração da Animação"
 
 #: editor/animation_track_editor.cpp
 #: editor/plugins/sprite_frames_editor_plugin.cpp
@@ -229,9 +230,8 @@ msgid "Anim Clips:"
 msgstr "Clipes de Animação:"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Change Track Path"
-msgstr "Alterar Valor do Vetor"
+msgstr "Alterar Valor do Trajeto"
 
 #: editor/animation_track_editor.cpp
 msgid "Toggle this track on/off."
@@ -258,9 +258,8 @@ msgid "Time (s): "
 msgstr "Tempo (s): "
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Toggle Track Enabled"
-msgstr "Habilitar Doppler"
+msgstr "Ligar/Desligar trilha"
 
 #: editor/animation_track_editor.cpp
 msgid "Continuous"
@@ -366,14 +365,13 @@ msgid "Anim Insert Key"
 msgstr "Inserir Chave na Anim"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Change Animation Step"
 msgstr "Alterar FPS da Animação"
 
 #: editor/animation_track_editor.cpp
 #, fuzzy
 msgid "Rearrange Tracks"
-msgstr "Reordenar Autoloads"
+msgstr "Reordenar Faixas"
 
 #: editor/animation_track_editor.cpp
 msgid "Transform tracks only apply to Spatial-based nodes."
@@ -406,9 +404,8 @@ msgid "Not possible to add a new track without a root"
 msgstr "Não é possível adicionar uma nova trilha sem uma raiz"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Add Bezier Track"
-msgstr "Adicionar Trilha"
+msgstr "Adicionar Trilha Bezier"
 
 #: editor/animation_track_editor.cpp
 msgid "Track path is invalid, so can't add a key."
@@ -424,7 +421,6 @@ msgid "Add Transform Track Key"
 msgstr "Trilha de transformação 3D"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Add Track Key"
 msgstr "Adicionar Trilha"
 
@@ -3925,7 +3921,7 @@ msgstr "Editar trilhas filtradas:"
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 msgid "Enable filtering"
-msgstr "Filhos editáveis"
+msgstr "Habilitar filtragem"
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "Toggle Autoplay"
@@ -5975,6 +5971,14 @@ msgstr "Depurar com o Editor Externo"
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Open Godot online documentation"
 msgstr "Abrir a documentação online da Godot"
+
+#: editor/plugins/script_editor_plugin.cpp
+msgid "Request Docs"
+msgstr ""
+
+#: editor/plugins/script_editor_plugin.cpp
+msgid "Help improve the Godot documentation by giving feedback"
+msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Search the reference documentation."

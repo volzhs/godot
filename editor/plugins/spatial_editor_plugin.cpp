@@ -1021,7 +1021,7 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 					}
 
 					_edit.mouse_pos = b->get_position();
-					_edit.snap = false;
+					_edit.snap = spatial_editor->is_snap_enabled();
 					_edit.mode = TRANSFORM_NONE;
 
 					//gizmo has priority over everything
@@ -1637,7 +1637,8 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 						surface->update();
 
 					} break;
-					default: {}
+					default: {
+					}
 				}
 			}
 
@@ -1704,7 +1705,8 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 
 			} break;
 
-			default: {}
+			default: {
+			}
 		}
 	}
 
@@ -1760,7 +1762,8 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 
 			} break;
 
-			default: {}
+			default: {
+			}
 		}
 	}
 
@@ -1772,7 +1775,7 @@ void SpatialEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 
 		if (ED_IS_SHORTCUT("spatial_editor/snap", p_event)) {
 			if (_edit.mode != TRANSFORM_NONE) {
-				_edit.snap = true;
+				_edit.snap = !_edit.snap;
 			}
 		}
 		if (ED_IS_SHORTCUT("spatial_editor/bottom_view", p_event)) {
@@ -2382,7 +2385,10 @@ void SpatialEditorViewport::_draw() {
 
 	if (cursor.region_select) {
 
-		VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(cursor.region_begin, cursor.region_end - cursor.region_begin), Color(0.7, 0.7, 1.0, 0.3));
+		VisualServer::get_singleton()->canvas_item_add_rect(
+				ci,
+				Rect2(cursor.region_begin, cursor.region_end - cursor.region_begin),
+				get_color("accent_color", "Editor") * Color(1, 1, 1, 0.375));
 	}
 
 	if (message_time > 0) {
@@ -2396,7 +2402,13 @@ void SpatialEditorViewport::_draw() {
 	if (_edit.mode == TRANSFORM_ROTATE) {
 
 		Point2 center = _point_to_screen(_edit.center);
-		VisualServer::get_singleton()->canvas_item_add_line(ci, _edit.mouse_pos, center, Color(0.4, 0.7, 1.0, 0.8));
+		VisualServer::get_singleton()->canvas_item_add_line(
+				ci,
+				_edit.mouse_pos,
+				center,
+				get_color("accent_color", "Editor") * Color(1, 1, 1, 0.6),
+				Math::round(2 * EDSCALE),
+				true);
 	}
 	if (previewing) {
 
@@ -3001,7 +3013,7 @@ void SpatialEditorViewport::set_state(const Dictionary &p_state) {
 			previewing = Object::cast_to<Camera>(pv);
 			previewing->connect("tree_exiting", this, "_preview_exited_scene");
 			VS::get_singleton()->viewport_attach_camera(viewport->get_viewport_rid(), previewing->get_camera()); //replace
-			view_menu->hide();
+			view_menu->set_disabled(true);
 			surface->update();
 			preview_camera->set_pressed(true);
 			preview_camera->show();
@@ -4170,9 +4182,13 @@ void SpatialEditor::set_state(const Dictionary &p_state) {
 
 	if (d.has("viewports")) {
 		Array vp = d["viewports"];
-		ERR_FAIL_COND(vp.size() > 4);
+		uint32_t vp_size = static_cast<uint32_t>(vp.size());
+		if (vp_size > VIEWPORTS_COUNT) {
+			WARN_PRINT("Ignoring superfluous viewport settings from spatial editor state.")
+			vp_size = VIEWPORTS_COUNT;
+		}
 
-		for (uint32_t i = 0; i < VIEWPORTS_COUNT; i++) {
+		for (uint32_t i = 0; i < vp_size; i++) {
 			viewports[i]->set_state(vp[i]);
 		}
 	}
