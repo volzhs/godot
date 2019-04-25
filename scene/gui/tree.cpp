@@ -2850,7 +2850,7 @@ void Tree::_notification(int p_what) {
 	if (p_what == NOTIFICATION_DRAG_BEGIN) {
 
 		single_select_defer = NULL;
-		if (cache.scroll_speed > 0 && get_rect().has_point(get_viewport()->get_mouse_position() - get_global_position())) {
+		if (cache.scroll_speed > 0) {
 			scrolling = true;
 			set_physics_process_internal(true);
 		}
@@ -2897,22 +2897,22 @@ void Tree::_notification(int p_what) {
 			}
 		}
 
-		if (scrolling) {
-			Point2 point = get_viewport()->get_mouse_position() - get_global_position();
-			if (point.x < cache.scroll_border) {
-				point.x -= cache.scroll_border;
-			} else if (point.x > get_size().width - cache.scroll_border) {
-				point.x -= get_size().width - cache.scroll_border;
-			} else {
-				point.x = 0;
+		Point2 mouse_position = get_viewport()->get_mouse_position() - get_global_position();
+		if (scrolling && get_rect().grow(cache.scroll_border).has_point(mouse_position)) {
+			Point2 point;
+
+			if ((ABS(mouse_position.x) < ABS(mouse_position.x - get_size().width)) && (ABS(mouse_position.x) < cache.scroll_border)) {
+				point.x = mouse_position.x - cache.scroll_border;
+			} else if (ABS(mouse_position.x - get_size().width) < cache.scroll_border) {
+				point.x = mouse_position.x - (get_size().width - cache.scroll_border);
 			}
-			if (point.y < cache.scroll_border) {
-				point.y -= cache.scroll_border;
-			} else if (point.y > get_size().height - cache.scroll_border) {
-				point.y -= get_size().height - cache.scroll_border;
-			} else {
-				point.y = 0;
+
+			if ((ABS(mouse_position.y) < ABS(mouse_position.y - get_size().height)) && (ABS(mouse_position.y) < cache.scroll_border)) {
+				point.y = mouse_position.y - cache.scroll_border;
+			} else if (ABS(mouse_position.y - get_size().height) < cache.scroll_border) {
+				point.y = mouse_position.y - (get_size().height - cache.scroll_border);
 			}
+
 			point *= cache.scroll_speed * get_physics_process_delta_time();
 			point += get_scroll();
 			h_scroll->set_value(point.x);
@@ -3388,10 +3388,13 @@ void Tree::ensure_cursor_is_visible() {
 	int h = compute_item_height(selected) + cache.vseparation;
 	int screenh = get_size().height - h_scroll->get_combined_minimum_size().height;
 
-	if (ofs + h > v_scroll->get_value() + screenh)
-		v_scroll->call_deferred("set_value", ofs - screenh + h);
-	else if (ofs < v_scroll->get_value())
+	if (h > screenh) { //screen size is too small, maybe it was not resized yet.
 		v_scroll->set_value(ofs);
+	} else if (ofs + h > v_scroll->get_value() + screenh) {
+		v_scroll->call_deferred("set_value", ofs - screenh + h);
+	} else if (ofs < v_scroll->get_value()) {
+		v_scroll->set_value(ofs);
+	}
 }
 
 int Tree::get_pressed_button() const {
@@ -3935,7 +3938,6 @@ Tree::Tree() {
 	cache.click_item = NULL;
 	cache.click_column = 0;
 	cache.hover_cell = -1;
-	cache.hover_index = -1;
 	last_keypress = 0;
 	focus_in_id = 0;
 

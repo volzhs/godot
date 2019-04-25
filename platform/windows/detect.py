@@ -196,6 +196,8 @@ def configure_msvc(env, manual_msvc_config):
     ## Compile/link flags
 
     env.AppendUnique(CCFLAGS=['/MT', '/Gd', '/GR', '/nologo'])
+    if int(env['MSVC_VERSION'].split('.')[0]) >= 14: #vs2015 and later
+        env.AppendUnique(CCFLAGS=['/utf-8'])
     env.AppendUnique(CXXFLAGS=['/TP']) # assume all sources are C++
     if manual_msvc_config: # should be automatic if SCons found it
         if os.getenv("WindowsSdkDir") is not None:
@@ -328,7 +330,7 @@ def configure_mingw(env):
     env.Append(CCFLAGS=['-DWASAPI_ENABLED'])
     env.Append(CCFLAGS=['-DWINMIDI_ENABLED'])
     env.Append(CCFLAGS=['-DWINVER=%s' % env['target_win_version'], '-D_WIN32_WINNT=%s' % env['target_win_version']])
-    env.Append(LIBS=['mingw32', 'opengl32', 'dsound', 'ole32', 'd3d9', 'winmm', 'gdi32', 'iphlpapi', 'shlwapi', 'wsock32', 'ws2_32', 'kernel32', 'oleaut32', 'dinput8', 'dxguid', 'ksuser', 'imm32', 'bcrypt','avrt'])
+    env.Append(LIBS=['mingw32', 'opengl32', 'dsound', 'ole32', 'd3d9', 'winmm', 'gdi32', 'iphlpapi', 'shlwapi', 'wsock32', 'ws2_32', 'kernel32', 'oleaut32', 'dinput8', 'dxguid', 'ksuser', 'imm32', 'bcrypt', 'avrt', 'uuid'])
 
     env.Append(CPPFLAGS=['-DMINGW_ENABLED'])
 

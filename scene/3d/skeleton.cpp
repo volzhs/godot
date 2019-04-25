@@ -540,10 +540,11 @@ void Skeleton::clear_bones() {
 void Skeleton::set_bone_pose(int p_bone, const Transform &p_pose) {
 
 	ERR_FAIL_INDEX(p_bone, bones.size());
-	ERR_FAIL_COND(!is_inside_tree());
 
 	bones.write[p_bone].pose = p_pose;
-	_make_dirty();
+	if (is_inside_tree()) {
+		_make_dirty();
+	}
 }
 Transform Skeleton::get_bone_pose(int p_bone) const {
 
@@ -771,6 +772,8 @@ void Skeleton::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_bone_rest", "bone_idx"), &Skeleton::get_bone_rest);
 	ClassDB::bind_method(D_METHOD("set_bone_rest", "bone_idx", "rest"), &Skeleton::set_bone_rest);
+
+	ClassDB::bind_method(D_METHOD("localize_rests"), &Skeleton::localize_rests);
 
 	ClassDB::bind_method(D_METHOD("set_bone_disable_rest", "bone_idx", "disable"), &Skeleton::set_bone_disable_rest);
 	ClassDB::bind_method(D_METHOD("is_bone_rest_disabled", "bone_idx"), &Skeleton::is_bone_rest_disabled);

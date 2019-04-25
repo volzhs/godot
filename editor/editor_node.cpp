@@ -47,6 +47,7 @@
 #include "core/translation.h"
 #include "core/version.h"
 #include "main/input_default.h"
+#include "main/main.h"
 #include "scene/resources/packed_scene.h"
 #include "servers/physics_2d_server.h"
 
@@ -65,6 +66,7 @@
 #include "editor/import/resource_importer_obj.h"
 #include "editor/import/resource_importer_scene.h"
 #include "editor/import/resource_importer_texture.h"
+#include "editor/import/resource_importer_texture_atlas.h"
 #include "editor/import/resource_importer_wav.h"
 #include "editor/plugins/animation_blend_space_1d_editor.h"
 #include "editor/plugins/animation_blend_space_2d_editor.h"
@@ -1306,6 +1308,7 @@ void EditorNode::_dialog_action(String p_file) {
 				_save_default_environment();
 				_save_scene_with_preview(p_file, scene_idx);
 				_add_to_recent_scenes(p_file);
+				save_layout();
 
 				if (scene_idx != -1)
 					_discard_changes();
@@ -2268,6 +2271,23 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 
 			OS::get_singleton()->shell_open(String("file://") + OS::get_singleton()->get_user_data_dir());
 		} break;
+		case FILE_INSTALL_ANDROID_SOURCE: {
+
+			if (p_confirmed) {
+				export_template_manager->install_android_template();
+			} else {
+				if (DirAccess::exists("res://android/build")) {
+					remove_android_build_template->popup_centered_minsize();
+				} else if (export_template_manager->can_install_android_template()) {
+					install_android_build_template->popup_centered_minsize();
+				} else {
+					custom_build_manage_templates->popup_centered_minsize();
+				}
+			}
+		} break;
+		case FILE_EXPLORE_ANDROID_BUILD_TEMPLATES: {
+			OS::get_singleton()->shell_open(String("file://") + ProjectSettings::get_singleton()->get_resource_path().plus_file("android"));
+		} break;
 		case FILE_QUIT:
 		case RUN_PROJECT_MANAGER: {
 
@@ -2521,6 +2541,7 @@ int EditorNode::_next_unsaved_scene(bool p_valid_filename, int p_start) {
 void EditorNode::_exit_editor() {
 	exiting = true;
 	resource_preview->stop(); //stop early to avoid crashes
+	_save_docks();
 	get_tree()->quit();
 }
 
@@ -4069,6 +4090,7 @@ void EditorNode::_load_open_scenes_from_config(Ref<ConfigFile> p_layout, const S
 	for (int i = 0; i < scenes.size(); i++) {
 		load_scene(scenes[i]);
 	}
+	save_layout();
 
 	restoring_scenes = false;
 }
@@ -4626,19 +4648,53 @@ void EditorNode::remove_tool_menu_item(const String &p_name) {
 void EditorNode::_dropped_files(const Vector<String> &p_files, int p_screen) {
 
 	String to_path = ProjectSettings::get_singleton()->globalize_path(get_filesystem_dock()->get_selected_path());
-	DirAccessRef dir = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 
+	_add_dropped_files_recursive(p_files, to_path);
+
+	EditorFileSystem::get_singleton()->scan_changes();
+}
+
+void EditorNode::_add_dropped_files_recursive(const Vector<String> &p_files, String to_path) {
+
+	DirAccessRef dir = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 	Vector<String> just_copy = String("ttf,otf").split(",");
+
 	for (int i = 0; i < p_files.size(); i++) {
 
 		String from = p_files[i];
+		String to = to_path.plus_file(from.get_file());
+
+		if (dir->dir_exists(from)) {
+
+			Vector<String> sub_files;
+
+			DirAccessRef sub_dir = DirAccess::open(from);
+			sub_dir->list_dir_begin();
+
+			String next_file = sub_dir->get_next();
+			while (next_file != "") {
+				if (next_file == "." || next_file == "..") {
+					next_file = sub_dir->get_next();
+					continue;
+				}
+
+				sub_files.push_back(from.plus_file(next_file));
+				next_file = sub_dir->get_next();
+			}
+
+			if (!sub_files.empty()) {
+				dir->make_dir(to);
+				_add_dropped_files_recursive(sub_files, to);
+			}
+
+			continue;
+		}
+
 		if (!ResourceFormatImporter::get_singleton()->can_be_imported(from) && (just_copy.find(from.get_extension().to_lower()) == -1)) {
 			continue;
 		}
-		String to = to_path.plus_file(from.get_file());
 		dir->copy(from, to);
 	}
-	EditorFileSystem::get_singleton()->scan_changes();
 }
 
 void EditorNode::_file_access_close_error_notify(const String &p_str) {
@@ -5006,6 +5062,68 @@ void EditorNode::_print_handler(void *p_this, const String &p_string, bool p_err
 	en->log->add_message(p_string, p_error ? EditorLog::MSG_TYPE_ERROR : EditorLog::MSG_TYPE_STD);
 }
 
+static void _execute_thread(void *p_ud) {
+
+	EditorNode::ExecuteThreadArgs *eta = (EditorNode::ExecuteThreadArgs *)p_ud;
+	Error err = OS::get_singleton()->execute(eta->path, eta->args, true, NULL, &eta->output, &eta->exitcode, true, eta->execute_output_mutex);
+	print_verbose("Thread exit status: " + itos(eta->exitcode));
+	if (err != OK) {
+		eta->exitcode = err;
+	}
+
+	eta->done = true;
+}
+
+int EditorNode::execute_and_show_output(const String &p_title, const String &p_path, const List<String> &p_arguments, bool p_close_on_ok, bool p_close_on_errors) {
+
+	execute_output_dialog->set_title(p_title);
+	execute_output_dialog->get_ok()->set_disabled(true);
+	execute_outputs->clear();
+	execute_outputs->set_scroll_follow(true);
+	execute_output_dialog->popup_centered_ratio();
+
+	ExecuteThreadArgs eta;
+	eta.path = p_path;
+	eta.args = p_arguments;
+	eta.execute_output_mutex = Mutex::create();
+	eta.exitcode = 255;
+	eta.done = false;
+
+	int prev_len = 0;
+
+	eta.execute_output_thread = Thread::create(_execute_thread, &eta);
+
+	ERR_FAIL_COND_V(!eta.execute_output_thread, 0);
+
+	while (!eta.done) {
+		eta.execute_output_mutex->lock();
+		if (prev_len != eta.output.length()) {
+			String to_add = eta.output.substr(prev_len, eta.output.length());
+			prev_len = eta.output.length();
+			execute_outputs->add_text(to_add);
+			Main::iteration();
+		}
+		eta.execute_output_mutex->unlock();
+		OS::get_singleton()->delay_usec(1000);
+	}
+
+	Thread::wait_to_finish(eta.execute_output_thread);
+	memdelete(eta.execute_output_thread);
+	memdelete(eta.execute_output_mutex);
+	execute_outputs->add_text("\nExit Code: " + itos(eta.exitcode));
+
+	if (p_close_on_errors && eta.exitcode != 0) {
+		execute_output_dialog->hide();
+	}
+	if (p_close_on_ok && eta.exitcode == 0) {
+		execute_output_dialog->hide();
+	}
+
+	execute_output_dialog->get_ok()->set_disabled(false);
+
+	return eta.exitcode;
+}
+
 EditorNode::EditorNode() {
 
 	Input::get_singleton()->set_use_accumulated_input(true);
@@ -5118,6 +5236,10 @@ EditorNode::EditorNode() {
 		Ref<ResourceImporterImage> import_image;
 		import_image.instance();
 		ResourceFormatImporter::get_singleton()->add_importer(import_image);
+
+		Ref<ResourceImporterTextureAtlas> import_texture_atlas;
+		import_texture_atlas.instance();
+		ResourceFormatImporter::get_singleton()->add_importer(import_texture_atlas);
 
 		Ref<ResourceImporterCSVTranslation> import_csv_translation;
 		import_csv_translation.instance();
@@ -5576,12 +5698,13 @@ EditorNode::EditorNode() {
 	tool_menu = memnew(PopupMenu);
 	tool_menu->set_name("Tools");
 	tool_menu->connect("index_pressed", this, "_tool_menu_option");
+	p->add_separator();
 	p->add_child(tool_menu);
 	p->add_submenu_item(TTR("Tools"), "Tools");
-	tool_menu->add_shortcut(ED_SHORTCUT("editor/orphan_resource_explorer", TTR("Orphan Resource Explorer")), TOOLS_ORPHAN_RESOURCES);
+	tool_menu->add_item(TTR("Orphan Resource Explorer"), TOOLS_ORPHAN_RESOURCES);
+	tool_menu->add_item(TTR("Open Project Data Folder"), RUN_PROJECT_DATA_FOLDER);
 	p->add_separator();
-
-	p->add_shortcut(ED_SHORTCUT("editor/open_project_data_folder", TTR("Open Project Data Folder")), RUN_PROJECT_DATA_FOLDER);
+	p->add_item(TTR("Install Android Build Template"), FILE_INSTALL_ANDROID_SOURCE);
 	p->add_separator();
 
 #ifdef OSX_ENABLED
@@ -5928,6 +6051,24 @@ EditorNode::EditorNode() {
 	save_confirmation->connect("confirmed", this, "_menu_confirm_current");
 	save_confirmation->connect("custom_action", this, "_discard_changes");
 
+	custom_build_manage_templates = memnew(ConfirmationDialog);
+	custom_build_manage_templates->set_text(TTR("Android build template is missing, please install relevant templates."));
+	custom_build_manage_templates->get_ok()->set_text(TTR("Manage Templates"));
+	custom_build_manage_templates->connect("confirmed", this, "_menu_option", varray(SETTINGS_MANAGE_EXPORT_TEMPLATES));
+	gui_base->add_child(custom_build_manage_templates);
+
+	install_android_build_template = memnew(ConfirmationDialog);
+	install_android_build_template->set_text(TTR("This will install the Android project for custom builds.\nNote that, in order to use it, it needs to be enabled per export preset."));
+	install_android_build_template->get_ok()->set_text(TTR("Install"));
+	install_android_build_template->connect("confirmed", this, "_menu_confirm_current");
+	gui_base->add_child(install_android_build_template);
+
+	remove_android_build_template = memnew(ConfirmationDialog);
+	remove_android_build_template->set_text(TTR("Android build template is already installed and it won't be overwritten.\nRemove the \"build\" directory manually before attempting this operation again."));
+	remove_android_build_template->get_ok()->set_text(TTR("Show in File Manager"));
+	remove_android_build_template->connect("confirmed", this, "_menu_option", varray(FILE_EXPLORE_ANDROID_BUILD_TEMPLATES));
+	gui_base->add_child(remove_android_build_template);
+
 	file_templates = memnew(EditorFileDialog);
 	file_templates->set_title(TTR("Import Templates From ZIP File"));
 
@@ -6141,6 +6282,12 @@ EditorNode::EditorNode() {
 	load_error_dialog->add_child(load_errors);
 	load_error_dialog->set_title(TTR("Load Errors"));
 	gui_base->add_child(load_error_dialog);
+
+	execute_outputs = memnew(RichTextLabel);
+	execute_output_dialog = memnew(AcceptDialog);
+	execute_output_dialog->add_child(execute_outputs);
+	execute_output_dialog->set_title(TTR(""));
+	gui_base->add_child(execute_output_dialog);
 
 	EditorFileSystem::get_singleton()->connect("sources_changed", this, "_sources_changed");
 	EditorFileSystem::get_singleton()->connect("filesystem_changed", this, "_fs_changed");

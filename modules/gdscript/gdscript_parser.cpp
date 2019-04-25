@@ -3690,6 +3690,11 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 						_add_warning(GDScriptWarning::FUNCTION_CONFLICTS_VARIABLE, -1, name);
 					}
 				}
+				for (int i = 0; i < p_class->subclasses.size(); i++) {
+					if (p_class->subclasses[i]->name == name) {
+						_add_warning(GDScriptWarning::FUNCTION_CONFLICTS_CONSTANT, -1, name);
+					}
+				}
 #endif // DEBUG_ENABLED
 
 				if (tokenizer->get_token() != GDScriptTokenizer::TK_PARENTHESIS_OPEN) {
@@ -4634,6 +4639,13 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 						return;
 					}
 				}
+
+				for (int i = 0; i < current_class->subclasses.size(); i++) {
+					if (current_class->subclasses[i]->name == member.identifier) {
+						_set_error("A class named '" + String(member.identifier) + "' already exists in this class (at line " + itos(current_class->subclasses[i]->line) + ").");
+						return;
+					}
+				}
 #ifdef DEBUG_ENABLED
 				for (int i = 0; i < current_class->functions.size(); i++) {
 					if (current_class->functions[i]->name == member.identifier) {
@@ -4878,6 +4890,13 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 					}
 				}
 
+				for (int i = 0; i < current_class->subclasses.size(); i++) {
+					if (current_class->subclasses[i]->name == const_id) {
+						_set_error("A class named '" + String(const_id) + "' already exists in this class (at line " + itos(current_class->subclasses[i]->line) + ").");
+						return;
+					}
+				}
+
 				tokenizer->advance();
 
 				if (tokenizer->get_token() == GDScriptTokenizer::TK_COLON) {
@@ -4944,6 +4963,13 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 						if (current_class->variables[i].identifier == enum_name) {
 							_set_error("A variable named '" + String(enum_name) + "' already exists in this class (at line: " +
 									   itos(current_class->variables[i].line) + ").");
+							return;
+						}
+					}
+
+					for (int i = 0; i < current_class->subclasses.size(); i++) {
+						if (current_class->subclasses[i]->name == enum_name) {
+							_set_error("A class named '" + String(enum_name) + "' already exists in this class (at line " + itos(current_class->subclasses[i]->line) + ").");
 							return;
 						}
 					}
@@ -5029,6 +5055,13 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 								if (current_class->variables[i].identifier == const_id) {
 									_set_error("A variable named '" + String(const_id) + "' already exists in this class (at line: " +
 											   itos(current_class->variables[i].line) + ").");
+									return;
+								}
+							}
+
+							for (int i = 0; i < current_class->subclasses.size(); i++) {
+								if (current_class->subclasses[i]->name == const_id) {
+									_set_error("A class named '" + String(const_id) + "' already exists in this class (at line " + itos(current_class->subclasses[i]->line) + ").");
 									return;
 								}
 							}
@@ -7625,6 +7658,11 @@ void GDScriptParser::_check_function_types(FunctionNode *p_function) {
 		if (p_function->arguments_usage[i] == 0 && !p_function->arguments[i].operator String().begins_with("_")) {
 			_add_warning(GDScriptWarning::UNUSED_ARGUMENT, p_function->line, p_function->name, p_function->arguments[i].operator String());
 		}
+		for (int j = 0; j < current_class->variables.size(); j++) {
+			if (current_class->variables[j].identifier == p_function->arguments[i]) {
+				_add_warning(GDScriptWarning::SHADOWED_VARIABLE, p_function->line, p_function->arguments[i], itos(current_class->variables[j].line));
+			}
+		}
 #endif // DEBUG_ENABLED
 	}
 
@@ -7698,6 +7736,17 @@ void GDScriptParser::_check_function_types(FunctionNode *p_function) {
 		p_function->return_type.has_type = false;
 		p_function->return_type.may_yield = true;
 	}
+
+#ifdef DEBUG_ENABLED
+	for (Map<StringName, LocalVarNode *>::Element *E = p_function->body->variables.front(); E; E = E->next()) {
+		LocalVarNode *lv = E->get();
+		for (int i = 0; i < current_class->variables.size(); i++) {
+			if (current_class->variables[i].identifier == lv->name) {
+				_add_warning(GDScriptWarning::SHADOWED_VARIABLE, lv->line, lv->name, itos(current_class->variables[i].line));
+			}
+		}
+	}
+#endif // DEBUG_ENABLED
 }
 
 void GDScriptParser::_check_class_blocks_types(ClassNode *p_class) {

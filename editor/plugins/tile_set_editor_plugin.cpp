@@ -1038,25 +1038,26 @@ void TileSetEditor::_on_workspace_overlay_draw() {
 		tileset->get_tile_list(tiles);
 		for (List<int>::Element *E = tiles->front(); E; E = E->next()) {
 			int t_id = E->get();
-			if (tileset->tile_get_texture(t_id)->get_rid() == current_texture_rid) {
-				Rect2i region = tileset->tile_get_region(t_id);
-				region.position += WORKSPACE_MARGIN;
-				region.position *= workspace->get_scale().x;
-				Color c;
-				if (tileset->tile_get_tile_mode(t_id) == TileSet::SINGLE_TILE)
-					c = COLOR_SINGLE;
-				else if (tileset->tile_get_tile_mode(t_id) == TileSet::AUTO_TILE)
-					c = COLOR_AUTOTILE;
-				else if (tileset->tile_get_tile_mode(t_id) == TileSet::ATLAS_TILE)
-					c = COLOR_ATLAS;
-				String tile_id_name = String::num(t_id, 0) + ": " + tileset->tile_get_name(t_id);
-				Ref<Font> font = get_font("font", "Label");
-				region.set_size(font->get_string_size(tile_id_name));
-				workspace_overlay->draw_rect(region, c);
-				region.position.y += region.size.y - 2;
-				c = Color(0.1, 0.1, 0.1);
-				workspace_overlay->draw_string(font, region.position, tile_id_name, c);
-			}
+			if (tileset->tile_get_texture(t_id)->get_rid() != current_texture_rid)
+				continue;
+
+			Rect2 region = tileset->tile_get_region(t_id);
+			region.position += WORKSPACE_MARGIN;
+			region.position *= workspace->get_scale().x;
+			Color c;
+			if (tileset->tile_get_tile_mode(t_id) == TileSet::SINGLE_TILE)
+				c = COLOR_SINGLE;
+			else if (tileset->tile_get_tile_mode(t_id) == TileSet::AUTO_TILE)
+				c = COLOR_AUTOTILE;
+			else if (tileset->tile_get_tile_mode(t_id) == TileSet::ATLAS_TILE)
+				c = COLOR_ATLAS;
+			String tile_id_name = String::num(t_id, 0) + ": " + tileset->tile_get_name(t_id);
+			Ref<Font> font = get_font("font", "Label");
+			region.set_size(font->get_string_size(tile_id_name));
+			workspace_overlay->draw_rect(region, c);
+			region.position.y += region.size.y - 2;
+			c = Color(0.1, 0.1, 0.1);
+			workspace_overlay->draw_string(font, region.position, tile_id_name, c);
 		}
 	}
 
@@ -1560,13 +1561,42 @@ void TileSetEditor::_on_workspace_input(const Ref<InputEvent> &p_ie) {
 							if (mb->is_pressed() && mb->get_button_index() == BUTTON_LEFT) {
 								_set_edited_collision_shape(Ref<ConvexPolygonShape2D>());
 								current_shape.resize(0);
-								current_shape.push_back(snap_point(shape_anchor));
-								current_shape.push_back(snap_point(shape_anchor + Vector2(current_tile_region.size.x, 0)));
-								current_shape.push_back(snap_point(shape_anchor + current_tile_region.size));
-								current_shape.push_back(snap_point(shape_anchor + Vector2(0, current_tile_region.size.y)));
-								close_shape(shape_anchor);
+								Vector2 pos = mb->get_position();
+								pos = snap_point(pos);
+								current_shape.push_back(pos);
+								current_shape.push_back(pos);
+								current_shape.push_back(pos);
+								current_shape.push_back(pos);
+								creating_shape = true;
 								workspace->update();
+								return;
 							} else if (mb->is_pressed() && mb->get_button_index() == BUTTON_RIGHT) {
+								if (creating_shape) {
+									creating_shape = false;
+									_select_edited_shape_coord();
+									workspace->update();
+								}
+							} else if (!mb->is_pressed() && mb->get_button_index() == BUTTON_LEFT) {
+								if (creating_shape) {
+									if ((current_shape[0] - current_shape[1]).length_squared() <= grab_threshold) {
+										current_shape.set(0, snap_point(shape_anchor));
+										current_shape.set(1, snap_point(shape_anchor + Vector2(current_tile_region.size.x, 0)));
+										current_shape.set(2, snap_point(shape_anchor + current_tile_region.size));
+										current_shape.set(3, snap_point(shape_anchor + Vector2(0, current_tile_region.size.y)));
+									}
+									close_shape(shape_anchor);
+									workspace->update();
+									return;
+								}
+							}
+						} else if (mm.is_valid()) {
+							if (creating_shape) {
+								Vector2 pos = mm->get_position();
+								pos = snap_point(pos);
+								Vector2 p = current_shape[2];
+								current_shape.set(3, snap_point(Vector2(pos.x, p.y)));
+								current_shape.set(0, snap_point(pos));
+								current_shape.set(1, snap_point(Vector2(p.x, pos.y)));
 								workspace->update();
 							}
 						}

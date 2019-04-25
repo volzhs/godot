@@ -521,6 +521,8 @@ void register_scene_types() {
 	ClassDB::register_class<VisualShaderNodeTransformUniform>();
 	ClassDB::register_class<VisualShaderNodeTextureUniform>();
 	ClassDB::register_class<VisualShaderNodeCubeMapUniform>();
+	ClassDB::register_class<VisualShaderNodeIf>();
+	ClassDB::register_class<VisualShaderNodeSwitch>();
 
 	ClassDB::register_class<ShaderMaterial>();
 	ClassDB::register_virtual_class<CanvasItem>();
@@ -633,6 +635,7 @@ void register_scene_types() {
 	ClassDB::register_class<StreamTexture>();
 	ClassDB::register_class<ImageTexture>();
 	ClassDB::register_class<AtlasTexture>();
+	ClassDB::register_class<MeshTexture>();
 	ClassDB::register_class<LargeTexture>();
 	ClassDB::register_class<CurveTexture>();
 	ClassDB::register_class<GradientTexture>();
