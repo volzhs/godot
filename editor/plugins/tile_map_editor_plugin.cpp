@@ -1934,13 +1934,13 @@ TileMapEditor::TileMapEditor(EditorNode *p_editor) {
 	toolbar->add_child(bucket_fill_button);
 
 	picker_button = memnew(ToolButton);
-	picker_button->set_shortcut(ED_SHORTCUT("tile_map_editor/pîck_tile", TTR("Pick Tile"), KEY_CONTROL));
+	picker_button->set_shortcut(ED_SHORTCUT("tile_map_editor/pick_tile", TTR("Pick Tile"), KEY_CONTROL));
 	picker_button->connect("pressed", this, "_button_tool_select", make_binds(TOOL_PICKING));
 	picker_button->set_toggle_mode(true);
 	toolbar->add_child(picker_button);
 
 	select_button = memnew(ToolButton);
-	select_button->set_shortcut(ED_SHORTCUT("tile_map_editor/pîck_tile", TTR("Select"), KEY_MASK_CMD + KEY_B));
+	select_button->set_shortcut(ED_SHORTCUT("tile_map_editor/select", TTR("Select"), KEY_MASK_CMD + KEY_B));
 	select_button->connect("pressed", this, "_button_tool_select", make_binds(TOOL_SELECTING));
 	select_button->set_toggle_mode(true);
 	toolbar->add_child(select_button);
@@ -1949,6 +1949,7 @@ TileMapEditor::TileMapEditor(EditorNode *p_editor) {
 
 	// Container to the right of the toolbar
 	toolbar_right = memnew(HBoxContainer);
+	toolbar_right->hide();
 	toolbar_right->set_h_size_flags(SIZE_EXPAND_FILL);
 	toolbar_right->set_alignment(BoxContainer::ALIGN_END);
 	CanvasItemEditor::get_singleton()->add_control_to_menu_panel(toolbar_right);
@@ -2045,10 +2046,12 @@ void TileMapEditorPlugin::make_visible(bool p_visible) {
 
 		tile_map_editor->show();
 		tile_map_editor->get_toolbar()->show();
+		tile_map_editor->get_toolbar_right()->show();
 	} else {
 
 		tile_map_editor->hide();
 		tile_map_editor->get_toolbar()->hide();
+		tile_map_editor->get_toolbar_right()->hide();
 		tile_map_editor->edit(NULL);
 	}
 }
