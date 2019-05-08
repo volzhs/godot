@@ -334,6 +334,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			Node *scene = edited_scene;
 
 			if (!scene) {
+				EditorNode::get_singleton()->close_current_scene();
 				EditorNode::get_singleton()->new_inherited_scene();
 				break;
 			}
@@ -2625,6 +2626,7 @@ SceneTreeDock::SceneTreeDock(EditorNode *p_editor, Node *p_scene_root, EditorSel
 	add_child(rename_dialog);
 
 	script_create_dialog = memnew(ScriptCreateDialog);
+	script_create_dialog->set_inheritance_base_type("Node");
 	add_child(script_create_dialog);
 	script_create_dialog->connect("script_created", this, "_script_created");
 

@@ -209,8 +209,8 @@ void ScriptEditorDebugger::debug_next() {
 	Array msg;
 	msg.push_back("next");
 	ppeer->put_var(msg);
+	_clear_execution();
 	stack_dump->clear();
-	inspector->edit(NULL);
 }
 void ScriptEditorDebugger::debug_step() {
 
@@ -221,8 +221,8 @@ void ScriptEditorDebugger::debug_step() {
 	Array msg;
 	msg.push_back("step");
 	ppeer->put_var(msg);
+	_clear_execution();
 	stack_dump->clear();
-	inspector->edit(NULL);
 }
 
 void ScriptEditorDebugger::debug_break() {
@@ -245,6 +245,7 @@ void ScriptEditorDebugger::debug_continue() {
 	OS::get_singleton()->enable_for_stealing_focus(EditorNode::get_singleton()->get_child_process_id());
 
 	Array msg;
+	_clear_execution();
 	msg.push_back("continue");
 	ppeer->put_var(msg);
 }
@@ -424,6 +425,7 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 	} else if (p_msg == "debug_exit") {
 
 		breaked = false;
+		_clear_execution();
 		copy->set_disabled(true);
 		step->set_disabled(true);
 		next->set_disabled(true);
@@ -436,7 +438,6 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 		emit_signal("breaked", false, false, Variant());
 		profiler->set_enabled(true);
 		profiler->disable_seeking();
-		inspector->edit(NULL);
 		EditorNode::get_singleton()->get_pause_button()->set_pressed(false);
 	} else if (p_msg == "message:click_ctrl") {
 
@@ -1273,6 +1274,18 @@ void ScriptEditorDebugger::_notification(int p_what) {
 	}
 }
 
+void ScriptEditorDebugger::_clear_execution() {
+	TreeItem *ti = stack_dump->get_selected();
+	if (!ti)
+		return;
+
+	Dictionary d = ti->get_metadata(0);
+
+	stack_script = ResourceLoader::load(d["file"]);
+	emit_signal("clear_execution", stack_script);
+	stack_script.unref();
+}
+
 void ScriptEditorDebugger::start() {
 
 	stop();
@@ -1313,6 +1326,7 @@ void ScriptEditorDebugger::stop() {
 
 	set_process(false);
 	breaked = false;
+	_clear_execution();
 
 	server->stop();
 	_clear_remote_objects();
@@ -1337,7 +1351,7 @@ void ScriptEditorDebugger::stop() {
 	profiler->set_enabled(true);
 
 	inspect_scene_tree->clear();
-
+	inspector->edit(NULL);
 	EditorNode::get_singleton()->get_pause_button()->set_pressed(false);
 	EditorNode::get_singleton()->get_pause_button()->set_disabled(true);
 	EditorNode::get_singleton()->get_scene_tree_dock()->hide_remote_tree();
@@ -1393,6 +1407,7 @@ void ScriptEditorDebugger::_stack_dump_frame_selected() {
 
 	stack_script = ResourceLoader::load(d["file"]);
 	emit_signal("goto_script_line", stack_script, int(d["line"]) - 1);
+	emit_signal("set_execution", stack_script, int(d["line"]) - 1);
 	stack_script.unref();
 
 	if (connection.is_valid() && connection->is_connected_to_host()) {
@@ -1966,6 +1981,8 @@ void ScriptEditorDebugger::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_scene_tree_property_value_edited"), &ScriptEditorDebugger::_scene_tree_property_value_edited);
 
 	ADD_SIGNAL(MethodInfo("goto_script_line"));
+	ADD_SIGNAL(MethodInfo("set_execution", PropertyInfo("script"), PropertyInfo(Variant::INT, "line")));
+	ADD_SIGNAL(MethodInfo("clear_execution", PropertyInfo("script")));
 	ADD_SIGNAL(MethodInfo("breaked", PropertyInfo(Variant::BOOL, "reallydid"), PropertyInfo(Variant::BOOL, "can_debug")));
 	ADD_SIGNAL(MethodInfo("show_debugger", PropertyInfo(Variant::BOOL, "reallydid")));
 }
