@@ -462,6 +462,7 @@ void FileSystemDock::_navigate_to_path(const String &p_path, bool p_select_in_fa
 	_update_tree(_compute_uncollapsed_paths(), false, p_select_in_favorites);
 	if (display_mode == DISPLAY_MODE_SPLIT) {
 		_update_file_list(false);
+		files->get_v_scroll()->set_value(0);
 	}
 
 	String file_name = p_path.get_file();
@@ -1489,6 +1490,15 @@ void FileSystemDock::_file_option(int p_option, const Vector<String> p_selected)
 		} break;
 
 		case FILE_OPEN: {
+			// Open folders
+			TreeItem *selected = tree->get_root();
+			selected = tree->get_next_selected(selected);
+			while (selected) {
+				if (p_selected.find(selected->get_metadata(0)) >= 0) {
+					selected->set_collapsed(false);
+				}
+				selected = tree->get_next_selected(selected);
+			}
 			// Open the file
 			for (int i = 0; i < p_selected.size(); i++) {
 				_select_file(p_selected[i]);
