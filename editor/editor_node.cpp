@@ -1015,8 +1015,7 @@ void EditorNode::_save_scene_with_preview(String p_file, int p_idx) {
 			y = (img->get_height() - size) / 2;
 
 			img->crop_from_point(x, y, size, size);
-			// We could get better pictures with better filters
-			img->resize(preview_size, preview_size, Image::INTERPOLATE_CUBIC);
+			img->resize(preview_size, preview_size, Image::INTERPOLATE_LANCZOS);
 		}
 		img->convert(Image::FORMAT_RGB8);
 
@@ -1956,6 +1955,9 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 					_scene_tab_closed(editor_data.get_edited_scene());
 			}
 
+			if (p_confirmed)
+				_menu_option_confirm(SCENE_TAB_CLOSE, true);
+
 		} break;
 		case FILE_CLOSE_ALL_AND_QUIT:
 		case FILE_CLOSE_ALL_AND_RUN_PROJECT_MANAGER:
@@ -2288,10 +2290,6 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 
 			project_settings->popup_project_settings();
 		} break;
-		case RUN_PROJECT_DATA_FOLDER: {
-
-			OS::get_singleton()->shell_open(String("file://") + OS::get_singleton()->get_user_data_dir());
-		} break;
 		case FILE_INSTALL_ANDROID_SOURCE: {
 
 			if (p_confirmed) {
@@ -2527,6 +2525,9 @@ void EditorNode::_tool_menu_option(int p_idx) {
 	switch (tool_menu->get_item_id(p_idx)) {
 		case TOOLS_ORPHAN_RESOURCES: {
 			orphan_resources->show();
+		} break;
+		case RUN_PROJECT_DATA_FOLDER: {
+			OS::get_singleton()->shell_open(String("file://") + OS::get_singleton()->get_user_data_dir());
 		} break;
 		case TOOLS_CUSTOM: {
 			if (tool_menu->get_item_submenu(p_idx) == "") {
@@ -5997,7 +5998,6 @@ EditorNode::EditorNode() {
 	node_dock = memnew(NodeDock);
 
 	filesystem_dock = memnew(FileSystemDock(this));
-	filesystem_dock->connect("open", this, "open_request");
 	filesystem_dock->connect("inherit", this, "_inherit_request");
 	filesystem_dock->connect("instance", this, "_instance_request");
 	filesystem_dock->connect("display_mode_changed", this, "_save_docks");

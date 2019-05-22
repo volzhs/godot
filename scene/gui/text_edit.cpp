@@ -292,6 +292,7 @@ void TextEdit::Text::insert(int p_at, const String &p_text) {
 	line.marked = false;
 	line.safe = false;
 	line.breakpoint = false;
+	line.bookmark = false;
 	line.hidden = false;
 	line.width_cache = -1;
 	line.wrap_amount_cache = -1;
@@ -346,7 +347,7 @@ void TextEdit::_update_scrollbars() {
 	if (line_numbers)
 		total_width += cache.line_number_w;
 
-	if (draw_breakpoint_gutter) {
+	if (draw_breakpoint_gutter || draw_bookmark_gutter) {
 		total_width += cache.breakpoint_gutter_width;
 	}
 
@@ -605,7 +606,7 @@ void TextEdit::_notification(int p_what) {
 				draw_caret = false;
 			}
 
-			if (draw_breakpoint_gutter) {
+			if (draw_breakpoint_gutter || draw_bookmark_gutter) {
 				breakpoint_gutter_width = (get_row_height() * 55) / 100;
 				cache.breakpoint_gutter_width = breakpoint_gutter_width;
 			} else {
@@ -954,6 +955,16 @@ void TextEdit::_notification(int p_what) {
 #endif
 						}
 
+						// draw bookmark marker
+						if (text.is_bookmark(line)) {
+							if (draw_bookmark_gutter) {
+								int vertical_gap = (get_row_height() * 40) / 100;
+								int horizontal_gap = (cache.breakpoint_gutter_width * 30) / 100;
+								int marker_radius = get_row_height() - (vertical_gap * 2);
+								VisualServer::get_singleton()->canvas_item_add_circle(ci, Point2(cache.style_normal->get_margin(MARGIN_LEFT) + horizontal_gap - 2 + marker_radius / 2, ofs_y + vertical_gap + marker_radius / 2), marker_radius, Color(cache.bookmark_color.r, cache.bookmark_color.g, cache.bookmark_color.b));
+							}
+						}
+
 						// draw breakpoint marker
 						if (text.is_breakpoint(line)) {
 							if (draw_breakpoint_gutter) {
@@ -1072,10 +1083,7 @@ void TextEdit::_notification(int p_what) {
 						}
 
 						if ((char_ofs + char_margin + char_w) >= xmargin_end) {
-							if (syntax_coloring)
-								continue;
-							else
-								break;
+							break;
 						}
 
 						bool in_search_result = false;
@@ -1253,6 +1261,11 @@ void TextEdit::_notification(int p_what) {
 						} else if (draw_tabs && str[j] == '\t') {
 							int yofs = (get_row_height() - cache.tab_icon->get_height()) / 2;
 							cache.tab_icon->draw(ci, Point2(char_ofs + char_margin + ofs_x, ofs_y + yofs), in_selection && override_selected_font_color ? cache.font_selected_color : color);
+						}
+
+						if (draw_spaces && str[j] == ' ') {
+							int yofs = (get_row_height() - cache.space_icon->get_height()) / 2;
+							cache.space_icon->draw(ci, Point2(char_ofs + char_margin + ofs_x, ofs_y + yofs), in_selection && override_selected_font_color ? cache.font_selected_color : color);
 						}
 
 						char_ofs += char_w;
@@ -3601,7 +3614,7 @@ void TextEdit::_insert_text(int p_line, int p_char, const String &p_text, int *r
 	op.chain_forward = false;
 	op.chain_backward = false;
 
-	//see if it shold just be set as current op
+	//see if it should just be set as current op
 	if (current_op.type != op.type) {
 		op.prev_version = get_version();
 		_push_current_op();
@@ -3652,7 +3665,7 @@ void TextEdit::_remove_text(int p_from_line, int p_from_column, int p_to_line, i
 	op.chain_forward = false;
 	op.chain_backward = false;
 
-	//see if it shold just be set as current op
+	//see if it should just be set as current op
 	if (current_op.type != op.type) {
 		op.prev_version = get_version();
 		_push_current_op();
@@ -4301,17 +4314,22 @@ Control::CursorShape TextEdit::get_cursor_shape(const Point2 &p_pos) const {
 void TextEdit::set_text(String p_text) {
 
 	setting_text = true;
-	_clear();
-	_insert_text_at_cursor(p_text);
-	clear_undo_history();
-	cursor.column = 0;
-	cursor.line = 0;
-	cursor.x_ofs = 0;
-	cursor.line_ofs = 0;
-	cursor.wrap_ofs = 0;
-	cursor.last_fit_x = 0;
-	cursor_set_line(0);
-	cursor_set_column(0);
+	if (!undo_enabled) {
+		_clear();
+		_insert_text_at_cursor(p_text);
+	}
+
+	if (undo_enabled) {
+		cursor_set_line(0);
+		cursor_set_column(0);
+
+		begin_complex_operation();
+		_remove_text(0, 0, MAX(0, get_line_count() - 1), MAX(get_line(MAX(get_line_count() - 1, 0)).size() - 1, 0));
+		_insert_text_at_cursor(p_text);
+		end_complex_operation();
+		selection.active = false;
+	}
+
 	update();
 	setting_text = false;
 
@@ -4497,6 +4515,7 @@ void TextEdit::_update_caches() {
 	cache.mark_color = get_color("mark_color");
 	cache.current_line_color = get_color("current_line_color");
 	cache.line_length_guideline_color = get_color("line_length_guideline_color");
+	cache.bookmark_color = get_color("bookmark_color");
 	cache.breakpoint_color = get_color("breakpoint_color");
 	cache.executing_line_color = get_color("executing_line_color");
 	cache.code_folding_color = get_color("code_folding_color");
@@ -4513,6 +4532,7 @@ void TextEdit::_update_caches() {
 #endif
 	cache.row_height = cache.font->get_height() + cache.line_spacing;
 	cache.tab_icon = get_icon("tab");
+	cache.space_icon = get_icon("space");
 	cache.folded_icon = get_icon("folded");
 	cache.can_fold_icon = get_icon("fold");
 	cache.folded_eol_icon = get_icon("GuiEllipsis", "EditorIcons");
@@ -5093,6 +5113,37 @@ void TextEdit::clear_executing_line() {
 	update();
 }
 
+bool TextEdit::is_line_set_as_bookmark(int p_line) const {
+
+	ERR_FAIL_INDEX_V(p_line, text.size(), false);
+	return text.is_bookmark(p_line);
+}
+
+void TextEdit::set_line_as_bookmark(int p_line, bool p_bookmark) {
+
+	ERR_FAIL_INDEX(p_line, text.size());
+	text.set_bookmark(p_line, p_bookmark);
+	update();
+}
+
+void TextEdit::get_bookmarks(List<int> *p_bookmarks) const {
+
+	for (int i = 0; i < text.size(); i++) {
+		if (text.is_bookmark(i))
+			p_bookmarks->push_back(i);
+	}
+}
+
+Array TextEdit::get_bookmarks_array() const {
+
+	Array arr;
+	for (int i = 0; i < text.size(); i++) {
+		if (text.is_bookmark(i))
+			arr.append(i);
+	}
+	return arr;
+}
+
 bool TextEdit::is_line_set_as_breakpoint(int p_line) const {
 
 	ERR_FAIL_INDEX_V(p_line, text.size(), false);
@@ -5649,6 +5700,16 @@ bool TextEdit::is_drawing_tabs() const {
 	return draw_tabs;
 }
 
+void TextEdit::set_draw_spaces(bool p_draw) {
+
+	draw_spaces = p_draw;
+}
+
+bool TextEdit::is_drawing_spaces() const {
+
+	return draw_spaces;
+}
+
 void TextEdit::set_override_selected_font_color(bool p_override_selected_font_color) {
 	override_selected_font_color = p_override_selected_font_color;
 }
@@ -6170,6 +6231,15 @@ void TextEdit::set_line_length_guideline_column(int p_column) {
 	update();
 }
 
+void TextEdit::set_bookmark_gutter_enabled(bool p_draw) {
+	draw_bookmark_gutter = p_draw;
+	update();
+}
+
+bool TextEdit::is_bookmark_gutter_enabled() const {
+	return draw_bookmark_gutter;
+}
+
 void TextEdit::set_breakpoint_gutter_enabled(bool p_draw) {
 	draw_breakpoint_gutter = p_draw;
 	update();
@@ -6382,6 +6452,8 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_show_line_numbers_enabled"), &TextEdit::is_show_line_numbers_enabled);
 	ClassDB::bind_method(D_METHOD("set_draw_tabs"), &TextEdit::set_draw_tabs);
 	ClassDB::bind_method(D_METHOD("is_drawing_tabs"), &TextEdit::is_drawing_tabs);
+	ClassDB::bind_method(D_METHOD("set_draw_spaces"), &TextEdit::set_draw_spaces);
+	ClassDB::bind_method(D_METHOD("is_drawing_spaces"), &TextEdit::is_drawing_spaces);
 	ClassDB::bind_method(D_METHOD("set_breakpoint_gutter_enabled", "enable"), &TextEdit::set_breakpoint_gutter_enabled);
 	ClassDB::bind_method(D_METHOD("is_breakpoint_gutter_enabled"), &TextEdit::is_breakpoint_gutter_enabled);
 	ClassDB::bind_method(D_METHOD("set_draw_fold_gutter"), &TextEdit::set_draw_fold_gutter);
@@ -6433,6 +6505,7 @@ void TextEdit::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "syntax_highlighting"), "set_syntax_coloring", "is_syntax_coloring_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "show_line_numbers"), "set_show_line_numbers", "is_show_line_numbers_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_tabs"), "set_draw_tabs", "is_drawing_tabs");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_spaces"), "set_draw_spaces", "is_drawing_spaces");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "breakpoint_gutter"), "set_breakpoint_gutter_enabled", "is_breakpoint_gutter_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "fold_gutter"), "set_draw_fold_gutter", "is_drawing_fold_gutter");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "highlight_all_occurrences"), "set_highlight_all_occurrences", "is_highlight_all_occurrences_enabled");
@@ -6474,6 +6547,7 @@ TextEdit::TextEdit() {
 
 	setting_row = false;
 	draw_tabs = false;
+	draw_spaces = false;
 	override_selected_font_color = false;
 	draw_caret = true;
 	max_chars = 0;
@@ -6562,6 +6636,7 @@ TextEdit::TextEdit() {
 	line_numbers_zero_padded = false;
 	line_length_guideline = false;
 	line_length_guideline_col = 80;
+	draw_bookmark_gutter = false;
 	draw_breakpoint_gutter = false;
 	draw_fold_gutter = false;
 	draw_info_gutter = false;
