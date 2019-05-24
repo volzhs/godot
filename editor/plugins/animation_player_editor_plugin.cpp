@@ -293,24 +293,39 @@ void AnimationPlayerEditor::_pause_pressed() {
 
 	//player->set_pause( pause->is_pressed() );
 }
+
+String AnimationPlayerEditor::_get_current_animation() const {
+
+	// when selecting an animation, the idea is that the only interesting behavior
+	// ui-wise is that it should play/blend the next one if currently playing
+	if (animation->get_selected() >= 0 && animation->get_selected() < animation->get_item_count()) {
+
+		return animation->get_item_text(animation->get_selected());
+	}
+
+	return "";
+}
+
 void AnimationPlayerEditor::_animation_selected(int p_which) {
 
 	if (updating)
 		return;
-	// when selecting an animation, the idea is that the only interesting behavior
-	// ui-wise is that it should play/blend the next one if currently playing
-	String current;
-	if (animation->get_selected() >= 0 && animation->get_selected() < animation->get_item_count()) {
 
-		current = animation->get_item_text(animation->get_selected());
-	}
+	_current_animation_updated();
+}
+
+void AnimationPlayerEditor::_current_animation_updated() {
+
+	String current = _get_current_animation();
 
 	if (current != "") {
+		Ref<Animation> anim = player->get_animation(current);
 
 		player->set_assigned_animation(current);
-
-		Ref<Animation> anim = player->get_animation(current);
 		{
+
+			if (!anim->is_connected("changed", this, "_current_animation_updated"))
+				anim->connect("changed", this, "_current_animation_updated");
 
 			track_editor->set_animation(anim);
 			Node *root = player->get_node(player->get_root());
@@ -1068,17 +1083,19 @@ void AnimationPlayerEditor::_list_changed() {
 		_update_player();
 }
 
-void AnimationPlayerEditor::_animation_key_editor_anim_len_changed(float p_len) {
-
-	frame->set_max(p_len);
-}
-
 void AnimationPlayerEditor::_animation_key_editor_anim_step_changed(float p_len) {
 
 	if (p_len)
 		frame->set_step(p_len);
 	else
 		frame->set_step(0.00001);
+
+	String current = _get_current_animation();
+
+	if (current != "") {
+		Ref<Animation> anim = player->get_animation(current);
+		anim->_change_notify("step");
+	}
 }
 
 void AnimationPlayerEditor::_animation_key_editor_seek(float p_pos, bool p_drag) {
@@ -1431,6 +1448,7 @@ void AnimationPlayerEditor::_prepare_onion_layers_2() {
 		new_state["show_rulers"] = false;
 		new_state["show_guides"] = false;
 		new_state["show_helpers"] = false;
+		new_state["show_zoom_control"] = false;
 		// TODO: Save/restore only affected entries
 		CanvasItemEditor::get_singleton()->set_state(new_state);
 	}
@@ -1483,7 +1501,7 @@ void AnimationPlayerEditor::_prepare_onion_layers_2() {
 		if (valid) {
 			player->seek(pos, true);
 			get_tree()->flush_transform_notifications(); // Needed for transforms of Spatials
-			values_backup.update_skeletons(); // Needed for Skeletons
+			values_backup.update_skeletons(); // Needed for Skeletons (2D & 3D)
 
 			VS::get_singleton()->viewport_set_active(onion.captures[cidx], true);
 			VS::get_singleton()->viewport_set_parent_viewport(root_vp, onion.captures[cidx]);
@@ -1557,6 +1575,7 @@ void AnimationPlayerEditor::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_autoplay_pressed"), &AnimationPlayerEditor::_autoplay_pressed);
 	ClassDB::bind_method(D_METHOD("_pause_pressed"), &AnimationPlayerEditor::_pause_pressed);
 	ClassDB::bind_method(D_METHOD("_animation_selected"), &AnimationPlayerEditor::_animation_selected);
+	ClassDB::bind_method(D_METHOD("_current_animation_updated"), &AnimationPlayerEditor::_current_animation_updated);
 	ClassDB::bind_method(D_METHOD("_animation_name_edited"), &AnimationPlayerEditor::_animation_name_edited);
 	ClassDB::bind_method(D_METHOD("_animation_new"), &AnimationPlayerEditor::_animation_new);
 	ClassDB::bind_method(D_METHOD("_animation_rename"), &AnimationPlayerEditor::_animation_rename);
@@ -1576,7 +1595,6 @@ void AnimationPlayerEditor::_bind_methods() {
 	//ClassDB::bind_method(D_METHOD("_editor_load_all"),&AnimationPlayerEditor::_editor_load_all);
 	ClassDB::bind_method(D_METHOD("_list_changed"), &AnimationPlayerEditor::_list_changed);
 	ClassDB::bind_method(D_METHOD("_animation_key_editor_seek"), &AnimationPlayerEditor::_animation_key_editor_seek);
-	ClassDB::bind_method(D_METHOD("_animation_key_editor_anim_len_changed"), &AnimationPlayerEditor::_animation_key_editor_anim_len_changed);
 	ClassDB::bind_method(D_METHOD("_animation_key_editor_anim_step_changed"), &AnimationPlayerEditor::_animation_key_editor_anim_step_changed);
 	ClassDB::bind_method(D_METHOD("_hide_anim_editors"), &AnimationPlayerEditor::_hide_anim_editors);
 	ClassDB::bind_method(D_METHOD("_animation_duplicate"), &AnimationPlayerEditor::_animation_duplicate);
@@ -1809,7 +1827,6 @@ AnimationPlayerEditor::AnimationPlayerEditor(EditorNode *p_editor, AnimationPlay
 	add_child(track_editor);
 	track_editor->set_v_size_flags(SIZE_EXPAND_FILL);
 	track_editor->connect("timeline_changed", this, "_animation_key_editor_seek");
-	track_editor->connect("animation_len_changed", this, "_animation_key_editor_anim_len_changed");
 	track_editor->connect("animation_step_changed", this, "_animation_key_editor_anim_step_changed");
 
 	_update_player();
