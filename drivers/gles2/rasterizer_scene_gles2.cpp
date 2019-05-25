@@ -1011,7 +1011,7 @@ void RasterizerSceneGLES2::_add_geometry_with_material(RasterizerStorageGLES2::G
 		has_alpha = false;
 	}
 
-	RenderList::Element *e = has_alpha ? render_list.add_alpha_element() : render_list.add_element();
+	RenderList::Element *e = (has_alpha || p_material->shader->spatial.no_depth_test) ? render_list.add_alpha_element() : render_list.add_element();
 
 	if (!e) {
 		return;
@@ -2695,6 +2695,7 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	Environment *env = NULL;
 
 	int viewport_width, viewport_height;
+	int viewport_x, viewport_y;
 	bool probe_interior = false;
 	bool reverse_cull = false;
 
@@ -2734,6 +2735,13 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 
 		viewport_width = storage->frame.current_rt->width;
 		viewport_height = storage->frame.current_rt->height;
+		viewport_x = storage->frame.current_rt->x;
+
+		if (storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_DIRECT_TO_SCREEN]) {
+			viewport_y = OS::get_singleton()->get_window_size().height - viewport_height - storage->frame.current_rt->y;
+		} else {
+			viewport_y = storage->frame.current_rt->y;
+		}
 	}
 
 	state.used_screen_texture = false;
@@ -2799,7 +2807,13 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	// other stuff
 
 	glBindFramebuffer(GL_FRAMEBUFFER, current_fb);
-	glViewport(0, 0, viewport_width, viewport_height);
+	glViewport(viewport_x, viewport_y, viewport_width, viewport_height);
+
+	if (storage->frame.current_rt && storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_DIRECT_TO_SCREEN]) {
+
+		glScissor(viewport_x, viewport_y, viewport_width, viewport_height);
+		glEnable(GL_SCISSOR_TEST);
+	}
 
 	glDepthFunc(GL_LEQUAL);
 	glDepthMask(GL_TRUE);
@@ -2834,6 +2848,10 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	if (storage->frame.current_rt && storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_DIRECT_TO_SCREEN]) {
+		glDisable(GL_SCISSOR_TEST);
+	}
+
 	glVertexAttrib4f(VS::ARRAY_COLOR, 1, 1, 1, 1);
 
 	glBlendEquation(GL_FUNC_ADD);
@@ -2860,13 +2878,6 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 		}
 	}
 
-	if (env && env->bg_mode == VS::ENV_BG_SKY && (!storage->frame.current_rt || !storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_TRANSPARENT])) {
-
-		if (sky && sky->panorama.is_valid()) {
-			_draw_sky(sky, p_cam_projection, cam_transform, false, env->sky_custom_fov, env->bg_energy, env->sky_orientation);
-		}
-	}
-
 	if (probe_interior) {
 		env_radiance_tex = 0; //do not use radiance texture on interiors
 		state.default_ambient = Color(0, 0, 0, 1); //black as default ambient for interior
@@ -2876,6 +2887,14 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	// render opaque things first
 	render_list.sort_by_key(false);
 	_render_render_list(render_list.elements, render_list.element_count, cam_transform, p_cam_projection, p_shadow_atlas, env, env_radiance_tex, 0.0, 0.0, reverse_cull, false, false);
+
+	// then draw the sky after
+	if (env && env->bg_mode == VS::ENV_BG_SKY && (!storage->frame.current_rt || !storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_TRANSPARENT])) {
+
+		if (sky && sky->panorama.is_valid()) {
+			_draw_sky(sky, p_cam_projection, cam_transform, false, env->sky_custom_fov, env->bg_energy, env->sky_orientation);
+		}
+	}
 
 	if (storage->frame.current_rt && state.used_screen_texture) {
 		//copy screen texture
