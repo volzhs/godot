@@ -518,6 +518,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			editor_data->get_undo_redo().add_do_method(editor_selection, "clear");
 
 			Node *dupsingle = NULL;
+			List<Node *> editable_children;
 
 			for (List<Node *>::Element *E = selection.front(); E; E = E->next()) {
 
@@ -529,6 +530,9 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 
 				Map<const Node *, Node *> duplimap;
 				Node *dup = node->duplicate_from_editor(duplimap);
+
+				if (EditorNode::get_singleton()->get_edited_scene()->is_editable_instance(node))
+					editable_children.push_back(dup);
 
 				ERR_CONTINUE(!dup);
 
@@ -561,6 +565,9 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 
 			if (dupsingle)
 				editor->push_item(dupsingle);
+
+			for (List<Node *>::Element *E = editable_children.front(); E; E = E->next())
+				_toggle_editable_children(E->get());
 
 		} break;
 		case TOOL_REPARENT: {
@@ -797,7 +804,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 						editable_instance_remove_dialog->popup_centered_minsize();
 						break;
 					}
-					_toggle_editable_children();
+					_toggle_editable_children(node);
 				}
 			}
 		} break;
@@ -1613,30 +1620,27 @@ void SceneTreeDock::_script_created(Ref<Script> p_script) {
 	_update_script_button();
 }
 
-void SceneTreeDock::_toggle_editable_children() {
+void SceneTreeDock::_toggle_editable_children_from_selection() {
+
 	List<Node *> selection = editor_selection->get_selected_node_list();
 	List<Node *>::Element *e = selection.front();
+
 	if (e) {
-		Node *node = e->get();
-		if (node) {
-			bool editable = EditorNode::get_singleton()->get_edited_scene()->is_editable_instance(node);
+		_toggle_editable_children(e->get());
+	}
+}
 
-			int editable_item_idx = menu->get_item_idx_from_text(TTR("Editable Children"));
-			int placeholder_item_idx = menu->get_item_idx_from_text(TTR("Load As Placeholder"));
-			editable = !editable;
+void SceneTreeDock::_toggle_editable_children(Node *p_node) {
 
-			EditorNode::get_singleton()->get_edited_scene()->set_editable_instance(node, editable);
+	if (p_node) {
+		bool editable = !EditorNode::get_singleton()->get_edited_scene()->is_editable_instance(p_node);
+		EditorNode::get_singleton()->get_edited_scene()->set_editable_instance(p_node, editable);
+		if (editable)
+			p_node->set_scene_instance_load_placeholder(false);
 
-			menu->set_item_checked(editable_item_idx, editable);
-			if (editable) {
-				node->set_scene_instance_load_placeholder(false);
-				menu->set_item_checked(placeholder_item_idx, false);
-			}
+		SpatialEditor::get_singleton()->update_all_gizmos(p_node);
 
-			SpatialEditor::get_singleton()->update_all_gizmos(node);
-
-			scene_tree->update_tree();
-		}
+		scene_tree->update_tree();
 	}
 }
 
@@ -1854,7 +1858,7 @@ void SceneTreeDock::_create() {
 	scene_tree->get_scene_tree()->call_deferred("grab_focus");
 }
 
-void SceneTreeDock::replace_node(Node *p_node, Node *p_by_node, bool p_keep_properties) {
+void SceneTreeDock::replace_node(Node *p_node, Node *p_by_node, bool p_keep_properties, bool p_remove_old) {
 
 	Node *n = p_node;
 	Node *newnode = p_by_node;
@@ -1918,16 +1922,20 @@ void SceneTreeDock::replace_node(Node *p_node, Node *p_by_node, bool p_keep_prop
 		Node *c = newnode->get_child(i);
 		c->call("set_transform", c->call("get_transform"));
 	}
-	editor_data->get_undo_redo().clear_history();
+	//p_remove_old was added to support undo
+	if (p_remove_old)
+		editor_data->get_undo_redo().clear_history();
 	newnode->set_name(newname);
 
 	editor->push_item(newnode);
 
-	memdelete(n);
+	if (p_remove_old) {
+		memdelete(n);
 
-	while (to_erase.front()) {
-		memdelete(to_erase.front()->get());
-		to_erase.pop_front();
+		while (to_erase.front()) {
+			memdelete(to_erase.front()->get());
+			to_erase.pop_front();
+		}
 	}
 }
 
@@ -2476,7 +2484,7 @@ void SceneTreeDock::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_input"), &SceneTreeDock::_input);
 	ClassDB::bind_method(D_METHOD("_nodes_drag_begin"), &SceneTreeDock::_nodes_drag_begin);
 	ClassDB::bind_method(D_METHOD("_delete_confirm"), &SceneTreeDock::_delete_confirm);
-	ClassDB::bind_method(D_METHOD("_toggle_editable_children"), &SceneTreeDock::_toggle_editable_children);
+	ClassDB::bind_method(D_METHOD("_toggle_editable_children_from_selection"), &SceneTreeDock::_toggle_editable_children_from_selection);
 	ClassDB::bind_method(D_METHOD("_node_prerenamed"), &SceneTreeDock::_node_prerenamed);
 	ClassDB::bind_method(D_METHOD("_import_subscene"), &SceneTreeDock::_import_subscene);
 	ClassDB::bind_method(D_METHOD("_selection_changed"), &SceneTreeDock::_selection_changed);
@@ -2496,6 +2504,7 @@ void SceneTreeDock::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_feature_profile_changed"), &SceneTreeDock::_feature_profile_changed);
 
 	ClassDB::bind_method(D_METHOD("instance"), &SceneTreeDock::instance);
+	ClassDB::bind_method(D_METHOD("replace_node"), &SceneTreeDock::replace_node);
 
 	ADD_SIGNAL(MethodInfo("remote_tree_selected"));
 }
@@ -2644,7 +2653,7 @@ SceneTreeDock::SceneTreeDock(EditorNode *p_editor, Node *p_scene_root, EditorSel
 
 	editable_instance_remove_dialog = memnew(ConfirmationDialog);
 	add_child(editable_instance_remove_dialog);
-	editable_instance_remove_dialog->connect("confirmed", this, "_toggle_editable_children");
+	editable_instance_remove_dialog->connect("confirmed", this, "_toggle_editable_children_from_selection");
 
 	import_subscene_dialog = memnew(EditorSubScene);
 	add_child(import_subscene_dialog);
