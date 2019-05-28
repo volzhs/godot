@@ -31,6 +31,7 @@
 #include "scene_tree_dock.h"
 
 #include "core/io/resource_saver.h"
+#include "core/os/input.h"
 #include "core/os/keyboard.h"
 #include "core/project_settings.h"
 
@@ -347,7 +348,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			if (!profile_allow_editing) {
 				break;
 			}
-			create_dialog->popup_create(false, true);
+			create_dialog->popup_create(false, true, scene_tree->get_selected()->get_class());
 		} break;
 		case TOOL_ATTACH_SCRIPT: {
 
@@ -1942,13 +1943,7 @@ void SceneTreeDock::set_selected(Node *p_node, bool p_emit_selected) {
 
 void SceneTreeDock::import_subscene() {
 
-	Size2 popup_size = Size2(500, 800) * editor_get_scale();
-	Size2 window_size = get_viewport_rect().size;
-
-	popup_size.x = MIN(window_size.x * 0.8, popup_size.x);
-	popup_size.y = MIN(window_size.y * 0.8, popup_size.y);
-
-	import_subscene_dialog->popup_centered(popup_size);
+	import_subscene_dialog->popup_centered_clamped(Size2(500, 800) * EDSCALE, 0.8);
 }
 
 void SceneTreeDock::_import_subscene() {
@@ -2132,7 +2127,7 @@ void SceneTreeDock::_nodes_dragged(Array p_nodes, NodePath p_to, int p_type) {
 	int to_pos = -1;
 
 	_normalize_drop(to_node, to_pos, p_type);
-	_do_reparent(to_node, to_pos, nodes, true);
+	_do_reparent(to_node, to_pos, nodes, !Input::get_singleton()->is_key_pressed(KEY_SHIFT));
 }
 
 void SceneTreeDock::_add_children_to_popup(Object *p_obj, int p_depth) {
