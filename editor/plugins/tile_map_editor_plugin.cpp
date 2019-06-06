@@ -299,9 +299,13 @@ void TileMapEditor::_set_cell(const Point2i &p_pos, Vector<int> p_values, bool p
 	Vector2 position;
 	int current = manual_palette->get_current();
 	if (current != -1) {
-		position = manual_palette->get_item_metadata(current);
+		if (tool != TOOL_PASTING) {
+			position = manual_palette->get_item_metadata(current);
+		} else {
+			position = p_autotile_coord;
+		}
 	} else {
-		// if there is no manual tile selected, that either means that
+		// If there is no manual tile selected, that either means that
 		// autotiling is enabled, or the given tile is not autotiling. Either
 		// way, the coordinate of the tile does not matter, so assigning it to
 		// the coordinate of the existing tile works fine.
@@ -309,7 +313,7 @@ void TileMapEditor::_set_cell(const Point2i &p_pos, Vector<int> p_values, bool p
 	}
 
 	if (p_value == prev_val && p_flip_h == prev_flip_h && p_flip_v == prev_flip_v && p_transpose == prev_transpose && prev_position == position)
-		return; //check that it's actually different
+		return; // Check that it's actually different.
 
 	for (int y = p_pos.y - 1; y <= p_pos.y + 1; y++) {
 		for (int x = p_pos.x - 1; x <= p_pos.x + 1; x++) {
@@ -322,21 +326,19 @@ void TileMapEditor::_set_cell(const Point2i &p_pos, Vector<int> p_values, bool p
 
 	node->_set_celld(p_pos, _create_cell_dictionary(p_value, p_flip_h, p_flip_v, p_transpose, p_autotile_coord));
 
+	if (tool == TOOL_PASTING)
+		return;
+
 	if (manual_autotile || (p_value != -1 && node->get_tileset()->tile_get_tile_mode(p_value) == TileSet::ATLAS_TILE)) {
 		if (current != -1) {
 			node->set_cell_autotile_coord(p_pos.x, p_pos.y, position);
-
-		} else if (tool != TOOL_PASTING && node->get_tileset()->tile_get_tile_mode(p_value) == TileSet::ATLAS_TILE && priority_atlastile) {
-
-			// BIND_CENTER is used to indicate that bitmask should not update for this tile cell
+		} else if (node->get_tileset()->tile_get_tile_mode(p_value) == TileSet::ATLAS_TILE && priority_atlastile) {
+			// BIND_CENTER is used to indicate that bitmask should not update for this tile cell.
 			node->get_tileset()->autotile_set_bitmask(p_value, Vector2(p_pos.x, p_pos.y), TileSet::BIND_CENTER);
 			node->update_cell_bitmask(p_pos.x, p_pos.y);
 		}
 	} else {
-		// manually placing tiles should not update bitmasks
-		if (tool != TOOL_PASTING) {
-			node->update_bitmask_area(Point2(p_pos));
-		}
+		node->update_bitmask_area(Point2(p_pos));
 	}
 }
 
@@ -396,6 +398,8 @@ void TileMapEditor::_update_palette() {
 
 	// Update the palette
 	Vector<int> selected = get_selected_tiles();
+	int selected_single = palette->get_current();
+	int selected_manual = manual_palette->get_current();
 	palette->clear();
 	manual_palette->clear();
 	manual_palette->hide();
@@ -503,7 +507,7 @@ void TileMapEditor::_update_palette() {
 	if (selected.get(0) != TileMap::INVALID_CELL) {
 		set_selected_tiles(selected);
 		sel_tile = selected.get(Math::rand() % selected.size());
-	} else {
+	} else if (palette->get_item_count() > 0) {
 		palette->select(0);
 	}
 
@@ -545,9 +549,10 @@ void TileMapEditor::_update_palette() {
 
 	if (manual_palette->get_item_count() > 0) {
 		// Only show the manual palette if at least tile exists in it
-		int selected2 = manual_palette->get_current();
-		if (selected2 == -1) selected2 = 0;
-		manual_palette->set_current(selected2);
+		if (selected_manual == -1 || selected_single != palette->get_current())
+			selected_manual = 0;
+		if (selected_manual < manual_palette->get_item_count())
+			manual_palette->set_current(selected_manual);
 		manual_palette->show();
 	}
 
@@ -759,15 +764,15 @@ void TileMapEditor::_draw_cell(Control *p_viewport, int p_cell, const Point2i &p
 	Rect2 r = node->get_tileset()->tile_get_region(p_cell);
 	if (node->get_tileset()->tile_get_tile_mode(p_cell) == TileSet::AUTO_TILE || node->get_tileset()->tile_get_tile_mode(p_cell) == TileSet::ATLAS_TILE) {
 		Vector2 offset;
-		int selected = manual_palette->get_current();
-		if ((manual_autotile || (node->get_tileset()->tile_get_tile_mode(p_cell) == TileSet::ATLAS_TILE && !priority_atlastile)) && selected != -1) {
-			offset = manual_palette->get_item_metadata(selected);
-		} else {
-			if (tool != TOOL_PASTING) {
-				offset = node->get_tileset()->autotile_get_icon_coordinate(p_cell);
+		if (tool != TOOL_PASTING) {
+			int selected = manual_palette->get_current();
+			if ((manual_autotile || (node->get_tileset()->tile_get_tile_mode(p_cell) == TileSet::ATLAS_TILE && !priority_atlastile)) && selected != -1) {
+				offset = manual_palette->get_item_metadata(selected);
 			} else {
-				offset = p_autotile_coord;
+				offset = node->get_tileset()->autotile_get_icon_coordinate(p_cell);
 			}
+		} else {
+			offset = p_autotile_coord;
 		}
 
 		int spacing = node->get_tileset()->autotile_get_spacing(p_cell);
@@ -810,10 +815,11 @@ void TileMapEditor::_draw_cell(Control *p_viewport, int p_cell, const Point2i &p
 	Color modulate = node->get_tileset()->tile_get_modulate(p_cell);
 	modulate.a = 0.5;
 
-	if (r.has_no_area())
+	if (r.has_no_area()) {
 		p_viewport->draw_texture_rect(t, rect, false, modulate, p_transpose);
-	else
+	} else {
 		p_viewport->draw_texture_rect_region(t, rect, r, modulate, p_transpose);
+	}
 }
 
 void TileMapEditor::_draw_fill_preview(Control *p_viewport, int p_cell, const Point2i &p_point, bool p_flip_h, bool p_flip_v, bool p_transpose, const Point2i p_autotile_coord, const Transform2D &p_xform) {
@@ -848,7 +854,6 @@ void TileMapEditor::_update_copydata() {
 			TileData tcd;
 
 			tcd.cell = node->get_cell(j, i);
-
 			if (tcd.cell != TileMap::INVALID_CELL) {
 				tcd.pos = Point2i(j, i);
 				tcd.flip_h = node->is_cell_x_flipped(j, i);
@@ -1980,31 +1985,31 @@ TileMapEditor::TileMapEditor(EditorNode *p_editor) {
 	p->connect("id_pressed", this, "_menu_option");
 
 	rotate_left_button = memnew(ToolButton);
-	rotate_left_button->set_tooltip(TTR("Rotate left"));
+	rotate_left_button->set_tooltip(TTR("Rotate Left"));
 	rotate_left_button->set_focus_mode(FOCUS_NONE);
 	rotate_left_button->connect("pressed", this, "_rotate", varray(-1));
 	tool_hb->add_child(rotate_left_button);
 
 	rotate_right_button = memnew(ToolButton);
-	rotate_right_button->set_tooltip(TTR("Rotate right"));
+	rotate_right_button->set_tooltip(TTR("Rotate Right"));
 	rotate_right_button->set_focus_mode(FOCUS_NONE);
 	rotate_right_button->connect("pressed", this, "_rotate", varray(1));
 	tool_hb->add_child(rotate_right_button);
 
 	flip_horizontal_button = memnew(ToolButton);
-	flip_horizontal_button->set_tooltip(TTR("Flip horizontally"));
+	flip_horizontal_button->set_tooltip(TTR("Flip Horizontally"));
 	flip_horizontal_button->set_focus_mode(FOCUS_NONE);
 	flip_horizontal_button->connect("pressed", this, "_flip_horizontal");
 	tool_hb->add_child(flip_horizontal_button);
 
 	flip_vertical_button = memnew(ToolButton);
-	flip_vertical_button->set_tooltip(TTR("Flip vertically"));
+	flip_vertical_button->set_tooltip(TTR("Flip Vertically"));
 	flip_vertical_button->set_focus_mode(FOCUS_NONE);
 	flip_vertical_button->connect("pressed", this, "_flip_vertical");
 	tool_hb->add_child(flip_vertical_button);
 
 	clear_transform_button = memnew(ToolButton);
-	clear_transform_button->set_tooltip(TTR("Clear transform"));
+	clear_transform_button->set_tooltip(TTR("Clear Transform"));
 	clear_transform_button->set_focus_mode(FOCUS_NONE);
 	clear_transform_button->connect("pressed", this, "_clear_transform");
 	tool_hb->add_child(clear_transform_button);
