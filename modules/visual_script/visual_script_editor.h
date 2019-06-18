@@ -266,6 +266,7 @@ public:
 	virtual void set_executing_line(int p_line);
 	virtual void clear_executing_line();
 	virtual void trim_trailing_whitespace();
+	virtual void insert_final_newline();
 	virtual void convert_indent_to_spaces();
 	virtual void convert_indent_to_tabs();
 	virtual void ensure_focus();
@@ -280,6 +281,7 @@ public:
 	virtual Control *get_edit_menu();
 	virtual void clear_edit_menu();
 	virtual bool can_lose_focus_on_node_selection() { return false; }
+	virtual void validate();
 
 	static void register_editor();
 

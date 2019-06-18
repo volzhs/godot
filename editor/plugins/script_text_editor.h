@@ -194,6 +194,7 @@ public:
 	virtual void set_edit_state(const Variant &p_state);
 	virtual void ensure_focus();
 	virtual void trim_trailing_whitespace();
+	virtual void insert_final_newline();
 	virtual void convert_indent_to_spaces();
 	virtual void convert_indent_to_tabs();
 	virtual void tag_saved_version();
@@ -218,6 +219,8 @@ public:
 	Control *get_edit_menu();
 	virtual void clear_edit_menu();
 	static void register_editor();
+
+	virtual void validate();
 
 	ScriptTextEditor();
 };

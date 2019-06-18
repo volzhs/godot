@@ -104,7 +104,6 @@ public:
 		bool maximized;
 		bool always_on_top;
 		bool use_vsync;
-		bool layered_splash;
 		bool layered;
 		float get_aspect() const { return (float)width / (float)height; }
 		VideoMode(int p_width = 1024, int p_height = 600, bool p_fullscreen = false, bool p_resizable = true, bool p_borderless_window = false, bool p_maximized = false, bool p_always_on_top = false, bool p_use_vsync = false) {
@@ -117,7 +116,6 @@ public:
 			always_on_top = p_always_on_top;
 			use_vsync = p_use_vsync;
 			layered = false;
-			layered_splash = false;
 		}
 	};
 
@@ -207,8 +205,12 @@ public:
 	virtual int get_screen_dpi(int p_screen = -1) const { return 72; }
 	virtual Point2 get_window_position() const { return Vector2(); }
 	virtual void set_window_position(const Point2 &p_position) {}
+	virtual Size2 get_max_window_size() const { return Size2(); };
+	virtual Size2 get_min_window_size() const { return Size2(); };
 	virtual Size2 get_window_size() const = 0;
 	virtual Size2 get_real_window_size() const { return get_window_size(); }
+	virtual void set_min_window_size(const Size2 p_size) {}
+	virtual void set_max_window_size(const Size2 p_size) {}
 	virtual void set_window_size(const Size2 p_size) {}
 	virtual void set_window_fullscreen(bool p_enabled) {}
 	virtual bool is_window_fullscreen() const { return true; }

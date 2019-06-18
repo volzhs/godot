@@ -267,10 +267,23 @@ static CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeSt
 
 - (void)windowDidEnterFullScreen:(NSNotification *)notification {
 	OS_OSX::singleton->zoomed = true;
+
+	[OS_OSX::singleton->window_object setContentMinSize:NSMakeSize(0, 0)];
+	[OS_OSX::singleton->window_object setContentMaxSize:NSMakeSize(FLT_MAX, FLT_MAX)];
 }
 
 - (void)windowDidExitFullScreen:(NSNotification *)notification {
 	OS_OSX::singleton->zoomed = false;
+
+	if (OS_OSX::singleton->min_size != Size2()) {
+		Size2 size = OS_OSX::singleton->min_size / OS_OSX::singleton->_display_scale();
+		[OS_OSX::singleton->window_object setContentMinSize:NSMakeSize(size.x, size.y)];
+	}
+	if (OS_OSX::singleton->max_size != Size2()) {
+		Size2 size = OS_OSX::singleton->max_size / OS_OSX::singleton->_display_scale();
+		[OS_OSX::singleton->window_object setContentMaxSize:NSMakeSize(size.x, size.y)];
+	}
+
 	if (!OS_OSX::singleton->resizable)
 		[OS_OSX::singleton->window_object setStyleMask:[OS_OSX::singleton->window_object styleMask] & ~NSWindowStyleMaskResizable];
 }
@@ -1002,7 +1015,7 @@ static const _KeyCodeMap _keycodes[55] = {
 	{ '/', KEY_SLASH }
 };
 
-static int remapKey(unsigned int key) {
+static int remapKey(unsigned int key, unsigned int state) {
 
 	if (isNumpadKey(key))
 		return translateKey(key);
@@ -1024,7 +1037,7 @@ static int remapKey(unsigned int key) {
 	OSStatus err = UCKeyTranslate(keyboardLayout,
 			key,
 			kUCKeyActionDisplay,
-			0,
+			(state >> 8) & 0xFF,
 			LMGetKbdType(),
 			kUCKeyTranslateNoDeadKeysBit,
 			&keysDown,
@@ -1051,7 +1064,7 @@ static int remapKey(unsigned int key) {
 		NSString *characters = [event characters];
 		NSUInteger length = [characters length];
 
-		if (!OS_OSX::singleton->im_active && length > 0 && keycode_has_unicode(remapKey([event keyCode]))) {
+		if (!OS_OSX::singleton->im_active && length > 0 && keycode_has_unicode(remapKey([event keyCode], [event modifierFlags]))) {
 			// Fallback unicode character handler used if IME is not active
 			for (NSUInteger i = 0; i < length; i++) {
 				OS_OSX::KeyEvent ke;
@@ -1059,7 +1072,7 @@ static int remapKey(unsigned int key) {
 				ke.osx_state = [event modifierFlags];
 				ke.pressed = true;
 				ke.echo = [event isARepeat];
-				ke.scancode = remapKey([event keyCode]);
+				ke.scancode = remapKey([event keyCode], [event modifierFlags]);
 				ke.raw = true;
 				ke.unicode = [characters characterAtIndex:i];
 
@@ -1071,7 +1084,7 @@ static int remapKey(unsigned int key) {
 			ke.osx_state = [event modifierFlags];
 			ke.pressed = true;
 			ke.echo = [event isARepeat];
-			ke.scancode = remapKey([event keyCode]);
+			ke.scancode = remapKey([event keyCode], [event modifierFlags]);
 			ke.raw = false;
 			ke.unicode = 0;
 
@@ -1129,7 +1142,7 @@ static int remapKey(unsigned int key) {
 		}
 
 		ke.osx_state = mod;
-		ke.scancode = remapKey(key);
+		ke.scancode = remapKey(key, mod);
 		ke.unicode = 0;
 
 		push_to_key_event_buffer(ke);
@@ -1144,14 +1157,14 @@ static int remapKey(unsigned int key) {
 		NSUInteger length = [characters length];
 
 		// Fallback unicode character handler used if IME is not active
-		if (!OS_OSX::singleton->im_active && length > 0 && keycode_has_unicode(remapKey([event keyCode]))) {
+		if (!OS_OSX::singleton->im_active && length > 0 && keycode_has_unicode(remapKey([event keyCode], [event modifierFlags]))) {
 			for (NSUInteger i = 0; i < length; i++) {
 				OS_OSX::KeyEvent ke;
 
 				ke.osx_state = [event modifierFlags];
 				ke.pressed = false;
 				ke.echo = [event isARepeat];
-				ke.scancode = remapKey([event keyCode]);
+				ke.scancode = remapKey([event keyCode], [event modifierFlags]);
 				ke.raw = true;
 				ke.unicode = [characters characterAtIndex:i];
 
@@ -1163,7 +1176,7 @@ static int remapKey(unsigned int key) {
 			ke.osx_state = [event modifierFlags];
 			ke.pressed = false;
 			ke.echo = [event isARepeat];
-			ke.scancode = remapKey([event keyCode]);
+			ke.scancode = remapKey([event keyCode], [event modifierFlags]);
 			ke.raw = true;
 			ke.unicode = 0;
 
@@ -1542,6 +1555,8 @@ Error OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 	visual_server->init();
 	AudioDriverManager::initialize(p_audio_driver);
 
+	camera_server = memnew(CameraOSX);
+
 	input = memnew(InputDefault);
 	joypad_osx = memnew(JoypadOSX);
 
@@ -1551,7 +1566,7 @@ Error OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 
 	restore_rect = Rect2(get_window_position(), get_window_size());
 
-	if (p_desired.layered_splash) {
+	if (p_desired.layered) {
 		set_window_per_pixel_transparency_enabled(true);
 	}
 	return OK;
@@ -1572,6 +1587,11 @@ void OS_OSX::finalize() {
 	CGDisplayRemoveReconfigurationCallback(displays_arrangement_changed, NULL);
 
 	delete_main_loop();
+
+	if (camera_server) {
+		memdelete(camera_server);
+		camera_server = NULL;
+	}
 
 	memdelete(joypad_osx);
 	memdelete(input);
@@ -2350,6 +2370,46 @@ Size2 OS_OSX::get_real_window_size() const {
 	return Size2(frame.size.width, frame.size.height) * _display_scale();
 }
 
+Size2 OS_OSX::get_max_window_size() const {
+	return max_size;
+}
+
+Size2 OS_OSX::get_min_window_size() const {
+	return min_size;
+}
+
+void OS_OSX::set_min_window_size(const Size2 p_size) {
+
+	if ((p_size != Size2()) && (max_size != Size2()) && ((p_size.x > max_size.x) || (p_size.y > max_size.y))) {
+		WARN_PRINT("Minimum window size can't be larger than maximum window size!");
+		return;
+	}
+	min_size = p_size;
+
+	if ((min_size != Size2()) && !zoomed) {
+		Size2 size = min_size / _display_scale();
+		[window_object setContentMinSize:NSMakeSize(size.x, size.y)];
+	} else {
+		[window_object setContentMinSize:NSMakeSize(0, 0)];
+	}
+}
+
+void OS_OSX::set_max_window_size(const Size2 p_size) {
+
+	if ((p_size != Size2()) && ((p_size.x < min_size.x) || (p_size.y < min_size.y))) {
+		WARN_PRINT("Maximum window size can't be smaller than minimum window size!");
+		return;
+	}
+	max_size = p_size;
+
+	if ((max_size != Size2()) && !zoomed) {
+		Size2 size = max_size / _display_scale();
+		[window_object setContentMaxSize:NSMakeSize(size.x, size.y)];
+	} else {
+		[window_object setContentMaxSize:NSMakeSize(FLT_MAX, FLT_MAX)];
+	}
+}
+
 void OS_OSX::set_window_size(const Size2 p_size) {
 
 	Size2 size = p_size / _display_scale();
@@ -2379,6 +2439,19 @@ void OS_OSX::set_window_fullscreen(bool p_enabled) {
 			set_window_per_pixel_transparency_enabled(false);
 		if (!resizable)
 			[window_object setStyleMask:[window_object styleMask] | NSWindowStyleMaskResizable];
+		if (p_enabled) {
+			[window_object setContentMinSize:NSMakeSize(0, 0)];
+			[window_object setContentMaxSize:NSMakeSize(FLT_MAX, FLT_MAX)];
+		} else {
+			if (min_size != Size2()) {
+				Size2 size = min_size / _display_scale();
+				[window_object setContentMinSize:NSMakeSize(size.x, size.y)];
+			}
+			if (max_size != Size2()) {
+				Size2 size = max_size / _display_scale();
+				[window_object setContentMaxSize:NSMakeSize(size.x, size.y)];
+			}
+		}
 		[window_object toggleFullScreen:nil];
 	}
 	zoomed = p_enabled;

@@ -731,6 +731,8 @@ Vector2 CanvasItemEditor::_position_to_anchor(const Control *p_control, Vector2 
 	ERR_FAIL_COND_V(!p_control, Vector2());
 
 	Rect2 parent_rect = p_control->get_parent_anchorable_rect();
+	ERR_FAIL_COND_V(parent_rect.size.x == 0, Vector2());
+	ERR_FAIL_COND_V(parent_rect.size.y == 0, Vector2());
 
 	return (p_control->get_transform().xform(position) - parent_rect.position) / parent_rect.size;
 }
@@ -1081,7 +1083,7 @@ bool CanvasItemEditor::_gui_input_zoom_or_pan(const Ref<InputEvent> &p_event) {
 			if (b->is_pressed() &&
 					(b->get_button_index() == BUTTON_MIDDLE ||
 							(b->get_button_index() == BUTTON_LEFT && tool == TOOL_PAN) ||
-							(b->get_button_index() == BUTTON_LEFT && !EditorSettings::get_singleton()->get("editors/2d/simple_spacebar_panning") && Input::get_singleton()->is_key_pressed(KEY_SPACE)))) {
+							(b->get_button_index() == BUTTON_LEFT && !EditorSettings::get_singleton()->get("editors/2d/simple_panning") && pan_pressed))) {
 				// Pan the viewport
 				panning = true;
 			}
@@ -1097,7 +1099,9 @@ bool CanvasItemEditor::_gui_input_zoom_or_pan(const Ref<InputEvent> &p_event) {
 
 	Ref<InputEventKey> k = p_event;
 	if (k.is_valid()) {
-		if (k->get_scancode() == KEY_SPACE && (EditorSettings::get_singleton()->get("editors/2d/simple_spacebar_panning") || drag_type != DRAG_NONE)) {
+		bool is_pan_key = pan_view_shortcut.is_valid() && pan_view_shortcut->is_shortcut(p_event);
+
+		if (is_pan_key && (EditorSettings::get_singleton()->get("editors/2d/simple_panning") || drag_type != DRAG_NONE)) {
 			if (!panning) {
 				if (k->is_pressed() && !k->is_echo()) {
 					//Pan the viewport
@@ -1110,6 +1114,9 @@ bool CanvasItemEditor::_gui_input_zoom_or_pan(const Ref<InputEvent> &p_event) {
 				}
 			}
 		}
+
+		if (is_pan_key)
+			pan_pressed = k->is_pressed();
 	}
 
 	Ref<InputEventMouseMotion> m = p_event;
@@ -2214,7 +2221,7 @@ bool CanvasItemEditor::_gui_input_hover(const Ref<InputEvent> &p_event) {
 void CanvasItemEditor::_gui_input_viewport(const Ref<InputEvent> &p_event) {
 	bool accepted = false;
 
-	if (EditorSettings::get_singleton()->get("editors/2d/simple_spacebar_panning") || !Input::get_singleton()->is_key_pressed(KEY_SPACE)) {
+	if (EditorSettings::get_singleton()->get("editors/2d/simple_panning") || !pan_pressed) {
 		if ((accepted = _gui_input_rulers_and_guides(p_event))) {
 			//printf("Rulers and guides\n");
 		} else if ((accepted = editor->get_editor_plugins_over()->forward_gui_input(p_event))) {
@@ -3343,9 +3350,6 @@ void CanvasItemEditor::_notification(int p_what) {
 			presets_menu->set_visible(true);
 			anchor_mode_button->set_visible(true);
 
-			// Set the pressed state of the node
-			anchor_mode_button->set_pressed(anchors_mode);
-
 			// Disable if the selected node is child of a container
 			if (has_container_parents) {
 				presets_menu->set_disabled(true);
@@ -3516,6 +3520,7 @@ void CanvasItemEditor::_selection_changed() {
 		}
 	}
 	anchors_mode = (nbValidControls == nbAnchorsMode);
+	anchor_mode_button->set_pressed(anchors_mode);
 }
 
 void CanvasItemEditor::edit(CanvasItem *p_canvas_item) {
@@ -3737,6 +3742,7 @@ void CanvasItemEditor::_set_anchors_and_margins_preset(Control::LayoutPreset p_p
 	undo_redo->commit_action();
 
 	anchors_mode = false;
+	anchor_mode_button->set_pressed(anchors_mode);
 }
 
 void CanvasItemEditor::_set_anchors_and_margins_to_keep_ratio() {
@@ -3761,6 +3767,7 @@ void CanvasItemEditor::_set_anchors_and_margins_to_keep_ratio() {
 			undo_redo->add_undo_method(control, "set_meta", "_edit_use_anchors_", use_anchors);
 
 			anchors_mode = true;
+			anchor_mode_button->set_pressed(anchors_mode);
 		}
 	}
 
@@ -3907,7 +3914,6 @@ void CanvasItemEditor::_button_toggle_anchor_mode(bool p_status) {
 	}
 
 	anchors_mode = p_status;
-
 	viewport->update();
 }
 
@@ -4780,6 +4786,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	dragged_guide_pos = Point2();
 	dragged_guide_index = -1;
 	panning = false;
+	pan_pressed = false;
 
 	bone_last_frame = 0;
 
@@ -5129,6 +5136,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 
 	multiply_grid_step_shortcut = ED_SHORTCUT("canvas_item_editor/multiply_grid_step", TTR("Multiply grid step by 2"), KEY_KP_MULTIPLY);
 	divide_grid_step_shortcut = ED_SHORTCUT("canvas_item_editor/divide_grid_step", TTR("Divide grid step by 2"), KEY_KP_DIVIDE);
+	pan_view_shortcut = ED_SHORTCUT("canvas_item_editor/pan_view", TTR("Pan View"), KEY_SPACE);
 
 	skeleton_menu->get_popup()->set_item_checked(skeleton_menu->get_popup()->get_item_index(SKELETON_SHOW_BONES), true);
 	singleton = this;

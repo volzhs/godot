@@ -195,6 +195,7 @@ protected:
 
 public:
 	void trim_trailing_whitespace();
+	void insert_final_newline();
 
 	void convert_indent_to_spaces();
 	void convert_indent_to_tabs();
@@ -240,6 +241,8 @@ public:
 	void remove_all_bookmarks();
 
 	void set_code_complete_func(CodeTextEditorCodeCompleteFunc p_code_complete_func, void *p_ud);
+
+	void validate_script();
 
 	CodeTextEditor();
 };
