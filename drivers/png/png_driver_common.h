@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  root_motion_view.h                                                   */
+/*  png_driver_common.h                                                  */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,51 +28,21 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef ROOT_MOTION_VIEW_H
-#define ROOT_MOTION_VIEW_H
+#ifndef PNG_DRIVER_COMMON_H
+#define PNG_DRIVER_COMMON_H
 
-#include "scene/3d/visual_instance.h"
+#include "core/image.h"
+#include "core/pool_vector.h"
 
-class RootMotionView : public VisualInstance {
-	GDCLASS(RootMotionView, VisualInstance);
+namespace PNGDriverCommon {
 
-public:
-	RID immediate;
-	NodePath path;
-	float cell_size;
-	float radius;
-	bool use_in_game;
-	Color color;
-	bool first;
-	bool zero_y;
+// Attempt to load png from buffer (p_source, p_size) into p_image
+Error png_to_image(const uint8_t *p_source, size_t p_size, Ref<Image> p_image);
 
-	Transform accumulated;
+// Append p_image, as a png, to p_buffer.
+// Contents of p_buffer is unspecified if error returned.
+Error image_to_png(const Ref<Image> &p_image, PoolVector<uint8_t> &p_buffer);
 
-private:
-	void _notification(int p_what);
-	static void _bind_methods();
+} // namespace PNGDriverCommon
 
-public:
-	void set_animation_path(const NodePath &p_path);
-	NodePath get_animation_path() const;
-
-	void set_color(const Color &p_path);
-	Color get_color() const;
-
-	void set_cell_size(float p_size);
-	float get_cell_size() const;
-
-	void set_radius(float p_radius);
-	float get_radius() const;
-
-	void set_zero_y(bool p_zero_y);
-	bool get_zero_y() const;
-
-	virtual AABB get_aabb() const;
-	virtual PoolVector<Face3> get_faces(uint32_t p_usage_flags) const;
-
-	RootMotionView();
-	~RootMotionView();
-};
-
-#endif // ROOT_MOTION_VIEW_H
+#endif
