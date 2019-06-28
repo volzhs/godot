@@ -43,7 +43,7 @@
 			Minimum layer value of objects that are affected by the Light2D. Default value: [code]0[/code].
 		</member>
 		<member name="range_z_max" type="int" setter="set_z_range_max" getter="get_z_range_max">
-			Maximum [code]Z[/code] value of objects that are affected by the Light2D. Default value: [code]1024[/code].
+			Maximum [code]z[/code] value of objects that are affected by the Light2D. Default value: [code]1024[/code].
 		</member>
 		<member name="range_z_min" type="int" setter="set_z_range_min" getter="get_z_range_min">
 			Minimum [code]z[/code] value of objects that are affected by the Light2D. Default value: [code]-1024[/code].
@@ -58,7 +58,7 @@
 			If [code]true[/code], the Light2D will cast shadows. Default value: [code]false[/code].
 		</member>
 		<member name="shadow_filter" type="int" setter="set_shadow_filter" getter="get_shadow_filter" enum="Light2D.ShadowFilter">
-			Shadow filter type. Use [enum Light2D.ShadowFilter] constants as values. Default value: [code]SHADOW_FILTER_NONE[/code].
+			Shadow filter type. Use [enum ShadowFilter] constants as values. Default value: [constant SHADOW_FILTER_NONE].
 		</member>
 		<member name="shadow_filter_smooth" type="float" setter="set_shadow_smooth" getter="get_shadow_smooth">
 			Smoothing value for shadows.

@@ -17,7 +17,7 @@
 			<argument index="1" name="port" type="int">
 			</argument>
 			<description>
-				Connect to the specified host:port pair. A hostname will be resolved if valid. Returns [code]OK[/code] on success or [code]FAILED[/code] on failure.
+				Connect to the specified host:port pair. A hostname will be resolved if valid. Returns [constant OK] on success or [constant FAILED] on failure.
 			</description>
 		</method>
 		<method name="disconnect_from_host">
@@ -45,7 +45,7 @@
 			<return type="int" enum="StreamPeerTCP.Status">
 			</return>
 			<description>
-				Returns the status of the connection, see [enum StreamPeerTCP.Status].
+				Returns the status of the connection, see [enum Status].
 			</description>
 		</method>
 		<method name="is_connected_to_host" qualifiers="const">
