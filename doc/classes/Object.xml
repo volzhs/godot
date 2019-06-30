@@ -66,7 +66,7 @@
 			</return>
 			<description>
 				Virtual method which can be overridden to customize the return value of [method to_string], and thus the object's representation where it is converted to a string, e.g. with [code]print(obj)[/code].
-				Returns a [String] representing the object. Default is [code]"[ClassName:RID]"[/code].
+				Returns a [String] representing the object. If not overridden, defaults to [code]"[ClassName:RID]"[/code].
 			</description>
 		</method>
 		<method name="add_user_signal">
@@ -139,7 +139,7 @@
 			<argument index="4" name="flags" type="int" default="0">
 			</argument>
 			<description>
-				Connects a [code]signal[/code] to a [code]method[/code] on a [code]target[/code] object. Pass optional [code]binds[/code] to the call as an [Array] of parameters. Use [code]flags[/code] to set deferred or one shot connections. See [enum ConnectFlags] constants.
+				Connects a [code]signal[/code] to a [code]method[/code] on a [code]target[/code] object. Pass optional [code]binds[/code] to the call as an [Array] of parameters. Use [code]flags[/code] to set deferred or one-shot connections. See [enum ConnectFlags] constants.
 				A [code]signal[/code] can only be connected once to a [code]method[/code]. It will throw an error if already connected, unless the signal was connected with [constant CONNECT_REFERENCE_COUNTED]. To avoid this, first, use [method is_connected] to check for existing connections.
 				If the [code]target[/code] is destroyed in the game's lifecycle, the connection will be lost.
 				Examples:
@@ -217,7 +217,7 @@
 			<argument index="0" name="property" type="NodePath">
 			</argument>
 			<description>
-				Get the object's property indexed by the given [NodePath]. The node path should be relative to the current object and can use the colon character ([code]:[/code]) to access nested properties. Examples: [code]"position:x"[/code] or [code]"material:next_pass:blend_mode"[/code].
+				Gets the object's property indexed by the given [NodePath]. The node path should be relative to the current object and can use the colon character ([code]:[/code]) to access nested properties. Examples: [code]"position:x"[/code] or [code]"material:next_pass:blend_mode"[/code].
 			</description>
 		</method>
 		<method name="get_instance_id" qualifiers="const">
@@ -426,7 +426,7 @@
 			<argument index="0" name="enable" type="bool">
 			</argument>
 			<description>
-				Defines whether the object can translate strings (with calls to [method tr]). Default is [code]true[/code].
+				Defines whether the object can translate strings (with calls to [method tr]). Enabled by default.
 			</description>
 		</method>
 		<method name="set_meta">
@@ -453,7 +453,7 @@
 			<return type="String">
 			</return>
 			<description>
-				Returns a [String] representing the object. Default is [code]"[ClassName:RID]"[/code].
+				Returns a [String] representing the object. If not overridden, defaults to [code]"[ClassName:RID]"[/code].
 				Override the method [method _to_string] to customize the [String] representation.
 			</description>
 		</method>
@@ -483,13 +483,13 @@
 			Called before the object is about to be deleted.
 		</constant>
 		<constant name="CONNECT_DEFERRED" value="1" enum="ConnectFlags">
-			Connect a signal in deferred mode. This way, signal emissions are stored in a queue, then set on idle time.
+			Connects a signal in deferred mode. This way, signal emissions are stored in a queue, then set on idle time.
 		</constant>
 		<constant name="CONNECT_PERSIST" value="2" enum="ConnectFlags">
 			Persisting connections are saved when the object is serialized to file.
 		</constant>
 		<constant name="CONNECT_ONESHOT" value="4" enum="ConnectFlags">
-			One shot connections disconnect themselves after emission.
+			One-shot connections disconnect themselves after emission.
 		</constant>
 		<constant name="CONNECT_REFERENCE_COUNTED" value="8" enum="ConnectFlags">
 			Connect a signal as reference counted. This means that a given signal can be connected several times to the same target, and will only be fully disconnected once no references are left.
