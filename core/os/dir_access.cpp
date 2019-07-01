@@ -43,8 +43,6 @@ String DirAccess::_get_root_path() const {
 		case ACCESS_USERDATA: return OS::get_singleton()->get_user_data_dir();
 		default: return "";
 	}
-
-	return "";
 }
 String DirAccess::_get_root_string() const {
 
@@ -54,8 +52,6 @@ String DirAccess::_get_root_string() const {
 		case ACCESS_USERDATA: return "user://";
 		default: return "";
 	}
-
-	return "";
 }
 
 int DirAccess::get_current_drive() {
@@ -378,7 +374,7 @@ Error DirAccess::_copy_dir(DirAccess *p_target_da, String p_to, int p_chmod_flag
 					list_dir_end();
 					return ERR_BUG;
 				}
-				Error err = copy(get_current_dir() + "/" + n, p_to + rel_path, p_chmod_flags);
+				Error err = copy(get_current_dir().plus_file(n), p_to + rel_path, p_chmod_flags);
 				if (err) {
 					list_dir_end();
 					return err;

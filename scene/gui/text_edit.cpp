@@ -681,6 +681,13 @@ void TextEdit::_notification(int p_what) {
 				}
 			}
 
+			if (line_length_guideline) {
+				int x = xmargin_beg + cache.font->get_char_size('0').width * line_length_guideline_col - cursor.x_ofs;
+				if (x > xmargin_beg && x < xmargin_end) {
+					VisualServer::get_singleton()->canvas_item_add_line(ci, Point2(x, 0), Point2(x, size.height), cache.line_length_guideline_color);
+				}
+			}
+
 			int brace_open_match_line = -1;
 			int brace_open_match_column = -1;
 			bool brace_open_matching = false;
@@ -1336,13 +1343,6 @@ void TextEdit::_notification(int p_what) {
 							}
 						}
 					}
-				}
-			}
-
-			if (line_length_guideline) {
-				int x = xmargin_beg + cache.font->get_char_size('0').width * line_length_guideline_col - cursor.x_ofs;
-				if (x > xmargin_beg && x < xmargin_end) {
-					VisualServer::get_singleton()->canvas_item_add_line(ci, Point2(x, 0), Point2(x, size.height), cache.line_length_guideline_color);
 				}
 			}
 
@@ -4817,14 +4817,18 @@ void TextEdit::deselect() {
 
 void TextEdit::select(int p_from_line, int p_from_column, int p_to_line, int p_to_column) {
 
-	if (p_from_line >= text.size())
+	if (p_from_line < 0)
+		p_from_line = 0;
+	else if (p_from_line >= text.size())
 		p_from_line = text.size() - 1;
 	if (p_from_column >= text[p_from_line].length())
 		p_from_column = text[p_from_line].length();
 	if (p_from_column < 0)
 		p_from_column = 0;
 
-	if (p_to_line >= text.size())
+	if (p_to_line < 0)
+		p_to_line = 0;
+	else if (p_to_line >= text.size())
 		p_to_line = text.size() - 1;
 	if (p_to_column >= text[p_to_line].length())
 		p_to_column = text[p_to_line].length();
