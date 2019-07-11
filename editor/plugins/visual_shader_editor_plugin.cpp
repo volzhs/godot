@@ -365,10 +365,10 @@ void VisualShaderEditor::_update_graph() {
 	}
 
 	static const Color type_color[4] = {
-		Color::html("#61daf4"), // scalar
-		Color::html("#d67dee"), // vector
-		Color::html("#8da6f0"), // boolean
-		Color::html("#f6a86e") // transform
+		Color(0.38, 0.85, 0.96), // scalar
+		Color(0.84, 0.49, 0.93), // vector
+		Color(0.55, 0.65, 0.94), // boolean
+		Color(0.96, 0.66, 0.43) // transform
 	};
 
 	List<VisualShader::Connection> connections;
@@ -1395,7 +1395,7 @@ void VisualShaderEditor::_node_selected(Object *p_node) {
 	//EditorNode::get_singleton()->push_item(vsnode.ptr(), "", true);
 }
 
-void VisualShaderEditor::_graph_gui_input(const Ref<InputEvent> p_event) {
+void VisualShaderEditor::_graph_gui_input(const Ref<InputEvent> &p_event) {
 
 	Ref<InputEventMouseButton> mb = p_event;
 

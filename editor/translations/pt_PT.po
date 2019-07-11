@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-07-02 10:51+0000\n"
+"PO-Revision-Date: 2019-07-09 10:47+0000\n"
 "Last-Translator: João Lopes <linux-man@hotmail.com>\n"
 "Language-Team: Portuguese (Portugal) <https://hosted.weblate.org/projects/"
 "godot-engine/godot/pt_PT/>\n"
@@ -463,9 +463,8 @@ msgid "Select All"
 msgstr "Selecionar tudo"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Select None"
-msgstr "Selecionar Nó"
+msgstr "Selecionar Nenhum"
 
 #: editor/animation_track_editor.cpp
 msgid "Only show tracks from nodes selected in tree."
@@ -641,6 +640,10 @@ msgstr "Vai para linha"
 msgid "Line Number:"
 msgstr "Numero da linha:"
 
+#: editor/code_editor.cpp
+msgid "Found %d match(es)."
+msgstr ""
+
 #: editor/code_editor.cpp editor/editor_help.cpp
 msgid "No Matches"
 msgstr "Sem combinações"
@@ -690,7 +693,7 @@ msgstr "Zoom Out"
 msgid "Reset Zoom"
 msgstr "Repor Zoom"
 
-#: editor/code_editor.cpp modules/mono/editor/mono_bottom_panel.cpp
+#: editor/code_editor.cpp
 msgid "Warnings"
 msgstr "Avisos"
 
@@ -795,6 +798,11 @@ msgstr "Fechar"
 #: editor/connections_dialog.cpp
 msgid "Connect"
 msgstr "Ligar"
+
+#: editor/connections_dialog.cpp
+#, fuzzy
+msgid "Signal:"
+msgstr "Sinais:"
 
 #: editor/connections_dialog.cpp
 msgid "Connect '%s' to '%s'"
@@ -959,7 +967,8 @@ msgid "Owners Of:"
 msgstr "Proprietários de:"
 
 #: editor/dependency_editor.cpp
-msgid "Remove selected files from the project? (no undo)"
+#, fuzzy
+msgid "Remove selected files from the project? (Can't be restored)"
 msgstr "Remover arquivos selecionados do Projeto? (sem desfazer)"
 
 #: editor/dependency_editor.cpp
@@ -1330,7 +1339,6 @@ msgid "Must not collide with an existing engine class name."
 msgstr "Não pode coincidir com um nome de classe do motor já existente."
 
 #: editor/editor_autoload_settings.cpp
-#, fuzzy
 msgid "Must not collide with an existing built-in type name."
 msgstr "Não pode coincidir com um nome de um tipo incorporado já existente."
 
@@ -1511,6 +1519,10 @@ msgstr "Modelo de lançamento personalizado não encontrado."
 msgid "Template file not found:"
 msgstr "Ficheiro Modelo não encontrado:"
 
+#: editor/editor_export.cpp
+msgid "On 32-bit exports the embedded PCK cannot be bigger than 4 GiB."
+msgstr ""
+
 #: editor/editor_feature_profile.cpp
 msgid "3D Editor"
 msgstr "Editor 3D"
@@ -1536,9 +1548,8 @@ msgid "Node Dock"
 msgstr "Nó Doca"
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid "FileSystem and Import Docks"
-msgstr "Sistema de Ficheiros Doca"
+msgstr "Sistema de Ficheiros e Docas de Importação"
 
 #: editor/editor_feature_profile.cpp
 msgid "Erase profile '%s'? (no undo)"
@@ -1589,12 +1600,11 @@ msgid "File '%s' format is invalid, import aborted."
 msgstr "Formato do ficheiro '%s' é inválido, importação interrompida."
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid ""
 "Profile '%s' already exists. Remove it first before importing, import "
 "aborted."
 msgstr ""
-"Perfil '%s' já existe. Remova-o antes de importar. Importação abortada."
+"Perfil '%s' já existe. Remova-o antes de importar, importação interrompida."
 
 #: editor/editor_feature_profile.cpp
 msgid "Error saving profile to path: '%s'."
@@ -1605,9 +1615,8 @@ msgid "Unset"
 msgstr "Desativar"
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid "Current Profile:"
-msgstr "Perfil Atual"
+msgstr "Perfil atual:"
 
 #: editor/editor_feature_profile.cpp
 msgid "Make Current"
@@ -1629,9 +1638,8 @@ msgid "Export"
 msgstr "Exportar"
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid "Available Profiles:"
-msgstr "Perfis disponíveis"
+msgstr "Perfis disponíveis:"
 
 #: editor/editor_feature_profile.cpp
 msgid "Class Options"
@@ -2711,32 +2719,29 @@ msgid "Editor Layout"
 msgstr "Apresentação do Editor"
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Take Screenshot"
-msgstr "Tornar Nó Raiz"
+msgstr "Captura do ecrã"
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Screenshots are stored in the Editor Data/Settings Folder."
-msgstr "Abrir Pasta do Editor de Dados/Configurações"
+msgstr ""
+"Capturas do ecrã são armazenadas na pasta Dados/Configurações do Editor."
 
 #: editor/editor_node.cpp
 msgid "Automatically Open Screenshots"
-msgstr ""
+msgstr "Abrir Capturas do ecrã automaticamente"
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Open in an external image editor."
-msgstr "Abrir o Editor seguinte"
+msgstr "Abrir num editor de imagem externo."
 
 #: editor/editor_node.cpp
 msgid "Toggle Fullscreen"
 msgstr "Alternar Ecrã completo"
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Toggle System Console"
-msgstr "Alternar visibilidade do CanvasItem"
+msgstr "Alternar Consola do Sistema"
 
 #: editor/editor_node.cpp
 msgid "Open Editor Data/Settings Folder"
@@ -2845,19 +2850,16 @@ msgid "Spins when the editor window redraws."
 msgstr "Roda quando a janela do editor atualiza."
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Update Continuously"
-msgstr "Contínuo"
+msgstr "Atualização Contínua"
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Update When Changed"
-msgstr "Atualizar Alterações"
+msgstr "Atualizar quando há Alterações"
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Hide Update Spinner"
-msgstr "Desativar a roleta de atualização"
+msgstr "Esconder Roleta de Atualização"
 
 #: editor/editor_node.cpp
 msgid "FileSystem"
@@ -3050,7 +3052,7 @@ msgstr "Tempo"
 msgid "Calls"
 msgstr "Chamadas"
 
-#: editor/editor_properties.cpp
+#: editor/editor_properties.cpp editor/script_create_dialog.cpp
 msgid "On"
 msgstr "On"
 
@@ -3668,6 +3670,7 @@ msgid "Nodes not in Group"
 msgstr "Nós fora do Grupo"
 
 #: editor/groups_editor.cpp editor/scene_tree_dock.cpp
+#: editor/scene_tree_editor.cpp
 msgid "Filter nodes"
 msgstr "Filtrar Nós"
 
@@ -5290,9 +5293,8 @@ msgstr "Carregar máscara de emissão"
 #: editor/plugins/cpu_particles_editor_plugin.cpp
 #: editor/plugins/particles_2d_editor_plugin.cpp
 #: editor/plugins/particles_editor_plugin.cpp
-#, fuzzy
 msgid "Restart"
-msgstr "Reiniciar agora"
+msgstr "Reiniciar"
 
 #: editor/plugins/cpu_particles_2d_editor_plugin.cpp
 #: editor/plugins/particles_2d_editor_plugin.cpp
@@ -6201,18 +6203,16 @@ msgid "Find Next"
 msgstr "Localizar Seguinte"
 
 #: editor/plugins/script_editor_plugin.cpp
-#, fuzzy
 msgid "Filter scripts"
-msgstr "Propriedades do Filtro"
+msgstr "Scripts de filtro"
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Toggle alphabetical sorting of the method list."
 msgstr "Alternar ordenação alfabética da lista de métodos."
 
 #: editor/plugins/script_editor_plugin.cpp
-#, fuzzy
 msgid "Filter methods"
-msgstr "Modo de filtro:"
+msgstr "Métodos de filtro"
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Sort"
@@ -6444,9 +6444,18 @@ msgid "Syntax Highlighter"
 msgstr "Destaque de Sintaxe"
 
 #: editor/plugins/script_text_editor.cpp
+msgid "Go To"
+msgstr ""
+
+#: editor/plugins/script_text_editor.cpp
 #: editor/plugins/shader_editor_plugin.cpp editor/plugins/text_editor.cpp
 msgid "Bookmarks"
 msgstr "Marcadores"
+
+#: editor/plugins/script_text_editor.cpp
+#, fuzzy
+msgid "Breakpoints"
+msgstr "Criar pontos."
 
 #: editor/plugins/script_text_editor.cpp scene/gui/line_edit.cpp
 #: scene/gui/text_edit.cpp
@@ -7998,43 +8007,36 @@ msgid "Boolean uniform."
 msgstr "Uniforme Lógico."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "'%s' input parameter for all shader modes."
-msgstr "parâmetro de entrada 'uv' para todos os modos shader."
+msgstr "parâmetro de entrada '%s' para todos os modos shader."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Input parameter."
 msgstr "Parâmetro de Entrada."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "'%s' input parameter for vertex and fragment shader modes."
-msgstr "parâmetro de entrada 'uv' para os modos shader vertex e fragment."
+msgstr "parâmetro de entrada '%s' para os modos shader vertex e fragment."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "'%s' input parameter for fragment and light shader modes."
-msgstr "parâmetro de entrada 'view' para os modos shader fragment e light."
+msgstr "parâmetro de entrada '%s' para os modos shader fragment e light."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "'%s' input parameter for fragment shader mode."
-msgstr "parâmetro de entrada 'side' para o modo shader fragment."
+msgstr "parâmetro de entrada '%s' para o modo shader fragment."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "'%s' input parameter for light shader mode."
-msgstr "parâmetro de entrada 'diffuse' para o modo shader light."
+msgstr "parâmetro de entrada '%s' para o modo shader light."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "'%s' input parameter for vertex shader mode."
-msgstr "parâmetro de entrada 'custom' para modo shader vertex."
+msgstr "parâmetro de entrada '%s' para modo shader vertex."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "'%s' input parameter for vertex and fragment shader mode."
-msgstr "parâmetro de entrada 'uv' para os modos shader vertex e fragment."
+msgstr "parâmetro de entrada '%s' para os modos shader vertex e fragment."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Scalar function."
@@ -9789,9 +9791,8 @@ msgid "Add Child Node"
 msgstr "Adicionar Nó filho"
 
 #: editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "Expand/Collapse All"
-msgstr "Colapsar Tudo"
+msgstr "Expandir/Colapsar Tudo"
 
 #: editor/scene_tree_dock.cpp
 msgid "Change Type"
@@ -9822,9 +9823,8 @@ msgid "Delete (No Confirm)"
 msgstr "Apagar (sem confirmação)"
 
 #: editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "Add/Create a New Node."
-msgstr "Adicionar/criar novo Nó"
+msgstr "Adicionar/Criar Novo Nó."
 
 #: editor/scene_tree_dock.cpp
 msgid ""
@@ -10074,7 +10074,7 @@ msgstr "Rastreamento de Pilha"
 msgid "Pick one or more items from the list to display the graph."
 msgstr "Escolha um ou mais itens da lista para exibir o gráfico."
 
-#: editor/script_editor_debugger.cpp modules/mono/editor/mono_bottom_panel.cpp
+#: editor/script_editor_debugger.cpp
 msgid "Errors"
 msgstr "Erros"
 
@@ -10475,54 +10475,6 @@ msgstr "Distância de escolha:"
 #: modules/mono/csharp_script.cpp
 msgid "Class name can't be a reserved keyword"
 msgstr "Nome de classe não pode ser uma palavra-chave reservada"
-
-#: modules/mono/editor/godotsharp_editor.cpp
-msgid "Generating solution..."
-msgstr "A gerar soluções..."
-
-#: modules/mono/editor/godotsharp_editor.cpp
-msgid "Generating C# project..."
-msgstr "A gerar projeto C#..."
-
-#: modules/mono/editor/godotsharp_editor.cpp
-msgid "Failed to create solution."
-msgstr "Falha ao criar solução."
-
-#: modules/mono/editor/godotsharp_editor.cpp
-msgid "Failed to save solution."
-msgstr "Falha ao guardar solução."
-
-#: modules/mono/editor/godotsharp_editor.cpp
-msgid "Done"
-msgstr "Feito"
-
-#: modules/mono/editor/godotsharp_editor.cpp
-msgid "Failed to create C# project."
-msgstr "Falha ao criar projeto C#."
-
-#: modules/mono/editor/godotsharp_editor.cpp
-msgid "Mono"
-msgstr "Mono"
-
-#: modules/mono/editor/godotsharp_editor.cpp
-msgid "About C# support"
-msgstr "Sobre o suporte C#"
-
-#: modules/mono/editor/godotsharp_editor.cpp
-msgid "Create C# solution"
-msgstr "Criar solução C#"
-
-#: modules/mono/editor/mono_bottom_panel.cpp
-msgid "Builds"
-msgstr "Builds"
-
-#: modules/mono/editor/mono_bottom_panel.cpp
-msgid "Build Project"
-msgstr "Construir Projeto"
-
-#: modules/mono/editor/mono_bottom_panel.cpp
-msgid "View log"
-msgstr "Ver log"
 
 #: modules/mono/mono_gd/gd_mono_utils.cpp
 msgid "End of inner exception stack trace"
@@ -11138,8 +11090,9 @@ msgid "Invalid splash screen image dimensions (should be 620x300)."
 msgstr "Dimensões inválidas da imagem do ecrã inicial (deve ser 620x300)."
 
 #: scene/2d/animated_sprite.cpp
+#, fuzzy
 msgid ""
-"A SpriteFrames resource must be created or set in the 'Frames' property in "
+"A SpriteFrames resource must be created or set in the \"Frames\" property in "
 "order for AnimatedSprite to display frames."
 msgstr ""
 "Um recurso SpriteFrames tem de ser criado ou definido na Propriedade "
@@ -11206,8 +11159,9 @@ msgstr ""
 "\"Particles Animation\" ativada."
 
 #: scene/2d/light_2d.cpp
+#, fuzzy
 msgid ""
-"A texture with the shape of the light must be supplied to the 'texture' "
+"A texture with the shape of the light must be supplied to the \"Texture\" "
 "property."
 msgstr ""
 "Uma textura com a forma da luz tem de ser disponibilizada na Propriedade "
@@ -11221,7 +11175,8 @@ msgstr ""
 "efeito."
 
 #: scene/2d/light_occluder_2d.cpp
-msgid "The occluder polygon for this occluder is empty. Please draw a polygon!"
+#, fuzzy
+msgid "The occluder polygon for this occluder is empty. Please draw a polygon."
 msgstr "O Polígono oclusor deste Oclusor está vazio. Desenhe um Polígono!"
 
 #: scene/2d/navigation_polygon.cpp
@@ -11308,26 +11263,27 @@ msgid ""
 msgstr "Falta uma pose DESCANSO a este osso. Vá ao nó Skeleton2D e defina uma."
 
 #: scene/2d/tile_map.cpp
-#, fuzzy
 msgid ""
 "TileMap with Use Parent on needs a parent CollisionObject2D to give shapes "
 "to. Please use it as a child of Area2D, StaticBody2D, RigidBody2D, "
 "KinematicBody2D, etc. to give them a shape."
 msgstr ""
-"CollisionShape2D serve apenas para  fornecer uma forma de colisão a um Nó "
-"derivado de CollisionObject2D. Use-o apenas como um filho de Area2D, "
-"StaticBody2D, RigidBody2D, KinematicBody2D, etc. para lhes dar uma forma."
+"TileMap com Usar Parente ativo precisa de um parente CollisionObject2D para "
+"lhe dar formas. Use-o como um filho de Area2D, StaticBody2D, RigidBody2D, "
+"KinematicBody2D, etc. para lhes dar uma forma."
 
 #: scene/2d/visibility_notifier_2d.cpp
+#, fuzzy
 msgid ""
-"VisibilityEnable2D works best when used with the edited scene root directly "
+"VisibilityEnabler2D works best when used with the edited scene root directly "
 "as parent."
 msgstr ""
 "VisibilityEnable2D funciona melhor quando usado diretamente como parente na "
 "Cena raiz editada."
 
 #: scene/3d/arvr_nodes.cpp
-msgid "ARVRCamera must have an ARVROrigin node as its parent"
+#, fuzzy
+msgid "ARVRCamera must have an ARVROrigin node as its parent."
 msgstr "ARVRCamera precisa de um Nó ARVROrigin como parente"
 
 #: scene/3d/arvr_nodes.cpp
@@ -11418,9 +11374,10 @@ msgstr ""
 "RigidBody, KinematicBody, etc. para lhes dar uma forma."
 
 #: scene/3d/collision_shape.cpp
+#, fuzzy
 msgid ""
 "A shape must be provided for CollisionShape to function. Please create a "
-"shape resource for it!"
+"shape resource for it."
 msgstr ""
 "Uma forma tem de ser fornecida para CollisionShape funcionar. Crie um "
 "recurso forma!"
@@ -11456,6 +11413,10 @@ msgid ""
 msgstr ""
 "Sondas GI não são suportadas pelo driver vídeo GLES2.\n"
 "Em vez disso, use um BakedLightmap."
+
+#: scene/3d/light.cpp
+msgid "A SpotLight with an angle wider than 90 degrees cannot cast shadows."
+msgstr ""
 
 #: scene/3d/navigation_mesh.cpp
 msgid "A NavigationMesh resource must be set or created for this node to work."
@@ -11500,9 +11461,10 @@ msgid "PathFollow only works when set as a child of a Path node."
 msgstr "PathFollow apenas funciona quando definido como filho de um Nó Path."
 
 #: scene/3d/path.cpp
+#, fuzzy
 msgid ""
-"PathFollow ROTATION_ORIENTED requires \"Up Vector\" enabled in its parent "
-"Path's Curve resource."
+"PathFollow's ROTATION_ORIENTED requires \"Up Vector\" to be enabled in its "
+"parent Path's Curve resource."
 msgstr ""
 "PathFollow ROTATION_ORIENTED requer \"Up Vector\" habilitado no recurso de "
 "Curva do Caminho do seu pai."
@@ -11518,7 +11480,10 @@ msgstr ""
 "Mude antes o tamanho das formas de colisão filhas."
 
 #: scene/3d/remote_transform.cpp
-msgid "Path property must point to a valid Spatial node to work."
+#, fuzzy
+msgid ""
+"The \"Remote Path\" property must point to a valid Spatial or Spatial-"
+"derived node to work."
 msgstr ""
 "Para funcionar, a Propriedade Caminho tem de apontar para um Nó Spatial "
 "válido."
@@ -11538,8 +11503,9 @@ msgstr ""
 "Em vez disso, mude o tamanho das formas de colisão filhas."
 
 #: scene/3d/sprite_3d.cpp
+#, fuzzy
 msgid ""
-"A SpriteFrames resource must be created or set in the 'Frames' property in "
+"A SpriteFrames resource must be created or set in the \"Frames\" property in "
 "order for AnimatedSprite3D to display frames."
 msgstr ""
 "Um recurso SpriteFrames tem de ser criado ou definido na Propriedade "
@@ -11554,8 +11520,10 @@ msgstr ""
 "filho de VehicleBody."
 
 #: scene/3d/world_environment.cpp
-msgid "WorldEnvironment needs an Environment resource."
-msgstr "WorldEnvironment precisa de um recurso Environment."
+msgid ""
+"WorldEnvironment requires its \"Environment\" property to contain an "
+"Environment to have a visible effect."
+msgstr ""
 
 #: scene/3d/world_environment.cpp
 msgid ""
@@ -11593,7 +11561,8 @@ msgid "Nothing connected to input '%s' of node '%s'."
 msgstr "Nada conectado à entrada '%s' do nó '%s'."
 
 #: scene/animation/animation_tree.cpp
-msgid "A root AnimationNode for the graph is not set."
+#, fuzzy
+msgid "No root AnimationNode for the graph is set."
 msgstr "Não foi definida um AnimationNode raiz para o gráfico."
 
 #: scene/animation/animation_tree.cpp
@@ -11607,7 +11576,8 @@ msgstr ""
 "O caminho definido para AnimationPlayer não conduz a um nó AnimationPlayer."
 
 #: scene/animation/animation_tree.cpp
-msgid "AnimationPlayer root is not a valid node."
+#, fuzzy
+msgid "The AnimationPlayer root node is not a valid node."
 msgstr "A raiz de AnimationPlayer não é um nó válido."
 
 #: scene/animation/animation_tree_player.cpp
@@ -11620,12 +11590,11 @@ msgstr "Escolha uma cor do ecrã."
 
 #: scene/gui/color_picker.cpp
 msgid "HSV"
-msgstr ""
+msgstr "HSV"
 
 #: scene/gui/color_picker.cpp
-#, fuzzy
 msgid "Raw"
-msgstr "Direção"
+msgstr "Raw"
 
 #: scene/gui/color_picker.cpp
 msgid "Switch between hexadecimal and code values."
@@ -11640,19 +11609,20 @@ msgstr "Adicionar cor atual como predefinição."
 msgid ""
 "Container by itself serves no purpose unless a script configures its "
 "children placement behavior.\n"
-"If you don't intend to add a script, then please use a plain 'Control' node "
-"instead."
+"If you don't intend to add a script, use a plain Control node instead."
 msgstr ""
 "Por si só um Contentor não tem utilidade, a não ser que um script configure "
 "a disposição dos seu filhos.\n"
-"Se não pretende adicionar um script, será preferível usar um simples Nó "
-"'Control'."
+"Se não pretende adicionar um script, use antes um simples Nó 'Control'."
 
 #: scene/gui/control.cpp
 msgid ""
 "The Hint Tooltip won't be displayed as the control's Mouse Filter is set to "
 "\"Ignore\". To solve this, set the Mouse Filter to \"Stop\" or \"Pass\"."
 msgstr ""
+"A Etiqueta de Sugestão não será exibida porque o Filtro de Rato do controle "
+"está definido como \"Ignorar\". Em alternativa, defina o Filtro de Rato para "
+"\"Parar\" ou \"Passar\"."
 
 #: scene/gui/dialogs.cpp
 msgid "Alert!"
@@ -11663,23 +11633,26 @@ msgid "Please Confirm..."
 msgstr "Confirme por favor..."
 
 #: scene/gui/popup.cpp
+#, fuzzy
 msgid ""
 "Popups will hide by default unless you call popup() or any of the popup*() "
-"functions. Making them visible for editing is fine though, but they will "
-"hide upon running."
+"functions. Making them visible for editing is fine, but they will hide upon "
+"running."
 msgstr ""
 "Popups estão escondidas por defeito a não ser que chame popup() ou qualquer "
 "das funções popup*(). Torná-las visíveis para edição é aceitável, mas serão "
 "escondidas na execução."
 
 #: scene/gui/range.cpp
-msgid "If exp_edit is true min_value must be > 0."
+#, fuzzy
+msgid "If \"Exp Edit\" is enabled, \"Min Value\" must be greater than 0."
 msgstr "Se exp_edit é verdadeiro min_value tem de ser > 0."
 
 #: scene/gui/scroll_container.cpp
+#, fuzzy
 msgid ""
 "ScrollContainer is intended to work with a single child control.\n"
-"Use a container as child (VBox,HBox,etc), or a Control and set the custom "
+"Use a container as child (VBox, HBox, etc.), or a Control and set the custom "
 "minimum size manually."
 msgstr ""
 "ScrollContainer está destinado a funcionar com um único controlo filho.\n"
@@ -11731,6 +11704,11 @@ msgid "Input"
 msgstr "Entrada"
 
 #: scene/resources/visual_shader_nodes.cpp
+#, fuzzy
+msgid "Invalid source for preview."
+msgstr "Fonte inválida para Shader."
+
+#: scene/resources/visual_shader_nodes.cpp
 msgid "Invalid source for shader."
 msgstr "Fonte inválida para Shader."
 
@@ -11749,6 +11727,45 @@ msgstr "Variações só podem ser atribuídas na função vértice."
 #: servers/visual/shader_language.cpp
 msgid "Constants cannot be modified."
 msgstr "Constantes não podem ser modificadas."
+
+#~ msgid "Generating solution..."
+#~ msgstr "A gerar soluções..."
+
+#~ msgid "Generating C# project..."
+#~ msgstr "A gerar projeto C#..."
+
+#~ msgid "Failed to create solution."
+#~ msgstr "Falha ao criar solução."
+
+#~ msgid "Failed to save solution."
+#~ msgstr "Falha ao guardar solução."
+
+#~ msgid "Done"
+#~ msgstr "Feito"
+
+#~ msgid "Failed to create C# project."
+#~ msgstr "Falha ao criar projeto C#."
+
+#~ msgid "Mono"
+#~ msgstr "Mono"
+
+#~ msgid "About C# support"
+#~ msgstr "Sobre o suporte C#"
+
+#~ msgid "Create C# solution"
+#~ msgstr "Criar solução C#"
+
+#~ msgid "Builds"
+#~ msgstr "Builds"
+
+#~ msgid "Build Project"
+#~ msgstr "Construir Projeto"
+
+#~ msgid "View log"
+#~ msgstr "Ver log"
+
+#~ msgid "WorldEnvironment needs an Environment resource."
+#~ msgstr "WorldEnvironment precisa de um recurso Environment."
 
 #~ msgid "Enabled Classes"
 #~ msgstr "Ativar Classes"

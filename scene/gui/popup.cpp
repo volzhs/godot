@@ -48,6 +48,14 @@ void Popup::_notification(int p_what) {
 		update_configuration_warning();
 	}
 
+	if (p_what == NOTIFICATION_EXIT_TREE) {
+		if (popped_up) {
+			popped_up = false;
+			notification(NOTIFICATION_POPUP_HIDE);
+			emit_signal("popup_hide");
+		}
+	}
+
 	if (p_what == NOTIFICATION_ENTER_TREE) {
 //small helper to make editing of these easier in editor
 #ifdef TOOLS_ENABLED
@@ -226,7 +234,7 @@ Popup::Popup() {
 String Popup::get_configuration_warning() const {
 
 	if (is_visible_in_tree()) {
-		return TTR("Popups will hide by default unless you call popup() or any of the popup*() functions. Making them visible for editing is fine though, but they will hide upon running.");
+		return TTR("Popups will hide by default unless you call popup() or any of the popup*() functions. Making them visible for editing is fine, but they will hide upon running.");
 	}
 
 	return String();

@@ -1759,7 +1759,7 @@ bool Node::has_persistent_groups() const {
 
 	return false;
 }
-void Node::_print_tree_pretty(const String prefix, const bool last) {
+void Node::_print_tree_pretty(const String &prefix, const bool last) {
 
 	String new_prefix = last ? String::utf8(" ┖╴") : String::utf8(" ┠╴");
 	print_line(prefix + new_prefix + String(get_name()));
@@ -2487,7 +2487,7 @@ bool Node::has_node_and_resource(const NodePath &p_path) const {
 	Vector<StringName> leftover_path;
 	Node *node = get_node_and_resource(p_path, res, leftover_path, false);
 
-	return (node && res.is_valid());
+	return node;
 }
 
 Array Node::_get_node_and_resource(const NodePath &p_path) {
@@ -2525,9 +2525,15 @@ Node *Node::get_node_and_resource(const NodePath &p_path, RES &r_res, Vector<Str
 		int j = 0;
 		// If not p_last_is_property, we shouldn't consider the last one as part of the resource
 		for (; j < p_path.get_subname_count() - (int)p_last_is_property; j++) {
-			RES new_res = j == 0 ? node->get(p_path.get_subname(j)) : r_res->get(p_path.get_subname(j));
+			Variant new_res_v = j == 0 ? node->get(p_path.get_subname(j)) : r_res->get(p_path.get_subname(j));
 
-			if (new_res.is_null()) {
+			if (new_res_v.get_type() == Variant::NIL) { // Found nothing on that path
+				return NULL;
+			}
+
+			RES new_res = new_res_v;
+
+			if (new_res.is_null()) { // No longer a resource, assume property
 				break;
 			}
 

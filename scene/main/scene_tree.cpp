@@ -453,9 +453,6 @@ void SceneTree::init() {
 
 	//_quit=false;
 	initialized = true;
-	input_handled = false;
-
-	pause = false;
 
 	root->_set_tree(this);
 	MainLoop::init();
@@ -1252,7 +1249,7 @@ void SceneTree::_update_root_rect() {
 	}
 }
 
-void SceneTree::set_screen_stretch(StretchMode p_mode, StretchAspect p_aspect, const Size2 p_minsize, real_t p_shrink) {
+void SceneTree::set_screen_stretch(StretchMode p_mode, StretchAspect p_aspect, const Size2 &p_minsize, real_t p_shrink) {
 
 	stretch_mode = p_mode;
 	stretch_aspect = p_aspect;
@@ -1986,6 +1983,8 @@ SceneTree::SceneTree() {
 	idle_process_time = 1;
 
 	root = NULL;
+	input_handled = false;
+	pause = false;
 	current_frame = 0;
 	current_event = 0;
 	tree_changed_name = "tree_changed";

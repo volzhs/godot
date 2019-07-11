@@ -778,7 +778,7 @@ Vector<String> String::split(const String &p_splitter, bool p_allow_empty, int p
 		if (p_allow_empty || (end > from)) {
 			if (p_maxsplit <= 0)
 				ret.push_back(substr(from, end - from));
-			else if (p_maxsplit > 0) {
+			else {
 
 				// Put rest of the string and leave cycle.
 				if (p_maxsplit == ret.size()) {
@@ -2257,6 +2257,13 @@ String String::md5_text() const {
 	return String::hex_encode_buffer(hash, 16);
 }
 
+String String::sha1_text() const {
+	CharString cs = utf8();
+	unsigned char hash[20];
+	CryptoCore::sha1((unsigned char *)cs.ptr(), cs.length(), hash);
+	return String::hex_encode_buffer(hash, 20);
+}
+
 String String::sha256_text() const {
 	CharString cs = utf8();
 	unsigned char hash[32];
@@ -2277,6 +2284,20 @@ Vector<uint8_t> String::md5_buffer() const {
 	}
 	return ret;
 };
+
+Vector<uint8_t> String::sha1_buffer() const {
+	CharString cs = utf8();
+	unsigned char hash[20];
+	CryptoCore::sha1((unsigned char *)cs.ptr(), cs.length(), hash);
+
+	Vector<uint8_t> ret;
+	ret.resize(20);
+	for (int i = 0; i < 20; i++) {
+		ret.write[i] = hash[i];
+	}
+
+	return ret;
+}
 
 Vector<uint8_t> String::sha256_buffer() const {
 	CharString cs = utf8();
@@ -3317,7 +3338,7 @@ String String::http_unescape() const {
 			if ((ord1 >= '0' && ord1 <= '9') || (ord1 >= 'A' && ord1 <= 'Z')) {
 				CharType ord2 = ord_at(i + 2);
 				if ((ord2 >= '0' && ord2 <= '9') || (ord2 >= 'A' && ord2 <= 'Z')) {
-					char bytes[2] = { (char)ord1, (char)ord2 };
+					char bytes[3] = { (char)ord1, (char)ord2, 0 };
 					res += (char)strtol(bytes, NULL, 16);
 					i += 2;
 				}

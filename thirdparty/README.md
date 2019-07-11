@@ -122,20 +122,20 @@ Use UI font variant if available, because it has tight vertical metrics and good
 ## freetype
 
 - Upstream: https://www.freetype.org
-- Version: 2.10.0
+- Version: 2.10.1
 - License: FreeType License (BSD-like)
 
 Files extracted from upstream source:
 
-- the src/ folder, stripped of the `Jamfile` files
-- the include/ folder
+- the `src/` folder, stripped of the `Jamfile` files and the `tools` subfolder
+- the `include/` folder
 - `docs/{FTL.TXT,LICENSE.TXT}`
 
 
 ## glad
 
 - Upstream: https://github.com/Dav1dde/glad
-- Version: 0.1.29
+- Version: 0.1.31
 - License: MIT
 
 The files we package are automatically generated.
@@ -262,40 +262,25 @@ changes to ensure they build for Javascript/HTML5. Those
 changes are marked with `// -- GODOT --` comments.
 
 
-## libwebsockets
+## wslay
 
-- Upstream: https://github.com/warmcat/libwebsockets
-- Version: 3.0.1
-- License: LGPLv2.1 + static linking exception
+- Upstream: https://github.com/tatsuhiro-t/wslay
+- Version: 1.1.0
+- License: MIT
 
-File extracted from upstream source:
-- From `lib/` into `thirdparty/libwebsockets`:
-  - Everything from `core`
-  - From `event-libs` only the `poll` subfolder
-  - From `misc` only `base64-decode.c`, `getifaddrs.c`, `getifaddrs.h`, `lejp.c`, and `sha-1.c`
-  - From `plat` only `lws-plat-unix.c` and `lws-plat-win.c`
-  - From `roles` only `private.h`, `h1`, `http`, `listen`, `pipe`, `raw`, `ws`
-    - From `roles/http` exclude `minilex.c`
-    - From `roles/http/server` exclude `access-log.c`, `lws-spa.c`, `ranges.c`, and `rewrite.c`
-    - From `roles/ws` exclude `ext` folder.
-  - From `tls` exclude `openssl` folder.
-- Also copy `win32helpers/` from `win32port/` inside `thirdparty/libwebsockets`
-- A fix has been added to allow building for 32-bits UWP, replacing `GetFileSize[Ex]` and `CreateFileW` with supported functions.
-  There is a diff for this change in `thirdparty/libwebsockets/uwp_fixes.diff`
-- A fix to disable V6ONLY flag from IPv6 sockets (on by default on some systems) has been also applied.
-  The diff for this change can be found in `thirdparty/libwebsockets/ipv6_fixes.diff`
+File extracted from upstream release tarball:
 
-Important: `lws_config.h` and `lws_config_private.h` contains custom
-Godot build configurations, check them out when updating.
-
+- All `*.c` and `*.h` in `lib/` and `lib/includes/`
+- `wslay.h` has a small Godot addition to fix MSVC build.
+  See `thirdparty/wslay/msvcfix.diff`
 
 ## mbedtls
 
 - Upstream: https://tls.mbed.org/
-- Version: 2.16.0
+- Version: 2.16.2
 - License: Apache 2.0
 
-File extracted from upstream release tarball `mbedtls-2.16.0-apache.tgz`:
+File extracted from upstream release tarball (`-apache.tgz` variant):
 - All `*.h` from `include/mbedtls/` to `thirdparty/mbedtls/include/mbedtls/`
 - All `*.c` from `library/` to `thirdparty/mbedtls/library/`
 - Applied the patch in `thirdparty/mbedtls/1453.diff` (PR 1453).
@@ -406,7 +391,7 @@ Collection of single-file libraries used in Godot components.
   * License: Public Domain (Unlicense) or MIT
 - `stb_vorbis.c`
   * Upstream: https://github.com/nothings/stb
-  * Version: 1.15
+  * Version: 1.16
   * License: Public Domain (Unlicense) or MIT
 
 
@@ -441,8 +426,8 @@ Files extracted from upstream source:
 
 ## pcre2
 
-- Upstream: http://www.pcre.org/
-- Version: 10.32
+- Upstream: http://www.pcre.org
+- Version: 10.33
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -526,7 +511,7 @@ folder.
 ## xatlas
 
 - Upstream: https://github.com/jpcy/xatlas
-- Version: git (b8ec29b, 2018)
+- Version: git (b7d7bb, 2019)
 - License: MIT
 
 Files extracted from upstream source:

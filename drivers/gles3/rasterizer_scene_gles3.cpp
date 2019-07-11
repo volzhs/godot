@@ -1459,8 +1459,8 @@ void RasterizerSceneGLES3::_setup_geometry(RenderList::Element *e, const Transfo
 #else
 				PoolVector<RasterizerGLES3Particle> particle_vector;
 				particle_vector.resize(particles->amount);
-				PoolVector<RasterizerGLES3Particle>::Write w = particle_vector.write();
-				particle_array = w.ptr();
+				PoolVector<RasterizerGLES3Particle>::Write particle_writer = particle_vector.write();
+				particle_array = particle_writer.ptr();
 				glGetBufferSubData(GL_ARRAY_BUFFER, 0, particles->amount * sizeof(RasterizerGLES3Particle), particle_array);
 #endif
 
@@ -1477,7 +1477,7 @@ void RasterizerSceneGLES3::_setup_geometry(RenderList::Element *e, const Transfo
 #ifndef __EMSCRIPTEN__
 				glUnmapBuffer(GL_ARRAY_BUFFER);
 #else
-				w = PoolVector<RasterizerGLES3Particle>::Write();
+				particle_writer.release();
 				particle_array = NULL;
 				{
 					PoolVector<RasterizerGLES3Particle>::Read r = particle_vector.read();
@@ -4989,6 +4989,20 @@ bool RasterizerSceneGLES3::free(RID p_rid) {
 		reflection_probe_release_atlas_index(p_rid);
 		reflection_probe_instance_owner.free(p_rid);
 		memdelete(reflection_instance);
+
+	} else if (environment_owner.owns(p_rid)) {
+
+		Environment *environment = environment_owner.get(p_rid);
+
+		environment_owner.free(p_rid);
+		memdelete(environment);
+
+	} else if (gi_probe_instance_owner.owns(p_rid)) {
+
+		GIProbeInstance *gi_probe_instance = gi_probe_instance_owner.get(p_rid);
+
+		gi_probe_instance_owner.free(p_rid);
+		memdelete(gi_probe_instance);
 
 	} else {
 		return false;

@@ -385,19 +385,30 @@
 			<return type="int">
 			</return>
 			<description>
-				Converts a string containing a hexadecimal number into an integer.
+				Converts a string containing a hexadecimal number into an integer. Hexadecimal strings are expected to be prefixed with "[code]0x[/code]" otherwise [code]0[/code] is returned.
+				[codeblock]
+				print("0xff".hex_to_int()) # Print "255"
+				[/codeblock]
 			</description>
 		</method>
 		<method name="http_escape">
 			<return type="String">
 			</return>
 			<description>
+				Escapes (encodes) a string to URL friendly format. Also referred to as 'URL encode'.
+				[codeblock]
+				print("https://example.org/?escaped=" + "Godot Engine:'docs'".http_escape())
+				[/codeblock]
 			</description>
 		</method>
 		<method name="http_unescape">
 			<return type="String">
 			</return>
 			<description>
+				Unescapes (decodes) a string in URL encoded format. Also referred to as 'URL decode'.
+				[codeblock]
+				print("https://example.org/?escaped=" + "Godot%20Engine%3A%27docs%27".http_unescape())
+				[/codeblock]
 			</description>
 		</method>
 		<method name="insert">
@@ -694,6 +705,20 @@
 			</argument>
 			<description>
 				Returns a copy of the string with characters removed from the right.
+			</description>
+		</method>
+		<method name="sha1_buffer">
+			<return type="PoolByteArray">
+			</return>
+			<description>
+				Returns the SHA-1 hash of the string as an array of bytes.
+			</description>
+		</method>
+		<method name="sha1_text">
+			<return type="String">
+			</return>
+			<description>
+				Returns the SHA-1 hash of the string as a string.
 			</description>
 		</method>
 		<method name="sha256_buffer">
