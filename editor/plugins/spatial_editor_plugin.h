@@ -153,7 +153,8 @@ class SpatialEditorViewport : public Control {
 		VIEW_REAR,
 		VIEW_CENTER_TO_ORIGIN,
 		VIEW_CENTER_TO_SELECTION,
-		VIEW_ALIGN_SELECTION_WITH_VIEW,
+		VIEW_ALIGN_TRANSFORM_WITH_VIEW,
+		VIEW_ALIGN_ROTATION_WITH_VIEW,
 		VIEW_PERSPECTIVE,
 		VIEW_ENVIRONMENT,
 		VIEW_ORTHOGONAL,
@@ -364,7 +365,7 @@ private:
 	Camera *preview;
 
 	bool previewing_cinema;
-
+	bool _is_node_locked(const Node *p_node);
 	void _preview_exited_scene();
 	void _toggle_camera_preview(bool);
 	void _toggle_cinema_preview(bool);

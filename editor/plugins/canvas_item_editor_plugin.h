@@ -371,6 +371,8 @@ private:
 	List<CanvasItem *> drag_selection;
 	int dragged_guide_index;
 	Point2 dragged_guide_pos;
+	bool is_hovering_h_guide;
+	bool is_hovering_v_guide;
 
 	bool updating_value_dialog;
 
@@ -464,7 +466,7 @@ private:
 	bool _gui_input_resize(const Ref<InputEvent> &p_event);
 	bool _gui_input_rotate(const Ref<InputEvent> &p_event);
 	bool _gui_input_select(const Ref<InputEvent> &p_event);
-	bool _gui_input_zoom_or_pan(const Ref<InputEvent> &p_event);
+	bool _gui_input_zoom_or_pan(const Ref<InputEvent> &p_event, bool p_already_accepted);
 	bool _gui_input_rulers_and_guides(const Ref<InputEvent> &p_event);
 	bool _gui_input_hover(const Ref<InputEvent> &p_event);
 

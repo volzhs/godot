@@ -1008,7 +1008,8 @@ RID RasterizerSceneGLES3::light_instance_create(RID p_light) {
 
 	if (!light_instance->light_ptr) {
 		memdelete(light_instance);
-		ERR_FAIL_COND_V(!light_instance->light_ptr, RID());
+		ERR_EXPLAIN("Condition ' !light_instance->light_ptr ' is true.");
+		ERR_FAIL_V(RID());
 	}
 
 	light_instance->self = light_instance_owner.make_rid(light_instance);
@@ -2364,7 +2365,7 @@ void RasterizerSceneGLES3::_add_geometry_with_material(RasterizerStorageGLES3::G
 
 	if (p_depth_pass) {
 
-		if (has_blend_alpha || p_material->shader->spatial.uses_depth_texture || (has_base_alpha && p_material->shader->spatial.depth_draw_mode != RasterizerStorageGLES3::Shader::Spatial::DEPTH_DRAW_ALPHA_PREPASS) || p_material->shader->spatial.depth_draw_mode == RasterizerStorageGLES3::Shader::Spatial::DEPTH_DRAW_NEVER || p_material->shader->spatial.no_depth_test)
+		if (has_blend_alpha || p_material->shader->spatial.uses_depth_texture || (has_base_alpha && p_material->shader->spatial.depth_draw_mode != RasterizerStorageGLES3::Shader::Spatial::DEPTH_DRAW_ALPHA_PREPASS) || p_material->shader->spatial.depth_draw_mode == RasterizerStorageGLES3::Shader::Spatial::DEPTH_DRAW_NEVER || p_material->shader->spatial.no_depth_test || p_instance->cast_shadows == VS::SHADOW_CASTING_SETTING_OFF)
 			return; //bye
 
 		if (!p_material->shader->spatial.uses_alpha_scissor && !p_material->shader->spatial.writes_modelview_or_projection && !p_material->shader->spatial.uses_vertex && !p_material->shader->spatial.uses_discard && p_material->shader->spatial.depth_draw_mode != RasterizerStorageGLES3::Shader::Spatial::DEPTH_DRAW_ALPHA_PREPASS) {
@@ -2763,9 +2764,7 @@ void RasterizerSceneGLES3::_setup_directional_light(int p_index, const Transform
 				width /= 2;
 				height /= 2;
 
-				if (j == 0) {
-
-				} else if (j == 1) {
+				if (j == 1) {
 					x += width;
 				} else if (j == 2) {
 					y += height;
@@ -2778,9 +2777,7 @@ void RasterizerSceneGLES3::_setup_directional_light(int p_index, const Transform
 
 				height /= 2;
 
-				if (j == 0) {
-
-				} else {
+				if (j != 0) {
 					y += height;
 				}
 			}
@@ -4741,9 +4738,7 @@ void RasterizerSceneGLES3::render_shadow(RID p_light, RID p_shadow_atlas, int p_
 			width /= 2;
 			height /= 2;
 
-			if (p_pass == 0) {
-
-			} else if (p_pass == 1) {
+			if (p_pass == 1) {
 				x += width;
 			} else if (p_pass == 2) {
 				y += height;
@@ -5301,7 +5296,7 @@ void RasterizerSceneGLES3::initialize() {
 		GLOBAL_DEF("rendering/quality/subsurface_scattering/follow_surface", false);
 		GLOBAL_DEF("rendering/quality/subsurface_scattering/weight_samples", true);
 
-		GLOBAL_DEF("rendering/quality/voxel_cone_tracing/high_quality", true);
+		GLOBAL_DEF("rendering/quality/voxel_cone_tracing/high_quality", false);
 	}
 
 	exposure_shrink_size = 243;
