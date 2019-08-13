@@ -42,17 +42,17 @@
 #include "scene/main/viewport.h"
 #include "scene/resources/visual_shader_nodes.h"
 
-Control *VisualShaderNodePlugin::create_editor(const Ref<VisualShaderNode> &p_node) {
+Control *VisualShaderNodePlugin::create_editor(const Ref<Resource> &p_parent_resource, const Ref<VisualShaderNode> &p_node) {
 
 	if (get_script_instance()) {
-		return get_script_instance()->call("create_editor", p_node);
+		return get_script_instance()->call("create_editor", p_parent_resource, p_node);
 	}
 	return NULL;
 }
 
 void VisualShaderNodePlugin::_bind_methods() {
 
-	BIND_VMETHOD(MethodInfo(Variant::OBJECT, "create_editor", PropertyInfo(Variant::OBJECT, "for_node", PROPERTY_HINT_RESOURCE_TYPE, "VisualShaderNode")));
+	BIND_VMETHOD(MethodInfo(Variant::OBJECT, "create_editor", PropertyInfo(Variant::OBJECT, "parent_resource", PROPERTY_HINT_RESOURCE_TYPE, "Resource"), PropertyInfo(Variant::OBJECT, "for_node", PROPERTY_HINT_RESOURCE_TYPE, "VisualShaderNode")));
 }
 
 ///////////////////
@@ -78,6 +78,7 @@ void VisualShaderEditor::edit(VisualShader *p_visual_shader) {
 		hide();
 	} else {
 		if (changed) { // to avoid tree collapse
+			_clear_buffer();
 			_update_options_menu();
 		}
 		_update_graph();
@@ -210,6 +211,9 @@ void VisualShaderEditor::_update_options_menu() {
 
 		if (!use_filter || add_options[i].name.findn(filter) != -1) {
 
+			if ((add_options[i].func != current_func && add_options[i].func != -1) || !_is_available(add_options[i].mode))
+				continue;
+
 			if (prev_category != add_options[i].category) {
 				if (category != NULL && item_count == 0) {
 					memdelete(category);
@@ -240,73 +244,53 @@ void VisualShaderEditor::_update_options_menu() {
 							sub_category->set_collapsed(true);
 					}
 				}
-				if (sub_category != NULL) {
-					if ((add_options[i].func == current_func || add_options[i].func == -1) && _is_available(add_options[i].mode)) {
-						++item_count2;
-						TreeItem *item = members->create_item(sub_category);
-						if (add_options[i].highend && low_driver)
-							item->set_custom_color(0, unsupported_color);
-						else if (add_options[i].highend)
-							item->set_custom_color(0, supported_color);
-						item->set_text(0, add_options[i].name);
-						if (is_first_item) {
-							item->select(0);
-							is_first_item = false;
-						}
-						switch (add_options[i].return_type) {
-							case VisualShaderNode::PORT_TYPE_SCALAR:
-								item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("float", "EditorIcons"));
-								break;
-							case VisualShaderNode::PORT_TYPE_VECTOR:
-								item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("Vector3", "EditorIcons"));
-								break;
-							case VisualShaderNode::PORT_TYPE_BOOLEAN:
-								item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("bool", "EditorIcons"));
-								break;
-							case VisualShaderNode::PORT_TYPE_TRANSFORM:
-								item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("Transform", "EditorIcons"));
-								break;
-							case VisualShaderNode::PORT_TYPE_COLOR:
-								item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("Color", "EditorIcons"));
-								break;
-							default:
-								break;
-						}
-						item->set_meta("id", i);
-					}
-				}
 			} else {
-				if (category != NULL) {
-					if ((add_options[i].func == current_func || add_options[i].func == -1) && _is_available(add_options[i].mode)) {
-						++item_count;
-						TreeItem *item = members->create_item(category);
-						if (add_options[i].highend && low_driver)
-							item->set_custom_color(0, unsupported_color);
-						else if (add_options[i].highend)
-							item->set_custom_color(0, supported_color);
-						item->set_text(0, add_options[i].name);
-						switch (add_options[i].return_type) {
-							case VisualShaderNode::PORT_TYPE_SCALAR:
-								item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("float", "EditorIcons"));
-								break;
-							case VisualShaderNode::PORT_TYPE_VECTOR:
-								item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("Vector3", "EditorIcons"));
-								break;
-							case VisualShaderNode::PORT_TYPE_BOOLEAN:
-								item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("bool", "EditorIcons"));
-								break;
-							case VisualShaderNode::PORT_TYPE_TRANSFORM:
-								item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("Transform", "EditorIcons"));
-								break;
-							case VisualShaderNode::PORT_TYPE_COLOR:
-								item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("Color", "EditorIcons"));
-								break;
-							default:
-								break;
-						}
-						item->set_meta("id", i);
+				sub_category = NULL;
+			}
+
+			TreeItem *p_category = NULL;
+
+			if (sub_category != NULL) {
+				p_category = sub_category;
+				++item_count2;
+			} else if (category != NULL) {
+				p_category = category;
+				++item_count;
+			}
+
+			if (p_category != NULL) {
+				TreeItem *item = members->create_item(p_category);
+				if (add_options[i].highend && low_driver)
+					item->set_custom_color(0, unsupported_color);
+				else if (add_options[i].highend)
+					item->set_custom_color(0, supported_color);
+				item->set_text(0, add_options[i].name);
+				if (p_category == sub_category) {
+					if (is_first_item) {
+						item->select(0);
+						is_first_item = false;
 					}
 				}
+				switch (add_options[i].return_type) {
+					case VisualShaderNode::PORT_TYPE_SCALAR:
+						item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("float", "EditorIcons"));
+						break;
+					case VisualShaderNode::PORT_TYPE_VECTOR:
+						item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("Vector3", "EditorIcons"));
+						break;
+					case VisualShaderNode::PORT_TYPE_BOOLEAN:
+						item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("bool", "EditorIcons"));
+						break;
+					case VisualShaderNode::PORT_TYPE_TRANSFORM:
+						item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("Transform", "EditorIcons"));
+						break;
+					case VisualShaderNode::PORT_TYPE_COLOR:
+						item->set_icon(0, EditorNode::get_singleton()->get_gui_base()->get_icon("Color", "EditorIcons"));
+						break;
+					default:
+						break;
+				}
+				item->set_meta("id", i);
 			}
 
 			prev_sub_category = add_options[i].sub_category;
@@ -462,7 +446,7 @@ void VisualShaderEditor::_update_graph() {
 		}
 
 		for (int i = 0; i < plugins.size(); i++) {
-			custom_editor = plugins.write[i]->create_editor(vsnode);
+			custom_editor = plugins.write[i]->create_editor(visual_shader, vsnode);
 			if (custom_editor) {
 				break;
 			}
@@ -1594,22 +1578,38 @@ void VisualShaderEditor::_dup_copy_nodes(int p_type, List<int> &r_nodes, Set<int
 	selection_center /= (float)r_nodes.size();
 }
 
-void VisualShaderEditor::_dup_paste_nodes(int p_type, List<int> &r_nodes, Set<int> &r_excluded, const Vector2 &p_offset, bool p_select) {
+void VisualShaderEditor::_dup_paste_nodes(int p_type, int p_pasted_type, List<int> &r_nodes, Set<int> &r_excluded, const Vector2 &p_offset, bool p_select) {
 
 	VisualShader::Type type = (VisualShader::Type)p_type;
+	VisualShader::Type pasted_type = (VisualShader::Type)p_pasted_type;
 
 	int base_id = visual_shader->get_valid_node_id(type);
 	int id_from = base_id;
 	Map<int, int> connection_remap;
+	Set<int> unsupported_set;
 
 	for (List<int>::Element *E = r_nodes.front(); E; E = E->next()) {
 
 		connection_remap[E->get()] = id_from;
-		Ref<VisualShaderNode> node = visual_shader->get_node(type, E->get());
+		Ref<VisualShaderNode> node = visual_shader->get_node(pasted_type, E->get());
+
+		bool unsupported = false;
+		for (int i = 0; i < add_options.size(); i++) {
+			if (add_options[i].type == node->get_class_name()) {
+				if (!_is_available(add_options[i].mode)) {
+					unsupported = true;
+				}
+				break;
+			}
+		}
+		if (unsupported) {
+			unsupported_set.insert(E->get());
+			continue;
+		}
 
 		Ref<VisualShaderNode> dupli = node->duplicate();
 
-		undo_redo->add_do_method(visual_shader.ptr(), "add_node", type, dupli, visual_shader->get_node_position(type, E->get()) + p_offset, id_from);
+		undo_redo->add_do_method(visual_shader.ptr(), "add_node", type, dupli, visual_shader->get_node_position(pasted_type, E->get()) + p_offset, id_from);
 		undo_redo->add_undo_method(visual_shader.ptr(), "remove_node", type, id_from);
 
 		// duplicate size, inputs and outputs if node is group
@@ -1629,9 +1629,12 @@ void VisualShaderEditor::_dup_paste_nodes(int p_type, List<int> &r_nodes, Set<in
 	}
 
 	List<VisualShader::Connection> conns;
-	visual_shader->get_node_connections(type, &conns);
+	visual_shader->get_node_connections(pasted_type, &conns);
 
 	for (List<VisualShader::Connection>::Element *E = conns.front(); E; E = E->next()) {
+		if (unsupported_set.has(E->get().from_node) || unsupported_set.has(E->get().to_node)) {
+			continue;
+		}
 		if (connection_remap.has(E->get().from_node) && connection_remap.has(E->get().to_node)) {
 			undo_redo->add_do_method(visual_shader.ptr(), "connect_nodes_forced", type, connection_remap[E->get().from_node], E->get().from_port, connection_remap[E->get().to_node], E->get().to_port);
 		}
@@ -1678,7 +1681,7 @@ void VisualShaderEditor::_duplicate_nodes() {
 
 	undo_redo->create_action(TTR("Duplicate Nodes"));
 
-	_dup_paste_nodes(type, nodes, excluded, Vector2(10, 10) * EDSCALE, true);
+	_dup_paste_nodes(type, type, nodes, excluded, Vector2(10, 10) * EDSCALE, true);
 }
 
 void VisualShaderEditor::_copy_nodes() {
@@ -1701,7 +1704,7 @@ void VisualShaderEditor::_paste_nodes() {
 
 	float scale = graph->get_zoom();
 
-	_dup_paste_nodes(type, copy_nodes_buffer, copy_nodes_excluded_buffer, (graph->get_scroll_ofs() / scale + graph->get_local_mouse_position() / scale - selection_center), false);
+	_dup_paste_nodes(type, copy_type, copy_nodes_buffer, copy_nodes_excluded_buffer, (graph->get_scroll_ofs() / scale + graph->get_local_mouse_position() / scale - selection_center), false);
 
 	_dup_update_excluded(type, copy_nodes_excluded_buffer); // to prevent selection of previous copies at new paste
 }
@@ -1779,9 +1782,6 @@ void VisualShaderEditor::_on_nodes_delete() {
 }
 
 void VisualShaderEditor::_mode_selected(int p_id) {
-
-	copy_nodes_buffer.clear();
-	copy_nodes_excluded_buffer.clear();
 
 	_update_options_menu();
 	_update_graph();
@@ -2429,6 +2429,7 @@ VisualShaderEditor::VisualShaderEditor() {
 	add_options.push_back(AddOption("Max", "Vector", "Functions", "VisualShaderNodeVectorOp", TTR("Returns the greater of two values."), VisualShaderNodeVectorOp::OP_MAX, VisualShaderNode::PORT_TYPE_VECTOR));
 	add_options.push_back(AddOption("Min", "Vector", "Functions", "VisualShaderNodeVectorOp", TTR("Returns the lesser of two values."), VisualShaderNodeVectorOp::OP_MIN, VisualShaderNode::PORT_TYPE_VECTOR));
 	add_options.push_back(AddOption("Mix", "Vector", "Functions", "VisualShaderNodeVectorInterp", TTR("Linear interpolation between two vectors."), -1, VisualShaderNode::PORT_TYPE_VECTOR));
+	add_options.push_back(AddOption("MixS", "Vector", "Functions", "VisualShaderNodeVectorScalarMix", TTR("Linear interpolation between two vectors using scalar."), -1, VisualShaderNode::PORT_TYPE_VECTOR));
 	add_options.push_back(AddOption("Negate", "Vector", "Functions", "VisualShaderNodeVectorFunc", TTR("Returns the opposite value of the parameter."), VisualShaderNodeVectorFunc::FUNC_NEGATE, VisualShaderNode::PORT_TYPE_VECTOR));
 	add_options.push_back(AddOption("Normalize", "Vector", "Functions", "VisualShaderNodeVectorFunc", TTR("Calculates the normalize product of vector."), VisualShaderNodeVectorFunc::FUNC_NORMALIZE, VisualShaderNode::PORT_TYPE_VECTOR));
 	add_options.push_back(AddOption("OneMinus", "Vector", "Functions", "VisualShaderNodeVectorFunc", TTR("1.0 - vector"), VisualShaderNodeVectorFunc::FUNC_ONEMINUS, VisualShaderNode::PORT_TYPE_VECTOR));
@@ -2590,6 +2591,7 @@ public:
 
 class VisualShaderNodePluginDefaultEditor : public VBoxContainer {
 	GDCLASS(VisualShaderNodePluginDefaultEditor, VBoxContainer);
+	Ref<Resource> parent_resource;
 
 public:
 	void _property_changed(const String &prop, const Variant &p_value, const String &p_field, bool p_changing = false) {
@@ -2603,7 +2605,27 @@ public:
 		undo_redo->create_action(TTR("Edit Visual Property") + ": " + prop, UndoRedo::MERGE_ENDS);
 		undo_redo->add_do_property(node.ptr(), prop, p_value);
 		undo_redo->add_undo_property(node.ptr(), prop, node->get(prop));
+
+		if (p_value.get_type() == Variant::OBJECT) {
+
+			RES prev_res = node->get(prop);
+			RES curr_res = p_value;
+
+			if (curr_res.is_null()) {
+				undo_redo->add_do_method(this, "_open_inspector", (RES)parent_resource.ptr());
+			} else {
+				undo_redo->add_do_method(this, "_open_inspector", (RES)curr_res.ptr());
+			}
+			if (!prev_res.is_null()) {
+				undo_redo->add_undo_method(this, "_open_inspector", (RES)prev_res.ptr());
+			} else {
+				undo_redo->add_undo_method(this, "_open_inspector", (RES)parent_resource.ptr());
+			}
+			undo_redo->add_do_method(this, "_refresh_request");
+			undo_redo->add_undo_method(this, "_refresh_request");
+		}
 		undo_redo->commit_action();
+
 		updating = false;
 	}
 
@@ -2619,11 +2641,20 @@ public:
 		VisualShaderEditor::get_singleton()->call_deferred("_update_graph");
 	}
 
+	void _resource_selected(const String &p_path, RES p_resource) {
+		_open_inspector(p_resource);
+	}
+
+	void _open_inspector(RES p_resource) {
+		EditorNode::get_singleton()->get_inspector()->edit(p_resource.ptr());
+	}
+
 	bool updating;
 	Ref<VisualShaderNode> node;
 	Vector<EditorProperty *> properties;
 
-	void setup(Vector<EditorProperty *> p_properties, const Vector<StringName> &p_names, Ref<VisualShaderNode> p_node) {
+	void setup(Ref<Resource> p_parent_resource, Vector<EditorProperty *> p_properties, const Vector<StringName> &p_names, Ref<VisualShaderNode> p_node) {
+		parent_resource = p_parent_resource;
 		updating = false;
 		node = p_node;
 		properties = p_properties;
@@ -2631,6 +2662,11 @@ public:
 		for (int i = 0; i < p_properties.size(); i++) {
 
 			add_child(p_properties[i]);
+
+			bool res_prop = Object::cast_to<EditorPropertyResource>(p_properties[i]);
+			if (res_prop) {
+				p_properties[i]->connect("resource_selected", this, "_resource_selected");
+			}
 
 			properties[i]->connect("property_changed", this, "_property_changed");
 			properties[i]->set_object_and_property(node.ptr(), p_names[i]);
@@ -2645,10 +2681,12 @@ public:
 		ClassDB::bind_method("_property_changed", &VisualShaderNodePluginDefaultEditor::_property_changed, DEFVAL(String()), DEFVAL(false));
 		ClassDB::bind_method("_node_changed", &VisualShaderNodePluginDefaultEditor::_node_changed);
 		ClassDB::bind_method("_refresh_request", &VisualShaderNodePluginDefaultEditor::_refresh_request);
+		ClassDB::bind_method("_resource_selected", &VisualShaderNodePluginDefaultEditor::_resource_selected);
+		ClassDB::bind_method("_open_inspector", &VisualShaderNodePluginDefaultEditor::_open_inspector);
 	}
 };
 
-Control *VisualShaderNodePluginDefault::create_editor(const Ref<VisualShaderNode> &p_node) {
+Control *VisualShaderNodePluginDefault::create_editor(const Ref<Resource> &p_parent_resource, const Ref<VisualShaderNode> &p_node) {
 
 	if (p_node->is_class("VisualShaderNodeInput")) {
 		//create input
@@ -2706,7 +2744,7 @@ Control *VisualShaderNodePluginDefault::create_editor(const Ref<VisualShaderNode
 		properties.push_back(pinfo[i].name);
 	}
 	VisualShaderNodePluginDefaultEditor *editor = memnew(VisualShaderNodePluginDefaultEditor);
-	editor->setup(editors, properties, p_node);
+	editor->setup(p_parent_resource, editors, properties, p_node);
 	return editor;
 }
 

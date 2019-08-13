@@ -44,6 +44,7 @@
 #include "editor/script_editor_debugger.h"
 #include "scene/main/viewport.h"
 #include "script_text_editor.h"
+#include "text_editor.h"
 
 /*** SCRIPT EDITOR ****/
 
@@ -55,7 +56,7 @@ void ScriptEditorBase::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("request_open_script_at_line", PropertyInfo(Variant::OBJECT, "script"), PropertyInfo(Variant::INT, "line")));
 	ADD_SIGNAL(MethodInfo("request_save_history"));
 	ADD_SIGNAL(MethodInfo("go_to_help", PropertyInfo(Variant::STRING, "what")));
-	// TODO This signal is no use for VisualScript...
+	// TODO: This signal is no use for VisualScript.
 	ADD_SIGNAL(MethodInfo("search_in_files_requested", PropertyInfo(Variant::STRING, "text")));
 }
 
@@ -204,11 +205,13 @@ void ScriptEditorQuickOpen::_notification(int p_what) {
 
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
-
 			connect("confirmed", this, "_confirmed");
 
-			search_box->set_right_icon(get_icon("Search", "EditorIcons"));
 			search_box->set_clear_button_enabled(true);
+			FALLTHROUGH;
+		}
+		case NOTIFICATION_THEME_CHANGED: {
+			search_box->set_right_icon(get_icon("Search", "EditorIcons"));
 		} break;
 		case NOTIFICATION_EXIT_TREE: {
 			disconnect("confirmed", this, "_confirmed");
@@ -241,6 +244,8 @@ ScriptEditorQuickOpen::ScriptEditorQuickOpen() {
 	set_hide_on_ok(false);
 	search_options->connect("item_activated", this, "_confirmed");
 	search_options->set_hide_root(true);
+	search_options->set_hide_folding(true);
+	search_options->add_constant_override("draw_guides", 1);
 }
 
 /////////////////////////////////
@@ -1419,15 +1424,25 @@ void ScriptEditor::_notification(int p_what) {
 			}
 
 			EditorSettings::get_singleton()->connect("settings_changed", this, "_editor_settings_changed");
+			FALLTHROUGH;
+		}
+		case NOTIFICATION_THEME_CHANGED: {
+
 			help_search->set_icon(get_icon("HelpSearch", "EditorIcons"));
 			site_search->set_icon(get_icon("Instance", "EditorIcons"));
 			request_docs->set_icon(get_icon("Issue", "EditorIcons"));
 
 			script_forward->set_icon(get_icon("Forward", "EditorIcons"));
 			script_back->set_icon(get_icon("Back", "EditorIcons"));
+
 			members_overview_alphabeta_sort_button->set_icon(get_icon("Sort", "EditorIcons"));
+
 			filter_scripts->set_right_icon(get_icon("Search", "EditorIcons"));
 			filter_methods->set_right_icon(get_icon("Search", "EditorIcons"));
+
+			filename->add_style_override("normal", editor->get_gui_base()->get_stylebox("normal", "LineEdit"));
+
+			recent_scripts->set_as_minsize();
 		} break;
 
 		case NOTIFICATION_READY: {
@@ -1448,20 +1463,6 @@ void ScriptEditor::_notification(int p_what) {
 
 			_test_script_times_on_disk();
 			_update_modified_scripts_for_external_editor();
-		} break;
-
-		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
-
-			help_search->set_icon(get_icon("HelpSearch", "EditorIcons"));
-			site_search->set_icon(get_icon("Instance", "EditorIcons"));
-
-			script_forward->set_icon(get_icon("Forward", "EditorIcons"));
-			script_back->set_icon(get_icon("Back", "EditorIcons"));
-
-			members_overview_alphabeta_sort_button->set_icon(get_icon("Sort", "EditorIcons"));
-			filename->add_style_override("normal", editor->get_gui_base()->get_stylebox("normal", "LineEdit"));
-
-			recent_scripts->set_as_minsize();
 		} break;
 
 		case CanvasItem::NOTIFICATION_VISIBILITY_CHANGED: {
@@ -2988,18 +2989,38 @@ void ScriptEditor::_on_find_in_files_requested(String text) {
 
 void ScriptEditor::_on_find_in_files_result_selected(String fpath, int line_number, int begin, int end) {
 
-	RES res = ResourceLoader::load(fpath);
-	if (fpath.get_extension() == "shader") {
-		ShaderEditorPlugin *shader_editor = Object::cast_to<ShaderEditorPlugin>(EditorNode::get_singleton()->get_editor_data().get_editor("Shader"));
-		shader_editor->edit(res.ptr());
-		shader_editor->make_visible(true);
-		shader_editor->get_shader_editor()->goto_line_selection(line_number - 1, begin, end);
-	} else {
-		edit(res);
+	if (ResourceLoader::exists(fpath)) {
+		RES res = ResourceLoader::load(fpath);
 
-		ScriptTextEditor *ste = Object::cast_to<ScriptTextEditor>(_get_current_editor());
-		if (ste) {
-			ste->goto_line_selection(line_number - 1, begin, end);
+		if (fpath.get_extension() == "shader") {
+			ShaderEditorPlugin *shader_editor = Object::cast_to<ShaderEditorPlugin>(EditorNode::get_singleton()->get_editor_data().get_editor("Shader"));
+			shader_editor->edit(res.ptr());
+			shader_editor->make_visible(true);
+			shader_editor->get_shader_editor()->goto_line_selection(line_number - 1, begin, end);
+			return;
+		} else {
+			Ref<Script> script = res;
+			if (script.is_valid()) {
+				edit(script);
+
+				ScriptTextEditor *ste = Object::cast_to<ScriptTextEditor>(_get_current_editor());
+				if (ste) {
+					ste->goto_line_selection(line_number - 1, begin, end);
+				}
+				return;
+			}
+		}
+	}
+
+	// If the file is not a valid resource/script, load it as a text file.
+	Error err;
+	Ref<TextFile> text_file = _load_text_file(fpath, &err);
+	if (text_file.is_valid()) {
+		edit(text_file);
+
+		TextEditor *te = Object::cast_to<TextEditor>(_get_current_editor());
+		if (te) {
+			te->goto_line_selection(line_number - 1, begin, end);
 		}
 	}
 }

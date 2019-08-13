@@ -48,7 +48,7 @@ protected:
 	static void _bind_methods();
 
 public:
-	virtual Control *create_editor(const Ref<VisualShaderNode> &p_node);
+	virtual Control *create_editor(const Ref<Resource> &p_parent_resource, const Ref<VisualShaderNode> &p_node);
 };
 
 class VisualShaderEditor : public VBoxContainer {
@@ -178,7 +178,7 @@ class VisualShaderEditor : public VBoxContainer {
 
 	void _dup_copy_nodes(int p_type, List<int> &r_nodes, Set<int> &r_excluded);
 	void _dup_update_excluded(int p_type, Set<int> &r_excluded);
-	void _dup_paste_nodes(int p_type, List<int> &r_nodes, Set<int> &r_excluded, const Vector2 &p_offset, bool p_select);
+	void _dup_paste_nodes(int p_type, int p_pasted_type, List<int> &r_nodes, Set<int> &r_excluded, const Vector2 &p_offset, bool p_select);
 
 	void _duplicate_nodes();
 
@@ -272,7 +272,7 @@ class VisualShaderNodePluginDefault : public VisualShaderNodePlugin {
 	GDCLASS(VisualShaderNodePluginDefault, VisualShaderNodePlugin);
 
 public:
-	virtual Control *create_editor(const Ref<VisualShaderNode> &p_node);
+	virtual Control *create_editor(const Ref<Resource> &p_parent_resource, const Ref<VisualShaderNode> &p_node);
 };
 
 class EditorPropertyShaderMode : public EditorProperty {

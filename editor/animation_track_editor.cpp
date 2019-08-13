@@ -31,6 +31,7 @@
 #include "animation_track_editor.h"
 
 #include "animation_track_editor_plugins.h"
+#include "core/os/input.h"
 #include "core/os/keyboard.h"
 #include "editor/animation_bezier_editor.h"
 #include "editor/plugins/animation_player_editor_plugin.h"
@@ -4082,6 +4083,10 @@ bool AnimationTrackEditor::is_selection_active() const {
 	return selection.size();
 }
 
+bool AnimationTrackEditor::is_snap_enabled() const {
+	return snap->is_pressed() ^ Input::get_singleton()->is_key_pressed(KEY_CONTROL);
+}
+
 void AnimationTrackEditor::_update_tracks() {
 
 	int selected = _get_track_selected();
@@ -5679,7 +5684,7 @@ void AnimationTrackEditor::_selection_changed() {
 
 float AnimationTrackEditor::snap_time(float p_value) {
 
-	if (snap->is_pressed()) {
+	if (is_snap_enabled()) {
 
 		double snap_increment;
 		if (timeline->is_using_fps() && step->get_value() > 0)
@@ -5857,7 +5862,7 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	step = memnew(EditorSpinSlider);
 	step->set_min(0);
 	step->set_max(1000000);
-	step->set_step(0.01);
+	step->set_step(0.001);
 	step->set_hide_slider(true);
 	step->set_custom_minimum_size(Size2(100, 0) * EDSCALE);
 	step->set_tooltip(TTR("Animation step value."));
