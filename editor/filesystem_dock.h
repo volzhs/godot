@@ -171,7 +171,7 @@ private:
 
 	bool updating_tree;
 	int tree_update_id;
-	Tree *tree; //directories
+	Tree *tree;
 	ItemList *files;
 	bool import_dock_needs_update;
 
@@ -250,7 +250,6 @@ private:
 		String name;
 		String path;
 		StringName type;
-		int import_status; //0 not imported, 1 - ok, 2- must reimport, 3- broken
 		Vector<String> sources;
 		bool import_broken;
 
@@ -279,6 +278,7 @@ private:
 	bool _is_file_type_disabled_by_feature_profile(const StringName &p_class);
 
 	void _feature_profile_changed();
+	Vector<String> _remove_self_included_paths(Vector<String> selected_strings);
 
 protected:
 	void _notification(int p_what);

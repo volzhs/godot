@@ -594,7 +594,7 @@ real_t RigidBody2D::get_mass() const {
 
 void RigidBody2D::set_inertia(real_t p_inertia) {
 
-	ERR_FAIL_COND(p_inertia <= 0);
+	ERR_FAIL_COND(p_inertia < 0);
 	Physics2DServer::get_singleton()->body_set_param(get_rid(), Physics2DServer::BODY_PARAM_INERTIA, p_inertia);
 }
 
@@ -1266,7 +1266,7 @@ Vector2 KinematicBody2D::move_and_slide(const Vector2 &p_linear_velocity, const 
 					//all is a wall
 					on_wall = true;
 				} else {
-					if (collision.normal.dot(p_floor_direction) >= Math::cos(p_floor_max_angle + FLOOR_ANGLE_THRESHOLD)) { //floor
+					if (Math::acos(collision.normal.dot(p_floor_direction)) <= p_floor_max_angle + FLOOR_ANGLE_THRESHOLD) { //floor
 
 						on_floor = true;
 						on_floor_body = collision.collider_rid;
@@ -1281,7 +1281,7 @@ Vector2 KinematicBody2D::move_and_slide(const Vector2 &p_linear_velocity, const 
 							}
 						}
 
-					} else if (collision.normal.dot(-p_floor_direction) >= Math::cos(p_floor_max_angle + FLOOR_ANGLE_THRESHOLD)) { //ceiling
+					} else if (Math::acos(collision.normal.dot(-p_floor_direction)) <= p_floor_max_angle + FLOOR_ANGLE_THRESHOLD) { //ceiling
 						on_ceiling = true;
 					} else {
 						on_wall = true;

@@ -41,6 +41,7 @@
 #include "scene/gui/panel.h"
 #include "scene/main/viewport.h"
 #include "scene/resources/visual_shader_nodes.h"
+#include "servers/visual/shader_types.h"
 
 Control *VisualShaderNodePlugin::create_editor(const Ref<Resource> &p_parent_resource, const Ref<VisualShaderNode> &p_node) {
 
@@ -69,8 +70,16 @@ void VisualShaderEditor::edit(VisualShader *p_visual_shader) {
 			}
 		}
 		visual_shader = Ref<VisualShader>(p_visual_shader);
+		if (!visual_shader->is_connected("changed", this, "_update_preview")) {
+			visual_shader->connect("changed", this, "_update_preview");
+		}
 		visual_shader->set_graph_offset(graph->get_scroll_ofs() / EDSCALE);
 	} else {
+		if (visual_shader.is_valid()) {
+			if (visual_shader->is_connected("changed", this, "")) {
+				visual_shader->disconnect("changed", this, "_update_preview");
+			}
+		}
 		visual_shader.unref();
 	}
 
@@ -81,6 +90,7 @@ void VisualShaderEditor::edit(VisualShader *p_visual_shader) {
 			_clear_buffer();
 			_update_custom_nodes();
 			_update_options_menu();
+			_update_preview();
 		}
 		_update_graph();
 	}
@@ -220,6 +230,14 @@ void VisualShaderEditor::_update_custom_nodes() {
 	}
 }
 
+String VisualShaderEditor::_get_description(int p_idx) {
+	if (add_options[p_idx].highend) {
+		return TTR("(GLES3 only)") + " " + add_options[p_idx].description; // TODO: change it to (Vulkan Only) when its ready
+	} else {
+		return add_options[p_idx].description;
+	}
+}
+
 void VisualShaderEditor::_update_options_menu() {
 
 	node_desc->set_text("");
@@ -323,11 +341,10 @@ void VisualShaderEditor::_update_options_menu() {
 				else if (add_options[i].highend)
 					item->set_custom_color(0, supported_color);
 				item->set_text(0, add_options[i].name);
-				if (p_category == sub_category) {
-					if (is_first_item) {
-						item->select(0);
-						is_first_item = false;
-					}
+				if (is_first_item && use_filter) {
+					item->select(0);
+					node_desc->set_text(_get_description(i));
+					is_first_item = false;
 				}
 				switch (add_options[i].return_type) {
 					case VisualShaderNode::PORT_TYPE_SCALAR:
@@ -524,21 +541,23 @@ void VisualShaderEditor::_update_graph() {
 			offset->set_custom_minimum_size(Size2(0, 6 * EDSCALE));
 			node->add_child(offset);
 
-			HBoxContainer *hb2 = memnew(HBoxContainer);
+			if (group_node->is_editable()) {
+				HBoxContainer *hb2 = memnew(HBoxContainer);
 
-			Button *add_input_btn = memnew(Button);
-			add_input_btn->set_text(TTR("Add input +"));
-			add_input_btn->connect("pressed", this, "_add_input_port", varray(nodes[n_i], group_node->get_free_input_port_id(), VisualShaderNode::PORT_TYPE_VECTOR, "input" + itos(group_node->get_free_input_port_id())), CONNECT_DEFERRED);
-			hb2->add_child(add_input_btn);
+				Button *add_input_btn = memnew(Button);
+				add_input_btn->set_text(TTR("Add input +"));
+				add_input_btn->connect("pressed", this, "_add_input_port", varray(nodes[n_i], group_node->get_free_input_port_id(), VisualShaderNode::PORT_TYPE_VECTOR, "input" + itos(group_node->get_free_input_port_id())), CONNECT_DEFERRED);
+				hb2->add_child(add_input_btn);
 
-			hb2->add_spacer();
+				hb2->add_spacer();
 
-			Button *add_output_btn = memnew(Button);
-			add_output_btn->set_text(TTR("Add output +"));
-			add_output_btn->connect("pressed", this, "_add_output_port", varray(nodes[n_i], group_node->get_free_output_port_id(), VisualShaderNode::PORT_TYPE_VECTOR, "output" + itos(group_node->get_free_output_port_id())), CONNECT_DEFERRED);
-			hb2->add_child(add_output_btn);
+				Button *add_output_btn = memnew(Button);
+				add_output_btn->set_text(TTR("Add output +"));
+				add_output_btn->connect("pressed", this, "_add_output_port", varray(nodes[n_i], group_node->get_free_output_port_id(), VisualShaderNode::PORT_TYPE_VECTOR, "output" + itos(group_node->get_free_output_port_id())), CONNECT_DEFERRED);
+				hb2->add_child(add_output_btn);
 
-			node->add_child(hb2);
+				node->add_child(hb2);
+			}
 		}
 
 		for (int i = 0; i < MAX(vsnode->get_input_port_count(), vsnode->get_output_port_count()); i++) {
@@ -1566,6 +1585,32 @@ void VisualShaderEditor::_notification(int p_what) {
 
 		node_filter->set_right_icon(Control::get_icon("Search", "EditorIcons"));
 
+		preview_shader->set_icon(Control::get_icon("Shader", "EditorIcons"));
+
+		{
+			Color background_color = EDITOR_GET("text_editor/highlighting/background_color");
+			Color text_color = EDITOR_GET("text_editor/highlighting/text_color");
+			Color keyword_color = EDITOR_GET("text_editor/highlighting/keyword_color");
+			Color comment_color = EDITOR_GET("text_editor/highlighting/comment_color");
+			Color symbol_color = EDITOR_GET("text_editor/highlighting/symbol_color");
+
+			preview_text->add_color_override("background_color", background_color);
+
+			for (List<String>::Element *E = keyword_list.front(); E; E = E->next()) {
+
+				preview_text->add_keyword_color(E->get(), keyword_color);
+			}
+
+			preview_text->add_font_override("font", get_font("expression", "EditorFonts"));
+			preview_text->add_color_override("font_color", text_color);
+			preview_text->add_color_override("symbol_color", symbol_color);
+			preview_text->add_color_region("/*", "*/", comment_color, false);
+			preview_text->add_color_region("//", "", comment_color, false);
+
+			error_text->add_font_override("font", get_font("status_source", "EditorFonts"));
+			error_text->add_color_override("font_color", get_color("error_color", "Editor"));
+		}
+
 		tools->set_icon(EditorNode::get_singleton()->get_gui_base()->get_icon("Tools", "EditorIcons"));
 
 		if (p_what == NOTIFICATION_THEME_CHANGED && is_visible_in_tree())
@@ -1892,11 +1937,7 @@ void VisualShaderEditor::_member_selected() {
 
 	if (item != NULL && item->has_meta("id")) {
 		members_dialog->get_ok()->set_disabled(false);
-		if (add_options[item->get_meta("id")].highend) {
-			node_desc->set_text(TTR("(GLES3 only)") + " " + add_options[item->get_meta("id")].description); // TODO: change it to (Vulkan Only) when its ready
-		} else {
-			node_desc->set_text(add_options[item->get_meta("id")].description);
-		}
+		node_desc->set_text(_get_description(item->get_meta("id")));
 	} else {
 		members_dialog->get_ok()->set_disabled(true);
 		node_desc->set_text("");
@@ -2016,6 +2057,48 @@ void VisualShaderEditor::drop_data_fw(const Point2 &p_point, const Variant &p_da
 	}
 }
 
+void VisualShaderEditor::_show_preview_text() {
+	preview_showed = !preview_showed;
+	preview_vbox->set_visible(preview_showed);
+	if (preview_showed) {
+		if (pending_update_preview) {
+			_update_preview();
+			pending_update_preview = false;
+		}
+	}
+}
+
+void VisualShaderEditor::_update_preview() {
+
+	if (!preview_showed) {
+		pending_update_preview = true;
+		return;
+	}
+
+	String code = visual_shader->get_code();
+
+	preview_text->set_text(code);
+
+	ShaderLanguage sl;
+
+	Error err = sl.compile(code, ShaderTypes::get_singleton()->get_functions(VisualServer::ShaderMode(visual_shader->get_mode())), ShaderTypes::get_singleton()->get_modes(VisualServer::ShaderMode(visual_shader->get_mode())), ShaderTypes::get_singleton()->get_types());
+
+	for (int i = 0; i < preview_text->get_line_count(); i++) {
+		preview_text->set_line_as_marked(i, false);
+	}
+	if (err != OK) {
+		preview_text->set_line_as_marked(sl.get_error_line() - 1, true);
+		error_text->set_visible(true);
+
+		String text = "error(" + itos(sl.get_error_line()) + "): " + sl.get_error_text();
+		error_text->set_text(text);
+		shader_error = true;
+	} else {
+		error_text->set_visible(false);
+		shader_error = false;
+	}
+}
+
 void VisualShaderEditor::_bind_methods() {
 	ClassDB::bind_method("_rebuild", &VisualShaderEditor::_rebuild);
 	ClassDB::bind_method("_update_graph", &VisualShaderEditor::_update_graph);
@@ -2055,6 +2138,8 @@ void VisualShaderEditor::_bind_methods() {
 	ClassDB::bind_method("_node_resized", &VisualShaderEditor::_node_resized);
 	ClassDB::bind_method("_set_node_size", &VisualShaderEditor::_set_node_size);
 	ClassDB::bind_method("_clear_buffer", &VisualShaderEditor::_clear_buffer);
+	ClassDB::bind_method("_show_preview_text", &VisualShaderEditor::_show_preview_text);
+	ClassDB::bind_method("_update_preview", &VisualShaderEditor::_update_preview);
 
 	ClassDB::bind_method(D_METHOD("get_drag_data_fw"), &VisualShaderEditor::get_drag_data_fw);
 	ClassDB::bind_method(D_METHOD("can_drop_data_fw"), &VisualShaderEditor::can_drop_data_fw);
@@ -2081,13 +2166,25 @@ VisualShaderEditor::VisualShaderEditor() {
 	saved_node_pos = Point2(0, 0);
 	ShaderLanguage::get_keyword_list(&keyword_list);
 
+	preview_showed = false;
+	pending_update_preview = false;
+	shader_error = false;
+
 	to_node = -1;
 	to_slot = -1;
 	from_node = -1;
 	from_slot = -1;
 
+	main_box = memnew(HSplitContainer);
+	main_box->set_v_size_flags(SIZE_EXPAND_FILL);
+	main_box->set_h_size_flags(SIZE_EXPAND_FILL);
+	add_child(main_box);
+
 	graph = memnew(GraphEdit);
-	add_child(graph);
+	graph->get_zoom_hbox()->set_h_size_flags(SIZE_EXPAND_FILL);
+	graph->set_v_size_flags(SIZE_EXPAND_FILL);
+	graph->set_h_size_flags(SIZE_EXPAND_FILL);
+	main_box->add_child(graph);
 	graph->set_drag_forwarding(this);
 	graph->add_valid_right_disconnect_type(VisualShaderNode::PORT_TYPE_SCALAR);
 	graph->add_valid_right_disconnect_type(VisualShaderNode::PORT_TYPE_BOOLEAN);
@@ -2135,6 +2232,32 @@ VisualShaderEditor::VisualShaderEditor() {
 	add_node->set_text(TTR("Add Node..."));
 	graph->get_zoom_hbox()->move_child(add_node, 0);
 	add_node->connect("pressed", this, "_show_members_dialog", varray(false));
+
+	preview_shader = memnew(ToolButton);
+	preview_shader->set_toggle_mode(true);
+	preview_shader->set_tooltip(TTR("Show resulted shader code."));
+	graph->get_zoom_hbox()->add_child(preview_shader);
+	preview_shader->connect("pressed", this, "_show_preview_text");
+
+	///////////////////////////////////////
+	// PREVIEW PANEL
+	///////////////////////////////////////
+
+	preview_vbox = memnew(VBoxContainer);
+	preview_vbox->set_visible(preview_showed);
+	main_box->add_child(preview_vbox);
+	preview_text = memnew(TextEdit);
+	preview_vbox->add_child(preview_text);
+	preview_text->set_h_size_flags(SIZE_EXPAND_FILL);
+	preview_text->set_v_size_flags(SIZE_EXPAND_FILL);
+	preview_text->set_custom_minimum_size(Size2(400 * EDSCALE, 0));
+	preview_text->set_syntax_coloring(true);
+	preview_text->set_show_line_numbers(true);
+	preview_text->set_readonly(true);
+
+	error_text = memnew(Label);
+	preview_vbox->add_child(error_text);
+	error_text->set_visible(false);
 
 	///////////////////////////////////////
 	// SHADER NODES TREE
@@ -2413,8 +2536,8 @@ VisualShaderEditor::VisualShaderEditor() {
 	add_options.push_back(AddOption("Sin", "Scalar", "Functions", "VisualShaderNodeScalarFunc", TTR("Returns the sine of the parameter."), VisualShaderNodeScalarFunc::FUNC_SIN, VisualShaderNode::PORT_TYPE_SCALAR));
 	add_options.push_back(AddOption("SinH", "Scalar", "Functions", "VisualShaderNodeScalarFunc", TTR("Returns the hyperbolic sine of the parameter."), VisualShaderNodeScalarFunc::FUNC_SINH, VisualShaderNode::PORT_TYPE_SCALAR));
 	add_options.push_back(AddOption("Sqrt", "Scalar", "Functions", "VisualShaderNodeScalarFunc", TTR("Returns the square root of the parameter."), VisualShaderNodeScalarFunc::FUNC_SQRT, VisualShaderNode::PORT_TYPE_SCALAR));
-	add_options.push_back(AddOption("SmoothStep", "Scalar", "Functions", "VisualShaderNodeScalarSmoothStep", TTR("SmoothStep function( scalar(edge0), scalar(edge1), scalar(x) ).\n\nReturns 0.0 if 'x' is smaller then 'edge0' and 1.0 if x is larger than 'edge1'. Otherwise the return value is interpolated between 0.0 and 1.0 using Hermite polynomials."), -1, VisualShaderNode::PORT_TYPE_SCALAR));
-	add_options.push_back(AddOption("Step", "Scalar", "Functions", "VisualShaderNodeScalarOp", TTR("Step function( scalar(edge), scalar(x) ).\n\nReturns 0.0 if 'x' is smaller then 'edge' and otherwise 1.0."), VisualShaderNodeScalarOp::OP_STEP, VisualShaderNode::PORT_TYPE_SCALAR));
+	add_options.push_back(AddOption("SmoothStep", "Scalar", "Functions", "VisualShaderNodeScalarSmoothStep", TTR("SmoothStep function( scalar(edge0), scalar(edge1), scalar(x) ).\n\nReturns 0.0 if 'x' is smaller than 'edge0' and 1.0 if x is larger than 'edge1'. Otherwise the return value is interpolated between 0.0 and 1.0 using Hermite polynomials."), -1, VisualShaderNode::PORT_TYPE_SCALAR));
+	add_options.push_back(AddOption("Step", "Scalar", "Functions", "VisualShaderNodeScalarOp", TTR("Step function( scalar(edge), scalar(x) ).\n\nReturns 0.0 if 'x' is smaller than 'edge' and otherwise 1.0."), VisualShaderNodeScalarOp::OP_STEP, VisualShaderNode::PORT_TYPE_SCALAR));
 	add_options.push_back(AddOption("Tan", "Scalar", "Functions", "VisualShaderNodeScalarFunc", TTR("Returns the tangent of the parameter."), VisualShaderNodeScalarFunc::FUNC_TAN, VisualShaderNode::PORT_TYPE_SCALAR));
 	add_options.push_back(AddOption("TanH", "Scalar", "Functions", "VisualShaderNodeScalarFunc", TTR("Returns the hyperbolic tangent of the parameter."), VisualShaderNodeScalarFunc::FUNC_TANH, VisualShaderNode::PORT_TYPE_SCALAR));
 	add_options.push_back(AddOption("Trunc", "Scalar", "Functions", "VisualShaderNodeScalarFunc", TTR("Finds the truncated value of the parameter."), VisualShaderNodeScalarFunc::FUNC_TRUNC, VisualShaderNode::PORT_TYPE_SCALAR));
@@ -2507,10 +2630,10 @@ VisualShaderEditor::VisualShaderEditor() {
 	add_options.push_back(AddOption("Sin", "Vector", "Functions", "VisualShaderNodeVectorFunc", TTR("Returns the sine of the parameter."), VisualShaderNodeVectorFunc::FUNC_SIN, VisualShaderNode::PORT_TYPE_VECTOR));
 	add_options.push_back(AddOption("SinH", "Vector", "Functions", "VisualShaderNodeVectorFunc", TTR("Returns the hyperbolic sine of the parameter."), VisualShaderNodeVectorFunc::FUNC_SINH, VisualShaderNode::PORT_TYPE_VECTOR));
 	add_options.push_back(AddOption("Sqrt", "Vector", "Functions", "VisualShaderNodeVectorFunc", TTR("Returns the square root of the parameter."), VisualShaderNodeVectorFunc::FUNC_SQRT, VisualShaderNode::PORT_TYPE_VECTOR));
-	add_options.push_back(AddOption("SmoothStep", "Vector", "Functions", "VisualShaderNodeVectorSmoothStep", TTR("SmoothStep function( vector(edge0), vector(edge1), vector(x) ).\n\nReturns 0.0 if 'x' is smaller then 'edge0' and 1.0 if 'x' is larger than 'edge1'. Otherwise the return value is interpolated between 0.0 and 1.0 using Hermite polynomials."), -1, VisualShaderNode::PORT_TYPE_VECTOR));
-	add_options.push_back(AddOption("SmoothStepS", "Vector", "Functions", "VisualShaderNodeVectorScalarSmoothStep", TTR("SmoothStep function( scalar(edge0), scalar(edge1), vector(x) ).\n\nReturns 0.0 if 'x' is smaller then 'edge0' and 1.0 if 'x' is larger than 'edge1'. Otherwise the return value is interpolated between 0.0 and 1.0 using Hermite polynomials."), -1, VisualShaderNode::PORT_TYPE_VECTOR));
-	add_options.push_back(AddOption("Step", "Vector", "Functions", "VisualShaderNodeVectorOp", TTR("Step function( vector(edge), vector(x) ).\n\nReturns 0.0 if 'x' is smaller then 'edge' and otherwise 1.0."), VisualShaderNodeVectorOp::OP_STEP, VisualShaderNode::PORT_TYPE_VECTOR));
-	add_options.push_back(AddOption("StepS", "Vector", "Functions", "VisualShaderNodeVectorScalarStep", TTR("Step function( scalar(edge), vector(x) ).\n\nReturns 0.0 if 'x' is smaller then 'edge' and otherwise 1.0."), -1, VisualShaderNode::PORT_TYPE_VECTOR));
+	add_options.push_back(AddOption("SmoothStep", "Vector", "Functions", "VisualShaderNodeVectorSmoothStep", TTR("SmoothStep function( vector(edge0), vector(edge1), vector(x) ).\n\nReturns 0.0 if 'x' is smaller than 'edge0' and 1.0 if 'x' is larger than 'edge1'. Otherwise the return value is interpolated between 0.0 and 1.0 using Hermite polynomials."), -1, VisualShaderNode::PORT_TYPE_VECTOR));
+	add_options.push_back(AddOption("SmoothStepS", "Vector", "Functions", "VisualShaderNodeVectorScalarSmoothStep", TTR("SmoothStep function( scalar(edge0), scalar(edge1), vector(x) ).\n\nReturns 0.0 if 'x' is smaller than 'edge0' and 1.0 if 'x' is larger than 'edge1'. Otherwise the return value is interpolated between 0.0 and 1.0 using Hermite polynomials."), -1, VisualShaderNode::PORT_TYPE_VECTOR));
+	add_options.push_back(AddOption("Step", "Vector", "Functions", "VisualShaderNodeVectorOp", TTR("Step function( vector(edge), vector(x) ).\n\nReturns 0.0 if 'x' is smaller than 'edge' and otherwise 1.0."), VisualShaderNodeVectorOp::OP_STEP, VisualShaderNode::PORT_TYPE_VECTOR));
+	add_options.push_back(AddOption("StepS", "Vector", "Functions", "VisualShaderNodeVectorScalarStep", TTR("Step function( scalar(edge), vector(x) ).\n\nReturns 0.0 if 'x' is smaller than 'edge' and otherwise 1.0."), -1, VisualShaderNode::PORT_TYPE_VECTOR));
 	add_options.push_back(AddOption("Tan", "Vector", "Functions", "VisualShaderNodeVectorFunc", TTR("Returns the tangent of the parameter."), VisualShaderNodeVectorFunc::FUNC_TAN, VisualShaderNode::PORT_TYPE_VECTOR));
 	add_options.push_back(AddOption("TanH", "Vector", "Functions", "VisualShaderNodeVectorFunc", TTR("Returns the hyperbolic tangent of the parameter."), VisualShaderNodeVectorFunc::FUNC_TANH, VisualShaderNode::PORT_TYPE_VECTOR));
 	add_options.push_back(AddOption("Trunc", "Vector", "Functions", "VisualShaderNodeVectorFunc", TTR("Finds the truncated value of the parameter."), VisualShaderNodeVectorFunc::FUNC_TRUNC, VisualShaderNode::PORT_TYPE_VECTOR));
@@ -2528,6 +2651,7 @@ VisualShaderEditor::VisualShaderEditor() {
 
 	add_options.push_back(AddOption("Expression", "Special", "", "VisualShaderNodeExpression", TTR("Custom Godot Shader Language expression, with custom amount of input and output ports. This is a direct injection of code into the vertex/fragment/light function, do not use it to write the function declarations inside.")));
 	add_options.push_back(AddOption("Fresnel", "Special", "", "VisualShaderNodeFresnel", TTR("Returns falloff based on the dot product of surface normal and view direction of camera (pass associated inputs to it)."), -1, VisualShaderNode::PORT_TYPE_SCALAR));
+	add_options.push_back(AddOption("GlobalExpression", "Special", "", "VisualShaderNodeGlobalExpression", TTR("Custom Godot Shader Language expression, which placed on top of the resulted shader. You can place various function definitions inside and call it later in the Expressions. You can also declare varyings, uniforms and constants.")));
 
 	add_options.push_back(AddOption("ScalarDerivativeFunc", "Special", "Common", "VisualShaderNodeScalarDerivativeFunc", TTR("(Fragment/Light mode only) Scalar derivative function."), -1, VisualShaderNode::PORT_TYPE_SCALAR, VisualShader::TYPE_FRAGMENT | VisualShader::TYPE_LIGHT, -1, -1, true));
 	add_options.push_back(AddOption("VectorDerivativeFunc", "Special", "Common", "VisualShaderNodeVectorDerivativeFunc", TTR("(Fragment/Light mode only) Vector derivative function."), -1, VisualShaderNode::PORT_TYPE_VECTOR, VisualShader::TYPE_FRAGMENT | VisualShader::TYPE_LIGHT, -1, -1, true));

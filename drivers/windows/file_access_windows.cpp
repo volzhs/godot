@@ -38,6 +38,7 @@
 #include <shlwapi.h>
 #include <windows.h>
 
+#include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <tchar.h>
@@ -114,11 +115,18 @@ Error FileAccessWindows::_open(const String &p_path, int p_mode_flags) {
 		path = path + ".tmp";
 	}
 
-	_wfopen_s(&f, path.c_str(), mode_string);
+	errno_t errcode = _wfopen_s(&f, path.c_str(), mode_string);
 
 	if (f == NULL) {
-		last_error = ERR_FILE_CANT_OPEN;
-		return ERR_FILE_CANT_OPEN;
+		switch (errcode) {
+			case ENOENT: {
+				last_error = ERR_FILE_NOT_FOUND;
+			} break;
+			default: {
+				last_error = ERR_FILE_CANT_OPEN;
+			} break;
+		}
+		return last_error;
 	} else {
 		last_error = OK;
 		flags = p_mode_flags;

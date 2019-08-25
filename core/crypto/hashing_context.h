@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  crypto_core.h                                                        */
+/*  hashing_context.h                                                    */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,63 +28,39 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef CRYPTO_CORE_H
-#define CRYPTO_CORE_H
+#ifndef HASHING_CONTEXT_H
+#define HASHING_CONTEXT_H
 
 #include "core/reference.h"
 
-class CryptoCore {
+class HashingContext : public Reference {
+	GDCLASS(HashingContext, Reference);
 
 public:
-	class MD5Context {
-
-	private:
-		void *ctx; // To include, or not to include...
-
-	public:
-		MD5Context();
-		~MD5Context();
-
-		Error start();
-		Error update(uint8_t *p_src, size_t p_len);
-		Error finish(unsigned char r_hash[16]);
+	enum HashType {
+		HASH_MD5,
+		HASH_SHA1,
+		HASH_SHA256
 	};
 
-	class SHA256Context {
+private:
+	void *ctx;
+	HashType type;
 
-	private:
-		void *ctx; // To include, or not to include...
+protected:
+	static void _bind_methods();
+	void _create_ctx(HashType p_type);
+	void _delete_ctx();
 
-	public:
-		SHA256Context();
-		~SHA256Context();
+public:
+	Error start(HashType p_type);
+	Error update(PoolByteArray p_chunk);
+	PoolByteArray finish();
 
-		Error start();
-		Error update(uint8_t *p_src, size_t p_len);
-		Error finish(unsigned char r_hash[16]);
-	};
-
-	class AESContext {
-
-	private:
-		void *ctx; // To include, or not to include...
-
-	public:
-		AESContext();
-		~AESContext();
-
-		Error set_encode_key(const uint8_t *p_key, size_t p_bits);
-		Error set_decode_key(const uint8_t *p_key, size_t p_bits);
-		Error encrypt_ecb(const uint8_t p_src[16], uint8_t r_dst[16]);
-		Error decrypt_ecb(const uint8_t p_src[16], uint8_t r_dst[16]);
-	};
-
-	static String b64_encode_str(const uint8_t *p_src, int p_src_len);
-	static Error b64_encode(uint8_t *r_dst, int p_dst_len, size_t *r_len, const uint8_t *p_src, int p_src_len);
-	static Error b64_decode(uint8_t *r_dst, int p_dst_len, size_t *r_len, const uint8_t *p_src, int p_src_len);
-
-	static Error md5(const uint8_t *p_src, int p_src_len, unsigned char r_hash[16]);
-	static Error sha1(const uint8_t *p_src, int p_src_len, unsigned char r_hash[20]);
-	static Error sha256(const uint8_t *p_src, int p_src_len, unsigned char r_hash[32]);
+	HashingContext();
+	~HashingContext();
 };
-#endif // CRYPTO_CORE_H
+
+VARIANT_ENUM_CAST(HashingContext::HashType);
+
+#endif // HASHING_CONTEXT_H

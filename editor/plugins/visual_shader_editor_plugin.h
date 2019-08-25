@@ -60,13 +60,21 @@ class VisualShaderEditor : public VBoxContainer {
 	int editing_port;
 
 	Ref<VisualShader> visual_shader;
+	HSplitContainer *main_box;
 	GraphEdit *graph;
 	ToolButton *add_node;
+	ToolButton *preview_shader;
 
 	OptionButton *edit_type;
 
 	PanelContainer *error_panel;
 	Label *error_label;
+
+	bool pending_update_preview;
+	bool shader_error;
+	VBoxContainer *preview_vbox;
+	TextEdit *preview_text;
+	Label *error_text;
 
 	UndoRedo *undo_redo;
 	Point2 saved_node_pos;
@@ -74,6 +82,8 @@ class VisualShaderEditor : public VBoxContainer {
 
 	ConfirmationDialog *members_dialog;
 	MenuButton *tools;
+
+	bool preview_showed;
 
 	enum ToolsMenuOptions {
 		EXPAND_ALL,
@@ -145,6 +155,10 @@ class VisualShaderEditor : public VBoxContainer {
 	void _add_node(int p_idx, int p_op_idx = -1);
 	void _update_custom_nodes();
 	void _update_options_menu();
+
+	void _show_preview_text();
+	void _update_preview();
+	String _get_description(int p_idx);
 
 	static VisualShaderEditor *singleton;
 
