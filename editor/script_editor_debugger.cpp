@@ -434,6 +434,15 @@ int ScriptEditorDebugger::_update_scene_tree(TreeItem *parent, const Array &node
 	}
 	item->set_metadata(0, id);
 
+	if (id == inspected_object_id) {
+		TreeItem *cti = item->get_parent();
+		while (cti) {
+			cti->set_collapsed(false);
+			cti = cti->get_parent();
+		}
+		item->select(0);
+	}
+
 	// Set current item as collapsed if necessary
 	if (parent) {
 		if (!unfold_cache.has(id)) {
@@ -2139,11 +2148,13 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 		step = memnew(ToolButton);
 		hbc->add_child(step);
 		step->set_tooltip(TTR("Step Into"));
+		step->set_shortcut(ED_GET_SHORTCUT("debugger/step_into"));
 		step->connect("pressed", this, "debug_step");
 
 		next = memnew(ToolButton);
 		hbc->add_child(next);
 		next->set_tooltip(TTR("Step Over"));
+		next->set_shortcut(ED_GET_SHORTCUT("debugger/step_over"));
 		next->connect("pressed", this, "debug_next");
 
 		hbc->add_child(memnew(VSeparator));
@@ -2151,11 +2162,13 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 		dobreak = memnew(ToolButton);
 		hbc->add_child(dobreak);
 		dobreak->set_tooltip(TTR("Break"));
+		dobreak->set_shortcut(ED_GET_SHORTCUT("debugger/break"));
 		dobreak->connect("pressed", this, "debug_break");
 
 		docontinue = memnew(ToolButton);
 		hbc->add_child(docontinue);
 		docontinue->set_tooltip(TTR("Continue"));
+		docontinue->set_shortcut(ED_GET_SHORTCUT("debugger/continue"));
 		docontinue->connect("pressed", this, "debug_continue");
 
 		back = memnew(Button);
