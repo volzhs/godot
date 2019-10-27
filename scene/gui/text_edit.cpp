@@ -269,6 +269,12 @@ void TextEdit::Text::clear_wrap_cache() {
 	}
 }
 
+void TextEdit::Text::clear_info_icons() {
+	for (int i = 0; i < text.size(); i++) {
+		text.write[i].has_info = false;
+	}
+}
+
 void TextEdit::Text::clear() {
 
 	text.clear();
@@ -303,6 +309,7 @@ void TextEdit::Text::insert(int p_at, const String &p_text) {
 	line.breakpoint = false;
 	line.bookmark = false;
 	line.hidden = false;
+	line.has_info = false;
 	line.width_cache = -1;
 	line.wrap_amount_cache = -1;
 	line.data = p_text;
@@ -2853,27 +2860,48 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 					// Indent once again if previous line will end with ':','{','[','(' and the line is not a comment
 					// (i.e. colon/brace precedes current cursor position).
 					if (cursor.column > 0) {
-						char prev_char = text[cursor.line][cursor.column - 1];
-						switch (prev_char) {
-							case ':':
-							case '{':
-							case '[':
-							case '(': {
-								if (!is_line_comment(cursor.line)) {
-									if (indent_using_spaces) {
-										ins += space_indent;
-									} else {
-										ins += "\t";
-									}
+						const Map<int, Text::ColorRegionInfo> &cri_map = text.get_color_region_info(cursor.line);
+						bool indent_char_found = false;
+						bool should_indent = false;
+						char indent_char = ':';
+						char c = text[cursor.line][cursor.column];
 
-									// No need to move the brace below if we are not taking the text with us.
-									char closing_char = _get_right_pair_symbol(prev_char);
-									if ((closing_char != 0) && (closing_char == text[cursor.line][cursor.column]) && !k->get_command()) {
-										brace_indent = true;
-										ins += "\n" + ins.substr(1, ins.length() - 2);
-									}
-								}
-							} break;
+						for (int i = 0; i < cursor.column; i++) {
+							c = text[cursor.line][i];
+							switch (c) {
+								case ':':
+								case '{':
+								case '[':
+								case '(':
+									indent_char_found = true;
+									should_indent = true;
+									indent_char = c;
+									continue;
+							}
+
+							if (indent_char_found && cri_map.has(i) && (color_regions[cri_map[i].region].begin_key == "#" || color_regions[cri_map[i].region].begin_key == "//")) {
+
+								should_indent = true;
+								break;
+							} else if (indent_char_found && !_is_whitespace(c)) {
+								should_indent = false;
+								indent_char_found = false;
+							}
+						}
+
+						if (!is_line_comment(cursor.line) && should_indent) {
+							if (indent_using_spaces) {
+								ins += space_indent;
+							} else {
+								ins += "\t";
+							}
+
+							// No need to move the brace below if we are not taking the text with us.
+							char closing_char = _get_right_pair_symbol(indent_char);
+							if ((closing_char != 0) && (closing_char == text[cursor.line][cursor.column]) && !k->get_command()) {
+								brace_indent = true;
+								ins += "\n" + ins.substr(1, ins.length() - 2);
+							}
 						}
 					}
 				}
@@ -5663,9 +5691,7 @@ void TextEdit::set_line_info_icon(int p_line, Ref<Texture> p_icon, String p_info
 }
 
 void TextEdit::clear_info_icons() {
-	for (int i = 0; i < text.size(); i++) {
-		text.set_info_icon(i, NULL, "");
-	}
+	text.clear_info_icons();
 	update();
 }
 
