@@ -638,7 +638,7 @@ void RasterizerStorageGLES2::texture_set_data(RID p_texture, const Ref<Image> &p
 
 	if (texture->resize_to_po2) {
 		if (p_image->is_compressed()) {
-			ERR_PRINTS("Texture '" + texture->path + "' was required to be a power of 2 (because it uses either mipmaps or repeat), so it was decompressed. This will hurt performance and memory usage.");
+			ERR_PRINTS("Texture '" + texture->path + "' is required to be a power of 2 because it uses either mipmaps or repeat, so it was decompressed. This will hurt performance and memory usage.");
 		}
 
 		if (img == p_image) {
@@ -659,12 +659,13 @@ void RasterizerStorageGLES2::texture_set_data(RID p_texture, const Ref<Image> &p
 
 			img->resize(texture->alloc_width, texture->alloc_height, Image::INTERPOLATE_BILINEAR);
 		}
-	};
+	}
 
 	GLenum blit_target = (texture->target == GL_TEXTURE_CUBE_MAP) ? _cube_side_enum[p_layer] : GL_TEXTURE_2D;
 
 	texture->data_size = img->get_data().size();
 	PoolVector<uint8_t>::Read read = img->get_data().read();
+	ERR_FAIL_COND(!read.ptr());
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(texture->target, texture->tex_id);
@@ -718,7 +719,7 @@ void RasterizerStorageGLES2::texture_set_data(RID p_texture, const Ref<Image> &p
 		int size, ofs;
 		img->get_mipmap_offset_and_size(i, ofs, size);
 
-		if (texture->compressed) {
+		if (compressed) {
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
 			int bw = w;
@@ -3236,12 +3237,14 @@ Color RasterizerStorageGLES2::multimesh_instance_get_custom_data(RID p_multimesh
 void RasterizerStorageGLES2::multimesh_set_as_bulk_array(RID p_multimesh, const PoolVector<float> &p_array) {
 	MultiMesh *multimesh = multimesh_owner.getornull(p_multimesh);
 	ERR_FAIL_COND(!multimesh);
+	ERR_FAIL_COND(!multimesh->data.ptr());
 
 	int dsize = multimesh->data.size();
 
 	ERR_FAIL_COND(dsize != p_array.size());
 
 	PoolVector<float>::Read r = p_array.read();
+	ERR_FAIL_COND(!r.ptr());
 	copymem(multimesh->data.ptrw(), r.ptr(), dsize * sizeof(float));
 
 	multimesh->dirty_data = true;
@@ -4733,12 +4736,13 @@ void RasterizerStorageGLES2::_render_target_allocate(RenderTarget *rt) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-		glFramebufferTexture2DMultisample(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rt->color, 0, msaa);
+		glFramebufferTexture2DMultisample(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rt->multisample_color, 0, msaa);
 #endif
 
 		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
 		if (status != GL_FRAMEBUFFER_COMPLETE) {
+			WARN_PRINT_ONCE("Cannot allocate back framebuffer for MSAA");
 			printf("err status: %x\n", status);
 			_render_target_clear(rt);
 			ERR_FAIL_COND(status != GL_FRAMEBUFFER_COMPLETE);
@@ -5732,7 +5736,7 @@ void RasterizerStorageGLES2::initialize() {
 	config.float_texture_supported = config.extensions.has("GL_ARB_texture_float") || config.extensions.has("GL_OES_texture_float");
 	config.s3tc_supported = config.extensions.has("GL_EXT_texture_compression_s3tc") || config.extensions.has("WEBGL_compressed_texture_s3tc");
 	config.etc1_supported = config.extensions.has("GL_OES_compressed_ETC1_RGB8_texture") || config.extensions.has("WEBGL_compressed_texture_etc1");
-	config.pvrtc_supported = config.extensions.has("IMG_texture_compression_pvrtc");
+	config.pvrtc_supported = config.extensions.has("IMG_texture_compression_pvrtc") || config.extensions.has("WEBGL_compressed_texture_pvrtc");
 	config.support_npot_repeat_mipmap = config.extensions.has("GL_OES_texture_npot");
 
 #endif
@@ -5798,7 +5802,7 @@ void RasterizerStorageGLES2::initialize() {
 #endif
 
 	config.rgtc_supported = config.extensions.has("GL_EXT_texture_compression_rgtc") || config.extensions.has("GL_ARB_texture_compression_rgtc") || config.extensions.has("EXT_texture_compression_rgtc");
-	config.bptc_supported = config.extensions.has("GL_ARB_texture_compression_bptc");
+	config.bptc_supported = config.extensions.has("GL_ARB_texture_compression_bptc") || config.extensions.has("EXT_texture_compression_bptc");
 
 	//determine formats for depth textures (or renderbuffers)
 	if (config.support_depth_texture) {
