@@ -71,6 +71,7 @@
 #include "editor/import/resource_importer_texture.h"
 #include "editor/import/resource_importer_texture_atlas.h"
 #include "editor/import/resource_importer_wav.h"
+#include "editor/multi_node_edit.h"
 #include "editor/plugins/animation_blend_space_1d_editor.h"
 #include "editor/plugins/animation_blend_space_2d_editor.h"
 #include "editor/plugins/animation_blend_tree_editor_plugin.h"
@@ -1065,7 +1066,7 @@ void EditorNode::_save_scene_with_preview(String p_file, int p_idx) {
 			img->crop_from_point(x, y, vp_size, vp_size);
 		} else {
 			int ratio = vp_size / preview_size;
-			int size = preview_size * (ratio / 2);
+			int size = preview_size * MAX(1, ratio / 2);
 
 			x = (img->get_width() - size) / 2;
 			y = (img->get_height() - size) / 2;
@@ -1742,15 +1743,37 @@ void EditorNode::_edit_current() {
 
 	} else {
 
+		Node *selected_node = NULL;
+
 		if (current_obj->is_class("ScriptEditorDebuggerInspectedObject")) {
 			editable_warning = TTR("This is a remote object, so changes to it won't be kept.\nPlease read the documentation relevant to debugging to better understand this workflow.");
 			capitalize = false;
 			disable_folding = true;
+		} else if (current_obj->is_class("MultiNodeEdit")) {
+			Node *scene = get_edited_scene();
+			if (scene) {
+				MultiNodeEdit *multi_node_edit = Object::cast_to<MultiNodeEdit>(current_obj);
+				int node_count = multi_node_edit->get_node_count();
+				if (node_count > 0) {
+					List<Node *> multi_nodes;
+					for (int node_index = 0; node_index < node_count; ++node_index) {
+						Node *node = scene->get_node(multi_node_edit->get_node(node_index));
+						if (node) {
+							multi_nodes.push_back(node);
+						}
+					}
+					if (!multi_nodes.empty()) {
+						// Pick the top-most node
+						multi_nodes.sort_custom<Node::Comparator>();
+						selected_node = multi_nodes.front()->get();
+					}
+				}
+			}
 		}
 
 		get_inspector()->edit(current_obj);
 		node_dock->set_node(NULL);
-		scene_tree_dock->set_selected(NULL);
+		scene_tree_dock->set_selected(selected_node);
 		inspector_dock->update(NULL);
 	}
 
