@@ -100,7 +100,6 @@ void Range::set_value(double p_val) {
 	shared->emit_value_changed();
 }
 void Range::set_min(double p_min) {
-
 	shared->min = p_min;
 	set_value(shared->val);
 
@@ -109,7 +108,6 @@ void Range::set_min(double p_min) {
 	update_configuration_warning();
 }
 void Range::set_max(double p_max) {
-
 	shared->max = p_max;
 	set_value(shared->val);
 
