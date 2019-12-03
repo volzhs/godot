@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  midi_driver.h                                                        */
+/*  register_types.cpp                                                   */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,34 +28,29 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef MIDI_DRIVER_H
-#define MIDI_DRIVER_H
+#include "register_types.h"
 
-#include "core/typedefs.h"
-#include "core/variant.h"
-
-/**
- * Multi-Platform abstraction for accessing to MIDI.
- */
-
-class MIDIDriver {
-
-	static MIDIDriver *singleton;
-	static uint8_t last_received_message;
-
-public:
-	static MIDIDriver *get_singleton();
-	void set_singleton();
-
-	virtual Error open() = 0;
-	virtual void close() = 0;
-
-	virtual PoolStringArray get_connected_inputs();
-
-	static void receive_input_packet(uint64_t timestamp, uint8_t *data, uint32_t length);
-
-	MIDIDriver();
-	virtual ~MIDIDriver() {}
-};
-
+#if defined(WINDOWS_ENABLED)
+#include "camera_win.h"
 #endif
+#if defined(IPHONE_ENABLED)
+#include "camera_ios.h"
+#endif
+#if defined(OSX_ENABLED)
+#include "camera_osx.h"
+#endif
+
+void register_camera_types() {
+#if defined(WINDOWS_ENABLED)
+	CameraServer::make_default<CameraWindows>();
+#endif
+#if defined(IPHONE_ENABLED)
+	CameraServer::make_default<CameraIOS>();
+#endif
+#if defined(OSX_ENABLED)
+	CameraServer::make_default<CameraOSX>();
+#endif
+}
+
+void unregister_camera_types() {
+}

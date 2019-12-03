@@ -336,11 +336,12 @@
 			<description>
 				Rounds [code]s[/code] to the closest smaller integer and returns it.
 				[codeblock]
-				# a is 2
+				# a is 2.0
 				a = floor(2.99)
-				# a is -3
+				# a is -3.0
 				a = floor(-2.99)
 				[/codeblock]
+				[b]Note:[/b] This method returns a float. If you need an integer, you can use [code]int(s)[/code] directly.
 			</description>
 		</method>
 		<method name="fmod">
@@ -502,7 +503,7 @@
 			<argument index="1" name="b" type="float">
 			</argument>
 			<description>
-				Returns True/False whether [code]a[/code] and [code]b[/code] are approximately equal to each other.
+				Returns [code]true[/code] if [code]a[/code] and [code]b[/code] are approximately equal to each other.
 			</description>
 		</method>
 		<method name="is_inf">
@@ -538,7 +539,7 @@
 			<argument index="0" name="s" type="float">
 			</argument>
 			<description>
-				Returns True/False whether [code]s[/code] is zero or almost zero.
+				Returns [code]true[/code] if [code]s[/code] is zero or almost zero.
 			</description>
 		</method>
 		<method name="len">
@@ -1365,17 +1366,17 @@
 				If passed an object and a signal, the execution is resumed when the object emits the given signal. In this case, [code]yield()[/code] returns the argument passed to [code]emit_signal()[/code] if the signal takes only one argument, or an array containing all the arguments passed to [code]emit_signal()[/code] if the signal takes multiple arguments.
 				You can also use [code]yield[/code] to wait for a function to finish:
 				[codeblock]
-				func _ready -> void:
+				func _ready():
 				    yield(do_something(), "completed")
 				    yield(do_something_else(), "completed")
 				    print("All functions are done!")
 
 				func do_something():
 				    print("Something is done!")
-				
+
 				func do_something_else():
 				    print("Something else is done!")
-				
+
 				# prints:
 				# Something is done!
 				# Something else is done!
