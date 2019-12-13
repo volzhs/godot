@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ukrainian (Godot Engine)\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-11-25 04:04+0000\n"
+"PO-Revision-Date: 2019-12-09 11:36+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/uk/>\n"
@@ -3514,6 +3514,11 @@ msgid "Select Template File"
 msgstr "Виберіть файл шаблону"
 
 #: editor/export_template_manager.cpp
+#, fuzzy
+msgid "Godot Export Templates"
+msgstr "Управління шаблонами експорту"
+
+#: editor/export_template_manager.cpp
 msgid "Export Template Manager"
 msgstr "Менеджер експорту шаблонів"
 
@@ -4907,6 +4912,32 @@ msgstr "Помилка завантаження"
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Download for this asset is already in progress!"
 msgstr "Завантаження цього активу вже виконується!"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Least Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (A-Z)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (Z-A)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (A-Z)"
+msgstr "Ліцензія"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (Z-A)"
+msgstr "Ліцензія"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "First"
@@ -9032,6 +9063,15 @@ msgid "Runnable"
 msgstr "Активний"
 
 #: editor/project_export.cpp
+#, fuzzy
+msgid "Add initial export..."
+msgstr "Додати вхідний порт"
+
+#: editor/project_export.cpp
+msgid "Add previous patches..."
+msgstr ""
+
+#: editor/project_export.cpp
 msgid "Delete patch '%s' from list?"
 msgstr "Вилучити латку «%s» зі списку?"
 
@@ -9498,9 +9538,8 @@ msgid "Projects"
 msgstr "Проєкти"
 
 #: editor/project_manager.cpp
-#, fuzzy
 msgid "Last Modified"
-msgstr "Змінено"
+msgstr "Востаннє змінено"
 
 #: editor/project_manager.cpp
 msgid "Scan"

@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-11-25 04:05+0000\n"
+"PO-Revision-Date: 2019-12-09 11:37+0000\n"
 "Last-Translator: 송태섭 <xotjq237@gmail.com>\n"
 "Language-Team: Korean <https://hosted.weblate.org/projects/godot-engine/"
 "godot/ko/>\n"
@@ -3478,6 +3478,11 @@ msgid "Select Template File"
 msgstr "템플릿 파일 선택하기"
 
 #: editor/export_template_manager.cpp
+#, fuzzy
+msgid "Godot Export Templates"
+msgstr "내보내기 템플릿 로딩 중"
+
+#: editor/export_template_manager.cpp
 msgid "Export Template Manager"
 msgstr "내보내기 템플릿 매니저"
 
@@ -4859,6 +4864,32 @@ msgstr "다운로드 오류"
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Download for this asset is already in progress!"
 msgstr "이 애셋은 이미 다운로드 중이에요!"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Least Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (A-Z)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (Z-A)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (A-Z)"
+msgstr "라이선스"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (Z-A)"
+msgstr "라이선스"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "First"
@@ -8934,6 +8965,15 @@ msgid "Runnable"
 msgstr "실행가능"
 
 #: editor/project_export.cpp
+#, fuzzy
+msgid "Add initial export..."
+msgstr "입력 포트 추가하기"
+
+#: editor/project_export.cpp
+msgid "Add previous patches..."
+msgstr ""
+
+#: editor/project_export.cpp
 msgid "Delete patch '%s' from list?"
 msgstr "'%s'을(를) 패치 목록에서 삭제할까요?"
 
@@ -9390,9 +9430,8 @@ msgid "Projects"
 msgstr "프로젝트"
 
 #: editor/project_manager.cpp
-#, fuzzy
 msgid "Last Modified"
-msgstr "수정됨"
+msgstr "마지막으로 수정됨"
 
 #: editor/project_manager.cpp
 msgid "Scan"
@@ -13290,9 +13329,6 @@ msgstr "상수는 수정할 수 없어요."
 
 #~ msgid "Re-Import Changed Resources"
 #~ msgstr "변경된 리소스 다시 가져오기"
-
-#~ msgid "Loading Export Templates"
-#~ msgstr "내보내기 템플릿 로딩 중"
 
 #~ msgid ""
 #~ "\n"

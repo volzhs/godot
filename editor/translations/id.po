@@ -21,12 +21,13 @@
 # I Dewa Agung Adhinata <agungnata2003@gmail.com>, 2019.
 # herri siagian <herry.it.2007@gmail.com>, 2019.
 # MonsterGila <fikrirazor@outlook.co.id>, 2019.
+# Modeus Darksono <garuga17@gmail.com>, 2019.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-10-04 03:15+0000\n"
-"Last-Translator: Sofyan Sugianto <sofyanartem@gmail.com>\n"
+"PO-Revision-Date: 2019-12-13 09:38+0000\n"
+"Last-Translator: Modeus Darksono <garuga17@gmail.com>\n"
 "Language-Team: Indonesian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/id/>\n"
 "Language: id\n"
@@ -34,7 +35,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 3.9-dev\n"
+"X-Generator: Weblate 3.10-dev\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -646,7 +647,6 @@ msgid "Scale Ratio:"
 msgstr "Rasio Skala:"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Select Tracks to Copy"
 msgstr "Pilih track untuk disalin:"
 
@@ -660,9 +660,8 @@ msgid "Copy"
 msgstr "Kopy"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Select All/None"
-msgstr "Pilih Tidak Ada"
+msgstr "Pilih Semua/Tidak Pilih Semua"
 
 #: editor/animation_track_editor_plugins.cpp
 msgid "Add Audio Track Clip"
@@ -3516,6 +3515,11 @@ msgid "Select Template File"
 msgstr "Pilih berkas templat"
 
 #: editor/export_template_manager.cpp
+#, fuzzy
+msgid "Godot Export Templates"
+msgstr "Memuat Ekspor Template-template."
+
+#: editor/export_template_manager.cpp
 msgid "Export Template Manager"
 msgstr "Manajer Templat Ekspor"
 
@@ -4905,6 +4909,32 @@ msgstr "Unduhan Gagal"
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Download for this asset is already in progress!"
 msgstr "Unduhan untuk aset ini sedang diproses!"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Least Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (A-Z)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (Z-A)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (A-Z)"
+msgstr "Lisensi"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (Z-A)"
+msgstr "Lisensi"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "First"
@@ -9038,6 +9068,15 @@ msgid "Runnable"
 msgstr "Dapat dijalankan"
 
 #: editor/project_export.cpp
+#, fuzzy
+msgid "Add initial export..."
+msgstr "Tambah port masukan"
+
+#: editor/project_export.cpp
+msgid "Add previous patches..."
+msgstr ""
+
+#: editor/project_export.cpp
 msgid "Delete patch '%s' from list?"
 msgstr "Hapus entri penambalan '%s' dari daftar?"
 
@@ -12260,13 +12299,12 @@ msgid "(Other)"
 msgstr "(Yang Lain)"
 
 #: scene/main/scene_tree.cpp
-#, fuzzy
 msgid ""
 "Default Environment as specified in Project Settings (Rendering -> "
 "Environment -> Default Environment) could not be loaded."
 msgstr ""
 "Lingkungan Baku yang ditetapkan di Pengaturan Proyek (Rendering -> Viewport -"
-"> Lingkungan Baku) tidak dapat dimuat"
+"> Lingkungan Baku) tidak dapat dimuat."
 
 #: scene/main/viewport.cpp
 msgid ""
@@ -12282,14 +12320,12 @@ msgstr ""
 "beberapa node untuk ditampilkan."
 
 #: scene/resources/visual_shader_nodes.cpp
-#, fuzzy
 msgid "Invalid source for preview."
-msgstr "Ukuran font tidak sah."
+msgstr "Sumber tidak sah untuk pratinjau."
 
 #: scene/resources/visual_shader_nodes.cpp
-#, fuzzy
 msgid "Invalid source for shader."
-msgstr "Ukuran font tidak sah."
+msgstr "Sumber tidak sah untuk shader."
 
 #: scene/resources/visual_shader_nodes.cpp
 msgid "Invalid comparison function for that type."
@@ -12950,9 +12986,6 @@ msgstr "Konstanta tidak dapat dimodifikasi."
 
 #~ msgid "Re-Importing"
 #~ msgstr "Mengimpor ulang"
-
-#~ msgid "Loading Export Templates"
-#~ msgstr "Memuat Ekspor Template-template."
 
 #~ msgid "Pick New Name and Location For:"
 #~ msgstr "Tentukan Nama dan Lokasi Baru untuk:"

@@ -63,7 +63,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-11-29 14:48+0000\n"
+"PO-Revision-Date: 2019-12-09 11:36+0000\n"
 "Last-Translator: Danil Alexeev <danil@alexeev.xyz>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/ru/>\n"
@@ -2023,7 +2023,7 @@ msgstr ""
 #: editor/editor_help_search.cpp editor/editor_node.cpp
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Search Help"
-msgstr "Помощь"
+msgstr "Справка"
 
 #: editor/editor_help_search.cpp
 msgid "Display All"
@@ -2664,7 +2664,7 @@ msgstr "Новая сцена"
 
 #: editor/editor_node.cpp
 msgid "New Inherited Scene..."
-msgstr "Новая унаследованная Сцена..."
+msgstr "Новая унаследованная сцена..."
 
 #: editor/editor_node.cpp
 msgid "Open Scene..."
@@ -3555,6 +3555,11 @@ msgid "Select Template File"
 msgstr "Выбрать файл шаблона"
 
 #: editor/export_template_manager.cpp
+#, fuzzy
+msgid "Godot Export Templates"
+msgstr "Загрузка шаблонов экспорта"
+
+#: editor/export_template_manager.cpp
 msgid "Export Template Manager"
 msgstr "Менеджер шаблонов экспорта"
 
@@ -3842,7 +3847,7 @@ msgstr "Узлы не в группе"
 #: editor/groups_editor.cpp editor/scene_tree_dock.cpp
 #: editor/scene_tree_editor.cpp
 msgid "Filter nodes"
-msgstr "Фильтрация узлов"
+msgstr "Фильтр узлов"
 
 #: editor/groups_editor.cpp
 msgid "Nodes in Group"
@@ -4051,7 +4056,7 @@ msgstr "Свойства объекта."
 
 #: editor/inspector_dock.cpp
 msgid "Filter properties"
-msgstr "Свойства фильтра"
+msgstr "Фильтр свойств"
 
 #: editor/inspector_dock.cpp
 msgid "Changes may be lost!"
@@ -4947,6 +4952,32 @@ msgstr "Ошибка Загрузки"
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Download for this asset is already in progress!"
 msgstr "Загрузка этого шаблона уже идёт!"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Least Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (A-Z)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (Z-A)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (A-Z)"
+msgstr "Лицензия"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (Z-A)"
+msgstr "Лицензия"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "First"
@@ -6796,7 +6827,7 @@ msgstr "Список автозавершения"
 
 #: editor/plugins/script_text_editor.cpp
 msgid "Evaluate Selection"
-msgstr "Вычислить выделеннное"
+msgstr "Вычислить выделенное"
 
 #: editor/plugins/script_text_editor.cpp
 msgid "Trim Trailing Whitespace"
@@ -9080,6 +9111,15 @@ msgstr "Режим Визуального Шейдера был изменен"
 #: editor/project_export.cpp
 msgid "Runnable"
 msgstr "Активный"
+
+#: editor/project_export.cpp
+#, fuzzy
+msgid "Add initial export..."
+msgstr "Добавить входной порт"
+
+#: editor/project_export.cpp
+msgid "Add previous patches..."
+msgstr ""
 
 #: editor/project_export.cpp
 msgid "Delete patch '%s' from list?"
@@ -13367,9 +13407,6 @@ msgstr "Константы не могут быть изменены."
 
 #~ msgid "Re-Import Changed Resources"
 #~ msgstr "Переимпортировать изменённые ресурсы"
-
-#~ msgid "Loading Export Templates"
-#~ msgstr "Загрузка шаблонов экспорта"
 
 #~ msgid ""
 #~ "\n"

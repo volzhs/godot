@@ -46,8 +46,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-11-29 14:49+0000\n"
-"Last-Translator: Javier Ocampos <xavier.ocampos@gmail.com>\n"
+"PO-Revision-Date: 2019-12-09 11:36+0000\n"
+"Last-Translator: Lisandro Lorea <lisandrolorea@gmail.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/godot-engine/"
 "godot/es/>\n"
 "Language: es\n"
@@ -60,7 +60,7 @@ msgstr ""
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
 msgid "Invalid type argument to convert(), use TYPE_* constants."
-msgstr "El argumento para convert() es invalido, utiliza constantes TYPE_*."
+msgstr "Argumento de tipo inválido para convert(), utiliza constantes TYPE_*."
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/mono/glue/gd_glue.cpp
@@ -3564,6 +3564,11 @@ msgid "Select Template File"
 msgstr "Selecciona un Archivo de Plantilla"
 
 #: editor/export_template_manager.cpp
+#, fuzzy
+msgid "Godot Export Templates"
+msgstr "Cargando plantillas de exportación"
+
+#: editor/export_template_manager.cpp
 msgid "Export Template Manager"
 msgstr "Gestor de Plantillas de Exportación"
 
@@ -4958,6 +4963,32 @@ msgstr "Error de descarga"
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Download for this asset is already in progress!"
 msgstr "¡Éste asset ya está descargándose!"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Least Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (A-Z)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (Z-A)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (A-Z)"
+msgstr "Licencia"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (Z-A)"
+msgstr "Licencia"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "First"
@@ -9081,6 +9112,15 @@ msgid "Runnable"
 msgstr "Ejecutable"
 
 #: editor/project_export.cpp
+#, fuzzy
+msgid "Add initial export..."
+msgstr "Agregar puerto de entrada"
+
+#: editor/project_export.cpp
+msgid "Add previous patches..."
+msgstr ""
+
+#: editor/project_export.cpp
 msgid "Delete patch '%s' from list?"
 msgstr "¿Eliminar patch '%s' de la lista?"
 
@@ -9550,9 +9590,8 @@ msgid "Projects"
 msgstr "Proyectos"
 
 #: editor/project_manager.cpp
-#, fuzzy
 msgid "Last Modified"
-msgstr "Modificado/s"
+msgstr "Ultima Modificación"
 
 #: editor/project_manager.cpp
 msgid "Scan"
@@ -13582,9 +13621,6 @@ msgstr "Las constantes no pueden modificarse."
 
 #~ msgid "Re-Import Changed Resources"
 #~ msgstr "Reimportar recursos cambiados"
-
-#~ msgid "Loading Export Templates"
-#~ msgstr "Cargando plantillas de exportación"
 
 #, fuzzy
 #~ msgid ""

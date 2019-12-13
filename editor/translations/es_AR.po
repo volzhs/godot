@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-11-29 14:49+0000\n"
+"PO-Revision-Date: 2019-12-09 11:37+0000\n"
 "Last-Translator: Lisandro Lorea <lisandrolorea@gmail.com>\n"
 "Language-Team: Spanish (Argentina) <https://hosted.weblate.org/projects/"
 "godot-engine/godot/es_AR/>\n"
@@ -3529,6 +3529,11 @@ msgid "Select Template File"
 msgstr "Elegir Archivo de Plantilla"
 
 #: editor/export_template_manager.cpp
+#, fuzzy
+msgid "Godot Export Templates"
+msgstr "Cargando Plantillas de Exportación"
+
+#: editor/export_template_manager.cpp
 msgid "Export Template Manager"
 msgstr "Gestor de Plantillas de Exportación"
 
@@ -4924,6 +4929,32 @@ msgstr "Error de Descarga"
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Download for this asset is already in progress!"
 msgstr "La descarga de este asset ya está en progreso!"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Least Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (A-Z)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (Z-A)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (A-Z)"
+msgstr "Licencia"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (Z-A)"
+msgstr "Licencia"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "First"
@@ -9044,6 +9075,15 @@ msgid "Runnable"
 msgstr "Ejecutable"
 
 #: editor/project_export.cpp
+#, fuzzy
+msgid "Add initial export..."
+msgstr "Agregar puerto de entrada"
+
+#: editor/project_export.cpp
+msgid "Add previous patches..."
+msgstr ""
+
+#: editor/project_export.cpp
 msgid "Delete patch '%s' from list?"
 msgstr "Eliminar parche '%s' de la lista?"
 
@@ -9515,9 +9555,8 @@ msgid "Projects"
 msgstr "Proyectos"
 
 #: editor/project_manager.cpp
-#, fuzzy
 msgid "Last Modified"
-msgstr "Modificado/s"
+msgstr "Ultima Modificación"
 
 #: editor/project_manager.cpp
 msgid "Scan"
@@ -13346,9 +13385,6 @@ msgstr "Las constantes no pueden modificarse."
 
 #~ msgid "Re-Import Changed Resources"
 #~ msgstr "Reimportar Recursos Cambiados"
-
-#~ msgid "Loading Export Templates"
-#~ msgstr "Cargando Plantillas de Exportación"
 
 #~ msgid ""
 #~ "\n"

@@ -8,7 +8,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
-"PO-Revision-Date: 2019-11-21 14:24+0000\n"
+"PO-Revision-Date: 2019-12-12 09:05+0000\n"
 "Last-Translator: Bakainkorp <Ryan.Bautista86@myhunter.cuny.edu>\n"
 "Language-Team: Filipino <https://hosted.weblate.org/projects/godot-engine/"
 "godot/fil/>\n"
@@ -657,7 +657,7 @@ msgstr ""
 
 #: editor/code_editor.cpp
 msgid "Go to Line"
-msgstr ""
+msgstr "Pumunta sa Linya"
 
 #: editor/code_editor.cpp
 msgid "Line Number:"
@@ -817,7 +817,7 @@ msgstr "Isara"
 
 #: editor/connections_dialog.cpp
 msgid "Connect"
-msgstr ""
+msgstr "Ikabit"
 
 #: editor/connections_dialog.cpp
 msgid "Signal:"
@@ -837,7 +837,7 @@ msgstr ""
 
 #: editor/connections_dialog.cpp
 msgid "Connect..."
-msgstr ""
+msgstr "Ikabit..."
 
 #: editor/connections_dialog.cpp
 #: editor/plugins/animation_tree_player_editor_plugin.cpp
@@ -3359,6 +3359,10 @@ msgid "Select Template File"
 msgstr ""
 
 #: editor/export_template_manager.cpp
+msgid "Godot Export Templates"
+msgstr ""
+
+#: editor/export_template_manager.cpp
 msgid "Export Template Manager"
 msgstr ""
 
@@ -4721,6 +4725,30 @@ msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Download for this asset is already in progress!"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Least Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (A-Z)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (Z-A)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "License (A-Z)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "License (Z-A)"
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
@@ -8704,6 +8732,14 @@ msgstr ""
 
 #: editor/project_export.cpp
 msgid "Runnable"
+msgstr ""
+
+#: editor/project_export.cpp
+msgid "Add initial export..."
+msgstr ""
+
+#: editor/project_export.cpp
+msgid "Add previous patches..."
 msgstr ""
 
 #: editor/project_export.cpp

@@ -14,12 +14,13 @@
 # SARDON <fabio3_Santos@hotmail.com>, 2017.
 # Vinicius Gonçalves <viniciusgoncalves21@gmail.com>, 2017.
 # ssantos <ssantos@web.de>, 2018, 2019.
+# Gonçalo Dinis Guerreiro João <goncalojoao205@gmail.com>, 2019.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-11-29 14:49+0000\n"
-"Last-Translator: João Lopes <linux-man@hotmail.com>\n"
+"PO-Revision-Date: 2019-12-09 11:37+0000\n"
+"Last-Translator: Gonçalo Dinis Guerreiro João <goncalojoao205@gmail.com>\n"
 "Language-Team: Portuguese (Portugal) <https://hosted.weblate.org/projects/"
 "godot-engine/godot/pt_PT/>\n"
 "Language: pt_PT\n"
@@ -3511,6 +3512,11 @@ msgid "Select Template File"
 msgstr "Selecionar Ficheiro de Modelo"
 
 #: editor/export_template_manager.cpp
+#, fuzzy
+msgid "Godot Export Templates"
+msgstr "Gerir Modelos de Exportação"
+
+#: editor/export_template_manager.cpp
 msgid "Export Template Manager"
 msgstr "Exportar Gestor de Modelos"
 
@@ -4898,6 +4904,32 @@ msgstr "Erro na transferência"
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Download for this asset is already in progress!"
 msgstr "A transferência deste Ativo já está em andamento!"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Least Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (A-Z)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (Z-A)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (A-Z)"
+msgstr "Licença"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (Z-A)"
+msgstr "Licença"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "First"
@@ -9000,6 +9032,15 @@ msgid "Runnable"
 msgstr "Executável"
 
 #: editor/project_export.cpp
+#, fuzzy
+msgid "Add initial export..."
+msgstr "Adicionar porta de entrada"
+
+#: editor/project_export.cpp
+msgid "Add previous patches..."
+msgstr ""
+
+#: editor/project_export.cpp
 msgid "Delete patch '%s' from list?"
 msgstr "Apagar correção '%s' da lista?"
 
@@ -9468,9 +9509,8 @@ msgid "Projects"
 msgstr "Projetos"
 
 #: editor/project_manager.cpp
-#, fuzzy
 msgid "Last Modified"
-msgstr "Modificado"
+msgstr "Última modificação"
 
 #: editor/project_manager.cpp
 msgid "Scan"
