@@ -1215,7 +1215,9 @@ Error Object::emit_signal(const StringName &p_name, const Variant **p_args, int 
 			MessageQueue::get_singleton()->push_call(target->get_instance_id(), c.method, args, argc, true);
 		} else {
 			Variant::CallError ce;
+			s->lock++;
 			target->call(c.method, args, argc, ce);
+			s->lock--;
 
 			if (ce.error != Variant::CallError::CALL_OK) {
 #ifdef DEBUG_ENABLED
@@ -1948,7 +1950,10 @@ Object::~Object() {
 
 		Signal *s = &signal_map[*S];
 
-		ERR_CONTINUE_MSG(s->lock > 0, "Attempt to delete an object in the middle of a signal emission from it.");
+		if (s->lock > 0) {
+			//@todo this may need to actually reach the debugger prioritarily somehow because it may crash before
+			ERR_PRINTS("Object was freed or unreferenced while signal '" + String(*S) + "' is being emitted from it. Try connecting to the signal using 'CONNECT_DEFERRED' flag, or use queue_free() to free the object (if this object is a Node) to avoid this error and potential crashes.");
+		}
 
 		//brute force disconnect for performance
 		int slot_count = s->slot_map.size();
