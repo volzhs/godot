@@ -42,7 +42,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-12-16 23:50+0000\n"
+"PO-Revision-Date: 2019-12-21 08:37+0000\n"
 "Last-Translator: Tomek <kobewi4e@gmail.com>\n"
 "Language-Team: Polish <https://hosted.weblate.org/projects/godot-engine/"
 "godot/pl/>\n"
@@ -52,7 +52,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 3.10-dev\n"
+"X-Generator: Weblate 3.10\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -561,8 +561,9 @@ msgstr "klatek na sekundę"
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 #: editor/plugins/script_text_editor.cpp
 #: editor/plugins/shader_editor_plugin.cpp editor/plugins/text_editor.cpp
-#: editor/project_manager.cpp editor/project_settings_editor.cpp
-#: editor/property_editor.cpp modules/visual_script/visual_script_editor.cpp
+#: editor/plugins/tile_set_editor_plugin.cpp editor/project_manager.cpp
+#: editor/project_settings_editor.cpp editor/property_editor.cpp
+#: modules/visual_script/visual_script_editor.cpp
 msgid "Edit"
 msgstr "Edycja"
 
@@ -748,6 +749,10 @@ msgstr "Tylko zaznaczenie"
 msgid "Standard"
 msgstr "Standardowy"
 
+#: editor/code_editor.cpp editor/plugins/script_editor_plugin.cpp
+msgid "Toggle Scripts Panel"
+msgstr "Przełącz panel skryptów"
+
 #: editor/code_editor.cpp editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/texture_region_editor_plugin.cpp
 #: editor/plugins/tile_set_editor_plugin.cpp scene/gui/graph_edit.cpp
@@ -763,10 +768,6 @@ msgstr "Oddal"
 #: editor/code_editor.cpp
 msgid "Reset Zoom"
 msgstr "Wyzeruj przybliżenie"
-
-#: editor/code_editor.cpp
-msgid "Toggle Scripts Panel"
-msgstr "Przełącz panel skryptów"
 
 #: editor/code_editor.cpp
 msgid "Warnings"
@@ -828,6 +829,11 @@ msgstr "Dodaj dodatkowy argument wywołania funkcji:"
 #: editor/connections_dialog.cpp
 msgid "Extra Call Arguments:"
 msgstr "Dodatkowe argumenty wywołania:"
+
+#: editor/connections_dialog.cpp
+#, fuzzy
+msgid "Receiver Method:"
+msgstr "Wybierz metodę"
 
 #: editor/connections_dialog.cpp
 msgid "Advanced"
@@ -1727,9 +1733,8 @@ msgid "Erase Profile"
 msgstr "Usuń profil"
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid "Godot Feature Profile"
-msgstr "Zarządzaj profilami funkcjonalności edytora"
+msgstr "Profil funkcjonalności Godota"
 
 #: editor/editor_feature_profile.cpp
 msgid "Import Profile(s)"
@@ -3032,9 +3037,8 @@ msgid "Import Templates From ZIP File"
 msgstr "Zaimportuj Szablony z pliku ZIP"
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Template Package"
-msgstr "Menedżer szablonów eksportu"
+msgstr "Szablonowy pakiet"
 
 #: editor/editor_node.cpp editor/project_export.cpp
 msgid "Export Project"
@@ -3091,6 +3095,11 @@ msgstr "Otwórz następny edytor"
 #: editor/editor_node.cpp
 msgid "Open the previous Editor"
 msgstr "Otwórz poprzedni edytor"
+
+#: editor/editor_node.h
+#, fuzzy
+msgid "Warning!"
+msgstr "Ostrzeżenie"
 
 #: editor/editor_path.cpp
 msgid "No sub-resources found."
@@ -4681,6 +4690,11 @@ msgstr "Ustaw koniec animacji. To jest przydatne dla podprzejść."
 msgid "Transition: "
 msgstr "Przejście: "
 
+#: editor/plugins/animation_state_machine_editor.cpp
+#, fuzzy
+msgid "Play Mode:"
+msgstr "Tryb przesuwania"
+
 #: editor/plugins/animation_tree_editor_plugin.cpp
 #: editor/plugins/animation_tree_player_editor_plugin.cpp
 msgid "AnimationTree"
@@ -5164,86 +5178,72 @@ msgstr ""
 "zamiast marginesów."
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Top Left"
-msgstr "Lewa"
+msgstr "Lewy górny róg"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Top Right"
-msgstr "Prawa"
+msgstr "Prawy górny róg"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Bottom Right"
-msgstr "Obróć w prawo"
+msgstr "Prawy dolny róg"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Bottom Left"
-msgstr "Widok z dołu"
+msgstr "Lewy dolny róg"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Center Left"
-msgstr "Wcięcie w lewo"
+msgstr "Wyśrodkowane po lewej"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Center Top"
-msgstr "Wyśrodkowywanie na zaznaczeniu"
+msgstr "Wyśrodkowane na górze"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Center Right"
-msgstr "Wcięcie w prawo"
+msgstr "Wyśrodkowane po prawej"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Center Bottom"
-msgstr "Dół"
+msgstr "Wyśrodkowane na dole"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Center"
-msgstr ""
+msgstr "Wyśrodkowane"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Left Wide"
-msgstr "Widok z lewej"
+msgstr "Rozciągnij po lewej"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Top Wide"
-msgstr "Widok z góry"
+msgstr "Rozciągnij na górze"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Right Wide"
-msgstr "Widok z prawej"
+msgstr "Rozciągnij po prawej"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Bottom Wide"
-msgstr "Widok z dołu"
+msgstr "Rozciągnij na dole"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "VCenter Wide"
-msgstr ""
+msgstr "Rozciągnij pionowo"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "HCenter Wide"
-msgstr ""
+msgstr "Rozciągnij poziomo"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Full Rect"
-msgstr "Poprawna nazwa"
+msgstr "Cały obszar"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Keep Ratio"
-msgstr "Współczynnik skali:"
+msgstr "Zachowaj proporcie"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Anchors only"
@@ -5912,6 +5912,11 @@ msgid "Remove item %d?"
 msgstr "Usuń element %d?"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
+#, fuzzy
+msgid "Mesh Library"
+msgstr "Biblioteka Meshów..."
+
+#: editor/plugins/mesh_library_editor_plugin.cpp
 #: editor/plugins/theme_editor_plugin.cpp
 msgid "Add Item"
 msgstr "Dodaj element"
@@ -6541,6 +6546,23 @@ msgstr "Otwórz plik"
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Save File As..."
 msgstr "Zapisz plik jako..."
+
+#: editor/plugins/script_editor_plugin.cpp
+msgid "Can't obtain the script for running."
+msgstr ""
+
+#: editor/plugins/script_editor_plugin.cpp
+msgid "Script failed reloading, check console for errors."
+msgstr ""
+
+#: editor/plugins/script_editor_plugin.cpp
+msgid "Script is not in tool mode, will not be able to run."
+msgstr ""
+
+#: editor/plugins/script_editor_plugin.cpp
+msgid ""
+"To run this script, it must inherit EditorScript and be set to tool mode."
+msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Import Theme"
@@ -7795,6 +7817,7 @@ msgid "Data Type:"
 msgstr "Typ danych:"
 
 #: editor/plugins/theme_editor_plugin.cpp
+#: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Icon"
 msgstr "Ikona"
 
@@ -7815,9 +7838,8 @@ msgid "Constant"
 msgstr "Stałe"
 
 #: editor/plugins/theme_editor_plugin.cpp
-#, fuzzy
 msgid "Theme File"
-msgstr "Motyw"
+msgstr "Plik motywu"
 
 #: editor/plugins/tile_map_editor_plugin.cpp
 msgid "Erase Selection"
@@ -7930,6 +7952,20 @@ msgid "Merge from Scene"
 msgstr "Połącz ze sceny"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
+msgid "New Single Tile"
+msgstr ""
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "New Autotile"
+msgstr "Wyłącz autokafelki"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "New Atlas"
+msgstr "Nowy %s"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Next Coordinate"
 msgstr "Następny koordynat"
 
@@ -7944,6 +7980,41 @@ msgstr "Poprzedni koordynat"
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Select the previous shape, subtile, or Tile."
 msgstr "Wybierz poprzedni kształt, podkafelek lub Kafelek."
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Region"
+msgstr "Tryb obszaru"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Collision"
+msgstr "Tryb kolizji"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Occlusion"
+msgstr "Tryb okluzji"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Navigation"
+msgstr "Tryb nawigacji"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Bitmask"
+msgstr "Tryb maski bitowej"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Priority"
+msgstr "Tryb priorytetów"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Z Index"
+msgstr "Indeks:"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Region Mode"
@@ -9277,9 +9348,8 @@ msgid "Make Patch"
 msgstr "Utwórz ścieżkę"
 
 #: editor/project_export.cpp
-#, fuzzy
 msgid "Pack File"
-msgstr " Pliki"
+msgstr "Plik paczki"
 
 #: editor/project_export.cpp
 msgid "Features"
@@ -9334,13 +9404,12 @@ msgid "Export All"
 msgstr "Eksportuj wszystko"
 
 #: editor/project_export.cpp editor/project_manager.cpp
-#, fuzzy
 msgid "ZIP File"
-msgstr " Pliki"
+msgstr "Plik ZIP"
 
 #: editor/project_export.cpp
 msgid "Godot Game Pack"
-msgstr ""
+msgstr "Godotowa paczka gry"
 
 #: editor/project_export.cpp
 msgid "Export templates for this platform are missing:"
@@ -11263,6 +11332,14 @@ msgid "Set Variable Type"
 msgstr "Ustaw typ zmiennej"
 
 #: modules/visual_script/visual_script_editor.cpp
+msgid "Add Input Port"
+msgstr "Dodaj port wejściowy"
+
+#: modules/visual_script/visual_script_editor.cpp
+msgid "Add Output Port"
+msgstr "Dodaj port wyjściowy"
+
+#: modules/visual_script/visual_script_editor.cpp
 msgid "Override an existing built-in function."
 msgstr "Zastąp istniejącą funkcję wbudowaną."
 
@@ -11321,14 +11398,6 @@ msgstr "Dodaj zmienną"
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Signal"
 msgstr "Dodaj sygnał"
-
-#: modules/visual_script/visual_script_editor.cpp
-msgid "Add Input Port"
-msgstr "Dodaj port wejściowy"
-
-#: modules/visual_script/visual_script_editor.cpp
-msgid "Add Output Port"
-msgstr "Dodaj port wyjściowy"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Remove Input Port"
@@ -11509,19 +11578,16 @@ msgid "Members:"
 msgstr "Członkowie:"
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Change Base Type:"
-msgstr "Zmień typ podstawowy"
+msgstr "Zmień typ podstawowy:"
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Add Nodes..."
-msgstr "Dodaj węzeł..."
+msgstr "Dodaj węzły..."
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Add Function..."
-msgstr "Dodaj funkcję"
+msgstr "Dodaj funkcję..."
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "function_name"
@@ -13001,9 +13067,6 @@ msgstr "Stałe nie mogą być modyfikowane."
 
 #~ msgid "Rotate 270 degrees"
 #~ msgstr "Obróć o 270 stopni"
-
-#~ msgid "Warning"
-#~ msgstr "Ostrzeżenie"
 
 #~ msgid "Variable"
 #~ msgstr "Zmienna"

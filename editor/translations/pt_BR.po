@@ -74,12 +74,13 @@
 # Rafael Silveira <res883@gmail.com>, 2019.
 # Luigi <luigimendeszanchett@gmail.com>, 2019.
 # Nicolas Abril <nicolas.abril@protonmail.ch>, 2019.
+# johnnybigoode <jamarson@gmail.com>, 2019.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: 2016-05-30\n"
-"PO-Revision-Date: 2019-12-13 09:38+0000\n"
-"Last-Translator: Nicolas Abril <nicolas.abril@protonmail.ch>\n"
+"PO-Revision-Date: 2019-12-21 08:37+0000\n"
+"Last-Translator: johnnybigoode <jamarson@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/"
 "godot-engine/godot/pt_BR/>\n"
 "Language: pt_BR\n"
@@ -87,7 +88,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 3.10-dev\n"
+"X-Generator: Weblate 3.10\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -595,8 +596,9 @@ msgstr "FPS"
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 #: editor/plugins/script_text_editor.cpp
 #: editor/plugins/shader_editor_plugin.cpp editor/plugins/text_editor.cpp
-#: editor/project_manager.cpp editor/project_settings_editor.cpp
-#: editor/property_editor.cpp modules/visual_script/visual_script_editor.cpp
+#: editor/plugins/tile_set_editor_plugin.cpp editor/project_manager.cpp
+#: editor/project_settings_editor.cpp editor/property_editor.cpp
+#: modules/visual_script/visual_script_editor.cpp
 msgid "Edit"
 msgstr "Editar"
 
@@ -782,6 +784,10 @@ msgstr "Selecionar Apenas"
 msgid "Standard"
 msgstr "Padrão"
 
+#: editor/code_editor.cpp editor/plugins/script_editor_plugin.cpp
+msgid "Toggle Scripts Panel"
+msgstr "Alternar Painel de Scripts"
+
 #: editor/code_editor.cpp editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/texture_region_editor_plugin.cpp
 #: editor/plugins/tile_set_editor_plugin.cpp scene/gui/graph_edit.cpp
@@ -797,10 +803,6 @@ msgstr "Reduzir"
 #: editor/code_editor.cpp
 msgid "Reset Zoom"
 msgstr "Redefinir Ampliação"
-
-#: editor/code_editor.cpp
-msgid "Toggle Scripts Panel"
-msgstr "Alternar Painel de Scripts"
 
 #: editor/code_editor.cpp
 msgid "Warnings"
@@ -862,6 +864,11 @@ msgstr "Adicionar Argumento de Chamada Extra:"
 #: editor/connections_dialog.cpp
 msgid "Extra Call Arguments:"
 msgstr "Argumentos de Chamada Extras:"
+
+#: editor/connections_dialog.cpp
+#, fuzzy
+msgid "Receiver Method:"
+msgstr "Selecionar Mtéodo"
 
 #: editor/connections_dialog.cpp
 msgid "Advanced"
@@ -1762,9 +1769,8 @@ msgid "Erase Profile"
 msgstr "Apagar Perfil"
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid "Godot Feature Profile"
-msgstr "Gerenciar perfis de recurso do editor"
+msgstr "Perfil de funcionalidade do Godot"
 
 #: editor/editor_feature_profile.cpp
 msgid "Import Profile(s)"
@@ -3078,9 +3084,8 @@ msgid "Import Templates From ZIP File"
 msgstr "Importar Modelos de um Arquivo ZIP"
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Template Package"
-msgstr "Gerenciador de Exportação de Modelo"
+msgstr "Pacote de modelos"
 
 #: editor/editor_node.cpp editor/project_export.cpp
 msgid "Export Project"
@@ -3137,6 +3142,11 @@ msgstr "Abrir o próximo Editor"
 #: editor/editor_node.cpp
 msgid "Open the previous Editor"
 msgstr "Abrir o Editor anterior"
+
+#: editor/editor_node.h
+#, fuzzy
+msgid "Warning!"
+msgstr "Aviso"
 
 #: editor/editor_path.cpp
 msgid "No sub-resources found."
@@ -3397,7 +3407,6 @@ msgid "Import From Node:"
 msgstr "Importar a Partir do Nó:"
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Redownload"
 msgstr "Baixar Novamente"
 
@@ -3587,9 +3596,8 @@ msgid "Select Template File"
 msgstr "Selecionar o Arquivo de Modelo"
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Godot Export Templates"
-msgstr "Carregando Modelos de Exportação"
+msgstr "Modelos de Exportação do Godot"
 
 #: editor/export_template_manager.cpp
 msgid "Export Template Manager"
@@ -4733,6 +4741,11 @@ msgstr "Definir a animação final. Isso é útil para sub-transições."
 msgid "Transition: "
 msgstr "Transição: "
 
+#: editor/plugins/animation_state_machine_editor.cpp
+#, fuzzy
+msgid "Play Mode:"
+msgstr "Modo Panorâmico"
+
 #: editor/plugins/animation_tree_editor_plugin.cpp
 #: editor/plugins/animation_tree_player_editor_plugin.cpp
 msgid "AnimationTree"
@@ -4988,29 +5001,27 @@ msgstr "Download deste asset já está em progresso!"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Recently Updated"
-msgstr ""
+msgstr "Atualizado recentemente"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Least Recently Updated"
-msgstr ""
+msgstr "Ultima Atualização Recente"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Name (A-Z)"
-msgstr ""
+msgstr "Nome (A-Z)"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Name (Z-A)"
-msgstr ""
+msgstr "Nome (Z-A)"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "License (A-Z)"
-msgstr "Licença"
+msgstr "Licença (A-Z)"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "License (Z-A)"
-msgstr "Licença"
+msgstr "Licença (Z-A)"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "First"
@@ -5216,48 +5227,40 @@ msgstr ""
 "margens."
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Top Left"
-msgstr "Esquerda"
+msgstr "Superior Esquerda"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Top Right"
-msgstr "Direita"
+msgstr "Superior Direita"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Bottom Right"
-msgstr "Rotacionar para a direita"
+msgstr "Inferior direita"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Bottom Left"
-msgstr "Visão inferior"
+msgstr "Inferior Esquerda"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Center Left"
-msgstr "Recuar Esquerda"
+msgstr "Centro Esquerda"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Center Top"
-msgstr "Centralizar Seleção"
+msgstr "Centro Superior"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Center Right"
-msgstr "Recuar Direita"
+msgstr "Centro Direita"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Center Bottom"
-msgstr "Baixo"
+msgstr "Centro Inferior"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Center"
-msgstr ""
+msgstr "Centro"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 #, fuzzy
@@ -5293,9 +5296,8 @@ msgid "Full Rect"
 msgstr "Nome Válido"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Keep Ratio"
-msgstr "Razão de Escala:"
+msgstr "Manter proporção"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Anchors only"
@@ -5964,6 +5966,11 @@ msgid "Remove item %d?"
 msgstr "Remover item %d?"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
+#, fuzzy
+msgid "Mesh Library"
+msgstr "MeshLibrary..."
+
+#: editor/plugins/mesh_library_editor_plugin.cpp
 #: editor/plugins/theme_editor_plugin.cpp
 msgid "Add Item"
 msgstr "Adicionar Item"
@@ -6598,6 +6605,23 @@ msgstr "Abrir um arquivo"
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Save File As..."
 msgstr "Salvar como..."
+
+#: editor/plugins/script_editor_plugin.cpp
+msgid "Can't obtain the script for running."
+msgstr ""
+
+#: editor/plugins/script_editor_plugin.cpp
+msgid "Script failed reloading, check console for errors."
+msgstr ""
+
+#: editor/plugins/script_editor_plugin.cpp
+msgid "Script is not in tool mode, will not be able to run."
+msgstr ""
+
+#: editor/plugins/script_editor_plugin.cpp
+msgid ""
+"To run this script, it must inherit EditorScript and be set to tool mode."
+msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Import Theme"
@@ -7276,9 +7300,8 @@ msgid "Freelook Speed Modifier"
 msgstr "Modificador de velocidade da Visão Livre"
 
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Freelook Slow Modifier"
-msgstr "Modificador de velocidade da Visão Livre"
+msgstr "Modificador de velocidade lenta da Visão Livre"
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid ""
@@ -7851,6 +7874,7 @@ msgid "Data Type:"
 msgstr "Tipo de Dados:"
 
 #: editor/plugins/theme_editor_plugin.cpp
+#: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Icon"
 msgstr "Ícone"
 
@@ -7871,9 +7895,8 @@ msgid "Constant"
 msgstr "Constante"
 
 #: editor/plugins/theme_editor_plugin.cpp
-#, fuzzy
 msgid "Theme File"
-msgstr "Tema"
+msgstr "Arquivo de Tema"
 
 #: editor/plugins/tile_map_editor_plugin.cpp
 msgid "Erase Selection"
@@ -7985,6 +8008,20 @@ msgid "Merge from Scene"
 msgstr "Fundir a partir de Cena"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
+msgid "New Single Tile"
+msgstr ""
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "New Autotile"
+msgstr "Desativar Autotile"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "New Atlas"
+msgstr "Atlas:"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Next Coordinate"
 msgstr "Próxima Coordenada"
 
@@ -7999,6 +8036,41 @@ msgstr "Coordenada Anterior"
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Select the previous shape, subtile, or Tile."
 msgstr "Selecione a forma, subtile ou tile anterior."
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Region"
+msgstr "Modo Região"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Collision"
+msgstr "Modo Colisão"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Occlusion"
+msgstr "Modo Oclusão"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Navigation"
+msgstr "Modo Navegação"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Bitmask"
+msgstr "Modo Bitmask"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Priority"
+msgstr "Modo Prioridade"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Z Index"
+msgstr "Índice:"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Region Mode"
@@ -8298,9 +8370,8 @@ msgid "Deleted"
 msgstr "Excluído"
 
 #: editor/plugins/version_control_editor_plugin.cpp
-#, fuzzy
 msgid "Typechange"
-msgstr "Alterar"
+msgstr "Alterar tipo"
 
 #: editor/plugins/version_control_editor_plugin.cpp
 msgid "Stage Selected"
@@ -8360,7 +8431,7 @@ msgstr "Booleano"
 #: editor/plugins/visual_shader_editor_plugin.cpp
 #, fuzzy
 msgid "Sampler"
-msgstr "Amostras"
+msgstr "Amostrador (Sampler)"
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Add input port"
@@ -8611,9 +8682,8 @@ msgid "Input parameter."
 msgstr "Parâmetro de entrada."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "'%s' input parameter for vertex and fragment shader modes."
-msgstr "Parâmetro de entrada '%s' para os modos de shader vértice e fragmento."
+msgstr "Parâmetro de entrada '%s' para os modos vértice e fragmento de shader."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "'%s' input parameter for fragment and light shader modes."
@@ -8953,24 +9023,20 @@ msgid "Multiplies vector by transform."
 msgstr "Multiplica vetor por transformação."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Transform constant."
-msgstr "Transformação Abortada."
+msgstr "Constante da transformada."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Transform uniform."
-msgstr "Transformação Abortada."
+msgstr "Transformada uniforme."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Vector function."
-msgstr "Atribuição à função."
+msgstr "Função vetorial."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Vector operator."
-msgstr "Alterar Operador Vet"
+msgstr "Operador vetorial."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Composes vector from three scalars."
@@ -9110,14 +9176,12 @@ msgid "Subtracts vector from vector."
 msgstr "Subtrai vetor de vetor."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Vector constant."
-msgstr "Alterar Constante Vet"
+msgstr "Vetor constante."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Vector uniform."
-msgstr "Atribuição à uniforme."
+msgstr "Vector uniforme."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid ""
@@ -11348,6 +11412,16 @@ msgstr "Definir o Tipo da Variável"
 
 #: modules/visual_script/visual_script_editor.cpp
 #, fuzzy
+msgid "Add Input Port"
+msgstr "Adicionar porta de entrada"
+
+#: modules/visual_script/visual_script_editor.cpp
+#, fuzzy
+msgid "Add Output Port"
+msgstr "Adicionar porta de saída"
+
+#: modules/visual_script/visual_script_editor.cpp
+#, fuzzy
 msgid "Override an existing built-in function."
 msgstr "Não deve coincidir com um nome de tipo interno existente."
 
@@ -11410,16 +11484,6 @@ msgstr "Adicionar Variável"
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Signal"
 msgstr "Adicionar Sinal"
-
-#: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
-msgid "Add Input Port"
-msgstr "Adicionar porta de entrada"
-
-#: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
-msgid "Add Output Port"
-msgstr "Adicionar porta de saída"
 
 #: modules/visual_script/visual_script_editor.cpp
 #, fuzzy
@@ -13097,9 +13161,6 @@ msgstr "Constantes não podem serem modificadas."
 #~ msgid "Rotate 270 degrees"
 #~ msgstr "Rotacionar 270 degraus"
 
-#~ msgid "Warning"
-#~ msgstr "Aviso"
-
 #~ msgid "Variable"
 #~ msgstr "Variável"
 
@@ -14274,9 +14335,6 @@ msgstr "Constantes não podem serem modificadas."
 
 #~ msgid "Lossy Quality:"
 #~ msgstr "Qualidade com Perdas:"
-
-#~ msgid "Atlas:"
-#~ msgstr "Atlas:"
 
 #~ msgid "Shrink By:"
 #~ msgstr "Encolher por:"
