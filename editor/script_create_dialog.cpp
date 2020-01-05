@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -46,7 +46,7 @@ void ScriptCreateDialog::_notification(int p_what) {
 		case NOTIFICATION_THEME_CHANGED:
 		case NOTIFICATION_ENTER_TREE: {
 			for (int i = 0; i < ScriptServer::get_language_count(); i++) {
-				String lang = ScriptServer::get_language(i)->get_name();
+				String lang = ScriptServer::get_language(i)->get_type();
 				Ref<Texture> lang_icon = get_icon(lang, "EditorIcons");
 				if (lang_icon.is_valid()) {
 					language_menu->set_item_icon(i, lang_icon);
@@ -109,6 +109,7 @@ void ScriptCreateDialog::config(const String &p_base_name, const String &p_base_
 	if (p_base_path != "") {
 		initial_bp = p_base_path.get_basename();
 		file_path->set_text(initial_bp + "." + ScriptServer::get_language(language_menu->get_selected())->get_extension());
+		current_language = language_menu->get_selected();
 	} else {
 		initial_bp = "";
 		file_path->set_text("");

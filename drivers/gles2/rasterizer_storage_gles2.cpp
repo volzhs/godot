@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -2435,22 +2435,10 @@ void RasterizerStorageGLES2::mesh_add_surface(RID p_mesh, uint32_t p_format, VS:
 	if (surface->blend_shape_data.size()) {
 		ERR_PRINT_ONCE("Blend shapes are not supported in OpenGL ES 2.0");
 	}
-	surface->data = array;
-	surface->index_data = p_index_array;
-#else
-	// Even on non-tools builds, a copy of the surface->data is needed in certain circumstances.
-	// Rigged meshes using the USE_SKELETON_SOFTWARE path need to read bone data
-	// from surface->data.
-
-	// if USE_SKELETON_SOFTWARE is active
-	if (config.use_skeleton_software) {
-		// if this geometry is used specifically for skinning
-		if (p_format & (VS::ARRAY_FORMAT_BONES | VS::ARRAY_FORMAT_WEIGHTS))
-			surface->data = array;
-	}
-	// An alternative is to always make a copy of surface->data.
 #endif
 
+	surface->data = array;
+	surface->index_data = p_index_array;
 	surface->total_data_size += surface->array_byte_size + surface->index_array_byte_size;
 
 	for (int i = 0; i < surface->skeleton_bone_used.size(); i++) {

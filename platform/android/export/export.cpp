@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -38,6 +38,7 @@
 #include "core/project_settings.h"
 #include "core/version.h"
 #include "editor/editor_export.h"
+#include "editor/editor_log.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "platform/android/logo.gen.h"
@@ -1983,10 +1984,13 @@ public:
 
 			build_command = build_path.plus_file(build_command);
 
+			String package_name = get_package_name(p_preset->get("package/unique_name"));
+
 			List<String> cmdline;
 			cmdline.push_back("build");
-			cmdline.push_back("-p");
-			cmdline.push_back(build_path);
+			cmdline.push_back("-Pexport_package_name=" + package_name); // argument to specify the package name.
+			cmdline.push_back("-p"); // argument to specify the start directory.
+			cmdline.push_back(build_path); // start directory.
 			/*{ used for debug
 				int ec;
 				String pipe;

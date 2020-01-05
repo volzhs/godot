@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -36,8 +36,12 @@
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
 #include "core/project_settings.h"
+#include "editor_feature_profile.h"
 #include "editor_node.h"
+#include "editor_resource_preview.h"
+#include "editor_scale.h"
 #include "editor_settings.h"
+#include "import_dock.h"
 #include "scene/main/viewport.h"
 #include "scene/resources/packed_scene.h"
 
@@ -123,6 +127,11 @@ bool FileSystemDock::_create_tree(TreeItem *p_parent, EditorFileSystemDirectory 
 			udata.push_back(tree_update_id);
 			udata.push_back(file_item);
 			EditorResourcePreview::get_singleton()->queue_resource_preview(file_metadata, this, "_tree_thumbnail_done", udata);
+		}
+	} else if (display_mode == DISPLAY_MODE_SPLIT) {
+		if (lpath.get_base_dir() == path.get_base_dir()) {
+			subdirectory_item->select(0);
+			subdirectory_item->set_as_cursor(0);
 		}
 	}
 
@@ -1746,8 +1755,8 @@ void FileSystemDock::_file_option(int p_option, const Vector<String> &p_selected
 			if (!fpath.ends_with("/")) {
 				fpath = fpath.get_base_dir();
 			}
-			make_script_dialog_text->config("Node", fpath.plus_file("new_script.gd"), false);
-			make_script_dialog_text->popup_centered(Size2(300, 300) * EDSCALE);
+			make_script_dialog->config("Node", fpath.plus_file("new_script.gd"), false);
+			make_script_dialog->popup_centered(Size2(300, 300) * EDSCALE);
 		} break;
 
 		case FILE_COPY_PATH: {
@@ -2682,9 +2691,9 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	make_scene_dialog->register_text_enter(make_scene_dialog_text);
 	make_scene_dialog->connect("confirmed", this, "_make_scene_confirm");
 
-	make_script_dialog_text = memnew(ScriptCreateDialog);
-	make_script_dialog_text->set_title(TTR("Create Script"));
-	add_child(make_script_dialog_text);
+	make_script_dialog = memnew(ScriptCreateDialog);
+	make_script_dialog->set_title(TTR("Create Script"));
+	add_child(make_script_dialog);
 
 	new_resource_dialog = memnew(CreateDialog);
 	add_child(new_resource_dialog);

@@ -1,6 +1,6 @@
 # Ukrainian translation of the Godot Engine editor
-# Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.
-# Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)
+# Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.
+# Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).
 # This file is distributed under the same license as the Godot source code.
 # Aleksandr <XpycT.TOP@gmail.com>, 2017.
 # Yuri Chornoivan <yurchor@ukr.net>, 2018, 2019.
@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ukrainian (Godot Engine)\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-12-21 08:37+0000\n"
+"PO-Revision-Date: 2019-12-23 17:07+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/uk/>\n"
@@ -34,6 +34,10 @@ msgid "Invalid type argument to convert(), use TYPE_* constants."
 msgstr ""
 "Некоректний тип аргументу для convert(), слід використовувати константу "
 "TYPE_*."
+
+#: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
+msgid "Expected a string of length 1 (a character)."
+msgstr "Мало бути вказано рядок довжини 1 (символ)."
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/mono/glue/gd_glue.cpp
@@ -425,6 +429,10 @@ msgid "Not possible to add a new track without a root"
 msgstr "Не можна додавати нові доріжки без кореневого запису"
 
 #: editor/animation_track_editor.cpp
+msgid "Invalid track for Bezier (no suitable sub-properties)"
+msgstr ""
+
+#: editor/animation_track_editor.cpp
 msgid "Add Bezier Track"
 msgstr "Додати доріжку Безьє"
 
@@ -809,9 +817,8 @@ msgid "Extra Call Arguments:"
 msgstr "Додаткові аргументи виклику:"
 
 #: editor/connections_dialog.cpp
-#, fuzzy
 msgid "Receiver Method:"
-msgstr "Вибір методу"
+msgstr "Метод-отримувач:"
 
 #: editor/connections_dialog.cpp
 msgid "Advanced"
@@ -1995,6 +2002,15 @@ msgid "Search Help"
 msgstr "Пошук довідки"
 
 #: editor/editor_help_search.cpp
+msgid "Case Sensitive"
+msgstr "Чутливість регістра"
+
+#: editor/editor_help_search.cpp
+#, fuzzy
+msgid "Show Hierarchy"
+msgstr "Показати помічники"
+
+#: editor/editor_help_search.cpp
 msgid "Display All"
 msgstr "Показати усе"
 
@@ -2029,6 +2045,29 @@ msgstr "Тип члена"
 #: editor/editor_help_search.cpp
 msgid "Class"
 msgstr "Клас"
+
+#: editor/editor_help_search.cpp
+#, fuzzy
+msgid "Method"
+msgstr "Методи"
+
+#: editor/editor_help_search.cpp editor/plugins/script_text_editor.cpp
+msgid "Signal"
+msgstr "Сигнал"
+
+#: editor/editor_help_search.cpp editor/plugins/theme_editor_plugin.cpp
+msgid "Constant"
+msgstr "Сталий"
+
+#: editor/editor_help_search.cpp
+#, fuzzy
+msgid "Property"
+msgstr "Властивість:"
+
+#: editor/editor_help_search.cpp
+#, fuzzy
+msgid "Theme Property"
+msgstr "Властивості теми"
 
 #: editor/editor_inspector.cpp editor/project_settings_editor.cpp
 msgid "Property:"
@@ -3089,9 +3128,8 @@ msgid "Open the previous Editor"
 msgstr "Відкрити попередній редактор"
 
 #: editor/editor_node.h
-#, fuzzy
 msgid "Warning!"
-msgstr "Попередження"
+msgstr "Увага!"
 
 #: editor/editor_path.cpp
 msgid "No sub-resources found."
@@ -3410,6 +3448,14 @@ msgstr "Розпакування шаблонів експорту"
 #: editor/export_template_manager.cpp
 msgid "Importing:"
 msgstr "Імпортування:"
+
+#: editor/export_template_manager.cpp
+msgid "Error getting the list of mirrors."
+msgstr ""
+
+#: editor/export_template_manager.cpp
+msgid "Error parsing JSON of mirror list. Please report this issue!"
+msgstr ""
 
 #: editor/export_template_manager.cpp
 msgid ""
@@ -4599,6 +4645,11 @@ msgid "Move Node"
 msgstr "Пересунути вузол"
 
 #: editor/plugins/animation_state_machine_editor.cpp
+#, fuzzy
+msgid "Transition exists!"
+msgstr "Перехід: "
+
+#: editor/plugins/animation_state_machine_editor.cpp
 msgid "Add Transition"
 msgstr "Додати перехід"
 
@@ -4684,9 +4735,8 @@ msgid "Transition: "
 msgstr "Перехід: "
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Play Mode:"
-msgstr "Режим панорамування"
+msgstr "Режим гри:"
 
 #: editor/plugins/animation_tree_editor_plugin.cpp
 #: editor/plugins/animation_tree_player_editor_plugin.cpp
@@ -5898,14 +5948,24 @@ msgstr "Створити сітку обведення"
 msgid "Outline Size:"
 msgstr "Розмір обведення:"
 
+#: editor/plugins/mesh_instance_editor_plugin.cpp
+msgid "UV Channel Debug"
+msgstr ""
+
 #: editor/plugins/mesh_library_editor_plugin.cpp
 msgid "Remove item %d?"
 msgstr "Видалення елемента %d?"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
 #, fuzzy
+msgid ""
+"Update from existing scene?:\n"
+"%s"
+msgstr "Оновити зі сцени"
+
+#: editor/plugins/mesh_library_editor_plugin.cpp
 msgid "Mesh Library"
-msgstr "Бібліотека сітки..."
+msgstr "Бібліотека сітки"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
 #: editor/plugins/theme_editor_plugin.cpp
@@ -6542,20 +6602,24 @@ msgstr "Зберегти файл як…"
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Can't obtain the script for running."
-msgstr ""
+msgstr "Не вдалося отримати скрипт для запуску."
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Script failed reloading, check console for errors."
 msgstr ""
+"Не вдалося перезавантажити скрипт. Ознайомтеся із повідомленнями про помилки "
+"у консолі."
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Script is not in tool mode, will not be able to run."
-msgstr ""
+msgstr "Скрипт не працює у режимі інструмента — його не вдасться запустити."
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid ""
 "To run this script, it must inherit EditorScript and be set to tool mode."
 msgstr ""
+"Щоб цей скрипт можна було запустити, він має успадковуватися від "
+"EditorScript і мати встановлений режим інструмента."
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Import Theme"
@@ -6776,10 +6840,6 @@ msgid "Source"
 msgstr "Джерело"
 
 #: editor/plugins/script_text_editor.cpp
-msgid "Signal"
-msgstr "Сигнал"
-
-#: editor/plugins/script_text_editor.cpp
 msgid "Target"
 msgstr "Призначення"
 
@@ -6805,6 +6865,13 @@ msgstr "Перейти до функції"
 #: editor/plugins/script_text_editor.cpp
 msgid "Only resources from filesystem can be dropped."
 msgstr "Можна перетягнути тільки ресурс з файлової системи."
+
+#: editor/plugins/script_text_editor.cpp
+#: modules/visual_script/visual_script_editor.cpp
+msgid "Can't drop nodes because script '%s' is not used in this scene."
+msgstr ""
+"Скидання вузлів є неможливим, оскільки у цій сцені не використовується "
+"скрипт «%s»."
 
 #: editor/plugins/script_text_editor.cpp
 msgid "Lookup Symbol"
@@ -7449,15 +7516,34 @@ msgid "Create Mesh2D"
 msgstr "Створити Mesh2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
+#, fuzzy
+msgid "Mesh2D Preview"
+msgstr "Створення попереднього перегляду сітки"
+
+#: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create Polygon2D"
 msgstr "Створити Polygon2D"
+
+#: editor/plugins/sprite_editor_plugin.cpp
+msgid "Polygon2D Preview"
+msgstr ""
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create CollisionPolygon2D"
 msgstr "Створити CollisionPolygon2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
+#, fuzzy
+msgid "CollisionPolygon2D Preview"
+msgstr "Створити CollisionPolygon2D"
+
+#: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create LightOccluder2D"
+msgstr "Створити LightOccluder2D"
+
+#: editor/plugins/sprite_editor_plugin.cpp
+#, fuzzy
+msgid "LightOccluder2D Preview"
 msgstr "Створити LightOccluder2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
@@ -7537,6 +7623,11 @@ msgstr "Додати %d кадри"
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "Add Frame"
 msgstr "Додати кадр"
+
+#: editor/plugins/sprite_frames_editor_plugin.cpp
+#, fuzzy
+msgid "Unable to load images"
+msgstr "Не вдалося завантажити ресурс."
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "ERROR: Couldn't load frame resource!"
@@ -7829,10 +7920,6 @@ msgid "Color"
 msgstr "Колір"
 
 #: editor/plugins/theme_editor_plugin.cpp
-msgid "Constant"
-msgstr "Сталий"
-
-#: editor/plugins/theme_editor_plugin.cpp
 msgid "Theme File"
 msgstr "Файл теми"
 
@@ -7947,17 +8034,15 @@ msgstr "Об'єднати зі сцени"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "New Single Tile"
-msgstr ""
+msgstr "Нова окрема плитка"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "New Autotile"
-msgstr "Вимкнути автоплитки"
+msgstr "Нова автоплитка"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "New Atlas"
-msgstr "Новий %s"
+msgstr "Новий атлас"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Next Coordinate"
@@ -7976,39 +8061,32 @@ msgid "Select the previous shape, subtile, or Tile."
 msgstr "Вибір попередньої форми, підплитки або плитки."
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Region"
-msgstr "Режим області"
+msgstr "Область"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Collision"
-msgstr "Режим перешкоди"
+msgstr "Зіткнення"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Occlusion"
-msgstr "Режим перешкоди"
+msgstr "Перешкода"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Navigation"
-msgstr "Режим навігації"
+msgstr "Навігація"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Bitmask"
-msgstr "Режим бітової маски"
+msgstr "Бітова маска"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Priority"
-msgstr "Режим пріоритетності"
+msgstr "Пріоритетність"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Z Index"
-msgstr "Індекс:"
+msgstr "Z-індекс"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Region Mode"
@@ -8239,6 +8317,16 @@ msgstr "Редагувати пріоритетність плитки"
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Edit Tile Z Index"
 msgstr "Редагувати z-індекс плитки"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Make Convex"
+msgstr "Зробити полігон опуклим"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Make Concave"
+msgstr "Зробити полігон увігнутим"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Create Collision Polygon"
@@ -11043,10 +11131,6 @@ msgid "GDNative"
 msgstr "GDNative"
 
 #: modules/gdscript/gdscript_functions.cpp
-msgid "Expected a string of length 1 (a character)."
-msgstr "Мало бути вказано рядок довжини 1 (символ)."
-
-#: modules/gdscript/gdscript_functions.cpp
 msgid "Step argument is zero!"
 msgstr "Аргумент кроку дорівнює нулеві!"
 
@@ -11183,6 +11267,11 @@ msgstr "Зворотне обертання вказівника навколо 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Cursor Clear Rotation"
 msgstr "Зняти обертання з вказівника"
+
+#: modules/gridmap/grid_map_editor_plugin.cpp
+#, fuzzy
+msgid "Paste Selects"
+msgstr "Витерти позначене"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Clear Selection"
@@ -11452,12 +11541,6 @@ msgstr "Утримуйте натиснутою Ctrl, щоб скинути вс
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Preload Node"
 msgstr "Додати попередньо завантажений вузол"
-
-#: modules/visual_script/visual_script_editor.cpp
-msgid "Can't drop nodes because script '%s' is not used in this scene."
-msgstr ""
-"Скидання вузлів є неможливим, оскільки у цій сцені не використовується "
-"скрипт «%s»."
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Add Node(s) From Tree"
@@ -13544,9 +13627,6 @@ msgstr "Сталі не можна змінювати."
 
 #~ msgid "Replace By"
 #~ msgstr "Замінити на"
-
-#~ msgid "Case Sensitive"
-#~ msgstr "Чутливість регістра"
 
 #~ msgid "Backwards"
 #~ msgstr "Назад"

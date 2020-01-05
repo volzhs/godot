@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -285,6 +285,10 @@ void GDAPI godot_print(const godot_string *p_message);
 // GDNATIVE CORE 1.0.1
 
 bool GDAPI godot_is_instance_valid(const godot_object *p_object);
+
+//tags used for safe dynamic casting
+void GDAPI *godot_get_class_tag(const godot_string_name *p_class);
+godot_object GDAPI *godot_object_cast_to(const godot_object *p_object, void *p_class_tag);
 
 #ifdef __cplusplus
 }

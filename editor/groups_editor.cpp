@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,6 +31,7 @@
 #include "groups_editor.h"
 #include "editor/scene_tree_editor.h"
 #include "editor_node.h"
+#include "editor_scale.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/label.h"
 #include "scene/resources/packed_scene.h"
@@ -120,7 +121,7 @@ bool GroupDialog::_can_edit(Node *p_node, String p_group) {
 }
 
 void GroupDialog::_add_pressed() {
-	TreeItem *selected = nodes_to_add->get_selected();
+	TreeItem *selected = nodes_to_add->get_next_selected(NULL);
 
 	if (!selected) {
 		return;
@@ -149,7 +150,7 @@ void GroupDialog::_add_pressed() {
 }
 
 void GroupDialog::_removed_pressed() {
-	TreeItem *selected = nodes_to_remove->get_selected();
+	TreeItem *selected = nodes_to_remove->get_next_selected(NULL);
 
 	if (!selected) {
 		return;

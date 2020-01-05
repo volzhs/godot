@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -49,16 +49,44 @@
 #include "core/version.h"
 #include "main/input_default.h"
 #include "main/main.h"
+#include "scene/gui/center_container.h"
+#include "scene/gui/control.h"
+#include "scene/gui/dialogs.h"
+#include "scene/gui/file_dialog.h"
+#include "scene/gui/menu_button.h"
+#include "scene/gui/panel.h"
+#include "scene/gui/panel_container.h"
+#include "scene/gui/split_container.h"
+#include "scene/gui/tab_container.h"
+#include "scene/gui/tabs.h"
+#include "scene/gui/texture_progress.h"
+#include "scene/gui/tool_button.h"
 #include "scene/resources/packed_scene.h"
 #include "servers/physics_2d_server.h"
 
+#include "editor/audio_stream_preview.h"
+#include "editor/dependency_editor.h"
+#include "editor/editor_about.h"
 #include "editor/editor_audio_buses.h"
+#include "editor/editor_export.h"
+#include "editor/editor_feature_profile.h"
 #include "editor/editor_file_system.h"
 #include "editor/editor_help.h"
+#include "editor/editor_inspector.h"
+#include "editor/editor_layouts_dialog.h"
+#include "editor/editor_log.h"
+#include "editor/editor_plugin.h"
 #include "editor/editor_properties.h"
+#include "editor/editor_resource_preview.h"
+#include "editor/editor_run_native.h"
+#include "editor/editor_run_script.h"
+#include "editor/editor_scale.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_spin_slider.h"
 #include "editor/editor_themes.h"
+#include "editor/export_template_manager.h"
+#include "editor/fileserver/editor_file_server.h"
+#include "editor/filesystem_dock.h"
 #include "editor/import/editor_import_collada.h"
 #include "editor/import/editor_scene_importer_gltf.h"
 #include "editor/import/resource_importer_bitmask.h"
@@ -71,7 +99,11 @@
 #include "editor/import/resource_importer_texture.h"
 #include "editor/import/resource_importer_texture_atlas.h"
 #include "editor/import/resource_importer_wav.h"
+#include "editor/import_dock.h"
 #include "editor/multi_node_edit.h"
+#include "editor/node_dock.h"
+#include "editor/pane_drag.h"
+#include "editor/plugin_config_dialog.h"
 #include "editor/plugins/animation_blend_space_1d_editor.h"
 #include "editor/plugins/animation_blend_space_2d_editor.h"
 #include "editor/plugins/animation_blend_tree_editor_plugin.h"
@@ -128,11 +160,18 @@
 #include "editor/plugins/tile_set_editor_plugin.h"
 #include "editor/plugins/version_control_editor_plugin.h"
 #include "editor/plugins/visual_shader_editor_plugin.h"
+#include "editor/progress_dialog.h"
+#include "editor/project_export.h"
+#include "editor/project_settings_editor.h"
 #include "editor/pvrtc_compress.h"
+#include "editor/quick_open.h"
 #include "editor/register_exporters.h"
+#include "editor/run_settings_dialog.h"
 #include "editor/script_editor_debugger.h"
+#include "editor/settings_config_dialog.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 EditorNode *EditorNode::singleton = NULL;
 
@@ -535,11 +574,13 @@ void EditorNode::_fs_changed() {
 		if (preset.is_null()) {
 			String errstr = "Unknown export preset: " + export_defer.preset;
 			ERR_PRINTS(errstr);
+			OS::get_singleton()->set_exit_code(EXIT_FAILURE);
 		} else {
 			Ref<EditorExportPlatform> platform = preset->get_platform();
 			if (platform.is_null()) {
 				String errstr = "Preset \"" + export_defer.preset + "\" doesn't have a platform.";
 				ERR_PRINTS(errstr);
+				OS::get_singleton()->set_exit_code(EXIT_FAILURE);
 			} else {
 				// ensures export_project does not loop infinitely, because notifications may
 				// come during the export
@@ -556,6 +597,7 @@ void EditorNode::_fs_changed() {
 				}
 				if (err != OK) {
 					ERR_PRINTS(vformat(TTR("Project export failed with error code %d."), (int)err));
+					OS::get_singleton()->set_exit_code(EXIT_FAILURE);
 				}
 			}
 		}
@@ -1021,71 +1063,75 @@ void EditorNode::_find_node_types(Node *p_node, int &count_2d, int &count_3d) {
 void EditorNode::_save_scene_with_preview(String p_file, int p_idx) {
 
 	EditorProgress save("save", TTR("Saving Scene"), 4);
-	save.step(TTR("Analyzing"), 0);
 
-	int c2d = 0;
-	int c3d = 0;
-	_find_node_types(editor_data.get_edited_scene_root(), c2d, c3d);
+	if (editor_data.get_edited_scene_root() != NULL) {
+		save.step(TTR("Analyzing"), 0);
 
-	bool is2d;
-	if (c3d < c2d) {
-		is2d = true;
-	} else {
-		is2d = false;
-	}
-	save.step(TTR("Creating Thumbnail"), 1);
-	//current view?
+		int c2d = 0;
+		int c3d = 0;
 
-	Ref<Image> img;
-	if (is2d) {
-		img = scene_root->get_texture()->get_data();
-	} else {
-		img = SpatialEditor::get_singleton()->get_editor_viewport(0)->get_viewport_node()->get_texture()->get_data();
-	}
+		_find_node_types(editor_data.get_edited_scene_root(), c2d, c3d);
 
-	if (img.is_valid()) {
-
-		img = img->duplicate();
-
-		save.step(TTR("Creating Thumbnail"), 2);
-		save.step(TTR("Creating Thumbnail"), 3);
-
-		int preview_size = EditorSettings::get_singleton()->get("filesystem/file_dialog/thumbnail_size");
-		preview_size *= EDSCALE;
-
-		// consider a square region
-		int vp_size = MIN(img->get_width(), img->get_height());
-		int x = (img->get_width() - vp_size) / 2;
-		int y = (img->get_height() - vp_size) / 2;
-
-		if (vp_size < preview_size) {
-			// just square it.
-			img->crop_from_point(x, y, vp_size, vp_size);
+		bool is2d;
+		if (c3d < c2d) {
+			is2d = true;
 		} else {
-			int ratio = vp_size / preview_size;
-			int size = preview_size * MAX(1, ratio / 2);
-
-			x = (img->get_width() - size) / 2;
-			y = (img->get_height() - size) / 2;
-
-			img->crop_from_point(x, y, size, size);
-			img->resize(preview_size, preview_size, Image::INTERPOLATE_LANCZOS);
+			is2d = false;
 		}
-		img->convert(Image::FORMAT_RGB8);
+		save.step(TTR("Creating Thumbnail"), 1);
+		//current view?
 
-		img->flip_y();
+		Ref<Image> img;
+		if (is2d) {
+			img = scene_root->get_texture()->get_data();
+		} else {
+			img = SpatialEditor::get_singleton()->get_editor_viewport(0)->get_viewport_node()->get_texture()->get_data();
+		}
 
-		//save thumbnail directly, as thumbnailer may not update due to actual scene not changing md5
-		String temp_path = EditorSettings::get_singleton()->get_cache_dir();
-		String cache_base = ProjectSettings::get_singleton()->globalize_path(p_file).md5_text();
-		cache_base = temp_path.plus_file("resthumb-" + cache_base);
+		if (img.is_valid()) {
 
-		//does not have it, try to load a cached thumbnail
+			img = img->duplicate();
 
-		String file = cache_base + ".png";
+			save.step(TTR("Creating Thumbnail"), 2);
+			save.step(TTR("Creating Thumbnail"), 3);
 
-		post_process_preview(img);
-		img->save_png(file);
+			int preview_size = EditorSettings::get_singleton()->get("filesystem/file_dialog/thumbnail_size");
+			preview_size *= EDSCALE;
+
+			// consider a square region
+			int vp_size = MIN(img->get_width(), img->get_height());
+			int x = (img->get_width() - vp_size) / 2;
+			int y = (img->get_height() - vp_size) / 2;
+
+			if (vp_size < preview_size) {
+				// just square it.
+				img->crop_from_point(x, y, vp_size, vp_size);
+			} else {
+				int ratio = vp_size / preview_size;
+				int size = preview_size * MAX(1, ratio / 2);
+
+				x = (img->get_width() - size) / 2;
+				y = (img->get_height() - size) / 2;
+
+				img->crop_from_point(x, y, size, size);
+				img->resize(preview_size, preview_size, Image::INTERPOLATE_LANCZOS);
+			}
+			img->convert(Image::FORMAT_RGB8);
+
+			img->flip_y();
+
+			//save thumbnail directly, as thumbnailer may not update due to actual scene not changing md5
+			String temp_path = EditorSettings::get_singleton()->get_cache_dir();
+			String cache_base = ProjectSettings::get_singleton()->globalize_path(p_file).md5_text();
+			cache_base = temp_path.plus_file("resthumb-" + cache_base);
+
+			//does not have it, try to load a cached thumbnail
+
+			String file = cache_base + ".png";
+
+			post_process_preview(img);
+			img->save_png(file);
+		}
 	}
 
 	save.step(TTR("Saving Scene"), 4);
