@@ -6965,6 +6965,17 @@ GDScriptParser::DataType GDScriptParser::_reduce_function_call_type(const Operat
 
 			if (error_set) return DataType();
 
+			// Special case: check copy constructor. Those are defined implicitly in Variant.
+			if (par_types.size() == 1) {
+				if (!par_types[0].has_type || (par_types[0].kind == DataType::BUILTIN && par_types[0].builtin_type == tn->vtype)) {
+					DataType result;
+					result.has_type = true;
+					result.kind = DataType::BUILTIN;
+					result.builtin_type = tn->vtype;
+					return result;
+				}
+			}
+
 			bool match = false;
 			List<MethodInfo> constructors;
 			Variant::get_constructor_list(tn->vtype, &constructors);
@@ -8274,7 +8285,11 @@ void GDScriptParser::_check_block_types(BlockNode *p_block) {
 						_mark_line_as_safe(op->line);
 						_reduce_node_type(op); // Test for safety anyway
 #ifdef DEBUG_ENABLED
-						_add_warning(GDScriptWarning::STANDALONE_EXPRESSION, statement->line);
+						if (op->op == OperatorNode::OP_TERNARY_IF) {
+							_add_warning(GDScriptWarning::STANDALONE_TERNARY, statement->line);
+						} else {
+							_add_warning(GDScriptWarning::STANDALONE_EXPRESSION, statement->line);
+						}
 #endif // DEBUG_ENABLED
 					}
 				}
