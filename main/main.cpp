@@ -815,6 +815,13 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		I = N;
 	}
 
+#ifdef TOOLS_ENABLED
+	if (editor && project_manager) {
+		OS::get_singleton()->print("Error: Command line arguments implied opening both editor and project manager, which is not possible. Aborting.\n");
+		goto error;
+	}
+#endif
+
 	// Network file system needs to be configured before globals, since globals are based on the
 	// 'project.godot' file which will only be available through the network if this is enabled
 	FileAccessNetwork::configure();
@@ -930,7 +937,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		}
 	}
 
-	if (!project_manager) {
+	if (!project_manager && !editor) {
 		// Determine if the project manager should be requested
 		project_manager = main_args.size() == 0 && !found_project;
 	}
@@ -1028,7 +1035,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		// window compositor ("--enable-vsync-via-compositor" or
 		// "--disable-vsync-via-compositor") was present then it overrides the
 		// project setting.
-		video_mode.vsync_via_compositor = GLOBAL_DEF("display/window/vsync/vsync_via_compositor", false);
+		video_mode.vsync_via_compositor = GLOBAL_DEF("display/window/vsync/vsync_via_compositor", true);
 	}
 
 	OS::get_singleton()->_vsync_via_compositor = video_mode.vsync_via_compositor;
@@ -1395,6 +1402,7 @@ bool Main::start() {
 	bool hasicon = false;
 	String doc_tool;
 	List<String> removal_docs;
+	String positional_arg;
 	String game_path;
 	String script;
 	String test;
@@ -1422,8 +1430,18 @@ bool Main::start() {
 		} else if (args[i] == "-p" || args[i] == "--project-manager") {
 			project_manager = true;
 #endif
-		} else if (args[i].length() && args[i][0] != '-' && game_path == "") {
-			game_path = args[i];
+		} else if (args[i].length() && args[i][0] != '-' && positional_arg == "") {
+			positional_arg = args[i];
+
+			if (args[i].ends_with(".scn") || args[i].ends_with(".tscn") || args[i].ends_with(".escn")) {
+				// Only consider the positional argument to be a scene path if it ends with
+				// a file extension associated with Godot scenes. This makes it possible
+				// for projects to parse command-line arguments for custom CLI arguments
+				// or other file extensions without trouble. This can be used to implement
+				// "drag-and-drop onto executable" logic, which can prove helpful
+				// for non-game applications.
+				game_path = args[i];
+			}
 		}
 		//parameters that have an argument to the right
 		else if (i < (args.size() - 1)) {
@@ -1518,7 +1536,7 @@ bool Main::start() {
 	}
 
 	if (_export_preset != "") {
-		if (game_path == "") {
+		if (positional_arg == "") {
 			String err = "Command line includes export parameter option, but no destination path was given.\n";
 			err += "Please specify the binary's file path to export to. Aborting export.";
 			ERR_PRINT(err);
@@ -1709,7 +1727,7 @@ bool Main::start() {
 			sml->get_root()->add_child(editor_node);
 
 			if (_export_preset != "") {
-				editor_node->export_preset(_export_preset, game_path, export_debug, export_pack_only);
+				editor_node->export_preset(_export_preset, positional_arg, export_debug, export_pack_only);
 				game_path = ""; // Do not load anything.
 			}
 		}

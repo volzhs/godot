@@ -613,9 +613,9 @@
 			<return type="bool">
 			</return>
 			<description>
-				Returns [code]true[/code] if the build is a debug build.
-				Returns [code]true[/code] when running in the editor.
-				Returns [code]false[/code] if the build is a release build.
+				Returns [code]true[/code] if the Godot binary used to run the project is a [i]debug[/i] export template, or when running in the editor.
+				Returns [code]false[/code] if the Godot binary used to run the project is a [i]release[/i] export template.
+				To check whether the Godot binary used to run the project is an export template (debug or release), use [code]OS.has_feature("standalone")[/code] instead.
 			</description>
 		</method>
 		<method name="is_ok_left_and_cancel_right" qualifiers="const">
@@ -937,8 +937,9 @@
 		<member name="vsync_enabled" type="bool" setter="set_use_vsync" getter="is_vsync_enabled" default="true">
 			If [code]true[/code], vertical synchronization (Vsync) is enabled.
 		</member>
-		<member name="vsync_via_compositor" type="bool" setter="set_vsync_via_compositor" getter="is_vsync_via_compositor_enabled" default="false">
+		<member name="vsync_via_compositor" type="bool" setter="set_vsync_via_compositor" getter="is_vsync_via_compositor_enabled" default="true">
 			If [code]true[/code] and [code]vsync_enabled[/code] is true, the operating system's window compositor will be used for vsync when the compositor is enabled and the game is in windowed mode.
+			[b]Note:[/b] This property is only implemented on Windows.
 		</member>
 		<member name="window_borderless" type="bool" setter="set_borderless_window" getter="get_borderless_window" default="false">
 			If [code]true[/code], removes the window frame.

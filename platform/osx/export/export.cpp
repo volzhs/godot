@@ -502,6 +502,8 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 	else
 		pkg_name = "Unnamed";
 
+	String pkg_name_safe = OS::get_singleton()->get_safe_dir_name(pkg_name);
+
 	Error err = OK;
 	String tmp_app_path_name = "";
 	zlib_filefunc_def io2 = io;
@@ -509,12 +511,13 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 	io2.opaque = &dst_f;
 	zipFile dst_pkg_zip = NULL;
 
+	DirAccess *tmp_app_path = NULL;
 	String export_format = use_dmg() && p_path.ends_with("dmg") ? "dmg" : "zip";
 	if (export_format == "dmg") {
 		// We're on OSX so we can export to DMG, but first we create our application bundle
 		tmp_app_path_name = EditorSettings::get_singleton()->get_cache_dir().plus_file(pkg_name + ".app");
 		print_line("Exporting to " + tmp_app_path_name);
-		DirAccess *tmp_app_path = DirAccess::create_for_path(tmp_app_path_name);
+		tmp_app_path = DirAccess::create_for_path(tmp_app_path_name);
 		if (!tmp_app_path) {
 			err = ERR_CANT_CREATE;
 		}
@@ -611,25 +614,45 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 		}
 
 		if (data.size() > 0) {
+
+			if (file.find("/data.mono.osx.64.release_debug/") != -1) {
+				if (!p_debug) {
+					ret = unzGoToNextFile(src_pkg_zip);
+					continue; //skip
+				}
+				file = file.replace("/data.mono.osx.64.release_debug/", "/data_" + pkg_name_safe + "/");
+			}
+			if (file.find("/data.mono.osx.64.release/") != -1) {
+				if (p_debug) {
+					ret = unzGoToNextFile(src_pkg_zip);
+					continue; //skip
+				}
+				file = file.replace("/data.mono.osx.64.release/", "/data_" + pkg_name_safe + "/");
+			}
+
 			print_line("ADDING: " + file + " size: " + itos(data.size()));
 			total_size += data.size();
 
 			if (export_format == "dmg") {
 				// write it into our application bundle
 				file = tmp_app_path_name.plus_file(file);
-
-				// write the file, need to add chmod
-				FileAccess *f = FileAccess::open(file, FileAccess::WRITE);
-				if (f) {
-					f->store_buffer(data.ptr(), data.size());
-					f->close();
-					if (is_execute) {
-						// Chmod with 0755 if the file is executable
-						FileAccess::set_unix_permissions(file, 0755);
+				if (err == OK) {
+					err = tmp_app_path->make_dir_recursive(file.get_base_dir());
+				}
+				if (err == OK) {
+					// write the file, need to add chmod
+					FileAccess *f = FileAccess::open(file, FileAccess::WRITE);
+					if (f) {
+						f->store_buffer(data.ptr(), data.size());
+						f->close();
+						if (is_execute) {
+							// Chmod with 0755 if the file is executable
+							FileAccess::set_unix_permissions(file, 0755);
+						}
+						memdelete(f);
+					} else {
+						err = ERR_CANT_CREATE;
 					}
-					memdelete(f);
-				} else {
-					err = ERR_CANT_CREATE;
 				}
 			} else {
 				// add it to our zip file

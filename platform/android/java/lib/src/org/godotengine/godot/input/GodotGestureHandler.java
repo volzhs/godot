@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  gdscript_language_server.h                                           */
+/*  GodotGestureHandler.java                                             */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,36 +28,79 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef GDSCRIPT_LANGUAGE_SERVER_H
-#define GDSCRIPT_LANGUAGE_SERVER_H
+package org.godotengine.godot.input;
 
-#include "../gdscript_parser.h"
-#include "editor/editor_plugin.h"
-#include "gdscript_language_protocol.h"
+import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
+import org.godotengine.godot.GodotLib;
+import org.godotengine.godot.GodotView;
 
-class GDScriptLanguageServer : public EditorPlugin {
-	GDCLASS(GDScriptLanguageServer, EditorPlugin);
+/**
+ * Handles gesture input related events for the {@link GodotView} view.
+ * https://developer.android.com/reference/android/view/GestureDetector.SimpleOnGestureListener
+ */
+public class GodotGestureHandler extends GestureDetector.SimpleOnGestureListener {
 
-	GDScriptLanguageProtocol protocol;
+	private final GodotView godotView;
 
-	Thread *thread;
-	bool thread_running;
-	bool started;
-	bool use_thread;
-	int port;
-	static void thread_main(void *p_userdata);
+	public GodotGestureHandler(GodotView godotView) {
+		this.godotView = godotView;
+	}
 
-private:
-	void _notification(int p_what);
-	void _iteration();
+	private void queueEvent(Runnable task) {
+		godotView.queueEvent(task);
+	}
 
-public:
-	Error parse_script_file(const String &p_path);
-	GDScriptLanguageServer();
-	void start();
-	void stop();
-};
+	@Override
+	public boolean onDown(MotionEvent event) {
+		super.onDown(event);
+		//Log.i("GodotGesture", "onDown");
+		return true;
+	}
 
-void register_lsp_types();
+	@Override
+	public boolean onSingleTapConfirmed(MotionEvent event) {
+		super.onSingleTapConfirmed(event);
+		return true;
+	}
 
-#endif // GDSCRIPT_LANGUAGE_SERVER_H
+	@Override
+	public void onLongPress(MotionEvent event) {
+		//Log.i("GodotGesture", "onLongPress");
+	}
+
+	@Override
+	public boolean onDoubleTap(MotionEvent event) {
+		//Log.i("GodotGesture", "onDoubleTap");
+		final int x = Math.round(event.getX());
+		final int y = Math.round(event.getY());
+		queueEvent(new Runnable() {
+			@Override
+			public void run() {
+				GodotLib.double_tap(x, y);
+			}
+		});
+		return true;
+	}
+
+	@Override
+	public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+		//Log.i("GodotGesture", "onScroll");
+		final int x = Math.round(distanceX);
+		final int y = Math.round(distanceY);
+		queueEvent(new Runnable() {
+			@Override
+			public void run() {
+				GodotLib.scroll(x, y);
+			}
+		});
+		return true;
+	}
+
+	@Override
+	public boolean onFling(MotionEvent event1, MotionEvent event2, float velocityX, float velocityY) {
+		//Log.i("GodotGesture", "onFling");
+		return true;
+	}
+}

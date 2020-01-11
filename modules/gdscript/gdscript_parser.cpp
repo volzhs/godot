@@ -7648,6 +7648,11 @@ GDScriptParser::DataType GDScriptParser::_reduce_identifier_type(const DataType 
 
 void GDScriptParser::_check_class_level_types(ClassNode *p_class) {
 
+	// Names of internal object properties that we check to avoid overriding them.
+	// "__meta__" could also be in here, but since it doesn't really affect object metadata,
+	// it is okay to override it on script.
+	StringName script_name = CoreStringNames::get_singleton()->_script;
+
 	_mark_line_as_safe(p_class->line);
 
 	// Constants
@@ -7668,8 +7673,9 @@ void GDScriptParser::_check_class_level_types(ClassNode *p_class) {
 		c.expression->set_datatype(expr);
 
 		DataType tmp;
-		if (_get_member_type(p_class->base_type, E->key(), tmp)) {
-			_set_error("The member \"" + String(E->key()) + "\" already exists in a parent class.", c.expression->line);
+		const StringName &constant_name = E->key();
+		if (constant_name == script_name || _get_member_type(p_class->base_type, constant_name, tmp)) {
+			_set_error("The member \"" + String(constant_name) + "\" already exists in a parent class.", c.expression->line);
 			return;
 		}
 	}
@@ -7690,7 +7696,7 @@ void GDScriptParser::_check_class_level_types(ClassNode *p_class) {
 		ClassNode::Member &v = p_class->variables.write[i];
 
 		DataType tmp;
-		if (_get_member_type(p_class->base_type, v.identifier, tmp)) {
+		if (v.identifier == script_name || _get_member_type(p_class->base_type, v.identifier, tmp)) {
 			_set_error("The member \"" + String(v.identifier) + "\" already exists in a parent class.", v.line);
 			return;
 		}
@@ -7867,12 +7873,12 @@ void GDScriptParser::_check_function_types(FunctionNode *p_function) {
 				def_type.is_constant = false;
 				p_function->argument_types.write[i] = def_type;
 			} else {
-				p_function->return_type = _resolve_type(p_function->return_type, p_function->line);
+				p_function->argument_types.write[i] = _resolve_type(p_function->argument_types[i], p_function->line);
 
 				if (!_is_type_compatible(p_function->argument_types[i], def_type, true)) {
 					String arg_name = p_function->arguments[i];
 					_set_error("Value type (" + def_type.to_string() + ") doesn't match the type of argument '" +
-									   arg_name + "' (" + p_function->arguments[i] + ").",
+									   arg_name + "' (" + p_function->argument_types[i].to_string() + ").",
 							p_function->line);
 				}
 			}
