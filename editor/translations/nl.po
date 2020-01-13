@@ -28,7 +28,7 @@
 # rxadmin <r.van.eeghem@gmail.com>, 2018.
 # Peter Goelst <muis24@gmail.com>, 2019.
 # Wouter Buckens <wou.buc@gmail.com>, 2019.
-# Stijn Hinlopen <f.a.hinlopen@gmail.com>, 2019.
+# Stijn Hinlopen <f.a.hinlopen@gmail.com>, 2019, 2020.
 # jef dered <themen098s@vivaldi.net>, 2019.
 # Alex H. <sandertjeh13@hotmail.com>, 2019.
 # edouardgr <edouard.gruyters@gmail.com>, 2019.
@@ -44,7 +44,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-12-27 15:52+0000\n"
+"PO-Revision-Date: 2020-01-12 13:26+0000\n"
 "Last-Translator: Stijn Hinlopen <f.a.hinlopen@gmail.com>\n"
 "Language-Team: Dutch <https://hosted.weblate.org/projects/godot-engine/godot/"
 "nl/>\n"
@@ -53,7 +53,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 3.10\n"
+"X-Generator: Weblate 3.10.1\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -158,7 +158,7 @@ msgstr "Geselecteerde sleutel(s) dupliceren"
 
 #: editor/animation_bezier_editor.cpp
 msgid "Delete Selected Key(s)"
-msgstr "Geselecteerde Key(s) Verwijderen"
+msgstr "Geselecteerde sleutel(s) verwijderen"
 
 #: editor/animation_bezier_editor.cpp
 msgid "Add Bezier Point"
@@ -174,11 +174,11 @@ msgstr "Animatiesleutels dupliceren"
 
 #: editor/animation_bezier_editor.cpp editor/animation_track_editor.cpp
 msgid "Anim Delete Keys"
-msgstr "Anim Verwijder Keys"
+msgstr "Animsleutels verwijderen"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Change Keyframe Time"
-msgstr "Anim Wijzig Keyframe Waarde"
+msgstr "Anim Keyframe-tijd wijzigen"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Change Transition"
@@ -190,7 +190,7 @@ msgstr "Anim Wijzig Transform"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Change Keyframe Value"
-msgstr "Anim Wijzig Keyframe Waarde"
+msgstr "Anim Keyframe-waarde wijzigen"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Change Call"
@@ -198,7 +198,7 @@ msgstr "Anim Wijzig Aanroep"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Multi Change Keyframe Time"
-msgstr "Anim Wijzig Meerdere Keyframe Waarden"
+msgstr "Anim Multi Keyframe-tijd wijzigen"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Multi Change Transition"
@@ -351,7 +351,7 @@ msgstr "Naadloze lusinterpolatie"
 #: editor/animation_track_editor.cpp
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Insert Key"
-msgstr "Voer Sleutel in"
+msgstr "Sleutel invoeren"
 
 #: editor/animation_track_editor.cpp
 msgid "Duplicate Key(s)"
@@ -359,7 +359,7 @@ msgstr "Sleutel(s) dupliceren"
 
 #: editor/animation_track_editor.cpp
 msgid "Delete Key(s)"
-msgstr "Verwijder Sleutel(s)"
+msgstr "Sleutel(s) verwijderen"
 
 #: editor/animation_track_editor.cpp
 msgid "Change Animation Update Mode"
@@ -379,11 +379,11 @@ msgstr "Verwijder Anim Track"
 
 #: editor/animation_track_editor.cpp
 msgid "Create NEW track for %s and insert key?"
-msgstr "NIEUWE track aanmaken voor %s en key invoegen?"
+msgstr "NIEUW spoor aanmaken voor %s en sleutel invoegen?"
 
 #: editor/animation_track_editor.cpp
 msgid "Create %d NEW tracks and insert keys?"
-msgstr "Maak %d NIEUWE tracks aan en keys invoeren?"
+msgstr "Maak %d NIEUWE sporen aan en voer sleutels in?"
 
 #: editor/animation_track_editor.cpp editor/create_dialog.cpp
 #: editor/editor_audio_buses.cpp editor/editor_feature_profile.cpp
@@ -455,7 +455,7 @@ msgstr "Niet mogelijk om een nieuwe track toe te voegen zonder een root"
 
 #: editor/animation_track_editor.cpp
 msgid "Invalid track for Bezier (no suitable sub-properties)"
-msgstr ""
+msgstr "Ongeldig spoor voor Bezier (geen geschikte sub-eigenschappen)"
 
 #: editor/animation_track_editor.cpp
 msgid "Add Bezier Track"
@@ -463,11 +463,11 @@ msgstr "Voeg Bézierbaan Toe"
 
 #: editor/animation_track_editor.cpp
 msgid "Track path is invalid, so can't add a key."
-msgstr "Track path is niet geldig, dus kan geen key toevoegen."
+msgstr "Spoorpad is ongeldig, dus sleutel kan niet toevoegt worden."
 
 #: editor/animation_track_editor.cpp
 msgid "Track is not of type Spatial, can't insert key"
-msgstr "Track is niet van het type Spatial, kan geen key invoegen"
+msgstr "Spoor is niet van het type Spatial, kan geen sleutel invoegen"
 
 #: editor/animation_track_editor.cpp
 msgid "Add Transform Track Key"
@@ -1230,8 +1230,22 @@ msgid "Error opening package file, not in ZIP format."
 msgstr "Fout bij het openen van het pakketbestand, geen zip-formaat."
 
 #: editor/editor_asset_installer.cpp
+#, fuzzy
+msgid "%s (Already Exists)"
+msgstr "Bestaat al"
+
+#: editor/editor_asset_installer.cpp
 msgid "Uncompressing Assets"
 msgstr "Bronnen aan het uitpakken"
+
+#: editor/editor_asset_installer.cpp editor/project_manager.cpp
+msgid "The following files failed extraction from package:"
+msgstr "De volgende bestanden konden niet worden uitgepakt:"
+
+#: editor/editor_asset_installer.cpp
+#, fuzzy
+msgid "And %s more files."
+msgstr "nog %d bestand(en)"
 
 #: editor/editor_asset_installer.cpp editor/project_manager.cpp
 msgid "Package installed successfully!"
@@ -1241,6 +1255,11 @@ msgstr "Pakket succesvol geïnstalleerd!"
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Success!"
 msgstr "Gelukt!"
+
+#: editor/editor_asset_installer.cpp
+#, fuzzy
+msgid "Package Contents:"
+msgstr "Inhoud:"
 
 #: editor/editor_asset_installer.cpp editor/editor_node.cpp
 msgid "Install"
@@ -1380,6 +1399,11 @@ msgid "Invalid file, not an audio bus layout."
 msgstr "Ongeldig bestand, geen audiobus layout."
 
 #: editor/editor_audio_buses.cpp
+#, fuzzy
+msgid "Error saving file: %s"
+msgstr "Error bij het opslaan van bestand!"
+
+#: editor/editor_audio_buses.cpp
 msgid "Add Bus"
 msgstr "Bus Toevoegen"
 
@@ -1439,7 +1463,7 @@ msgstr "Mag niet conflicteren met de naam van een bestaande globale constante."
 
 #: editor/editor_autoload_settings.cpp
 msgid "Keyword cannot be used as an autoload name."
-msgstr "Sleutelwoorden mogen niet gebruikt worden als autoload naam."
+msgstr "Gereserveerd woord mag niet gebruikt worden als autoloadnaam."
 
 #: editor/editor_autoload_settings.cpp
 msgid "Autoload '%s' already exists!"
@@ -2031,9 +2055,8 @@ msgid "Case Sensitive"
 msgstr "Hoofdlettergevoelig"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Show Hierarchy"
-msgstr "Toon helpers"
+msgstr "Toon hiërarchie"
 
 #: editor/editor_help_search.cpp
 msgid "Display All"
@@ -2072,9 +2095,8 @@ msgid "Class"
 msgstr "Klasse"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Method"
-msgstr "Methodes"
+msgstr "Methode"
 
 #: editor/editor_help_search.cpp editor/plugins/script_text_editor.cpp
 msgid "Signal"
@@ -2085,14 +2107,12 @@ msgid "Constant"
 msgstr "Constante"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Property"
-msgstr "Eigenschap:"
+msgstr "Eigenschap"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Theme Property"
-msgstr "Thema Eigenschappen"
+msgstr "Thema-eigenschap"
 
 #: editor/editor_inspector.cpp editor/project_settings_editor.cpp
 msgid "Property:"
@@ -2173,10 +2193,6 @@ msgstr "Uitgaande RSET"
 #: editor/editor_node.cpp editor/project_manager.cpp
 msgid "New Window"
 msgstr "Nieuw Venster"
-
-#: editor/editor_node.cpp
-msgid "Project export failed with error code %d."
-msgstr "Project exporteren faalt door foutcode %d."
 
 #: editor/editor_node.cpp
 msgid "Imported resources can't be saved."
@@ -2766,11 +2782,11 @@ msgstr "Versiebeheer"
 
 #: editor/editor_node.cpp editor/plugins/version_control_editor_plugin.cpp
 msgid "Set Up Version Control"
-msgstr "Versiebeheer Instellen"
+msgstr "Versiebeheer instellen"
 
 #: editor/editor_node.cpp
 msgid "Shut Down Version Control"
-msgstr "Versiebeheer Afsluiten"
+msgstr "Versiebeheer afsluiten"
 
 #: editor/editor_node.cpp
 msgid "Export..."
@@ -3100,10 +3116,6 @@ msgstr "Sjablonen importeren Vanuit ZIP-Bestand"
 msgid "Template Package"
 msgstr "Export Sjabloon Manager"
 
-#: editor/editor_node.cpp editor/project_export.cpp
-msgid "Export Project"
-msgstr "Project Exporteren"
-
 #: editor/editor_node.cpp
 msgid "Export Library"
 msgstr "Bibliotheek Exporteren"
@@ -3111,10 +3123,6 @@ msgstr "Bibliotheek Exporteren"
 #: editor/editor_node.cpp
 msgid "Merge With Existing"
 msgstr "Met bestaande samenvoegen"
-
-#: editor/editor_node.cpp
-msgid "Password:"
-msgstr "Wachtwoord:"
 
 #: editor/editor_node.cpp
 msgid "Open & Run a Script"
@@ -3359,7 +3367,7 @@ msgstr "Verwijder Item"
 
 #: editor/editor_properties_array_dict.cpp
 msgid "New Key:"
-msgstr "Nieuwe Sleutel:"
+msgstr "Nieuwe sleutel:"
 
 #: editor/editor_properties_array_dict.cpp
 msgid "New Value:"
@@ -3367,7 +3375,7 @@ msgstr "Nieuwe Waarde:"
 
 #: editor/editor_properties_array_dict.cpp
 msgid "Add Key/Value Pair"
-msgstr "Sleutel-Waarde Paar Toevoegen"
+msgstr "Sleutel/waarde-paar toevoegen"
 
 #: editor/editor_run_native.cpp
 msgid ""
@@ -3480,13 +3488,14 @@ msgid "Importing:"
 msgstr "Bezit met importeren:"
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Error getting the list of mirrors."
-msgstr "Error bij het maken van het signatuur object."
+msgstr "Fout bij het laden van spiegelservers."
 
 #: editor/export_template_manager.cpp
 msgid "Error parsing JSON of mirror list. Please report this issue!"
 msgstr ""
+"Fout bij het inlezen van spiegelserverlijst (JSON). Meld deze fout "
+"alstublieft!"
 
 #: editor/export_template_manager.cpp
 msgid ""
@@ -4671,9 +4680,8 @@ msgid "Move Node"
 msgstr "Knoop verplaatsen"
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Transition exists!"
-msgstr "Overgang: "
+msgstr "Overgang bestaat!"
 
 #: editor/plugins/animation_state_machine_editor.cpp
 msgid "Add Transition"
@@ -4975,7 +4983,7 @@ msgstr "Gekregen:"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Failed sha256 hash check"
-msgstr "Sha256 hash controle mislukt"
+msgstr "SHA256-proef mislukt"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Asset Download Error:"
@@ -5613,15 +5621,15 @@ msgstr "Voorbeeld Canvas Schaal"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Translation mask for inserting keys."
-msgstr "Vertaalomslag voor het invoegen van sleutels."
+msgstr "Translatiemasker voor sleutelinvoer."
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Rotation mask for inserting keys."
-msgstr "Rotatiemasker voor het invoegen van sleutels."
+msgstr "Rotatiemasker voor sleutelinvoer."
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Scale mask for inserting keys."
-msgstr "Schaalmasker voor het invoegen van sleutels."
+msgstr "Schaalmasker voor sleutelinvoer."
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Insert keys (based on mask)."
@@ -5634,19 +5642,19 @@ msgid ""
 "Keys are only added to existing tracks, no new tracks will be created.\n"
 "Keys must be inserted manually for the first time."
 msgstr ""
-"Automatisch sleutels invoegen als objecten verschuiven, geroteerd of "
+"Automatisch sleutels invoegen als objecten verschuift, geroteerd of "
 "geschaald worden (op basis van masker).\n"
-"Sleutels worden alleen toegevoegd aan bestaande tracks, er worden geen "
-"nieuwe tracks aangemaakt.\n"
+"Sleutels worden alleen toegevoegd aan bestaande sporen, er worden geen "
+"nieuwe sporen aangemaakt.\n"
 "De eerste keer moeten sleutels handmatig ingevoerd worden."
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Auto Insert Key"
-msgstr "Automatisch Sleutel invoegen"
+msgstr "Sleutel automatisch invoegen"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Insert Key (Existing Tracks)"
-msgstr "Sleutel invoegen (in bestaande banen)"
+msgstr "Sleutel invoegen (in bestaande sporen)"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Copy Pose"
@@ -5750,6 +5758,23 @@ msgstr "Telling Gegenereerde Punten:"
 #: editor/plugins/particles_2d_editor_plugin.cpp
 msgid "Emission Mask"
 msgstr "Emissiemasker"
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
+#, fuzzy
+msgid "Solid Pixels"
+msgstr "Krimpen (Pixels): "
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
+msgid "Border Pixels"
+msgstr ""
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
+#, fuzzy
+msgid "Directed Border Pixels"
+msgstr "Mappen & Bestanden:"
 
 #: editor/plugins/cpu_particles_2d_editor_plugin.cpp
 #: editor/plugins/particles_2d_editor_plugin.cpp
@@ -5978,18 +6003,19 @@ msgstr "Omlijningsgrootte:"
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 msgid "UV Channel Debug"
-msgstr ""
+msgstr "UV-kanaal debug"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
 msgid "Remove item %d?"
 msgstr "Element %d verwijderen?"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
-#, fuzzy
 msgid ""
 "Update from existing scene?:\n"
 "%s"
-msgstr "Update Vanuit Scene"
+msgstr ""
+"Update vanuit bestaande scène?:\n"
+"%s"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
 msgid "Mesh Library"
@@ -6232,7 +6258,7 @@ msgstr "Selecteer Punten"
 #: editor/plugins/path_2d_editor_plugin.cpp
 #: editor/plugins/path_editor_plugin.cpp
 msgid "Shift+Drag: Select Control Points"
-msgstr "Shift+Drag: Selecteer Controle Punten"
+msgstr "Shift+Slepen: selecteer controlepunten"
 
 #: editor/plugins/path_2d_editor_plugin.cpp
 #: editor/plugins/path_editor_plugin.cpp
@@ -6250,7 +6276,7 @@ msgstr "Rechter Klik: Verwijder Punt"
 
 #: editor/plugins/path_2d_editor_plugin.cpp
 msgid "Select Control Points (Shift+Drag)"
-msgstr "Selecteer Controle Punten (Shift+Sleep)"
+msgstr "Selecteer controlepunten (Shift+Slepen)"
 
 #: editor/plugins/path_2d_editor_plugin.cpp
 #: editor/plugins/path_editor_plugin.cpp
@@ -7149,11 +7175,11 @@ msgstr "Roteren %s graden."
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Keying is disabled (no key inserted)."
-msgstr "Key-en is uitgeschakeld (geen key ingevoegd)."
+msgstr "Sleutelinvoer is uitgeschakeld (geen sleutel ingevoegd)."
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Animation Key Inserted."
-msgstr "Animatie Key Ingevoegd."
+msgstr "Animatiesleutel Ingevoegd."
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Pitch"
@@ -7404,7 +7430,7 @@ msgstr "Schakel Perspectief/Orthogonaal Zicht"
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Insert Animation Key"
-msgstr "Voeg Animatiesleutel toe"
+msgstr "Animatiesleutel invoegen"
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Focus Origin"
@@ -7541,9 +7567,8 @@ msgid "Create Mesh2D"
 msgstr "Creëer Mesh2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
-#, fuzzy
 msgid "Mesh2D Preview"
-msgstr "Creëren van Mesh Previews"
+msgstr "Mesh2D Voorbeeldweergave"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create Polygon2D"
@@ -7551,25 +7576,23 @@ msgstr "Creëer Polygon2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Polygon2D Preview"
-msgstr ""
+msgstr "Polygon2D Voorbeeldweergave"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create CollisionPolygon2D"
 msgstr "Creëer CollisionPolygon2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
-#, fuzzy
 msgid "CollisionPolygon2D Preview"
-msgstr "Creëer CollisionPolygon2D"
+msgstr "CollisionPolygon2D Voorbeeldweergave"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create LightOccluder2D"
 msgstr "Creëer LightOccluder2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
-#, fuzzy
 msgid "LightOccluder2D Preview"
-msgstr "Creëer LightOccluder2D"
+msgstr "LightOccluder2D Voorbeeldweergave"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Sprite is empty!"
@@ -7650,9 +7673,8 @@ msgid "Add Frame"
 msgstr "Voeg Frame toe"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
-#, fuzzy
 msgid "Unable to load images"
-msgstr "Bron laden mislukt."
+msgstr "Afbeeldingen laden mislukt"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "ERROR: Couldn't load frame resource!"
@@ -8341,14 +8363,12 @@ msgid "Edit Tile Z Index"
 msgstr "Bewerk Tile Z Index"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Make Convex"
-msgstr "Creëer Polygon Convex"
+msgstr "Maak convex"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Make Concave"
-msgstr "Creëer Polygon Concave"
+msgstr "Maak concaaf"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Create Collision Polygon"
@@ -8392,7 +8412,7 @@ msgstr "VCS Addon is niet geïnitialiseerd"
 
 #: editor/plugins/version_control_editor_plugin.cpp
 msgid "Version Control System"
-msgstr "Versie Controle Systeem"
+msgstr "Versiebeheersysteem"
 
 #: editor/plugins/version_control_editor_plugin.cpp
 msgid "Initialize"
@@ -9502,19 +9522,23 @@ msgstr "Gecompileerd"
 
 #: editor/project_export.cpp
 msgid "Encrypted (Provide Key Below)"
-msgstr "Versleuteld (Verstrek hieronder de sleutel)"
+msgstr "Versleuteld (verstrek hieronder de sleutel)"
 
 #: editor/project_export.cpp
 msgid "Invalid Encryption Key (must be 64 characters long)"
-msgstr "Ongeldige Encryptiesleutel (moet 64 tekens lang zijn)"
+msgstr "Ongeldige encryptiesleutel (moet 64 tekens lang zijn)"
 
 #: editor/project_export.cpp
 msgid "Script Encryption Key (256-bits as hex):"
-msgstr "Script Encryptiesleutel (256-bits als hexadecimale):"
+msgstr "Script encryptiesleutel (256-bits als hexadecimaal):"
 
 #: editor/project_export.cpp
 msgid "Export PCK/Zip"
 msgstr "Exporteer PCK/Zip"
+
+#: editor/project_export.cpp
+msgid "Export Project"
+msgstr "Project Exporteren"
 
 #: editor/project_export.cpp
 msgid "Export mode?"
@@ -9607,10 +9631,6 @@ msgstr "Kan project.godot niet bewerken in projectpad."
 #: editor/project_manager.cpp
 msgid "Couldn't create project.godot in project path."
 msgstr "Kan project.godot niet in projectpad maken."
-
-#: editor/project_manager.cpp
-msgid "The following files failed extraction from package:"
-msgstr "De volgende bestanden konden niet worden uitgepakt:"
 
 #: editor/project_manager.cpp
 msgid "Rename Project"
@@ -9877,15 +9897,15 @@ msgstr ""
 
 #: editor/project_settings_editor.cpp
 msgid "Key "
-msgstr "Sleutel "
+msgstr "Toets "
 
 #: editor/project_settings_editor.cpp
 msgid "Joy Button"
-msgstr "Controller Knop"
+msgstr "Controllerknop"
 
 #: editor/project_settings_editor.cpp
 msgid "Joy Axis"
-msgstr "Controller Axis"
+msgstr "Controller-as"
 
 #: editor/project_settings_editor.cpp
 msgid "Mouse Button"
@@ -9969,7 +9989,7 @@ msgstr "X Knop 2"
 
 #: editor/project_settings_editor.cpp
 msgid "Joypad Axis Index:"
-msgstr "Controller Axis Index:"
+msgstr "Controller-as index:"
 
 #: editor/project_settings_editor.cpp
 msgid "Axis"
@@ -9977,7 +9997,7 @@ msgstr "As"
 
 #: editor/project_settings_editor.cpp
 msgid "Joypad Button Index:"
-msgstr "Controller Knop Index:"
+msgstr "Controllerknop index:"
 
 #: editor/project_settings_editor.cpp
 msgid "Erase Input Action"
@@ -10526,15 +10546,15 @@ msgstr "Nieuwe wortel Scene"
 
 #: editor/scene_tree_dock.cpp
 msgid "Create Root Node:"
-msgstr "Wortelknoop maken:"
+msgstr "Maak de wortelknoop:"
 
 #: editor/scene_tree_dock.cpp
 msgid "2D Scene"
-msgstr "2D Scene"
+msgstr "2D Scène"
 
 #: editor/scene_tree_dock.cpp
 msgid "3D Scene"
-msgstr "3D Scene"
+msgstr "3D Scène"
 
 #: editor/scene_tree_dock.cpp
 msgid "User Interface"
@@ -10853,6 +10873,11 @@ msgid "Will load an existing script file."
 msgstr "Laad bestaand script."
 
 #: editor/script_create_dialog.cpp
+#, fuzzy
+msgid "Script file already exists."
+msgstr "Bestaat al"
+
+#: editor/script_create_dialog.cpp
 msgid "Class Name:"
 msgstr "Klasse Naam:"
 
@@ -10994,7 +11019,7 @@ msgstr "Overig"
 
 #: editor/script_editor_debugger.cpp
 msgid "Clicked Control:"
-msgstr "Control aangeklikt:"
+msgstr "Control-knoop aangeklikt:"
 
 #: editor/script_editor_debugger.cpp
 msgid "Clicked Control Type:"
@@ -11302,9 +11327,8 @@ msgid "Cursor Clear Rotation"
 msgstr "Cursorrotatie wissen"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
-#, fuzzy
 msgid "Paste Selects"
-msgstr "Selectie Verwijderen"
+msgstr "Plakken Selecteren"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Clear Selection"
@@ -12241,7 +12265,7 @@ msgid ""
 "The controller ID must not be 0 or this controller won't be bound to an "
 "actual controller."
 msgstr ""
-"Het controller ID moet ongelijk 0 zijn, anders zal deze controller niet "
+"Het controller ID moet ongelijk aan 0 zijn, anders zal deze controller niet "
 "verbonden worden met een werkelijke controller."
 
 #: scene/3d/arvr_nodes.cpp
@@ -12527,7 +12551,15 @@ msgid "This node has been deprecated. Use AnimationTree instead."
 msgstr "Deze knoop is verouderd. Gebruik in plaats daarvan AnimationTree."
 
 #: scene/gui/color_picker.cpp
-msgid "Pick a color from the screen."
+msgid ""
+"Color: #%s\n"
+"LMB: Set color\n"
+"RMB: Remove preset"
+msgstr ""
+
+#: scene/gui/color_picker.cpp
+#, fuzzy
+msgid "Pick a color from the editor window."
 msgstr "Kies een kleur van het scherm."
 
 #: scene/gui/color_picker.cpp
@@ -12649,6 +12681,12 @@ msgstr "Varyings kunnen alleen worden toegewezenin vertex functies."
 #: servers/visual/shader_language.cpp
 msgid "Constants cannot be modified."
 msgstr "Constanten kunnen niet worden aangepast."
+
+#~ msgid "Project export failed with error code %d."
+#~ msgstr "Project exporteren faalt door foutcode %d."
+
+#~ msgid "Password:"
+#~ msgstr "Wachtwoord:"
 
 #~ msgid "Pause the scene"
 #~ msgstr "Pauzeer de scene"
@@ -12911,9 +12949,6 @@ msgstr "Constanten kunnen niet worden aangepast."
 #~ msgid "Create folder"
 #~ msgstr "Map Maken"
 
-#~ msgid "Already existing"
-#~ msgstr "Bestaat al"
-
 #, fuzzy
 #~ msgid "Custom Node"
 #~ msgstr "Knip Nodes"
@@ -12961,10 +12996,6 @@ msgstr "Constanten kunnen niet worden aangepast."
 #~ msgid "OrientedPathFollow only works when set as a child of a Path node."
 #~ msgstr ""
 #~ "PathFollow2D werkt alleen wanneer het een kind van een Path2D node is."
-
-#, fuzzy
-#~ msgid "Split already exists."
-#~ msgstr "Bestaat al"
 
 #, fuzzy
 #~ msgid "Add Split"

@@ -23,7 +23,7 @@
 # Peter Friedland <peter_friedland@gmx.de>, 2016.
 # No need for a name <endoplasmatik@gmx.net>, 2016.
 # Sönke <me@eknoes.de>, 2018.
-# So Wieso <sowieso@dukun.de>, 2016-2018, 2019.
+# So Wieso <sowieso@dukun.de>, 2016-2018, 2019, 2020.
 # Tim Schellenberg <smwleod@gmail.com>, 2017.
 # Timo Schwarzer <account@timoschwarzer.com>, 2016-2018.
 # viernullvier <hannes.breul+github@gmail.com>, 2016.
@@ -52,7 +52,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-12-23 17:07+0000\n"
+"PO-Revision-Date: 2020-01-03 21:21+0000\n"
 "Last-Translator: So Wieso <sowieso@dukun.de>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/godot-engine/"
 "godot/de/>\n"
@@ -463,7 +463,7 @@ msgstr "Ohne eine Wurzel kann keine neue Spur hinzugefügt werden"
 
 #: editor/animation_track_editor.cpp
 msgid "Invalid track for Bezier (no suitable sub-properties)"
-msgstr ""
+msgstr "Spur ungültig als Bezier (keine passenden Unter-Eigenschaften)"
 
 #: editor/animation_track_editor.cpp
 msgid "Add Bezier Track"
@@ -1242,8 +1242,22 @@ msgid "Error opening package file, not in ZIP format."
 msgstr "Fehler beim Öffnen der Paketdatei, kein ZIP-Format."
 
 #: editor/editor_asset_installer.cpp
+#, fuzzy
+msgid "%s (Already Exists)"
+msgstr "Existiert bereits"
+
+#: editor/editor_asset_installer.cpp
 msgid "Uncompressing Assets"
 msgstr "Inhalte werden entpackt"
+
+#: editor/editor_asset_installer.cpp editor/project_manager.cpp
+msgid "The following files failed extraction from package:"
+msgstr "Die folgenden Dateien ließen sich nicht aus dem Paket extrahieren:"
+
+#: editor/editor_asset_installer.cpp
+#, fuzzy
+msgid "And %s more files."
+msgstr "%d weitere Datei(en)"
 
 #: editor/editor_asset_installer.cpp editor/project_manager.cpp
 msgid "Package installed successfully!"
@@ -1253,6 +1267,11 @@ msgstr "Paket wurde erfolgreich installiert!"
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Success!"
 msgstr "Geschafft!"
+
+#: editor/editor_asset_installer.cpp
+#, fuzzy
+msgid "Package Contents:"
+msgstr "Inhalt:"
 
 #: editor/editor_asset_installer.cpp editor/editor_node.cpp
 msgid "Install"
@@ -1390,6 +1409,11 @@ msgstr "Layout"
 #: editor/editor_audio_buses.cpp
 msgid "Invalid file, not an audio bus layout."
 msgstr "Ungültige Datei, kein Audiobus-Layout."
+
+#: editor/editor_audio_buses.cpp
+#, fuzzy
+msgid "Error saving file: %s"
+msgstr "Fehler beim Speichern der Datei!"
 
 #: editor/editor_audio_buses.cpp
 msgid "Add Bus"
@@ -2044,9 +2068,8 @@ msgid "Case Sensitive"
 msgstr "Groß-/Kleinschreibung beachten"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Show Hierarchy"
-msgstr "Helfer anzeigen"
+msgstr "Rangordnung anzeigen"
 
 #: editor/editor_help_search.cpp
 msgid "Display All"
@@ -2085,9 +2108,8 @@ msgid "Class"
 msgstr "Klasse"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Method"
-msgstr "Methoden"
+msgstr "Methode"
 
 #: editor/editor_help_search.cpp editor/plugins/script_text_editor.cpp
 msgid "Signal"
@@ -2098,14 +2120,12 @@ msgid "Constant"
 msgstr "Konstant"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Property"
-msgstr "Eigenschaft:"
+msgstr "Eigenschaft"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Theme Property"
-msgstr "Motiv-Eigenschaften"
+msgstr "Motiv-Eigenschaft"
 
 #: editor/editor_inspector.cpp editor/project_settings_editor.cpp
 msgid "Property:"
@@ -2186,10 +2206,6 @@ msgstr "Ausgehender RSET"
 #: editor/editor_node.cpp editor/project_manager.cpp
 msgid "New Window"
 msgstr "Neues Fenster"
-
-#: editor/editor_node.cpp
-msgid "Project export failed with error code %d."
-msgstr "Projekt-Export ist fehlgeschlagen mit Fehlercode %d."
 
 #: editor/editor_node.cpp
 msgid "Imported resources can't be saved."
@@ -3120,10 +3136,6 @@ msgstr "Vorlagen aus ZIP-Datei importieren"
 msgid "Template Package"
 msgstr "Vorlagenpaket"
 
-#: editor/editor_node.cpp editor/project_export.cpp
-msgid "Export Project"
-msgstr "Projekt exportieren"
-
 #: editor/editor_node.cpp
 msgid "Export Library"
 msgstr "Bibliothek exportieren"
@@ -3131,10 +3143,6 @@ msgstr "Bibliothek exportieren"
 #: editor/editor_node.cpp
 msgid "Merge With Existing"
 msgstr "Mit existierendem vereinen"
-
-#: editor/editor_node.cpp
-msgid "Password:"
-msgstr "Passwort:"
 
 #: editor/editor_node.cpp
 msgid "Open & Run a Script"
@@ -3501,13 +3509,14 @@ msgid "Importing:"
 msgstr "Importiere:"
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Error getting the list of mirrors."
-msgstr "Fehler beim erstellen des Signaturobjekts."
+msgstr "Fehler beim Laden der Spiegelserver."
 
 #: editor/export_template_manager.cpp
 msgid "Error parsing JSON of mirror list. Please report this issue!"
 msgstr ""
+"Fehler beim Einlesen des JSON-Formats der Spiegelserverliste. Bitte diesen "
+"Fehler melden!"
 
 #: editor/export_template_manager.cpp
 msgid ""
@@ -4696,9 +4705,8 @@ msgid "Move Node"
 msgstr "Node verschieben"
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Transition exists!"
-msgstr "Übergänge"
+msgstr "Übergang existiert bereits!"
 
 #: editor/plugins/animation_state_machine_editor.cpp
 msgid "Add Transition"
@@ -5778,6 +5786,23 @@ msgstr "Emissionsmaske"
 
 #: editor/plugins/cpu_particles_2d_editor_plugin.cpp
 #: editor/plugins/particles_2d_editor_plugin.cpp
+#, fuzzy
+msgid "Solid Pixels"
+msgstr "Schrumpfen (Pixel): "
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
+msgid "Border Pixels"
+msgstr ""
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
+#, fuzzy
+msgid "Directed Border Pixels"
+msgstr "Verzeichnisse & Dateien:"
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
 msgid "Capture from Pixel"
 msgstr "Von Pixel aufnehmen"
 
@@ -6004,18 +6029,19 @@ msgstr "Umrissgröße:"
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 msgid "UV Channel Debug"
-msgstr ""
+msgstr "UV-Channel-Debug"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
 msgid "Remove item %d?"
 msgstr "Element %d entfernen?"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
-#, fuzzy
 msgid ""
 "Update from existing scene?:\n"
 "%s"
-msgstr "Aus Szene aktualisieren"
+msgstr ""
+"Aus bestehender Szene aktualisieren?:\n"
+"%s"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
 msgid "Mesh Library"
@@ -7575,9 +7601,8 @@ msgid "Create Mesh2D"
 msgstr "Mesh2D erzeugen"
 
 #: editor/plugins/sprite_editor_plugin.cpp
-#, fuzzy
 msgid "Mesh2D Preview"
-msgstr "Mesh-Vorschauen erzeugen"
+msgstr "Mesh2D-Vorschau"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create Polygon2D"
@@ -7585,25 +7610,23 @@ msgstr "Polygon2D erzeugen"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Polygon2D Preview"
-msgstr ""
+msgstr "Polygon2D-Vorschau"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create CollisionPolygon2D"
 msgstr "CollisionPolygon2D erzeugen"
 
 #: editor/plugins/sprite_editor_plugin.cpp
-#, fuzzy
 msgid "CollisionPolygon2D Preview"
-msgstr "CollisionPolygon2D erzeugen"
+msgstr "CollisionPolygon2D-Vorschau"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create LightOccluder2D"
 msgstr "LightOccluder2D erzeugen"
 
 #: editor/plugins/sprite_editor_plugin.cpp
-#, fuzzy
 msgid "LightOccluder2D Preview"
-msgstr "LightOccluder2D erzeugen"
+msgstr "LightOccluder2D-Vorschau"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Sprite is empty!"
@@ -7684,9 +7707,8 @@ msgid "Add Frame"
 msgstr "Frame hinzufügen"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
-#, fuzzy
 msgid "Unable to load images"
-msgstr "Bild konnte nicht geladen werden:"
+msgstr "Bilder konnten nicht geladen werden"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "ERROR: Couldn't load frame resource!"
@@ -8378,14 +8400,12 @@ msgid "Edit Tile Z Index"
 msgstr "bearbeite Kachel Z Index"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Make Convex"
-msgstr "Polygon konvex machen"
+msgstr "Konvex machen"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Make Concave"
-msgstr "Polygon konkav machen"
+msgstr "Konkav machen"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Create Collision Polygon"
@@ -9545,6 +9565,10 @@ msgid "Export PCK/Zip"
 msgstr "Exportiere PCK/Zip"
 
 #: editor/project_export.cpp
+msgid "Export Project"
+msgstr "Projekt exportieren"
+
+#: editor/project_export.cpp
 msgid "Export mode?"
 msgstr "Export-Modus?"
 
@@ -9636,10 +9660,6 @@ msgstr "project.godot des Projektpfads konnte nicht bearbeitet werden."
 #: editor/project_manager.cpp
 msgid "Couldn't create project.godot in project path."
 msgstr "Konnte project.godot im Projektpfad nicht erzeugen."
-
-#: editor/project_manager.cpp
-msgid "The following files failed extraction from package:"
-msgstr "Die folgenden Dateien ließen sich nicht aus dem Paket extrahieren:"
 
 #: editor/project_manager.cpp
 msgid "Rename Project"
@@ -10887,6 +10907,11 @@ msgid "Will load an existing script file."
 msgstr "Dies wird eine bestehende Skriptdatei laden."
 
 #: editor/script_create_dialog.cpp
+#, fuzzy
+msgid "Script file already exists."
+msgstr "Teilung existiert bereits."
+
+#: editor/script_create_dialog.cpp
 msgid "Class Name:"
 msgstr "Klassenname:"
 
@@ -11337,9 +11362,8 @@ msgid "Cursor Clear Rotation"
 msgstr "Rotation am Mauszeiger zurücksetzen"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
-#, fuzzy
 msgid "Paste Selects"
-msgstr "Auswahl löschen"
+msgstr "Auswahlen einfügen"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Clear Selection"
@@ -12582,7 +12606,15 @@ msgstr ""
 "AnimationTree."
 
 #: scene/gui/color_picker.cpp
-msgid "Pick a color from the screen."
+msgid ""
+"Color: #%s\n"
+"LMB: Set color\n"
+"RMB: Remove preset"
+msgstr ""
+
+#: scene/gui/color_picker.cpp
+#, fuzzy
+msgid "Pick a color from the editor window."
 msgstr "Wählt eine Farbe vom Bildschirm aus."
 
 #: scene/gui/color_picker.cpp
@@ -12708,6 +12740,12 @@ msgstr "Varyings können nur in Vertex-Funktion zugewiesen werden."
 #: servers/visual/shader_language.cpp
 msgid "Constants cannot be modified."
 msgstr "Konstanten können nicht verändert werden."
+
+#~ msgid "Project export failed with error code %d."
+#~ msgstr "Projekt-Export ist fehlgeschlagen mit Fehlercode %d."
+
+#~ msgid "Password:"
+#~ msgstr "Passwort:"
 
 #~ msgid "Identifier segments must be of non-zero length."
 #~ msgstr "Bezeichnersegmente dürfen keine Länge gleich Null haben."
@@ -13177,9 +13215,6 @@ msgstr "Konstanten können nicht verändert werden."
 #~ msgid "Create folder"
 #~ msgstr "Ordner erstellen"
 
-#~ msgid "Already existing"
-#~ msgstr "Existiert bereits"
-
 #~ msgid "Custom Node"
 #~ msgstr "Selbst-erstelltes Node"
 
@@ -13230,9 +13265,6 @@ msgstr "Konstanten können nicht verändert werden."
 
 #~ msgid "Split can't form an existing edge."
 #~ msgstr "Teilen kann keine existierende Kante erstellen."
-
-#~ msgid "Split already exists."
-#~ msgstr "Teilung existiert bereits."
 
 #~ msgid "Add Split"
 #~ msgstr "Teilung hinzufügen"

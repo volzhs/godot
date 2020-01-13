@@ -8,12 +8,13 @@
 # Rubén Moreno <ruben.moreno.romero@gmail.com>, 2018.
 # roger <616steam@gmail.com>, 2019.
 # Roger BR <drai_kin@hotmail.com>, 2019.
+# Adolfo Jayme Barrientos <fitojb@ubuntu.com>, 2020.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-12-21 08:37+0000\n"
-"Last-Translator: roger <616steam@gmail.com>\n"
+"PO-Revision-Date: 2020-01-03 21:21+0000\n"
+"Last-Translator: Adolfo Jayme Barrientos <fitojb@ubuntu.com>\n"
 "Language-Team: Catalan <https://hosted.weblate.org/projects/godot-engine/"
 "godot/ca/>\n"
 "Language: ca\n"
@@ -654,9 +655,8 @@ msgid "Copy"
 msgstr "Copia"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Select All/None"
-msgstr "Seleccionar Totes/Cap"
+msgstr "(Des)selecciona-ho tot"
 
 #: editor/animation_track_editor_plugins.cpp
 msgid "Add Audio Track Clip"
@@ -1201,8 +1201,22 @@ msgid "Error opening package file, not in ZIP format."
 msgstr "Error en obrir el arxiu comprimit, el fitxer no té el format ZIP."
 
 #: editor/editor_asset_installer.cpp
+#, fuzzy
+msgid "%s (Already Exists)"
+msgstr "Ja existeix"
+
+#: editor/editor_asset_installer.cpp
 msgid "Uncompressing Assets"
 msgstr "Descomprimint Recursos"
+
+#: editor/editor_asset_installer.cpp editor/project_manager.cpp
+msgid "The following files failed extraction from package:"
+msgstr "Ha fracassat l'extracció del paquet dels següents fitxers:"
+
+#: editor/editor_asset_installer.cpp
+#, fuzzy
+msgid "And %s more files."
+msgstr "%d fitxer(s) més"
 
 #: editor/editor_asset_installer.cpp editor/project_manager.cpp
 msgid "Package installed successfully!"
@@ -1212,6 +1226,11 @@ msgstr "Paquet instal·lat amb èxit!"
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Success!"
 msgstr "Èxit!"
+
+#: editor/editor_asset_installer.cpp
+#, fuzzy
+msgid "Package Contents:"
+msgstr "Continguts:"
 
 #: editor/editor_asset_installer.cpp editor/editor_node.cpp
 msgid "Install"
@@ -1350,6 +1369,11 @@ msgstr "Desar Disseny"
 #: editor/editor_audio_buses.cpp
 msgid "Invalid file, not an audio bus layout."
 msgstr "Fitxer incorrecte. No és un disseny de bus d'àudio."
+
+#: editor/editor_audio_buses.cpp
+#, fuzzy
+msgid "Error saving file: %s"
+msgstr "Error en desar el fitxer!"
 
 #: editor/editor_audio_buses.cpp
 msgid "Add Bus"
@@ -2164,10 +2188,6 @@ msgstr "RSET Sortint"
 #: editor/editor_node.cpp editor/project_manager.cpp
 msgid "New Window"
 msgstr "Nova finestra"
-
-#: editor/editor_node.cpp
-msgid "Project export failed with error code %d."
-msgstr "L'exportació del projecte ha fallat amb el codi d'error %d."
 
 #: editor/editor_node.cpp
 msgid "Imported resources can't be saved."
@@ -3102,10 +3122,6 @@ msgstr "Importa Plantilles des d'un Fitxer ZIP"
 msgid "Template Package"
 msgstr "Gestor de Plantilles d'Exportació"
 
-#: editor/editor_node.cpp editor/project_export.cpp
-msgid "Export Project"
-msgstr "Exporta Projecte"
-
 #: editor/editor_node.cpp
 msgid "Export Library"
 msgstr "Exporta Biblioteca"
@@ -3113,10 +3129,6 @@ msgstr "Exporta Biblioteca"
 #: editor/editor_node.cpp
 msgid "Merge With Existing"
 msgstr "Combina amb Existents"
-
-#: editor/editor_node.cpp
-msgid "Password:"
-msgstr "Contrasenya:"
 
 #: editor/editor_node.cpp
 msgid "Open & Run a Script"
@@ -5089,17 +5101,15 @@ msgstr "Tot"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "No results for \"%s\"."
-msgstr "Cap resultat per \"%s\"."
+msgstr "No hi ha cap resultat per a «%s»."
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Import..."
-msgstr "ReImporta..."
+msgstr "Importa…"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Plugins..."
-msgstr "Connectors"
+msgstr "Connectors…"
 
 #: editor/plugins/asset_library_editor_plugin.cpp editor/project_manager.cpp
 msgid "Sort:"
@@ -5115,9 +5125,8 @@ msgid "Site:"
 msgstr "Lloc:"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Support"
-msgstr "Suport..."
+msgstr "Assistència"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Official"
@@ -5128,9 +5137,8 @@ msgid "Testing"
 msgstr "Provant"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Loading..."
-msgstr "Carregar..."
+msgstr "S’està carregant…"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Assets ZIP File"
@@ -5816,6 +5824,22 @@ msgstr "Recompte de punts generats:"
 #: editor/plugins/particles_2d_editor_plugin.cpp
 msgid "Emission Mask"
 msgstr "Màscara d'Emissió"
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
+msgid "Solid Pixels"
+msgstr ""
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
+msgid "Border Pixels"
+msgstr ""
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
+#, fuzzy
+msgid "Directed Border Pixels"
+msgstr "Directoris i Fitxers:"
 
 #: editor/plugins/cpu_particles_2d_editor_plugin.cpp
 #: editor/plugins/particles_2d_editor_plugin.cpp
@@ -9703,6 +9727,10 @@ msgid "Export PCK/Zip"
 msgstr "Exporta PCK/Zip"
 
 #: editor/project_export.cpp
+msgid "Export Project"
+msgstr "Exporta Projecte"
+
+#: editor/project_export.cpp
 msgid "Export mode?"
 msgstr "Mode d'Exportació?"
 
@@ -9794,10 +9822,6 @@ msgstr "No es pot editar el fitxer 'project.godot' en el camí del projecte."
 #: editor/project_manager.cpp
 msgid "Couldn't create project.godot in project path."
 msgstr "No es pot crear el fitxer 'project.godot' en el camí del projecte."
-
-#: editor/project_manager.cpp
-msgid "The following files failed extraction from package:"
-msgstr "Ha fracassat l'extracció del paquet dels següents fitxers:"
 
 #: editor/project_manager.cpp
 msgid "Rename Project"
@@ -11075,6 +11099,11 @@ msgstr "Es carregarà un fitxer de script existent."
 
 #: editor/script_create_dialog.cpp
 #, fuzzy
+msgid "Script file already exists."
+msgstr "L'Acció '%s' ja existeix!"
+
+#: editor/script_create_dialog.cpp
+#, fuzzy
 msgid "Class Name:"
 msgstr "Nom de Classe"
 
@@ -12233,7 +12262,7 @@ msgstr ""
 
 #: platform/javascript/export/export.cpp
 msgid "Stop HTTP Server"
-msgstr "Aturar Servidor HTTP"
+msgstr "Atura el servidor HTTP"
 
 #: platform/javascript/export/export.cpp
 msgid "Run in Browser"
@@ -12818,7 +12847,15 @@ msgid "This node has been deprecated. Use AnimationTree instead."
 msgstr ""
 
 #: scene/gui/color_picker.cpp
-msgid "Pick a color from the screen."
+msgid ""
+"Color: #%s\n"
+"LMB: Set color\n"
+"RMB: Remove preset"
+msgstr ""
+
+#: scene/gui/color_picker.cpp
+#, fuzzy
+msgid "Pick a color from the editor window."
 msgstr "Trieu un color de la pantalla."
 
 #: scene/gui/color_picker.cpp
@@ -12939,6 +12976,12 @@ msgstr ""
 #: servers/visual/shader_language.cpp
 msgid "Constants cannot be modified."
 msgstr "Les constants no es poden modificar."
+
+#~ msgid "Project export failed with error code %d."
+#~ msgstr "L'exportació del projecte ha fallat amb el codi d'error %d."
+
+#~ msgid "Password:"
+#~ msgstr "Contrasenya:"
 
 #~ msgid "A digit cannot be the first character in a Identifier segment."
 #~ msgstr "Un dígit no pot ser el primer caràcter en un segment Identificador."
@@ -13258,9 +13301,6 @@ msgstr "Les constants no es poden modificar."
 #~ msgid "Create folder"
 #~ msgstr "Crea un Directori"
 
-#~ msgid "Already existing"
-#~ msgstr "Ja existeix"
-
 #~ msgid "Custom Node"
 #~ msgstr "Node Personalitzat"
 
@@ -13307,10 +13347,6 @@ msgstr "Les constants no es poden modificar."
 #~ msgid "OrientedPathFollow only works when set as a child of a Path node."
 #~ msgstr ""
 #~ "PathFollow2D només funciona si s'estableix com a fill d'un node Path2D."
-
-#, fuzzy
-#~ msgid "Split already exists."
-#~ msgstr "L'Acció '%s' ja existeix!"
 
 #, fuzzy
 #~ msgid "Add Split"

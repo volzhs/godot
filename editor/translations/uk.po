@@ -3,7 +3,7 @@
 # Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).
 # This file is distributed under the same license as the Godot source code.
 # Aleksandr <XpycT.TOP@gmail.com>, 2017.
-# Yuri Chornoivan <yurchor@ukr.net>, 2018, 2019.
+# Yuri Chornoivan <yurchor@ukr.net>, 2018, 2019, 2020.
 # Андрій Бандура <andriykopanytsia@gmail.com>, 2018.
 # Гидеон Теон <t.kudely94@gmail.com>, 2017.
 # Максим Якимчук <xpinovo@gmail.com>, 2018, 2019.
@@ -12,12 +12,13 @@
 # Kirill Omelchenko <kirill.omelchenko@gmail.com>, 2018.
 # Александр <ol-vin@mail.ru>, 2018.
 # Богдан Матвіїв <bomtvv@gmail.com>, 2019.
+# Tymofij Lytvynenko <till.svit@gmail.com>, 2020.
 msgid ""
 msgstr ""
 "Project-Id-Version: Ukrainian (Godot Engine)\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-12-23 17:07+0000\n"
-"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"PO-Revision-Date: 2020-01-03 21:21+0000\n"
+"Last-Translator: Tymofij Lytvynenko <till.svit@gmail.com>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/uk/>\n"
 "Language: uk\n"
@@ -431,6 +432,8 @@ msgstr "Не можна додавати нові доріжки без коре
 #: editor/animation_track_editor.cpp
 msgid "Invalid track for Bezier (no suitable sub-properties)"
 msgstr ""
+"Некоректна траєкторія для кривої Безьє (немає відповідних підлеглих "
+"властивостей)"
 
 #: editor/animation_track_editor.cpp
 msgid "Add Bezier Track"
@@ -1193,7 +1196,7 @@ msgstr "Всі компоненти"
 
 #: editor/editor_about.cpp
 msgid "Components"
-msgstr "Компоненти"
+msgstr "Складники"
 
 #: editor/editor_about.cpp
 msgid "Licenses"
@@ -1204,8 +1207,22 @@ msgid "Error opening package file, not in ZIP format."
 msgstr "Помилка під час спроби відкрити файл пакунка — дані не у форматі zip."
 
 #: editor/editor_asset_installer.cpp
+#, fuzzy
+msgid "%s (Already Exists)"
+msgstr "Вже існує"
+
+#: editor/editor_asset_installer.cpp
 msgid "Uncompressing Assets"
 msgstr "Розпаковування активів"
+
+#: editor/editor_asset_installer.cpp editor/project_manager.cpp
+msgid "The following files failed extraction from package:"
+msgstr "Не вдалося видобути такі файли з пакунка:"
+
+#: editor/editor_asset_installer.cpp
+#, fuzzy
+msgid "And %s more files."
+msgstr "%d більше файлів"
 
 #: editor/editor_asset_installer.cpp editor/project_manager.cpp
 msgid "Package installed successfully!"
@@ -1215,6 +1232,11 @@ msgstr "Пакунок успішно встановлено!"
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Success!"
 msgstr "Успіх!"
+
+#: editor/editor_asset_installer.cpp
+#, fuzzy
+msgid "Package Contents:"
+msgstr "Зміст:"
 
 #: editor/editor_asset_installer.cpp editor/editor_node.cpp
 msgid "Install"
@@ -1352,6 +1374,11 @@ msgstr "Макет"
 #: editor/editor_audio_buses.cpp
 msgid "Invalid file, not an audio bus layout."
 msgstr "Неприпустимий файл, це не компонування аудіо-шини."
+
+#: editor/editor_audio_buses.cpp
+#, fuzzy
+msgid "Error saving file: %s"
+msgstr "Помилка під час збереження файла!"
 
 #: editor/editor_audio_buses.cpp
 msgid "Add Bus"
@@ -2006,9 +2033,8 @@ msgid "Case Sensitive"
 msgstr "Чутливість регістра"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Show Hierarchy"
-msgstr "Показати помічники"
+msgstr "Показати ієрархію"
 
 #: editor/editor_help_search.cpp
 msgid "Display All"
@@ -2047,9 +2073,8 @@ msgid "Class"
 msgstr "Клас"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Method"
-msgstr "Методи"
+msgstr "Метод"
 
 #: editor/editor_help_search.cpp editor/plugins/script_text_editor.cpp
 msgid "Signal"
@@ -2060,14 +2085,12 @@ msgid "Constant"
 msgstr "Сталий"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Property"
-msgstr "Властивість:"
+msgstr "Властивість"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Theme Property"
-msgstr "Властивості теми"
+msgstr "Властивість теми"
 
 #: editor/editor_inspector.cpp editor/project_settings_editor.cpp
 msgid "Property:"
@@ -2148,10 +2171,6 @@ msgstr "Вихідний RSET"
 #: editor/editor_node.cpp editor/project_manager.cpp
 msgid "New Window"
 msgstr "Нове вікно"
-
-#: editor/editor_node.cpp
-msgid "Project export failed with error code %d."
-msgstr "Не вдалося експортувати проєкт, код помилки — %d."
 
 #: editor/editor_node.cpp
 msgid "Imported resources can't be saved."
@@ -3071,10 +3090,6 @@ msgstr "Імпортувати шаблони з ZIP-файлу"
 msgid "Template Package"
 msgstr "Пакунок шаблонів"
 
-#: editor/editor_node.cpp editor/project_export.cpp
-msgid "Export Project"
-msgstr "Експортувати проєкт"
-
 #: editor/editor_node.cpp
 msgid "Export Library"
 msgstr "Експортувати бібліотеку"
@@ -3082,10 +3097,6 @@ msgstr "Експортувати бібліотеку"
 #: editor/editor_node.cpp
 msgid "Merge With Existing"
 msgstr "Об'єднати з існуючим"
-
-#: editor/editor_node.cpp
-msgid "Password:"
-msgstr "Пароль:"
 
 #: editor/editor_node.cpp
 msgid "Open & Run a Script"
@@ -3451,11 +3462,13 @@ msgstr "Імпортування:"
 
 #: editor/export_template_manager.cpp
 msgid "Error getting the list of mirrors."
-msgstr ""
+msgstr "Помилка під час отримання списку дзеркал."
 
 #: editor/export_template_manager.cpp
 msgid "Error parsing JSON of mirror list. Please report this issue!"
 msgstr ""
+"Помилка під час обробки JSON списку дзеркал. Будь ласка, повідомте про цю "
+"ваду!"
 
 #: editor/export_template_manager.cpp
 msgid ""
@@ -4645,9 +4658,8 @@ msgid "Move Node"
 msgstr "Пересунути вузол"
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Transition exists!"
-msgstr "Перехід: "
+msgstr "Існує перехід!"
 
 #: editor/plugins/animation_state_machine_editor.cpp
 msgid "Add Transition"
@@ -5725,6 +5737,23 @@ msgstr "Маска випромінювання"
 
 #: editor/plugins/cpu_particles_2d_editor_plugin.cpp
 #: editor/plugins/particles_2d_editor_plugin.cpp
+#, fuzzy
+msgid "Solid Pixels"
+msgstr "Стискання (пікселі): "
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
+msgid "Border Pixels"
+msgstr ""
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
+#, fuzzy
+msgid "Directed Border Pixels"
+msgstr "Каталоги та файли:"
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
 msgid "Capture from Pixel"
 msgstr "Захопити з пікселя"
 
@@ -5950,18 +5979,19 @@ msgstr "Розмір обведення:"
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 msgid "UV Channel Debug"
-msgstr ""
+msgstr "Діагностика UV-каналу"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
 msgid "Remove item %d?"
 msgstr "Видалення елемента %d?"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
-#, fuzzy
 msgid ""
 "Update from existing scene?:\n"
 "%s"
-msgstr "Оновити зі сцени"
+msgstr ""
+"Оновити з наявної сцени?\n"
+"%s"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
 msgid "Mesh Library"
@@ -7516,9 +7546,8 @@ msgid "Create Mesh2D"
 msgstr "Створити Mesh2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
-#, fuzzy
 msgid "Mesh2D Preview"
-msgstr "Створення попереднього перегляду сітки"
+msgstr "Попередній перегляд плоскої сітки"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create Polygon2D"
@@ -7526,25 +7555,23 @@ msgstr "Створити Polygon2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Polygon2D Preview"
-msgstr ""
+msgstr "Попередній перегляд плоского багатокутника"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create CollisionPolygon2D"
 msgstr "Створити CollisionPolygon2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
-#, fuzzy
 msgid "CollisionPolygon2D Preview"
-msgstr "Створити CollisionPolygon2D"
+msgstr "Попередній перегляд CollisionPolygon2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create LightOccluder2D"
 msgstr "Створити LightOccluder2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
-#, fuzzy
 msgid "LightOccluder2D Preview"
-msgstr "Створити LightOccluder2D"
+msgstr "Попередній перегляд LightOccluder2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Sprite is empty!"
@@ -7625,9 +7652,8 @@ msgid "Add Frame"
 msgstr "Додати кадр"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
-#, fuzzy
 msgid "Unable to load images"
-msgstr "Не вдалося завантажити ресурс."
+msgstr "Не вдалося завантажити зображення"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "ERROR: Couldn't load frame resource!"
@@ -8319,14 +8345,12 @@ msgid "Edit Tile Z Index"
 msgstr "Редагувати z-індекс плитки"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Make Convex"
-msgstr "Зробити полігон опуклим"
+msgstr "Зробити опуклим"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Make Concave"
-msgstr "Зробити полігон увігнутим"
+msgstr "Зробити увігнутим"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Create Collision Polygon"
@@ -9484,6 +9508,10 @@ msgid "Export PCK/Zip"
 msgstr "Експортувати PCK/Zip"
 
 #: editor/project_export.cpp
+msgid "Export Project"
+msgstr "Експортувати проєкт"
+
+#: editor/project_export.cpp
 msgid "Export mode?"
 msgstr "Режим експортування?"
 
@@ -9574,10 +9602,6 @@ msgstr "Не вдалося редагувати project.godot у каталоз
 #: editor/project_manager.cpp
 msgid "Couldn't create project.godot in project path."
 msgstr "Не вдалося створити project.godot у каталозі проєкту."
-
-#: editor/project_manager.cpp
-msgid "The following files failed extraction from package:"
-msgstr "Не вдалося видобути такі файли з пакунка:"
 
 #: editor/project_manager.cpp
 msgid "Rename Project"
@@ -10819,6 +10843,11 @@ msgid "Will load an existing script file."
 msgstr "Завантажити наявний файл скрипту."
 
 #: editor/script_create_dialog.cpp
+#, fuzzy
+msgid "Script file already exists."
+msgstr "Поділ вже існує."
+
+#: editor/script_create_dialog.cpp
 msgid "Class Name:"
 msgstr "Назва класу:"
 
@@ -11269,9 +11298,8 @@ msgid "Cursor Clear Rotation"
 msgstr "Зняти обертання з вказівника"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
-#, fuzzy
 msgid "Paste Selects"
-msgstr "Витерти позначене"
+msgstr "Вставляння позначає"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Clear Selection"
@@ -12503,7 +12531,15 @@ msgstr ""
 "Цей вузол вважається застарілим. Скористайтеся замість нього AnimationTree."
 
 #: scene/gui/color_picker.cpp
-msgid "Pick a color from the screen."
+msgid ""
+"Color: #%s\n"
+"LMB: Set color\n"
+"RMB: Remove preset"
+msgstr ""
+
+#: scene/gui/color_picker.cpp
+#, fuzzy
+msgid "Pick a color from the editor window."
 msgstr "Вибрати колір з екрана."
 
 #: scene/gui/color_picker.cpp
@@ -12626,6 +12662,12 @@ msgstr "Змінні величини можна пов'язувати лише 
 #: servers/visual/shader_language.cpp
 msgid "Constants cannot be modified."
 msgstr "Сталі не можна змінювати."
+
+#~ msgid "Project export failed with error code %d."
+#~ msgstr "Не вдалося експортувати проєкт, код помилки — %d."
+
+#~ msgid "Password:"
+#~ msgstr "Пароль:"
 
 #~ msgid "Identifier segments must be of non-zero length."
 #~ msgstr "Сегменти ідентифікатора повинні мати ненульову довжину."
@@ -13098,9 +13140,6 @@ msgstr "Сталі не можна змінювати."
 #~ msgid "Create folder"
 #~ msgstr "Створити теку"
 
-#~ msgid "Already existing"
-#~ msgstr "Вже існує"
-
 #~ msgid "Custom Node"
 #~ msgstr "Нетиповий вузол"
 
@@ -13148,9 +13187,6 @@ msgstr "Сталі не можна змінювати."
 
 #~ msgid "Split can't form an existing edge."
 #~ msgstr "Поділ не може створювати наявного ребра."
-
-#~ msgid "Split already exists."
-#~ msgstr "Поділ вже існує."
 
 #~ msgid "Add Split"
 #~ msgstr "Додати поділ"
