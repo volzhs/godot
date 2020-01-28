@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="VisualShaderNodeExpression" inherits="VisualShaderNodeGroupBase" category="Core" version="3.2">
+<class name="VisualShaderNodeExpression" inherits="VisualShaderNodeGroupBase" version="3.2">
 	<brief_description>
 	</brief_description>
 	<description>
@@ -7,12 +7,6 @@
 	<tutorials>
 	</tutorials>
 	<methods>
-		<method name="build">
-			<return type="void">
-			</return>
-			<description>
-			</description>
-		</method>
 	</methods>
 	<members>
 		<member name="editable" type="bool" setter="set_editable" getter="is_editable" override="true" default="true" />

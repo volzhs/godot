@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="@GlobalScope" category="Core" version="3.2">
+<class name="@GlobalScope" version="3.2">
 	<brief_description>
 		Global scope constants and variables.
 	</brief_description>
@@ -1454,7 +1454,7 @@
 			Default method flags.
 		</constant>
 		<constant name="TYPE_NIL" value="0" enum="Variant.Type">
-			Variable is of type [Nil] (only applied for [code]null[/code]).
+			Variable is [code]null[/code].
 		</constant>
 		<constant name="TYPE_BOOL" value="1" enum="Variant.Type">
 			Variable is of type [bool].
