@@ -47,7 +47,10 @@ void SoftBodyVisualServerHandler::prepare(RID p_mesh, int p_surface) {
 
 	mesh = p_mesh;
 	surface = p_surface;
-
+#ifndef _MSC_VER
+#warning Softbody is not working, needs to be redone considering that these functions no longer exist
+#endif
+#if 0
 	const uint32_t surface_format = VS::get_singleton()->mesh_surface_get_format(mesh, surface);
 	const int surface_vertex_len = VS::get_singleton()->mesh_surface_get_array_len(mesh, p_surface);
 	const int surface_index_len = VS::get_singleton()->mesh_surface_get_array_index_len(mesh, p_surface);
@@ -57,6 +60,7 @@ void SoftBodyVisualServerHandler::prepare(RID p_mesh, int p_surface) {
 	stride = VS::get_singleton()->mesh_surface_make_offsets_from_format(surface_format, surface_vertex_len, surface_index_len, surface_offsets);
 	offset_vertices = surface_offsets[VS::ARRAY_VERTEX];
 	offset_normal = surface_offsets[VS::ARRAY_NORMAL];
+#endif
 }
 
 void SoftBodyVisualServerHandler::clear() {
@@ -247,7 +251,7 @@ bool SoftBody::_get_property_pinned_points(int p_item, const String &p_what, Var
 }
 
 void SoftBody::_changed_callback(Object *p_changed, const char *p_prop) {
-	update_physics_server();
+	prepare_physics_server();
 	_reset_points_offsets();
 #ifdef TOOLS_ENABLED
 	if (p_changed == this) {
@@ -267,7 +271,7 @@ void SoftBody::_notification(int p_what) {
 
 			RID space = get_world()->get_space();
 			PhysicsServer::get_singleton()->soft_body_set_space(physics_rid, space);
-			update_physics_server();
+			prepare_physics_server();
 		} break;
 		case NOTIFICATION_READY: {
 			if (!parent_collision_ignore.is_empty())
@@ -289,21 +293,6 @@ void SoftBody::_notification(int p_what) {
 			set_transform(Transform());
 			set_notify_transform(true);
 
-		} break;
-		case NOTIFICATION_INTERNAL_PHYSICS_PROCESS: {
-
-			if (!simulation_started)
-				return;
-
-			_update_cache_pin_points_datas();
-			// Submit bone attachment
-			const int pinned_points_indices_size = pinned_points.size();
-			PoolVector<PinnedPoint>::Read r = pinned_points.read();
-			for (int i = 0; i < pinned_points_indices_size; ++i) {
-				if (r[i].spatial_attachment) {
-					PhysicsServer::get_singleton()->soft_body_move_point(physics_rid, r[i].point_index, r[i].spatial_attachment->get_global_transform().xform(r[i].offset));
-				}
-			}
 		} break;
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 
@@ -421,6 +410,21 @@ String SoftBody::get_configuration_warning() const {
 	return warning;
 }
 
+void SoftBody::_update_physics_server() {
+	if (!simulation_started)
+		return;
+
+	_update_cache_pin_points_datas();
+	// Submit bone attachment
+	const int pinned_points_indices_size = pinned_points.size();
+	PoolVector<PinnedPoint>::Read r = pinned_points.read();
+	for (int i = 0; i < pinned_points_indices_size; ++i) {
+		if (r[i].spatial_attachment) {
+			PhysicsServer::get_singleton()->soft_body_move_point(physics_rid, r[i].point_index, r[i].spatial_attachment->get_global_transform().xform(r[i].offset));
+		}
+	}
+}
+
 void SoftBody::_draw_soft_mesh() {
 	if (get_mesh().is_null())
 		return;
@@ -435,6 +439,8 @@ void SoftBody::_draw_soft_mesh() {
 		call_deferred("set_transform", Transform());
 	}
 
+	_update_physics_server();
+
 	visual_server_handler.open();
 	PhysicsServer::get_singleton()->soft_body_update_visual_server(physics_rid, &visual_server_handler);
 	visual_server_handler.close();
@@ -442,7 +448,7 @@ void SoftBody::_draw_soft_mesh() {
 	visual_server_handler.commit_changes();
 }
 
-void SoftBody::update_physics_server() {
+void SoftBody::prepare_physics_server() {
 
 	if (Engine::get_singleton()->is_editor_hint()) {
 
@@ -483,14 +489,15 @@ void SoftBody::become_mesh_owner() {
 		// Get current mesh array and create new mesh array with necessary flag for softbody
 		Array surface_arrays = mesh->surface_get_arrays(0);
 		Array surface_blend_arrays = mesh->surface_get_blend_shape_arrays(0);
+		Dictionary surface_lods = mesh->surface_get_lods(0);
 		uint32_t surface_format = mesh->surface_get_format(0);
 
-		surface_format &= ~(Mesh::ARRAY_COMPRESS_VERTEX | Mesh::ARRAY_COMPRESS_NORMAL);
+		surface_format &= ~(Mesh::ARRAY_COMPRESS_NORMAL);
 		surface_format |= Mesh::ARRAY_FLAG_USE_DYNAMIC_UPDATE;
 
 		Ref<ArrayMesh> soft_mesh;
 		soft_mesh.instance();
-		soft_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, surface_arrays, surface_blend_arrays, surface_format);
+		soft_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, surface_arrays, surface_blend_arrays, surface_lods, surface_format);
 		soft_mesh->surface_set_material(0, mesh->surface_get_material(0));
 
 		set_mesh(soft_mesh);
@@ -706,8 +713,6 @@ SoftBody::SoftBody() :
 		ray_pickable(true) {
 
 	PhysicsServer::get_singleton()->body_attach_object_instance_id(physics_rid, get_instance_id());
-	//set_notify_transform(true);
-	set_physics_process_internal(true);
 }
 
 SoftBody::~SoftBody() {

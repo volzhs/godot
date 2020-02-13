@@ -32,7 +32,6 @@
 
 #include "core/io/file_access_buffered_fa.h"
 #include "drivers/gles2/rasterizer_gles2.h"
-#include "drivers/gles3/rasterizer_gles3.h"
 #include "drivers/unix/dir_access_unix.h"
 #include "drivers/unix/file_access_unix.h"
 #include "main/main.h"
@@ -218,6 +217,20 @@ void OS_JavaScript::get_fullscreen_mode_list(List<VideoMode> *p_list, int p_scre
 
 	Size2 screen = get_screen_size();
 	p_list->push_back(OS::VideoMode(screen.width, screen.height, true));
+}
+
+bool OS_JavaScript::get_window_per_pixel_transparency_enabled() const {
+	if (!is_layered_allowed()) {
+		return false;
+	}
+	return transparency_enabled;
+}
+
+void OS_JavaScript::set_window_per_pixel_transparency_enabled(bool p_enabled) {
+	if (!is_layered_allowed()) {
+		return;
+	}
+	transparency_enabled = p_enabled;
 }
 
 // Keys
@@ -466,7 +479,7 @@ void OS_JavaScript::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_s
 			cursors_cache.erase(p_shape);
 		}
 
-		Ref<Texture> texture = p_cursor;
+		Ref<Texture2D> texture = p_cursor;
 		Ref<AtlasTexture> atlas_texture = p_cursor;
 		Ref<Image> image;
 		Size2 texture_size;
@@ -811,8 +824,6 @@ int OS_JavaScript::get_video_driver_count() const {
 const char *OS_JavaScript::get_video_driver_name(int p_driver) const {
 
 	switch (p_driver) {
-		case VIDEO_DRIVER_GLES3:
-			return "GLES3";
 		case VIDEO_DRIVER_GLES2:
 			return "GLES2";
 	}
@@ -886,45 +897,22 @@ Error OS_JavaScript::initialize(const VideoMode &p_desired, int p_video_driver, 
 
 	EmscriptenWebGLContextAttributes attributes;
 	emscripten_webgl_init_context_attributes(&attributes);
-	attributes.alpha = false;
+	attributes.alpha = GLOBAL_GET("display/window/per_pixel_transparency/allowed");
 	attributes.antialias = false;
 	ERR_FAIL_INDEX_V(p_video_driver, VIDEO_DRIVER_MAX, ERR_INVALID_PARAMETER);
 
-	bool gles3 = true;
-	if (p_video_driver == VIDEO_DRIVER_GLES2) {
-		gles3 = false;
+	if (p_desired.layered) {
+		set_window_per_pixel_transparency_enabled(true);
 	}
 
 	bool gl_initialization_error = false;
 
-	while (true) {
-		if (gles3) {
-			if (RasterizerGLES3::is_viable() == OK) {
-				attributes.majorVersion = 2;
-				RasterizerGLES3::register_config();
-				RasterizerGLES3::make_current();
-				break;
-			} else {
-				if (GLOBAL_GET("rendering/quality/driver/fallback_to_gles2")) {
-					p_video_driver = VIDEO_DRIVER_GLES2;
-					gles3 = false;
-					continue;
-				} else {
-					gl_initialization_error = true;
-					break;
-				}
-			}
-		} else {
-			if (RasterizerGLES2::is_viable() == OK) {
-				attributes.majorVersion = 1;
-				RasterizerGLES2::register_config();
-				RasterizerGLES2::make_current();
-				break;
-			} else {
-				gl_initialization_error = true;
-				break;
-			}
-		}
+	if (RasterizerGLES2::is_viable() == OK) {
+		attributes.majorVersion = 1;
+		RasterizerGLES2::register_config();
+		RasterizerGLES2::make_current();
+	} else {
+		gl_initialization_error = true;
 	}
 
 	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx = emscripten_webgl_create_context(GODOT_CANVAS_SELECTOR, &attributes);
@@ -933,9 +921,8 @@ Error OS_JavaScript::initialize(const VideoMode &p_desired, int p_video_driver, 
 	}
 
 	if (gl_initialization_error) {
-		OS::get_singleton()->alert("Your browser does not support any of the supported WebGL versions.\n"
-								   "Please update your browser version.",
-				"Unable to initialize Video driver");
+		OS::get_singleton()->alert("Your browser does not seem to support WebGL. Please update your browser version.",
+				"Unable to initialize video driver");
 		return ERR_UNAVAILABLE;
 	}
 
@@ -980,7 +967,7 @@ Error OS_JavaScript::initialize(const VideoMode &p_desired, int p_video_driver, 
 	EMSCRIPTEN_RESULT result;
 #define EM_CHECK(ev)                         \
 	if (result != EMSCRIPTEN_RESULT_SUCCESS) \
-	ERR_PRINTS("Error while setting " #ev " callback: Code " + itos(result))
+		ERR_PRINT("Error while setting " #ev " callback: Code " + itos(result));
 #define SET_EM_CALLBACK(target, ev, cb)                               \
 	result = emscripten_set_##ev##_callback(target, NULL, true, &cb); \
 	EM_CHECK(ev)
@@ -1315,6 +1302,7 @@ OS_JavaScript::OS_JavaScript(int p_argc, char *p_argv[]) {
 	window_maximized = false;
 	entering_fullscreen = false;
 	just_exited_fullscreen = false;
+	transparency_enabled = false;
 
 	main_loop = NULL;
 

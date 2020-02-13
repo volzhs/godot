@@ -49,7 +49,7 @@ void draw_margin_line(Control *edit_draw, Vector2 from, Vector2 to) {
 }
 
 void TextureRegionEditor::_region_draw() {
-	Ref<Texture> base_tex = NULL;
+	Ref<Texture2D> base_tex = NULL;
 	if (node_sprite)
 		base_tex = node_sprite->get_texture();
 	else if (node_sprite_3d)
@@ -134,7 +134,7 @@ void TextureRegionEditor::_region_draw() {
 		}
 	}
 
-	Ref<Texture> select_handle = get_icon("EditorHandle", "EditorIcons");
+	Ref<Texture2D> select_handle = get_icon("EditorHandle", "EditorIcons");
 
 	Rect2 scroll_rect(Point2(), base_tex->get_size());
 
@@ -546,6 +546,17 @@ void TextureRegionEditor::_region_input(const Ref<InputEvent> &p_input) {
 			edit_draw->update();
 		}
 	}
+
+	Ref<InputEventMagnifyGesture> magnify_gesture = p_input;
+	if (magnify_gesture.is_valid()) {
+		_zoom_on_position(draw_zoom * magnify_gesture->get_factor(), magnify_gesture->get_position());
+	}
+
+	Ref<InputEventPanGesture> pan_gesture = p_input;
+	if (pan_gesture.is_valid()) {
+		hscroll->set_value(hscroll->get_value() + hscroll->get_page() * pan_gesture->get_delta().x / 8);
+		vscroll->set_value(vscroll->get_value() + vscroll->get_page() * pan_gesture->get_delta().y / 8);
+	}
 }
 
 void TextureRegionEditor::_scroll_changed(float) {
@@ -661,7 +672,7 @@ void TextureRegionEditor::_update_autoslice() {
 	autoslice_is_dirty = false;
 	autoslice_cache.clear();
 
-	Ref<Texture> texture = NULL;
+	Ref<Texture2D> texture = NULL;
 	if (node_sprite)
 		texture = node_sprite->get_texture();
 	else if (node_sprite_3d)
@@ -852,7 +863,7 @@ void TextureRegionEditor::_changed_callback(Object *p_changed, const char *p_pro
 }
 
 void TextureRegionEditor::_edit_region() {
-	Ref<Texture> texture = NULL;
+	Ref<Texture2D> texture = NULL;
 	if (node_sprite)
 		texture = node_sprite->get_texture();
 	else if (node_sprite_3d)

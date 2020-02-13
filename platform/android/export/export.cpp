@@ -610,7 +610,7 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 	static Error save_apk_so(void *p_userdata, const SharedObject &p_so) {
 		if (!p_so.path.get_file().begins_with("lib")) {
 			String err = "Android .so file names must start with \"lib\", but got: " + p_so.path;
-			ERR_PRINTS(err);
+			ERR_PRINT(err);
 			return FAILED;
 		}
 		APKExportData *ed = (APKExportData *)p_userdata;
@@ -631,7 +631,7 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 		if (!exported) {
 			String abis_string = String(" ").join(abis);
 			String err = "Cannot determine ABI for library \"" + p_so.path + "\". One of the supported ABIs must be used as a tag: " + abis_string;
-			ERR_PRINTS(err);
+			ERR_PRINT(err);
 			return FAILED;
 		}
 		return OK;
@@ -642,9 +642,6 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 		String dst_path = p_path.replace_first("res://", "assets/");
 
 		store_in_apk(ed, dst_path, p_data, _should_compress_asset(p_path, p_data) ? Z_DEFLATED : 0);
-		if (ed->ep->step("File: " + p_path, 3 + p_file * 100 / p_total)) {
-			return ERR_SKIP;
-		}
 		return OK;
 	}
 
@@ -686,8 +683,6 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 
 		int orientation = p_preset->get("screen/orientation");
 
-		bool min_gles3 = ProjectSettings::get_singleton()->get("rendering/quality/driver/driver_name") == "GLES3" &&
-						 !ProjectSettings::get_singleton()->get("rendering/quality/driver/fallback_to_gles2");
 		bool screen_support_small = p_preset->get("screen/support_small");
 		bool screen_support_normal = p_preset->get("screen/support_normal");
 		bool screen_support_large = p_preset->get("screen/support_large");
@@ -840,11 +835,6 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 
 								encode_uint32(screen_support_xlarge ? 0xFFFFFFFF : 0, &p_manifest.write[iofs + 16]);
 							}
-						}
-
-						if (tname == "uses-feature" && attrname == "glEsVersion") {
-
-							encode_uint32(min_gles3 ? 0x00030000 : 0x00020000, &p_manifest.write[iofs + 16]);
 						}
 
 						// FIXME: `attr_value != 0xFFFFFFFF` below added as a stopgap measure for GH-32553,
@@ -1353,11 +1343,10 @@ public:
 		String driver = ProjectSettings::get_singleton()->get("rendering/quality/driver/driver_name");
 		if (driver == "GLES2") {
 			r_features->push_back("etc");
-		} else if (driver == "GLES3") {
+		}
+		// FIXME: Review what texture formats are used for Vulkan.
+		if (driver == "Vulkan") {
 			r_features->push_back("etc2");
-			if (ProjectSettings::get_singleton()->get("rendering/quality/driver/fallback_to_gles2")) {
-				r_features->push_back("etc");
-			}
 		}
 
 		Vector<String> abis = get_enabled_abis(p_preset);
@@ -1427,7 +1416,7 @@ public:
 		return "Android";
 	}
 
-	virtual Ref<Texture> get_logo() const {
+	virtual Ref<Texture2D> get_logo() const {
 		return logo;
 	}
 
@@ -1497,7 +1486,7 @@ public:
 		String adb = EditorSettings::get_singleton()->get("export/android/adb");
 
 		// Export_temp APK.
-		if (ep.step("Exporting APK", 0)) {
+		if (ep.step("Exporting APK...", 0)) {
 			device_lock->unlock();
 			return ERR_SKIP;
 		}
@@ -1547,7 +1536,7 @@ public:
 		}
 
 		print_line("Installing to device (please wait...): " + devices[p_device].name);
-		if (ep.step("Installing to device (please wait...)", 2)) {
+		if (ep.step("Installing to device, please wait...", 2)) {
 			CLEANUP_AND_RETURN(ERR_SKIP);
 		}
 
@@ -1614,7 +1603,7 @@ public:
 			}
 		}
 
-		if (ep.step("Running on Device...", 3)) {
+		if (ep.step("Running on device...", 3)) {
 			CLEANUP_AND_RETURN(ERR_SKIP);
 		}
 		args.clear();
@@ -1642,7 +1631,7 @@ public:
 #undef CLEANUP_AND_RETURN
 	}
 
-	virtual Ref<Texture> get_run_icon() const {
+	virtual Ref<Texture2D> get_run_icon() const {
 		return run_icon;
 	}
 
@@ -1878,7 +1867,7 @@ public:
 								new_file += "//CHUNK_" + text + "_BEGIN\n";
 
 								if (!found) {
-									ERR_PRINTS("No end marker found in build.gradle for chunk: " + text);
+									ERR_PRINT("No end marker found in build.gradle for chunk: " + text);
 									f->seek(pos);
 								} else {
 
@@ -1914,7 +1903,7 @@ public:
 								new_file += "//DIR_" + text + "_BEGIN\n";
 
 								if (!found) {
-									ERR_PRINTS("No end marker found in build.gradle for dir: " + text);
+									ERR_PRINT("No end marker found in build.gradle for dir: " + text);
 									f->seek(pos);
 								} else {
 									//add chunk lines
@@ -1973,7 +1962,7 @@ public:
 								new_file += "<!--CHUNK_" + text + "_BEGIN-->\n";
 
 								if (!found) {
-									ERR_PRINTS("No end marker found in AndroidManifest.xml for chunk: " + text);
+									ERR_PRINT("No end marker found in AndroidManifest.xml for chunk: " + text);
 									f->seek(pos);
 								} else {
 									//add chunk lines
@@ -1992,7 +1981,7 @@ public:
 							String last_tag = "android:icon=\"@mipmap/icon\"";
 							int last_tag_pos = l.find(last_tag);
 							if (last_tag_pos == -1) {
-								ERR_PRINTS("Not adding application attributes as the expected tag was not found in '<application': " + last_tag);
+								ERR_PRINT("Not adding application attributes as the expected tag was not found in '<application': " + last_tag);
 								new_file += l + "\n";
 							} else {
 								String base = l.substr(0, last_tag_pos + last_tag.length());
@@ -2119,7 +2108,7 @@ public:
 		FileAccess *src_f = NULL;
 		zlib_filefunc_def io = zipio_create_io_from_file(&src_f);
 
-		if (ep.step("Creating APK", 0)) {
+		if (ep.step("Creating APK...", 0)) {
 			return ERR_SKIP;
 		}
 
@@ -2281,7 +2270,7 @@ public:
 			ret = unzGoToNextFile(pkg);
 		}
 
-		if (ep.step("Adding Files...", 1)) {
+		if (ep.step("Adding files...", 1)) {
 			CLEANUP_AND_RETURN(ERR_SKIP);
 		}
 		Error err = OK;

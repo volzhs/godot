@@ -86,7 +86,7 @@ public:
 		ERR_FAIL_COND_MSG(req[0] != "GET" || req[2] != "HTTP/1.1", "Invalid method or HTTP version.");
 
 		String filepath = EditorSettings::get_singleton()->get_cache_dir().plus_file("tmp_js_export");
-		String basereq = "/tmp_js_export";
+		const String basereq = "/tmp_js_export";
 		String ctype = "";
 		if (req[1] == basereq + ".html") {
 			filepath += ".html";
@@ -97,8 +97,13 @@ public:
 		} else if (req[1] == basereq + ".pck") {
 			filepath += ".pck";
 			ctype = "application/octet-stream";
-		} else if (req[1] == basereq + ".png") {
-			filepath += ".png";
+		} else if (req[1] == basereq + ".png" || req[1] == "/favicon.png") {
+			// Also allow serving the generated favicon for a smoother loading experience.
+			if (req[1] == "/favicon.png") {
+				filepath = EditorSettings::get_singleton()->get_cache_dir().plus_file("favicon.png");
+			} else {
+				filepath += ".png";
+			}
 			ctype = "image/png";
 		} else if (req[1] == basereq + ".wasm") {
 			filepath += ".wasm";
@@ -207,7 +212,7 @@ public:
 
 	virtual String get_name() const;
 	virtual String get_os_name() const;
-	virtual Ref<Texture> get_logo() const;
+	virtual Ref<Texture2D> get_logo() const;
 
 	virtual bool can_export(const Ref<EditorExportPreset> &p_preset, String &r_error, bool &r_missing_templates) const;
 	virtual List<String> get_binary_extensions(const Ref<EditorExportPreset> &p_preset) const;
@@ -219,7 +224,7 @@ public:
 	virtual String get_option_tooltip(int p_index) const { return p_index ? TTR("Stop HTTP Server") : TTR("Run exported HTML in the system's default browser."); }
 	virtual Ref<ImageTexture> get_option_icon(int p_index) const;
 	virtual Error run(const Ref<EditorExportPreset> &p_preset, int p_option, int p_debug_flags);
-	virtual Ref<Texture> get_run_icon() const;
+	virtual Ref<Texture2D> get_run_icon() const;
 
 	virtual void get_platform_features(List<String> *r_features) {
 
@@ -266,11 +271,9 @@ void EditorExportPlatformJavaScript::get_preset_features(const Ref<EditorExportP
 		String driver = ProjectSettings::get_singleton()->get("rendering/quality/driver/driver_name");
 		if (driver == "GLES2") {
 			r_features->push_back("etc");
-		} else if (driver == "GLES3") {
+		} else if (driver == "Vulkan") {
+			// FIXME: Review if this is correct.
 			r_features->push_back("etc2");
-			if (ProjectSettings::get_singleton()->get("rendering/quality/driver/fallback_to_gles2")) {
-				r_features->push_back("etc");
-			}
 		}
 	}
 }
@@ -295,7 +298,7 @@ String EditorExportPlatformJavaScript::get_os_name() const {
 	return "HTML5";
 }
 
-Ref<Texture> EditorExportPlatformJavaScript::get_logo() const {
+Ref<Texture2D> EditorExportPlatformJavaScript::get_logo() const {
 
 	return logo;
 }
@@ -470,11 +473,10 @@ Error EditorExportPlatformJavaScript::export_project(const Ref<EditorExportPrese
 	}
 
 	Ref<Image> splash;
-	String splash_path = GLOBAL_GET("application/boot_splash/image");
-	splash_path = splash_path.strip_edges();
+	const String splash_path = String(GLOBAL_GET("application/boot_splash/image")).strip_edges();
 	if (!splash_path.empty()) {
 		splash.instance();
-		Error err = splash->load(splash_path);
+		const Error err = splash->load(splash_path);
 		if (err) {
 			EditorNode::get_singleton()->show_warning(TTR("Could not read boot splash image file:") + "\n" + splash_path + "\n" + TTR("Using default boot splash image."));
 			splash.unref();
@@ -483,11 +485,32 @@ Error EditorExportPlatformJavaScript::export_project(const Ref<EditorExportPrese
 	if (splash.is_null()) {
 		splash = Ref<Image>(memnew(Image(boot_splash_png)));
 	}
-	String png_path = p_path.get_base_dir().plus_file(p_path.get_file().get_basename() + ".png");
-	if (splash->save_png(png_path) != OK) {
-		EditorNode::get_singleton()->show_warning(TTR("Could not write file:") + "\n" + png_path);
+	const String splash_png_path = p_path.get_base_dir().plus_file(p_path.get_file().get_basename() + ".png");
+	if (splash->save_png(splash_png_path) != OK) {
+		EditorNode::get_singleton()->show_warning(TTR("Could not write file:") + "\n" + splash_png_path);
 		return ERR_FILE_CANT_WRITE;
 	}
+
+	// Save a favicon that can be accessed without waiting for the project to finish loading.
+	// This way, the favicon can be displayed immediately when loading the page.
+	Ref<Image> favicon;
+	const String favicon_path = String(GLOBAL_GET("application/config/icon")).strip_edges();
+	if (!favicon_path.empty()) {
+		favicon.instance();
+		const Error err = favicon->load(favicon_path);
+		if (err) {
+			favicon.unref();
+		}
+	}
+
+	if (favicon.is_valid()) {
+		const String favicon_png_path = p_path.get_base_dir().plus_file("favicon.png");
+		if (favicon->save_png(favicon_png_path) != OK) {
+			EditorNode::get_singleton()->show_warning(TTR("Could not write file:") + "\n" + favicon_png_path);
+			return ERR_FILE_CANT_WRITE;
+		}
+	}
+
 	return OK;
 }
 
@@ -536,9 +559,8 @@ Error EditorExportPlatformJavaScript::run(const Ref<EditorExportPreset> &p_prese
 		return OK;
 	}
 
-	String basepath = EditorSettings::get_singleton()->get_cache_dir().plus_file("tmp_js_export");
-	String path = basepath + ".html";
-	Error err = export_project(p_preset, true, path, p_debug_flags);
+	const String basepath = EditorSettings::get_singleton()->get_cache_dir().plus_file("tmp_js_export");
+	Error err = export_project(p_preset, true, basepath + ".html", p_debug_flags);
 	if (err != OK) {
 		// Export generates several files, clean them up on failure.
 		DirAccess::remove_file_or_error(basepath + ".html");
@@ -546,13 +568,14 @@ Error EditorExportPlatformJavaScript::run(const Ref<EditorExportPreset> &p_prese
 		DirAccess::remove_file_or_error(basepath + ".pck");
 		DirAccess::remove_file_or_error(basepath + ".png");
 		DirAccess::remove_file_or_error(basepath + ".wasm");
+		DirAccess::remove_file_or_error(EditorSettings::get_singleton()->get_cache_dir().plus_file("favicon.png"));
 		return err;
 	}
 
-	IP_Address bind_ip;
-	uint16_t bind_port = EDITOR_GET("export/web/http_port");
+	const uint16_t bind_port = EDITOR_GET("export/web/http_port");
 	// Resolve host if needed.
-	String bind_host = EDITOR_GET("export/web/http_host");
+	const String bind_host = EDITOR_GET("export/web/http_host");
+	IP_Address bind_ip;
 	if (bind_host.is_valid_ip_address()) {
 		bind_ip = bind_host;
 	} else {
@@ -573,7 +596,7 @@ Error EditorExportPlatformJavaScript::run(const Ref<EditorExportPreset> &p_prese
 	return OK;
 }
 
-Ref<Texture> EditorExportPlatformJavaScript::get_run_icon() const {
+Ref<Texture2D> EditorExportPlatformJavaScript::get_run_icon() const {
 
 	return run_icon;
 }

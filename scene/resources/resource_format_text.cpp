@@ -1281,7 +1281,7 @@ String ResourceFormatLoaderText::get_resource_type(const String &p_path) const {
 	ria->res_path = ria->local_path;
 	//ria->set_local_path( ProjectSettings::get_singleton()->localize_path(p_path) );
 	String r = ria->recognize(f);
-	return r;
+	return ClassDB::get_compatibility_remapped_class(r);
 }
 
 void ResourceFormatLoaderText::get_dependencies(const String &p_path, List<String> *p_dependencies, bool p_add_types) {
@@ -1384,7 +1384,7 @@ void ResourceFormatSaverTextInstance::_find_resources(const Variant &p_variant, 
 
 			if (!p_main && (!bundle_resources) && res->get_path().length() && res->get_path().find("::") == -1) {
 				if (res->get_path() == local_path) {
-					ERR_PRINTS("Circular reference to resource being saved found: '" + local_path + "' will be null next time it's loaded.");
+					ERR_PRINT("Circular reference to resource being saved found: '" + local_path + "' will be null next time it's loaded.");
 					return;
 				}
 				int index = external_resources.size();

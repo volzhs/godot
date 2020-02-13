@@ -358,7 +358,7 @@ void Control::_get_property_list(List<PropertyInfo> *p_list) const {
 			if (data.icon_override.has(E->get()))
 				hint |= PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_CHECKED;
 
-			p_list->push_back(PropertyInfo(Variant::OBJECT, "custom_icons/" + E->get(), PROPERTY_HINT_RESOURCE_TYPE, "Texture", hint));
+			p_list->push_back(PropertyInfo(Variant::OBJECT, "custom_icons/" + E->get(), PROPERTY_HINT_RESOURCE_TYPE, "Texture2D", hint));
 		}
 	}
 	{
@@ -461,11 +461,6 @@ void Control::_update_canvas_item_transform() {
 
 	Transform2D xform = _get_internal_transform();
 	xform[2] += get_position();
-
-	// We use a little workaround to avoid flickering when moving the pivot with _edit_set_pivot()
-	if (is_inside_tree() && Math::abs(Math::sin(data.rotation * 4.0f)) < 0.00001f && get_viewport()->is_snap_controls_to_pixels_enabled()) {
-		xform[2] = xform[2].round();
-	}
 
 	VisualServer::get_singleton()->canvas_item_set_transform(get_canvas_item(), xform);
 }
@@ -710,12 +705,12 @@ void Control::set_drag_forwarding(Control *p_target) {
 	if (p_target)
 		data.drag_owner = p_target->get_instance_id();
 	else
-		data.drag_owner = 0;
+		data.drag_owner = ObjectID();
 }
 
 Variant Control::get_drag_data(const Point2 &p_point) {
 
-	if (data.drag_owner) {
+	if (data.drag_owner.is_valid()) {
 		Object *obj = ObjectDB::get_instance(data.drag_owner);
 		if (obj) {
 			Control *c = Object::cast_to<Control>(obj);
@@ -737,7 +732,7 @@ Variant Control::get_drag_data(const Point2 &p_point) {
 
 bool Control::can_drop_data(const Point2 &p_point, const Variant &p_data) const {
 
-	if (data.drag_owner) {
+	if (data.drag_owner.is_valid()) {
 		Object *obj = ObjectDB::get_instance(data.drag_owner);
 		if (obj) {
 			Control *c = Object::cast_to<Control>(obj);
@@ -758,7 +753,7 @@ bool Control::can_drop_data(const Point2 &p_point, const Variant &p_data) const 
 }
 void Control::drop_data(const Point2 &p_point, const Variant &p_data) {
 
-	if (data.drag_owner) {
+	if (data.drag_owner.is_valid()) {
 		Object *obj = ObjectDB::get_instance(data.drag_owner);
 		if (obj) {
 			Control *c = Object::cast_to<Control>(obj);
@@ -818,11 +813,11 @@ Size2 Control::get_minimum_size() const {
 	return Size2();
 }
 
-Ref<Texture> Control::get_icon(const StringName &p_name, const StringName &p_type) const {
+Ref<Texture2D> Control::get_icon(const StringName &p_name, const StringName &p_type) const {
 
 	if (p_type == StringName() || p_type == get_class_name()) {
 
-		const Ref<Texture> *tex = data.icon_override.getptr(p_name);
+		const Ref<Texture2D> *tex = data.icon_override.getptr(p_name);
 		if (tex)
 			return *tex;
 	}
@@ -1068,7 +1063,7 @@ int Control::get_constant(const StringName &p_name, const StringName &p_type) co
 
 bool Control::has_icon_override(const StringName &p_name) const {
 
-	const Ref<Texture> *tex = data.icon_override.getptr(p_name);
+	const Ref<Texture2D> *tex = data.icon_override.getptr(p_name);
 	return tex != NULL;
 }
 
@@ -1885,7 +1880,7 @@ Rect2 Control::get_anchorable_rect() const {
 	return Rect2(Point2(), get_size());
 }
 
-void Control::add_icon_override(const StringName &p_name, const Ref<Texture> &p_icon) {
+void Control::add_icon_override(const StringName &p_name, const Ref<Texture2D> &p_icon) {
 
 	if (data.icon_override.has(p_name)) {
 		data.icon_override[p_name]->disconnect("changed", this, "_override_changed");
@@ -2229,7 +2224,7 @@ void Control::_modal_stack_remove() {
 
 	get_viewport()->_gui_remove_from_modal_stack(element, data.modal_prev_focus_owner);
 
-	data.modal_prev_focus_owner = 0;
+	data.modal_prev_focus_owner = ObjectID();
 }
 
 void Control::_propagate_theme_changed(CanvasItem *p_at, Control *p_owner, bool p_assign) {
@@ -3115,7 +3110,7 @@ Control::Control() {
 	data.rotation = 0;
 	data.parent_canvas_item = NULL;
 	data.scale = Vector2(1, 1);
-	data.drag_owner = 0;
+
 	data.modal_frame = 0;
 	data.block_minimum_size_adjust = false;
 	data.disable_visibility_clip = false;
@@ -3130,7 +3125,6 @@ Control::Control() {
 		data.margin[i] = 0;
 	}
 	data.focus_mode = FOCUS_NONE;
-	data.modal_prev_focus_owner = 0;
 }
 
 Control::~Control() {

@@ -30,6 +30,8 @@
 
 #include "node.h"
 
+#include <stdint.h>
+
 #include "core/core_string_names.h"
 #include "core/io/resource_loader.h"
 #include "core/message_queue.h"
@@ -498,22 +500,38 @@ bool Node::is_network_master() const {
 
 /***** RPC CONFIG ********/
 
-void Node::rpc_config(const StringName &p_method, MultiplayerAPI::RPCMode p_mode) {
+uint16_t Node::rpc_config(const StringName &p_method, MultiplayerAPI::RPCMode p_mode) {
 
-	if (p_mode == MultiplayerAPI::RPC_MODE_DISABLED) {
-		data.rpc_methods.erase(p_method);
+	uint16_t mid = get_node_rpc_method_id(p_method);
+	if (mid == UINT16_MAX) {
+		// It's new
+		NetData nd;
+		nd.name = p_method;
+		nd.mode = p_mode;
+		data.rpc_methods.push_back(nd);
+		return ((uint16_t)data.rpc_properties.size() - 1) | (1 << 15);
 	} else {
-		data.rpc_methods[p_method] = p_mode;
-	};
+		int c_mid = (~(1 << 15)) & mid;
+		data.rpc_methods.write[c_mid].mode = p_mode;
+		return mid;
+	}
 }
 
-void Node::rset_config(const StringName &p_property, MultiplayerAPI::RPCMode p_mode) {
+uint16_t Node::rset_config(const StringName &p_property, MultiplayerAPI::RPCMode p_mode) {
 
-	if (p_mode == MultiplayerAPI::RPC_MODE_DISABLED) {
-		data.rpc_properties.erase(p_property);
+	uint16_t pid = get_node_rset_property_id(p_property);
+	if (pid == UINT16_MAX) {
+		// It's new
+		NetData nd;
+		nd.name = p_property;
+		nd.mode = p_mode;
+		data.rpc_properties.push_back(nd);
+		return ((uint16_t)data.rpc_properties.size() - 1) | (1 << 15);
 	} else {
-		data.rpc_properties[p_property] = p_mode;
-	};
+		int c_pid = (~(1 << 15)) & pid;
+		data.rpc_properties.write[c_pid].mode = p_mode;
+		return pid;
+	}
 }
 
 /***** RPC FUNCTIONS ********/
@@ -731,12 +749,94 @@ void Node::set_custom_multiplayer(Ref<MultiplayerAPI> p_multiplayer) {
 	multiplayer = p_multiplayer;
 }
 
-const Map<StringName, MultiplayerAPI::RPCMode>::Element *Node::get_node_rpc_mode(const StringName &p_method) {
-	return data.rpc_methods.find(p_method);
+uint16_t Node::get_node_rpc_method_id(const StringName &p_method) const {
+	for (int i = 0; i < data.rpc_methods.size(); i++) {
+		if (data.rpc_methods[i].name == p_method) {
+			// Returns `i` with the high bit set to 1 so we know that this id comes
+			// from the node and not the script.
+			return i | (1 << 15);
+		}
+	}
+	return UINT16_MAX;
 }
 
-const Map<StringName, MultiplayerAPI::RPCMode>::Element *Node::get_node_rset_mode(const StringName &p_property) {
-	return data.rpc_properties.find(p_property);
+StringName Node::get_node_rpc_method(const uint16_t p_rpc_method_id) const {
+	// Make sure this is a node generated ID.
+	if (((1 << 15) & p_rpc_method_id) > 0) {
+		int mid = (~(1 << 15)) & p_rpc_method_id;
+		if (mid < data.rpc_methods.size())
+			return data.rpc_methods[mid].name;
+	}
+	return StringName();
+}
+
+MultiplayerAPI::RPCMode Node::get_node_rpc_mode_by_id(const uint16_t p_rpc_method_id) const {
+	// Make sure this is a node generated ID.
+	if (((1 << 15) & p_rpc_method_id) > 0) {
+		int mid = (~(1 << 15)) & p_rpc_method_id;
+		if (mid < data.rpc_methods.size())
+			return data.rpc_methods[mid].mode;
+	}
+	return MultiplayerAPI::RPC_MODE_DISABLED;
+}
+
+MultiplayerAPI::RPCMode Node::get_node_rpc_mode(const StringName &p_method) const {
+	return get_node_rpc_mode_by_id(get_node_rpc_method_id(p_method));
+}
+
+uint16_t Node::get_node_rset_property_id(const StringName &p_property) const {
+	for (int i = 0; i < data.rpc_properties.size(); i++) {
+		if (data.rpc_properties[i].name == p_property) {
+			// Returns `i` with the high bit set to 1 so we know that this id comes
+			// from the node and not the script.
+			return i | (1 << 15);
+		}
+	}
+	return UINT16_MAX;
+}
+
+StringName Node::get_node_rset_property(const uint16_t p_rset_property_id) const {
+	// Make sure this is a node generated ID.
+	if (((1 << 15) & p_rset_property_id) > 0) {
+		int mid = (~(1 << 15)) & p_rset_property_id;
+		if (mid < data.rpc_properties.size())
+			return data.rpc_properties[mid].name;
+	}
+	return StringName();
+}
+
+MultiplayerAPI::RPCMode Node::get_node_rset_mode_by_id(const uint16_t p_rset_property_id) const {
+	if (((1 << 15) & p_rset_property_id) > 0) {
+		int mid = (~(1 << 15)) & p_rset_property_id;
+		if (mid < data.rpc_properties.size())
+			return data.rpc_properties[mid].mode;
+	}
+	return MultiplayerAPI::RPC_MODE_DISABLED;
+}
+
+MultiplayerAPI::RPCMode Node::get_node_rset_mode(const StringName &p_property) const {
+	return get_node_rset_mode_by_id(get_node_rset_property_id(p_property));
+}
+
+String Node::get_rpc_md5() const {
+	String rpc_list;
+	for (int i = 0; i < data.rpc_methods.size(); i += 1) {
+		rpc_list += String(data.rpc_methods[i].name);
+	}
+	for (int i = 0; i < data.rpc_properties.size(); i += 1) {
+		rpc_list += String(data.rpc_properties[i].name);
+	}
+	if (get_script_instance()) {
+		Vector<ScriptNetData> rpc = get_script_instance()->get_rpc_methods();
+		for (int i = 0; i < rpc.size(); i += 1) {
+			rpc_list += String(rpc[i].name);
+		}
+		rpc = get_script_instance()->get_rset_properties();
+		for (int i = 0; i < rpc.size(); i += 1) {
+			rpc_list += String(rpc[i].name);
+		}
+	}
+	return rpc_list.md5_text();
 }
 
 bool Node::can_process_notification(int p_what) const {
@@ -1192,7 +1292,7 @@ void Node::add_child_below_node(Node *p_node, Node *p_child, bool p_legible_uniq
 	if (is_a_parent_of(p_node)) {
 		move_child(p_child, p_node->get_position_in_parent() + 1);
 	} else {
-		WARN_PRINTS("Cannot move under node " + p_node->get_name() + " as " + p_child->get_name() + " does not share a parent.");
+		WARN_PRINT("Cannot move under node " + p_node->get_name() + " as " + p_child->get_name() + " does not share a parent.");
 	}
 }
 
@@ -2897,11 +2997,6 @@ void Node::_bind_methods() {
 
 	ADD_GROUP("Pause", "pause_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "pause_mode", PROPERTY_HINT_ENUM, "Inherit,Stop,Process"), "set_pause_mode", "get_pause_mode");
-
-#ifdef ENABLE_DEPRECATED
-	//no longer exists, but remains for compatibility (keep previous scenes folded
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "editor/display_folded", PROPERTY_HINT_NONE, "", 0), "set_display_folded", "is_displayed_folded");
-#endif
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "name", PROPERTY_HINT_NONE, "", 0), "set_name", "get_name");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "filename", PROPERTY_HINT_NONE, "", 0), "set_filename", "get_filename");

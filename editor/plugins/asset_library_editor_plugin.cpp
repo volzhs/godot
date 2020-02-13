@@ -31,6 +31,8 @@
 #include "asset_library_editor_plugin.h"
 
 #include "core/io/json.h"
+#include "core/os/input.h"
+#include "core/os/keyboard.h"
 #include "core/version.h"
 #include "editor/editor_node.h"
 #include "editor/editor_scale.h"
@@ -48,7 +50,7 @@ void EditorAssetLibraryItem::configure(const String &p_title, int p_asset_id, co
 	price->set_text(p_cost);
 }
 
-void EditorAssetLibraryItem::set_image(int p_type, int p_index, const Ref<Texture> &p_image) {
+void EditorAssetLibraryItem::set_image(int p_type, int p_index, const Ref<Texture2D> &p_image) {
 
 	ERR_FAIL_COND(p_type != EditorAssetLibrary::IMAGE_QUEUE_ICON);
 	ERR_FAIL_COND(p_index != 0);
@@ -139,13 +141,11 @@ EditorAssetLibraryItem::EditorAssetLibraryItem() {
 
 	set_custom_minimum_size(Size2(250, 100) * EDSCALE);
 	set_h_size_flags(SIZE_EXPAND_FILL);
-
-	set_mouse_filter(MOUSE_FILTER_PASS);
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
-void EditorAssetLibraryItemDescription::set_image(int p_type, int p_index, const Ref<Texture> &p_image) {
+void EditorAssetLibraryItemDescription::set_image(int p_type, int p_index, const Ref<Texture2D> &p_image) {
 
 	switch (p_type) {
 
@@ -393,7 +393,7 @@ void EditorAssetLibraryItemDownload::_http_download_completed(int p_status, int 
 	set_process(false);
 }
 
-void EditorAssetLibraryItemDownload::configure(const String &p_title, int p_asset_id, const Ref<Texture> &p_preview, const String &p_download_url, const String &p_sha256_hash) {
+void EditorAssetLibraryItemDownload::configure(const String &p_title, int p_asset_id, const Ref<Texture2D> &p_preview, const String &p_download_url, const String &p_sha256_hash) {
 
 	title->set_text(p_title);
 	icon->set_texture(p_preview);
@@ -622,6 +622,21 @@ void EditorAssetLibrary::_notification(int p_what) {
 	}
 }
 
+void EditorAssetLibrary::_unhandled_input(const Ref<InputEvent> &p_event) {
+
+	const Ref<InputEventKey> key = p_event;
+
+	if (key.is_valid() && key->is_pressed()) {
+
+		if (key->get_scancode_with_modifiers() == (KEY_MASK_CMD | KEY_F) && is_visible_in_tree()) {
+
+			filter->grab_focus();
+			filter->select_all();
+			accept_event();
+		}
+	}
+}
+
 void EditorAssetLibrary::_install_asset() {
 
 	ERR_FAIL_COND(!description);
@@ -812,7 +827,7 @@ void EditorAssetLibrary::_image_request_completed(int p_status, int p_code, cons
 		_image_update(p_code == HTTPClient::RESPONSE_NOT_MODIFIED, true, p_data, p_queue_id);
 
 	} else {
-		WARN_PRINTS("Error getting image file from URL: " + image_queue[p_queue_id].image_url);
+		WARN_PRINT("Error getting image file from URL: " + image_queue[p_queue_id].image_url);
 		Object *obj = ObjectDB::get_instance(image_queue[p_queue_id].target);
 		if (obj) {
 			obj->call("set_image", image_queue[p_queue_id].image_type, image_queue[p_queue_id].image_index, get_icon("FileBrokenBigThumb", "EditorIcons"));
@@ -1322,6 +1337,7 @@ void EditorAssetLibrary::disable_community_support() {
 
 void EditorAssetLibrary::_bind_methods() {
 
+	ClassDB::bind_method("_unhandled_input", &EditorAssetLibrary::_unhandled_input);
 	ClassDB::bind_method("_http_request_completed", &EditorAssetLibrary::_http_request_completed);
 	ClassDB::bind_method("_select_asset", &EditorAssetLibrary::_select_asset);
 	ClassDB::bind_method("_select_author", &EditorAssetLibrary::_select_author);
@@ -1455,7 +1471,6 @@ EditorAssetLibrary::EditorAssetLibrary(bool p_templates_only) {
 	library_scroll->add_child(library_vb_border);
 	library_vb_border->add_style_override("panel", border2);
 	library_vb_border->set_h_size_flags(SIZE_EXPAND_FILL);
-	library_vb_border->set_mouse_filter(MOUSE_FILTER_PASS);
 
 	library_vb = memnew(VBoxContainer);
 	library_vb->set_h_size_flags(SIZE_EXPAND_FILL);
@@ -1505,6 +1520,7 @@ EditorAssetLibrary::EditorAssetLibrary(bool p_templates_only) {
 	description = NULL;
 
 	set_process(true);
+	set_process_unhandled_input(true);
 
 	downloads_scroll = memnew(ScrollContainer);
 	downloads_scroll->set_enable_h_scroll(true);

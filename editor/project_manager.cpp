@@ -107,9 +107,9 @@ private:
 	void set_message(const String &p_msg, MessageType p_type = MESSAGE_SUCCESS, InputType input_type = PROJECT_PATH) {
 
 		msg->set_text(p_msg);
-		Ref<Texture> current_path_icon = status_rect->get_texture();
-		Ref<Texture> current_install_icon = install_status_rect->get_texture();
-		Ref<Texture> new_icon;
+		Ref<Texture2D> current_path_icon = status_rect->get_texture();
+		Ref<Texture2D> current_install_icon = install_status_rect->get_texture();
+		Ref<Texture2D> new_icon;
 
 		switch (p_type) {
 
@@ -163,7 +163,7 @@ private:
 		}
 
 		if (valid_path == "") {
-			set_message(TTR("The path does not exist."), MESSAGE_ERROR);
+			set_message(TTR("The path specified doesn't exist."), MESSAGE_ERROR);
 			memdelete(d);
 			get_ok()->set_disabled(true);
 			return "";
@@ -177,7 +177,7 @@ private:
 			}
 
 			if (valid_install_path == "") {
-				set_message(TTR("The path does not exist."), MESSAGE_ERROR, INSTALL_PATH);
+				set_message(TTR("The path specified doesn't exist."), MESSAGE_ERROR, INSTALL_PATH);
 				memdelete(d);
 				get_ok()->set_disabled(true);
 				return "";
@@ -195,7 +195,7 @@ private:
 					unzFile pkg = unzOpen2(valid_path.utf8().get_data(), &io);
 					if (!pkg) {
 
-						set_message(TTR("Error opening package file, not in ZIP format."), MESSAGE_ERROR);
+						set_message(TTR("Error opening package file (it's not in ZIP format)."), MESSAGE_ERROR);
 						memdelete(d);
 						get_ok()->set_disabled(true);
 						unzClose(pkg);
@@ -216,7 +216,7 @@ private:
 					}
 
 					if (ret == UNZ_END_OF_LIST_OF_FILE) {
-						set_message(TTR("Invalid '.zip' project file, does not contain a 'project.godot' file."), MESSAGE_ERROR);
+						set_message(TTR("Invalid \".zip\" project file; it doesn't contain a \"project.godot\" file."), MESSAGE_ERROR);
 						memdelete(d);
 						get_ok()->set_disabled(true);
 						unzClose(pkg);
@@ -230,7 +230,11 @@ private:
 					bool is_empty = true;
 					String n = d->get_next();
 					while (n != String()) {
-						if (n != "." && n != "..") {
+						if (!n.begins_with(".")) {
+							// Allow `.`, `..` (reserved current/parent folder names)
+							// and hidden files/folders to be present.
+							// For instance, this lets users initialize a Git repository
+							// and still be able to create a project in the directory afterwards.
 							is_empty = false;
 							break;
 						}
@@ -247,7 +251,7 @@ private:
 					}
 
 				} else {
-					set_message(TTR("Please choose a 'project.godot' or '.zip' file."), MESSAGE_ERROR);
+					set_message(TTR("Please choose a \"project.godot\" or \".zip\" file."), MESSAGE_ERROR);
 					memdelete(d);
 					install_path_container->hide();
 					get_ok()->set_disabled(true);
@@ -256,7 +260,7 @@ private:
 
 			} else if (valid_path.ends_with("zip")) {
 
-				set_message(TTR("Directory already contains a Godot project."), MESSAGE_ERROR, INSTALL_PATH);
+				set_message(TTR("This directory already contains a Godot project."), MESSAGE_ERROR, INSTALL_PATH);
 				memdelete(d);
 				get_ok()->set_disabled(true);
 				return "";
@@ -269,7 +273,11 @@ private:
 			bool is_empty = true;
 			String n = d->get_next();
 			while (n != String()) {
-				if (n != "." && n != "..") { // i don't know if this is enough to guarantee an empty dir
+				if (!n.begins_with(".")) {
+					// Allow `.`, `..` (reserved current/parent folder names)
+					// and hidden files/folders to be present.
+					// For instance, this lets users initialize a Git repository
+					// and still be able to create a project in the directory afterwards.
 					is_empty = false;
 					break;
 				}
@@ -332,7 +340,7 @@ private:
 				install_path_container->show();
 				get_ok()->set_disabled(false);
 			} else {
-				set_message(TTR("Please choose a 'project.godot' or '.zip' file."), MESSAGE_ERROR);
+				set_message(TTR("Please choose a \"project.godot\" or \".zip\" file."), MESSAGE_ERROR);
 				get_ok()->set_disabled(true);
 				return;
 			}
@@ -476,8 +484,8 @@ private:
 				if (mode == MODE_NEW) {
 
 					ProjectSettings::CustomMap initial_settings;
-					if (rasterizer_button_group->get_pressed_button()->get_meta("driver_name") == "GLES3") {
-						initial_settings["rendering/quality/driver/driver_name"] = "GLES3";
+					if (rasterizer_button_group->get_pressed_button()->get_meta("driver_name") == "Vulkan") {
+						initial_settings["rendering/quality/driver/driver_name"] = "Vulkan";
 					} else {
 						initial_settings["rendering/quality/driver/driver_name"] = "GLES2";
 						initial_settings["rendering/vram_compression/import_etc2"] = false;
@@ -872,31 +880,46 @@ public:
 		rshb->add_child(rvb);
 		Button *rs_button = memnew(CheckBox);
 		rs_button->set_button_group(rasterizer_button_group);
-		rs_button->set_text(TTR("OpenGL ES 3.0"));
-		rs_button->set_meta("driver_name", "GLES3");
+		rs_button->set_text(TTR("Vulkan"));
+		rs_button->set_meta("driver_name", "Vulkan");
 		rs_button->set_pressed(true);
 		rvb->add_child(rs_button);
 		l = memnew(Label);
-		l->set_text(TTR("Higher visual quality\nAll features available\nIncompatible with older hardware\nNot recommended for web games"));
+		l->set_text(TTR("- Higher visual quality\n- More accurate API, which produces very fast code\n- Some features not implemented yet — work in progress\n- Incompatible with older hardware\n- Not recommended for web and mobile games"));
+		l->set_modulate(Color(1, 1, 1, 0.7));
 		rvb->add_child(l);
 
 		rshb->add_child(memnew(VSeparator));
+
+		const String gles2_unsupported_tooltip =
+				TTR("The GLES2 renderer is currently unavailable, as it needs to be reworked for Godot 4.0.\nUse Godot 3.2 if you need GLES2 support.");
 
 		rvb = memnew(VBoxContainer);
 		rvb->set_h_size_flags(SIZE_EXPAND_FILL);
 		rshb->add_child(rvb);
 		rs_button = memnew(CheckBox);
 		rs_button->set_button_group(rasterizer_button_group);
-		rs_button->set_text(TTR("OpenGL ES 2.0"));
+		rs_button->set_text(TTR("OpenGL ES 2.0 (currently unavailable)"));
 		rs_button->set_meta("driver_name", "GLES2");
+		rs_button->set_disabled(true);
+		rs_button->set_tooltip(gles2_unsupported_tooltip);
 		rvb->add_child(rs_button);
 		l = memnew(Label);
-		l->set_text(TTR("Lower visual quality\nSome features not available\nWorks on most hardware\nRecommended for web games"));
+		l->set_text(TTR("- Lower visual quality\n- Some features not available\n- Works on most hardware\n- Recommended for web and mobile games"));
+		l->set_modulate(Color(1, 1, 1, 0.7));
+		// Also set the tooltip on the label so it appears when hovering either the checkbox or label.
+		l->set_tooltip(gles2_unsupported_tooltip);
+		// Required for the tooltip to show.
+		l->set_mouse_filter(MOUSE_FILTER_STOP);
 		rvb->add_child(l);
 
 		l = memnew(Label);
-		l->set_text(TTR("Renderer can be changed later, but scenes may need to be adjusted."));
+		l->set_text(TTR("The renderer can be changed later, but scenes may need to be adjusted."));
+		// Add some extra spacing to separate it from the list above and the buttons below.
+		l->set_custom_minimum_size(Size2(0, 40) * EDSCALE);
 		l->set_align(Label::ALIGN_CENTER);
+		l->set_valign(Label::VALIGN_CENTER);
+		l->set_modulate(Color(1, 1, 1, 0.7));
 		rasterizer_container->add_child(l);
 
 		fdialog = memnew(FileDialog);
@@ -978,7 +1001,7 @@ public:
 		String path;
 		String icon;
 		String main_scene;
-		uint64_t last_modified;
+		uint64_t last_edited;
 		bool favorite;
 		bool grayed;
 		bool missing;
@@ -994,7 +1017,7 @@ public:
 				const String &p_path,
 				const String &p_icon,
 				const String &p_main_scene,
-				uint64_t p_last_modified,
+				uint64_t p_last_edited,
 				bool p_favorite,
 				bool p_grayed,
 				bool p_missing,
@@ -1006,7 +1029,7 @@ public:
 			path = p_path;
 			icon = p_icon;
 			main_scene = p_main_scene;
-			last_modified = p_last_modified;
+			last_edited = p_last_edited;
 			favorite = p_favorite;
 			grayed = p_grayed;
 			missing = p_missing;
@@ -1029,6 +1052,7 @@ public:
 	void sort_projects();
 	int get_project_count() const;
 	void select_project(int p_index);
+	void select_first_visible_project();
 	void erase_selected_projects();
 	Vector<Item> get_selected_projects() const;
 	const Set<String> &get_selected_project_keys() const;
@@ -1080,8 +1104,8 @@ struct ProjectListComparator {
 		switch (order_option) {
 			case ProjectListFilter::FILTER_PATH:
 				return a.project_key < b.project_key;
-			case ProjectListFilter::FILTER_MODIFIED:
-				return a.last_modified > b.last_modified;
+			case ProjectListFilter::FILTER_EDIT_DATE:
+				return a.last_edited > b.last_edited;
 			default:
 				return a.project_name < b.project_name;
 		}
@@ -1089,7 +1113,7 @@ struct ProjectListComparator {
 };
 
 ProjectList::ProjectList() {
-	_order_option = ProjectListFilter::FILTER_MODIFIED;
+	_order_option = ProjectListFilter::FILTER_EDIT_DATE;
 
 	_scroll_children = memnew(VBoxContainer);
 	_scroll_children->set_h_size_flags(SIZE_EXPAND_FILL);
@@ -1126,8 +1150,8 @@ void ProjectList::_notification(int p_what) {
 void ProjectList::load_project_icon(int p_index) {
 	Item &item = _projects.write[p_index];
 
-	Ref<Texture> default_icon = get_icon("DefaultProjectIcon", "EditorIcons");
-	Ref<Texture> icon;
+	Ref<Texture2D> default_icon = get_icon("DefaultProjectIcon", "EditorIcons");
+	Ref<Texture2D> icon;
 	if (item.icon != "") {
 		Ref<Image> img;
 		img.instance();
@@ -1176,15 +1200,18 @@ void ProjectList::load_project_data(const String &p_property_key, Item &p_item, 
 	String icon = cf->get_value("application", "config/icon", "");
 	String main_scene = cf->get_value("application", "run/main_scene", "");
 
-	uint64_t last_modified = 0;
+	uint64_t last_edited = 0;
 	if (FileAccess::exists(conf)) {
-		last_modified = FileAccess::get_modified_time(conf);
+		// The modification date marks the date the project was last edited.
+		// This is because the `project.godot` file will always be modified
+		// when editing a project (but not when running it).
+		last_edited = FileAccess::get_modified_time(conf);
 
 		String fscache = path.plus_file(".fscache");
 		if (FileAccess::exists(fscache)) {
 			uint64_t cache_modified = FileAccess::get_modified_time(fscache);
-			if (cache_modified > last_modified)
-				last_modified = cache_modified;
+			if (cache_modified > last_edited)
+				last_edited = cache_modified;
 		}
 	} else {
 		grayed = true;
@@ -1194,7 +1221,7 @@ void ProjectList::load_project_data(const String &p_property_key, Item &p_item, 
 
 	String project_key = p_property_key.get_slice("/", 1);
 
-	p_item = Item(project_key, project_name, description, path, icon, main_scene, last_modified, p_favorite, grayed, missing, config_version);
+	p_item = Item(project_key, project_name, description, path, icon, main_scene, last_edited, p_favorite, grayed, missing, config_version);
 }
 
 void ProjectList::load_projects() {
@@ -1289,7 +1316,7 @@ void ProjectList::create_project_item_control(int p_index) {
 	Item &item = _projects.write[p_index];
 	ERR_FAIL_COND(item.control != NULL); // Already created
 
-	Ref<Texture> favorite_icon = get_icon("Favorites", "EditorIcons");
+	Ref<Texture2D> favorite_icon = get_icon("Favorites", "EditorIcons");
 	Color font_color = get_color("font_color", "Tree");
 
 	ProjectListItemControl *hb = memnew(ProjectListItemControl);
@@ -1316,6 +1343,7 @@ void ProjectList::create_project_item_control(int p_index) {
 	// The project icon may not be loaded by the time the control is displayed,
 	// so use a loading placeholder.
 	tf->set_texture(get_icon("ProjectIconLoading", "EditorIcons"));
+	tf->set_v_size_flags(SIZE_SHRINK_CENTER);
 	if (item.missing) {
 		tf->set_modulate(Color(1, 1, 1, 0.5));
 	}
@@ -1618,6 +1646,23 @@ void ProjectList::select_project(int p_index) {
 	}
 
 	toggle_select(p_index);
+}
+
+void ProjectList::select_first_visible_project() {
+	bool found = false;
+
+	for (int i = 0; i < _projects.size(); i++) {
+		if (_projects[i].control->is_visible()) {
+			select_project(i);
+			found = true;
+			break;
+		}
+	}
+
+	if (!found) {
+		// Deselect all projects if there are no visible projects in the list.
+		_selected_project_keys.clear();
+	}
 }
 
 inline void sort(int &a, int &b) {
@@ -2338,6 +2383,12 @@ void ProjectManager::_on_order_option_changed() {
 void ProjectManager::_on_filter_option_changed() {
 	_project_list->set_search_term(project_filter->get_search_term());
 	_project_list->sort_projects();
+
+	// Select the first visible project in the list.
+	// This makes it possible to open a project without ever touching the mouse,
+	// as the search field is automatically focused on startup.
+	_project_list->select_first_visible_project();
+	_update_project_buttons();
 }
 
 void ProjectManager::_bind_methods() {
@@ -2467,7 +2518,7 @@ ProjectManager::ProjectManager() {
 	Vector<String> sort_filter_titles;
 	sort_filter_titles.push_back(TTR("Name"));
 	sort_filter_titles.push_back(TTR("Path"));
-	sort_filter_titles.push_back(TTR("Last Modified"));
+	sort_filter_titles.push_back(TTR("Last Edited"));
 	project_order_filter = memnew(ProjectListFilter);
 	project_order_filter->add_filter_option();
 	project_order_filter->_setup_filters(sort_filter_titles);

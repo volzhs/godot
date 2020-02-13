@@ -639,7 +639,7 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 
 				MAKE_PROPSELECT
 
-				Object *instance = ObjectDB::get_instance(hint_text.to_int64());
+				Object *instance = ObjectDB::get_instance(ObjectID(hint_text.to_int64()));
 				if (instance)
 					property_select->select_method_from_instance(instance, v);
 				updating = false;
@@ -648,7 +648,7 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 			} else if (hint == PROPERTY_HINT_METHOD_OF_SCRIPT) {
 				MAKE_PROPSELECT
 
-				Object *obj = ObjectDB::get_instance(hint_text.to_int64());
+				Object *obj = ObjectDB::get_instance(ObjectID(hint_text.to_int64()));
 				if (Object::cast_to<Script>(obj)) {
 					property_select->select_method_from_script(Object::cast_to<Script>(obj), v);
 				}
@@ -688,7 +688,7 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 
 				MAKE_PROPSELECT
 
-				Object *instance = ObjectDB::get_instance(hint_text.to_int64());
+				Object *instance = ObjectDB::get_instance(ObjectID(hint_text.to_int64()));
 				if (instance)
 					property_select->select_property_from_instance(instance, v);
 
@@ -698,7 +698,7 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 			} else if (hint == PROPERTY_HINT_PROPERTY_OF_SCRIPT) {
 				MAKE_PROPSELECT
 
-				Object *obj = ObjectDB::get_instance(hint_text.to_int64());
+				Object *obj = ObjectDB::get_instance(ObjectID(hint_text.to_int64()));
 				if (Object::cast_to<Script>(obj)) {
 					property_select->select_property_from_script(Object::cast_to<Script>(obj), v);
 				}
@@ -935,7 +935,7 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 						const String &t = j->get();
 
 						bool is_custom_resource = false;
-						Ref<Texture> icon;
+						Ref<Texture2D> icon;
 						if (!custom_resources.empty()) {
 							for (int k = 0; k < custom_resources.size(); k++) {
 								if (custom_resources[k].name == t) {
@@ -1023,7 +1023,7 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 				}
 				for (int i = 0; i < conversions.size(); i++) {
 					String what = conversions[i]->converts_to();
-					Ref<Texture> icon;
+					Ref<Texture2D> icon;
 					if (has_icon(what, "EditorIcons")) {
 
 						icon = get_icon(what, "EditorIcons");

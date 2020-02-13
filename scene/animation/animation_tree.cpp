@@ -49,7 +49,7 @@ void AnimationNode::get_parameter_list(List<PropertyInfo> *r_list) const {
 
 Variant AnimationNode::get_parameter_default_value(const StringName &p_parameter) const {
 	if (get_script_instance()) {
-		return get_script_instance()->call("get_parameter_default_value");
+		return get_script_instance()->call("get_parameter_default_value", p_parameter);
 	}
 	return Variant();
 }
@@ -397,7 +397,7 @@ void AnimationNode::_validate_property(PropertyInfo &property) const {
 
 Ref<AnimationNode> AnimationNode::get_child_by_name(const StringName &p_name) {
 	if (get_script_instance()) {
-		return get_script_instance()->call("get_child_by_name");
+		return get_script_instance()->call("get_child_by_name", p_name);
 	}
 	return Ref<AnimationNode>();
 }
@@ -578,7 +578,7 @@ bool AnimationTree::_update_caches(AnimationPlayer *player) {
 				Node *child = parent->get_node_and_resource(path, resource, leftover_path);
 
 				if (!child) {
-					ERR_PRINTS("AnimationTree: '" + String(E->get()) + "', couldn't resolve track:  '" + String(path) + "'");
+					ERR_PRINT("AnimationTree: '" + String(E->get()) + "', couldn't resolve track:  '" + String(path) + "'");
 					continue;
 				}
 
@@ -608,7 +608,7 @@ bool AnimationTree::_update_caches(AnimationPlayer *player) {
 						Spatial *spatial = Object::cast_to<Spatial>(child);
 
 						if (!spatial) {
-							ERR_PRINTS("AnimationTree: '" + String(E->get()) + "', transform track does not point to spatial:  '" + String(path) + "'");
+							ERR_PRINT("AnimationTree: '" + String(E->get()) + "', transform track does not point to spatial:  '" + String(path) + "'");
 							continue;
 						}
 
@@ -767,7 +767,7 @@ void AnimationTree::_process_graph(float p_delta) {
 
 	AnimationPlayer *player = Object::cast_to<AnimationPlayer>(get_node(animation_player));
 
-	ObjectID current_animation_player = 0;
+	ObjectID current_animation_player;
 
 	if (player) {
 		current_animation_player = player->get_instance_id();
@@ -775,7 +775,7 @@ void AnimationTree::_process_graph(float p_delta) {
 
 	if (last_animation_player != current_animation_player) {
 
-		if (last_animation_player) {
+		if (last_animation_player.is_valid()) {
 			Object *old_player = ObjectDB::get_instance(last_animation_player);
 			if (old_player) {
 				old_player->disconnect("caches_cleared", this, "_clear_caches");
@@ -1296,7 +1296,7 @@ void AnimationTree::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_EXIT_TREE) {
 		_clear_caches();
-		if (last_animation_player) {
+		if (last_animation_player.is_valid()) {
 
 			Object *player = ObjectDB::get_instance(last_animation_player);
 			if (player) {
@@ -1304,7 +1304,7 @@ void AnimationTree::_notification(int p_what) {
 			}
 		}
 	} else if (p_what == NOTIFICATION_ENTER_TREE) {
-		if (last_animation_player) {
+		if (last_animation_player.is_valid()) {
 
 			Object *player = ObjectDB::get_instance(last_animation_player);
 			if (player) {
@@ -1584,7 +1584,6 @@ AnimationTree::AnimationTree() {
 	process_pass = 1;
 	started = true;
 	properties_dirty = true;
-	last_animation_player = 0;
 }
 
 AnimationTree::~AnimationTree() {

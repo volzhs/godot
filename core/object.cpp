@@ -1225,7 +1225,7 @@ Error Object::emit_signal(const StringName &p_name, const Variant **p_args, int 
 				if (ce.error == Variant::CallError::CALL_ERROR_INVALID_METHOD && !ClassDB::class_exists(target->get_class_name())) {
 					//most likely object is not initialized yet, do not throw error.
 				} else {
-					ERR_PRINTS("Error calling method from signal '" + String(p_name) + "': " + Variant::get_call_error_text(target, c.method, args, argc, ce) + ".");
+					ERR_PRINT("Error calling method from signal '" + String(p_name) + "': " + Variant::get_call_error_text(target, c.method, args, argc, ce) + ".");
 					err = ERR_METHOD_NOT_FOUND;
 				}
 			}
@@ -1916,7 +1916,6 @@ Object::Object() {
 	_class_ptr = NULL;
 	_block_signals = false;
 	_predelete_ok = 0;
-	_instance_id = 0;
 	_instance_id = ObjectDB::add_instance(this);
 	_can_translate = true;
 	_is_queued_for_deletion = false;
@@ -1945,7 +1944,7 @@ Object::~Object() {
 
 	if (_emitting) {
 		//@todo this may need to actually reach the debugger prioritarily somehow because it may crash before
-		ERR_PRINTS("Object " + to_string() + " was freed or unreferenced while a signal is being emitted from it. Try connecting to the signal using 'CONNECT_DEFERRED' flag, or use queue_free() to free the object (if this object is a Node) to avoid this error and potential crashes.");
+		ERR_PRINT("Object " + to_string() + " was freed or unreferenced while a signal is being emitted from it. Try connecting to the signal using 'CONNECT_DEFERRED' flag, or use queue_free() to free the object (if this object is a Node) to avoid this error and potential crashes.");
 	}
 
 	while ((S = signal_map.next(NULL))) {
@@ -1972,7 +1971,7 @@ Object::~Object() {
 	}
 
 	ObjectDB::remove_instance(this);
-	_instance_id = 0;
+	_instance_id = ObjectID();
 	_predelete_ok = 2;
 
 	if (!ScriptServer::are_languages_finished()) {
@@ -1995,14 +1994,14 @@ void postinitialize_handler(Object *p_object) {
 }
 
 HashMap<ObjectID, Object *> ObjectDB::instances;
-ObjectID ObjectDB::instance_counter = 1;
+uint64_t ObjectDB::instance_counter = 1;
 HashMap<Object *, ObjectID, ObjectDB::ObjectPtrHash> ObjectDB::instance_checks;
 ObjectID ObjectDB::add_instance(Object *p_object) {
 
-	ERR_FAIL_COND_V(p_object->get_instance_id() != 0, 0);
+	ERR_FAIL_COND_V(p_object->get_instance_id().is_valid(), ObjectID());
 
 	rw_lock->write_lock();
-	ObjectID instance_id = ++instance_counter;
+	ObjectID instance_id = ObjectID(++instance_counter);
 	instances[instance_id] = p_object;
 	instance_checks[p_object] = instance_id;
 

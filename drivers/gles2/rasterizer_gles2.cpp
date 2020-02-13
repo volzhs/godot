@@ -130,7 +130,7 @@ static void GLAPIENTRY _gl_debug_print(GLenum source, GLenum type, GLuint id, GL
 
 	String output = String() + "GL ERROR: Source: " + debSource + "\tType: " + debType + "\tID: " + itos(id) + "\tSeverity: " + debSev + "\tMessage: " + message;
 
-	ERR_PRINTS(output);
+	ERR_PRINT(output);
 }
 #endif // CAN_DEBUG
 
@@ -384,7 +384,7 @@ void RasterizerGLES2::set_boot_image(const Ref<Image> &p_image, const Color &p_c
 		screenrect.position += ((Size2(window_w, window_h) - screenrect.size) / 2.0).floor();
 	}
 
-	RasterizerStorageGLES2::Texture *t = storage->texture_owner.get(texture);
+	RasterizerStorageGLES2::Texture *t = storage->texture_owner.getornull(texture);
 	glActiveTexture(GL_TEXTURE0 + storage->config.max_texture_image_units - 1);
 	glBindTexture(GL_TEXTURE_2D, t->tex_id);
 	canvas->draw_generic_textured_rect(screenrect, Rect2(0, 0, 1, 1));

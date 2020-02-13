@@ -39,13 +39,11 @@
 #include "pluginscript_script.h"
 
 bool PluginScriptInstance::set(const StringName &p_name, const Variant &p_value) {
-	String name = String(p_name);
-	return _desc->set_prop(_data, (const godot_string *)&name, (const godot_variant *)&p_value);
+	return _desc->set_prop(_data, (const godot_string_name *)&p_name, (const godot_variant *)&p_value);
 }
 
 bool PluginScriptInstance::get(const StringName &p_name, Variant &r_ret) const {
-	String name = String(p_name);
-	return _desc->get_prop(_data, (const godot_string *)&name, (godot_variant *)&r_ret);
+	return _desc->get_prop(_data, (const godot_string_name *)&p_name, (godot_variant *)&r_ret);
 }
 
 Ref<Script> PluginScriptInstance::get_script() const {
@@ -95,8 +93,40 @@ void PluginScriptInstance::notification(int p_notification) {
 	_desc->notification(_data, p_notification);
 }
 
+Vector<ScriptNetData> PluginScriptInstance::get_rpc_methods() const {
+	return _script->get_rpc_methods();
+}
+
+uint16_t PluginScriptInstance::get_rpc_method_id(const StringName &p_variable) const {
+	return _script->get_rpc_method_id(p_variable);
+}
+
+StringName PluginScriptInstance::get_rpc_method(uint16_t p_id) const {
+	return _script->get_rpc_method(p_id);
+}
+
+MultiplayerAPI::RPCMode PluginScriptInstance::get_rpc_mode_by_id(uint16_t p_id) const {
+	return _script->get_rpc_mode_by_id(p_id);
+}
+
 MultiplayerAPI::RPCMode PluginScriptInstance::get_rpc_mode(const StringName &p_method) const {
 	return _script->get_rpc_mode(p_method);
+}
+
+Vector<ScriptNetData> PluginScriptInstance::get_rset_properties() const {
+	return _script->get_rset_properties();
+}
+
+uint16_t PluginScriptInstance::get_rset_property_id(const StringName &p_variable) const {
+	return _script->get_rset_property_id(p_variable);
+}
+
+StringName PluginScriptInstance::get_rset_property(uint16_t p_id) const {
+	return _script->get_rset_property(p_id);
+}
+
+MultiplayerAPI::RPCMode PluginScriptInstance::get_rset_mode_by_id(uint16_t p_id) const {
+	return _script->get_rset_mode_by_id(p_id);
 }
 
 MultiplayerAPI::RPCMode PluginScriptInstance::get_rset_mode(const StringName &p_variable) const {

@@ -55,9 +55,6 @@ public:
 	PoolVector<String> get_recognized_extensions_for_type(const String &p_type);
 	void set_abort_on_missing_resources(bool p_abort);
 	PoolStringArray get_dependencies(const String &p_path);
-#ifndef DISABLE_DEPRECATED
-	bool has(const String &p_path);
-#endif // DISABLE_DEPRECATED
 	bool has_cached(const String &p_path);
 	bool exists(const String &p_path, const String &p_type_hint = "");
 
@@ -104,8 +101,8 @@ protected:
 
 public:
 	enum VideoDriver {
-		VIDEO_DRIVER_GLES3,
 		VIDEO_DRIVER_GLES2,
+		VIDEO_DRIVER_VULKAN,
 	};
 
 	enum PowerState {
@@ -642,7 +639,7 @@ public:
 class _Semaphore : public Reference {
 
 	GDCLASS(_Semaphore, Reference);
-	Semaphore *semaphore;
+	SemaphoreOld *semaphore;
 
 	static void _bind_methods();
 

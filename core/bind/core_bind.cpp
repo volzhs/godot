@@ -108,13 +108,6 @@ PoolStringArray _ResourceLoader::get_dependencies(const String &p_path) {
 	return ret;
 };
 
-#ifndef DISABLE_DEPRECATED
-bool _ResourceLoader::has(const String &p_path) {
-	WARN_PRINTS("ResourceLoader.has() is deprecated, please replace it with the equivalent has_cached() or the new exists().");
-	return has_cached(p_path);
-}
-#endif // DISABLE_DEPRECATED
-
 bool _ResourceLoader::has_cached(const String &p_path) {
 
 	String local_path = ProjectSettings::get_singleton()->localize_path(p_path);
@@ -134,9 +127,6 @@ void _ResourceLoader::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_dependencies", "path"), &_ResourceLoader::get_dependencies);
 	ClassDB::bind_method(D_METHOD("has_cached", "path"), &_ResourceLoader::has_cached);
 	ClassDB::bind_method(D_METHOD("exists", "path", "type_hint"), &_ResourceLoader::exists, DEFVAL(""));
-#ifndef DISABLE_DEPRECATED
-	ClassDB::bind_method(D_METHOD("has", "path"), &_ResourceLoader::has);
-#endif // DISABLE_DEPRECATED
 }
 
 _ResourceLoader::_ResourceLoader() {
@@ -1410,7 +1400,7 @@ void _OS::_bind_methods() {
 	ADD_PROPERTY_DEFAULT("window_size", Vector2());
 
 	BIND_ENUM_CONSTANT(VIDEO_DRIVER_GLES2);
-	BIND_ENUM_CONSTANT(VIDEO_DRIVER_GLES3);
+	BIND_ENUM_CONSTANT(VIDEO_DRIVER_VULKAN);
 
 	BIND_ENUM_CONSTANT(DAY_SUNDAY);
 	BIND_ENUM_CONSTANT(DAY_MONDAY);
@@ -2612,7 +2602,7 @@ void _Semaphore::_bind_methods() {
 
 _Semaphore::_Semaphore() {
 
-	semaphore = Semaphore::create();
+	semaphore = SemaphoreOld::create();
 }
 
 _Semaphore::~_Semaphore() {
@@ -3217,7 +3207,7 @@ Ref<JSONParseResult> _JSON::parse(const String &p_json) {
 	result->error = JSON::parse(p_json, result->result, result->error_string, result->error_line);
 
 	if (result->error != OK) {
-		ERR_PRINTS(vformat("Error parsing JSON at line %s: %s", result->error_line, result->error_string));
+		ERR_PRINT(vformat("Error parsing JSON at line %s: %s", result->error_line, result->error_string));
 	}
 	return result;
 }

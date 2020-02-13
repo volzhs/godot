@@ -46,6 +46,15 @@
 #include "servers/visual/visual_server_wrap_mt.h"
 #include "servers/visual_server.h"
 
+#if defined(OPENGL_ENABLED)
+#include "context_gl_osx.h"
+#endif
+
+#if defined(VULKAN_ENABLED)
+#include "drivers/vulkan/rendering_device_vulkan.h"
+#include "platform/osx/vulkan_context_osx.h"
+#endif
+
 #include <AppKit/AppKit.h>
 #include <AppKit/NSCursor.h>
 #include <ApplicationServices/ApplicationServices.h>
@@ -69,8 +78,6 @@ public:
 	int key_event_pos;
 
 	bool force_quit;
-	//  rasterizer seems to no longer be given to visual server, its using GLES3 directly?
-	//Rasterizer *rasterizer;
 	VisualServer *visual_server;
 
 	List<String> args;
@@ -93,7 +100,6 @@ public:
 	void process_events();
 	void process_key_events();
 
-	void *framework;
 	//          pthread_key_t   current;
 	bool mouse_grab;
 	Point2 mouse_pos;
@@ -104,8 +110,15 @@ public:
 	id window_view;
 	id autoreleasePool;
 	id cursor;
-	NSOpenGLPixelFormat *pixelFormat;
-	NSOpenGLContext *context;
+
+#if defined(OPENGL_ENABLED)
+	ContextGL_OSX *context_gles2;
+#endif
+
+#if defined(VULKAN_ENABLED)
+	VulkanContextOSX *context_vulkan;
+	RenderingDeviceVulkan *rendering_device_vulkan;
+#endif
 
 	bool layered_window;
 

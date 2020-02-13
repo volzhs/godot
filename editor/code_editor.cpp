@@ -277,7 +277,8 @@ void FindReplaceBar::_replace_all() {
 	}
 
 	text_edit->set_v_scroll(vsval);
-	set_error(vformat(TTR("Replaced %d occurrence(s)."), rc));
+	matches_label->add_color_override("font_color", rc > 0 ? get_color("font_color", "Label") : get_color("error_color", "Editor"));
+	matches_label->set_text(vformat(TTR("%d replaced."), rc));
 
 	text_edit->call_deferred("connect", "text_changed", this, "_editor_text_changed");
 	results_count = -1;
@@ -818,8 +819,8 @@ void CodeTextEditor::_complete_request() {
 	text_editor->code_complete(entries, forced);
 }
 
-Ref<Texture> CodeTextEditor::_get_completion_icon(const ScriptCodeCompletionOption &p_option) {
-	Ref<Texture> tex;
+Ref<Texture2D> CodeTextEditor::_get_completion_icon(const ScriptCodeCompletionOption &p_option) {
+	Ref<Texture2D> tex;
 	switch (p_option.kind) {
 		case ScriptCodeCompletionOption::KIND_CLASS: {
 			if (has_icon(p_option.display, "EditorIcons")) {

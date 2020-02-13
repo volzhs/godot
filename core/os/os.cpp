@@ -188,7 +188,7 @@ int OS::get_process_id() const {
 
 void OS::vibrate_handheld(int p_duration_ms) {
 
-	WARN_PRINTS("vibrate_handheld() only works with Android and iOS");
+	WARN_PRINT("vibrate_handheld() only works with Android and iOS");
 }
 
 bool OS::is_stdout_verbose() const {
@@ -691,9 +691,9 @@ const char *OS::get_video_driver_name(int p_driver) const {
 	switch (p_driver) {
 		case VIDEO_DRIVER_GLES2:
 			return "GLES2";
-		case VIDEO_DRIVER_GLES3:
+		case VIDEO_DRIVER_VULKAN:
 		default:
-			return "GLES3";
+			return "Vulkan";
 	}
 }
 

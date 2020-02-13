@@ -64,7 +64,6 @@ const char *Expression::func_name[Expression::FUNC_MAX] = {
 	"is_nan",
 	"is_inf",
 	"ease",
-	"decimals",
 	"step_decimals",
 	"stepify",
 	"lerp",
@@ -153,7 +152,6 @@ int Expression::get_func_argument_count(BuiltinFunc p_func) {
 		case MATH_EXP:
 		case MATH_ISNAN:
 		case MATH_ISINF:
-		case MATH_DECIMALS:
 		case MATH_STEP_DECIMALS:
 		case MATH_SEED:
 		case MATH_RANDSEED:
@@ -375,11 +373,6 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 			VALIDATE_ARG_NUM(0);
 			VALIDATE_ARG_NUM(1);
 			*r_return = Math::ease((double)*p_inputs[0], (double)*p_inputs[1]);
-		} break;
-		case MATH_DECIMALS: {
-
-			VALIDATE_ARG_NUM(0);
-			*r_return = Math::step_decimals((double)*p_inputs[0]);
 		} break;
 		case MATH_STEP_DECIMALS: {
 
@@ -1036,8 +1029,7 @@ Error Expression::_get_token(Token &r_token) {
 							case 'f': res = 12; break;
 							case 'r': res = 13; break;
 							case 'u': {
-								//hexnumbarh - oct is deprecated
-
+								// hex number
 								for (int j = 0; j < 4; j++) {
 									CharType c = GET_CHAR();
 
@@ -1062,7 +1054,7 @@ Error Expression::_get_token(Token &r_token) {
 										v = c - 'A';
 										v += 10;
 									} else {
-										ERR_PRINT("BUG");
+										ERR_PRINT("Bug parsing hex constant.");
 										v = 0;
 									}
 
@@ -1071,13 +1063,8 @@ Error Expression::_get_token(Token &r_token) {
 								}
 
 							} break;
-							//case '\"': res='\"'; break;
-							//case '\\': res='\\'; break;
-							//case '/': res='/'; break;
 							default: {
 								res = next;
-								//r_err_str="Invalid escape sequence";
-								//return ERR_PARSE_ERROR;
 							} break;
 						}
 

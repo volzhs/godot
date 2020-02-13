@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="VideoPlayer" inherits="Control" version="3.2">
+<class name="VideoPlayer" inherits="Control" version="4.0">
 	<brief_description>
 		Control for playing video streams.
 	</brief_description>
@@ -18,10 +18,10 @@
 			</description>
 		</method>
 		<method name="get_video_texture" qualifiers="const">
-			<return type="Texture">
+			<return type="Texture2D">
 			</return>
 			<description>
-				Returns the current frame as a [Texture].
+				Returns the current frame as a [Texture2D].
 			</description>
 		</method>
 		<method name="is_playing" qualifiers="const">

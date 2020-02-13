@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="Animation" inherits="Resource" version="3.2">
+<class name="Animation" inherits="Resource" version="4.0">
 	<brief_description>
 		Contains data used to animate everything in the engine.
 	</brief_description>
@@ -14,7 +14,7 @@
 		animation.track_insert_key(track_index, 0.0, 0)
 		animation.track_insert_key(track_index, 0.5, 100)
 		[/codeblock]
-		Animations are just data containers, and must be added to nodes such as an [AnimationPlayer] or [AnimationTreePlayer] to be played back.
+		Animations are just data containers, and must be added to nodes such as an [AnimationPlayer] to be played back.
 	</description>
 	<tutorials>
 		<link>https://docs.godotengine.org/en/latest/tutorials/animation/index.html</link>

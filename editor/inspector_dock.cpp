@@ -166,8 +166,8 @@ void InspectorDock::_resource_file_selected(String p_file) {
 }
 
 void InspectorDock::_save_resource(bool save_as) const {
-	uint32_t current = EditorNode::get_singleton()->get_editor_history()->get_current();
-	Object *current_obj = current > 0 ? ObjectDB::get_instance(current) : NULL;
+	ObjectID current = EditorNode::get_singleton()->get_editor_history()->get_current();
+	Object *current_obj = current.is_valid() ? ObjectDB::get_instance(current) : NULL;
 
 	ERR_FAIL_COND(!Object::cast_to<Resource>(current_obj));
 
@@ -180,8 +180,8 @@ void InspectorDock::_save_resource(bool save_as) const {
 }
 
 void InspectorDock::_unref_resource() const {
-	uint32_t current = EditorNode::get_singleton()->get_editor_history()->get_current();
-	Object *current_obj = current > 0 ? ObjectDB::get_instance(current) : NULL;
+	ObjectID current = EditorNode::get_singleton()->get_editor_history()->get_current();
+	Object *current_obj = current.is_valid() ? ObjectDB::get_instance(current) : NULL;
 
 	ERR_FAIL_COND(!Object::cast_to<Resource>(current_obj));
 
@@ -191,8 +191,8 @@ void InspectorDock::_unref_resource() const {
 }
 
 void InspectorDock::_copy_resource() const {
-	uint32_t current = EditorNode::get_singleton()->get_editor_history()->get_current();
-	Object *current_obj = current > 0 ? ObjectDB::get_instance(current) : NULL;
+	ObjectID current = EditorNode::get_singleton()->get_editor_history()->get_current();
+	Object *current_obj = current.is_valid() ? ObjectDB::get_instance(current) : NULL;
 
 	ERR_FAIL_COND(!Object::cast_to<Resource>(current_obj));
 
@@ -215,7 +215,7 @@ void InspectorDock::_prepare_history() {
 
 	history_menu->get_popup()->clear();
 
-	Ref<Texture> base_icon = get_icon("Object", "EditorIcons");
+	Ref<Texture2D> base_icon = get_icon("Object", "EditorIcons");
 	Set<ObjectID> already;
 	for (int i = editor_history->get_history_len() - 1; i >= history_to; i--) {
 
@@ -230,7 +230,7 @@ void InspectorDock::_prepare_history() {
 
 		already.insert(id);
 
-		Ref<Texture> icon = EditorNode::get_singleton()->get_object_icon(obj, "");
+		Ref<Texture2D> icon = EditorNode::get_singleton()->get_object_icon(obj, "");
 		if (icon.is_null()) {
 			icon = base_icon;
 		}
@@ -337,6 +337,7 @@ void InspectorDock::_notification(int p_what) {
 			history_menu->set_icon(get_icon("History", "EditorIcons"));
 			object_menu->set_icon(get_icon("Tools", "EditorIcons"));
 			warning->set_icon(get_icon("NodeWarning", "EditorIcons"));
+			warning->add_color_override("font_color", get_color("warning_color", "Editor"));
 		} break;
 	}
 }
@@ -584,6 +585,8 @@ InspectorDock::InspectorDock(EditorNode *p_editor, EditorData &p_editor_data) {
 	add_child(warning);
 	warning->set_text(TTR("Changes may be lost!"));
 	warning->set_icon(get_icon("NodeWarning", "EditorIcons"));
+	warning->add_color_override("font_color", get_color("warning_color", "Editor"));
+	warning->set_clip_text(true);
 	warning->hide();
 	warning->connect("pressed", this, "_warning_pressed");
 

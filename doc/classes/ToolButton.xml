@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="ToolButton" inherits="Button" version="3.2">
+<class name="ToolButton" inherits="Button" version="4.0">
 	<brief_description>
 		Flat button helper class.
 	</brief_description>
@@ -24,7 +24,7 @@
 			[StyleBox] used when the [ToolButton] is disabled.
 		</theme_item>
 		<theme_item name="focus" type="StyleBox">
-			[StyleBox] used when the [ToolButton] is focused. It is displayed over the current [StyleBox], so using [StyleboxEmpty] will just disable the focus visual effect.
+			[StyleBox] used when the [ToolButton] is focused. It is displayed over the current [StyleBox], so using [StyleBoxEmpty] will just disable the focus visual effect.
 		</theme_item>
 		<theme_item name="font" type="Font">
 			[Font] of the [ToolButton]'s text.

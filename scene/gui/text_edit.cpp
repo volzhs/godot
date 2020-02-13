@@ -1216,7 +1216,7 @@ void TextEdit::_notification(int p_what) {
 							int horizontal_gap = (cache.info_gutter_width * 30) / 100;
 							int gutter_left = cache.style_normal->get_margin(MARGIN_LEFT) + cache.breakpoint_gutter_width;
 
-							Ref<Texture> info_icon = text.get_info_icon(line);
+							Ref<Texture2D> info_icon = text.get_info_icon(line);
 							// Ensure the icon fits the gutter size.
 							Size2i icon_size = info_icon->get_size();
 							if (icon_size.width > cache.info_gutter_width - horizontal_gap) {
@@ -1645,7 +1645,7 @@ void TextEdit::_notification(int p_what) {
 					Point2 title_pos(completion_rect.position.x, completion_rect.position.y + i * get_row_height() + cache.font->get_ascent() + yofs);
 
 					// Draw completion icon if it is valid.
-					Ref<Texture> icon = completion_options[l].icon;
+					Ref<Texture2D> icon = completion_options[l].icon;
 					Rect2 icon_area(completion_rect.position.x, completion_rect.position.y + i * get_row_height(), icon_area_size.width, icon_area_size.height);
 					if (icon.is_valid()) {
 						const real_t max_scale = 0.7f;
@@ -4480,7 +4480,7 @@ void TextEdit::cursor_set_line(int p_row, bool p_adjust_viewport, bool p_can_be_
 				if (p_row - move_up > 0 && !is_line_hidden(p_row - move_up)) {
 					p_row -= move_up;
 				} else {
-					WARN_PRINTS(("Cursor set to hidden line " + itos(p_row) + " and there are no nonhidden lines."));
+					WARN_PRINT(("Cursor set to hidden line " + itos(p_row) + " and there are no nonhidden lines."));
 				}
 			}
 		}
@@ -5690,7 +5690,7 @@ void TextEdit::remove_breakpoints() {
 	}
 }
 
-void TextEdit::set_line_info_icon(int p_line, Ref<Texture> p_icon, String p_info) {
+void TextEdit::set_line_info_icon(int p_line, Ref<Texture2D> p_icon, String p_info) {
 	ERR_FAIL_INDEX(p_line, text.size());
 	text.set_info_icon(p_line, p_icon, p_info);
 	update();
@@ -6530,6 +6530,10 @@ void TextEdit::_update_completion_candidates() {
 	Vector<float> sim_cache;
 	bool single_quote = s.begins_with("'");
 	Vector<ScriptCodeCompletionOption> completion_options_casei;
+	Vector<ScriptCodeCompletionOption> completion_options_subseq;
+	Vector<ScriptCodeCompletionOption> completion_options_subseq_casei;
+
+	String s_lower = s.to_lower();
 
 	for (List<ScriptCodeCompletionOption>::Element *E = completion_sources.front(); E; E = E->next()) {
 		ScriptCodeCompletionOption &option = E->get();
@@ -6544,30 +6548,67 @@ void TextEdit::_update_completion_candidates() {
 			option.insert_text = option.insert_text.quote(quote);
 		}
 
-		if (option.display.begins_with(s)) {
+		if (option.display.length() == 0) {
+			continue;
+		} else if (s.length() == 0) {
 			completion_options.push_back(option);
-		} else if (option.display.to_lower().begins_with(s.to_lower())) {
-			completion_options_casei.push_back(option);
+		} else {
+
+			// This code works the same as:
+			/*
+			if (option.display.begins_with(s)) {
+				completion_options.push_back(option);
+			} else if (option.display.to_lower().begins_with(s.to_lower())) {
+				completion_options_casei.push_back(option);
+			} else if (s.is_subsequence_of(option.display)) {
+				completion_options_subseq.push_back(option);
+			} else if (s.is_subsequence_ofi(option.display)) {
+				completion_options_subseq_casei.push_back(option);
+			}
+			*/
+			// But is more performant due to being inlined and looping over the characters only once
+
+			String display_lower = option.display.to_lower();
+
+			const CharType *ssq = &s[0];
+			const CharType *ssq_lower = &s_lower[0];
+
+			const CharType *tgt = &option.display[0];
+			const CharType *tgt_lower = &display_lower[0];
+
+			const CharType *ssq_last_tgt = NULL;
+			const CharType *ssq_lower_last_tgt = NULL;
+
+			for (; *tgt; tgt++, tgt_lower++) {
+				if (*ssq == *tgt) {
+					ssq++;
+					ssq_last_tgt = tgt;
+				}
+				if (*ssq_lower == *tgt_lower) {
+					ssq_lower++;
+					ssq_lower_last_tgt = tgt;
+				}
+			}
+
+			if (!*ssq) { // Matched the whole subsequence in s
+				if (ssq_last_tgt == &option.display[s.length() - 1]) { // Finished matching in the first s.length() characters
+					completion_options.push_back(option);
+				} else {
+					completion_options_subseq.push_back(option);
+				}
+			} else if (!*ssq_lower) { // Matched the whole subsequence in s_lower
+				if (ssq_lower_last_tgt == &option.display[s.length() - 1]) { // Finished matching in the first s.length() characters
+					completion_options_casei.push_back(option);
+				} else {
+					completion_options_subseq_casei.push_back(option);
+				}
+			}
 		}
 	}
 
 	completion_options.append_array(completion_options_casei);
-
-	if (completion_options.size() == 0) {
-		for (int i = 0; i < completion_sources.size(); i++) {
-			if (s.is_subsequence_of(completion_sources[i].display)) {
-				completion_options.push_back(completion_sources[i]);
-			}
-		}
-	}
-
-	if (completion_options.size() == 0) {
-		for (int i = 0; i < completion_sources.size(); i++) {
-			if (s.is_subsequence_ofi(completion_sources[i].display)) {
-				completion_options.push_back(completion_sources[i]);
-			}
-		}
-	}
+	completion_options.append_array(completion_options_subseq);
+	completion_options.append_array(completion_options_subseq_casei);
 
 	if (completion_options.size() == 0) {
 		// No options to complete, cancel.

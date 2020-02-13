@@ -47,13 +47,13 @@ void ScriptCreateDialog::_notification(int p_what) {
 		case NOTIFICATION_ENTER_TREE: {
 			for (int i = 0; i < ScriptServer::get_language_count(); i++) {
 				String lang = ScriptServer::get_language(i)->get_type();
-				Ref<Texture> lang_icon = get_icon(lang, "EditorIcons");
+				Ref<Texture2D> lang_icon = get_icon(lang, "EditorIcons");
 				if (lang_icon.is_valid()) {
 					language_menu->set_item_icon(i, lang_icon);
 				}
 			}
 			String last_lang = EditorSettings::get_singleton()->get_project_metadata("script_setup", "last_selected_language", "");
-			Ref<Texture> last_lang_icon;
+			Ref<Texture2D> last_lang_icon;
 			if (!last_lang.empty()) {
 
 				for (int i = 0; i < language_menu->get_item_count(); i++) {
@@ -84,7 +84,9 @@ void ScriptCreateDialog::_path_hbox_sorted() {
 		int filename_start_pos = initial_bp.find_last("/") + 1;
 		int filename_end_pos = initial_bp.length();
 
-		file_path->select(filename_start_pos, filename_end_pos);
+		if (!is_built_in) {
+			file_path->select(filename_start_pos, filename_end_pos);
+		}
 
 		// First set cursor to the end of line to scroll LineEdit view
 		// to the right and then set the actual cursor position.
@@ -575,6 +577,10 @@ void ScriptCreateDialog::_browse_class_in_tree() {
 
 void ScriptCreateDialog::_path_changed(const String &p_path) {
 
+	if (is_built_in) {
+		return;
+	}
+
 	is_path_valid = false;
 	is_new_script_created = true;
 
@@ -644,7 +650,7 @@ void ScriptCreateDialog::_update_dialog() {
 	}
 
 	if (script_ok) {
-		_msg_script_valid(true, TTR("Script is valid."));
+		_msg_script_valid(true, TTR("Script path/name is valid."));
 	}
 
 	// Does script have named classes?

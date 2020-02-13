@@ -73,13 +73,6 @@ enum {
 	VARIANT_VECTOR2_ARRAY = 37,
 	VARIANT_INT64 = 40,
 	VARIANT_DOUBLE = 41,
-#ifndef DISABLE_DEPRECATED
-	VARIANT_IMAGE = 21, // - no longer variant type
-	IMAGE_ENCODING_EMPTY = 0,
-	IMAGE_ENCODING_RAW = 1,
-	IMAGE_ENCODING_LOSSLESS = 2,
-	IMAGE_ENCODING_LOSSY = 3,
-#endif
 	OBJECT_EMPTY = 0,
 	OBJECT_EXTERNAL_RESOURCE = 1,
 	OBJECT_INTERNAL_RESOURCE = 2,
@@ -549,69 +542,6 @@ Error ResourceInteractiveLoaderBinary::parse_variant(Variant &r_v) {
 			w.release();
 			r_v = array;
 		} break;
-#ifndef DISABLE_DEPRECATED
-		case VARIANT_IMAGE: {
-			uint32_t encoding = f->get_32();
-			if (encoding == IMAGE_ENCODING_EMPTY) {
-				r_v = Ref<Image>();
-				break;
-			} else if (encoding == IMAGE_ENCODING_RAW) {
-				uint32_t width = f->get_32();
-				uint32_t height = f->get_32();
-				uint32_t mipmaps = f->get_32();
-				uint32_t format = f->get_32();
-				const uint32_t format_version_shift = 24;
-				const uint32_t format_version_mask = format_version_shift - 1;
-
-				uint32_t format_version = format >> format_version_shift;
-
-				const uint32_t current_version = 0;
-				if (format_version > current_version) {
-
-					ERR_PRINT("Format version for encoded binary image is too new.");
-					return ERR_PARSE_ERROR;
-				}
-
-				Image::Format fmt = Image::Format(format & format_version_mask); //if format changes, we can add a compatibility bit on top
-
-				uint32_t datalen = f->get_32();
-
-				PoolVector<uint8_t> imgdata;
-				imgdata.resize(datalen);
-				PoolVector<uint8_t>::Write w = imgdata.write();
-				f->get_buffer(w.ptr(), datalen);
-				_advance_padding(datalen);
-				w.release();
-
-				Ref<Image> image;
-				image.instance();
-				image->create(width, height, mipmaps, fmt, imgdata);
-				r_v = image;
-
-			} else {
-				//compressed
-				PoolVector<uint8_t> data;
-				data.resize(f->get_32());
-				PoolVector<uint8_t>::Write w = data.write();
-				f->get_buffer(w.ptr(), data.size());
-				w.release();
-
-				Ref<Image> image;
-
-				if (encoding == IMAGE_ENCODING_LOSSY && Image::lossy_unpacker) {
-
-					image = Image::lossy_unpacker(data);
-				} else if (encoding == IMAGE_ENCODING_LOSSLESS && Image::lossless_unpacker) {
-
-					image = Image::lossless_unpacker(data);
-				}
-				_advance_padding(data.size());
-
-				r_v = image;
-			}
-
-		} break;
-#endif
 		default: {
 			ERR_FAIL_V(ERR_FILE_CORRUPT);
 		} break;
@@ -836,15 +766,20 @@ void ResourceInteractiveLoaderBinary::open(FileAccess *p_f) {
 	uint8_t header[4];
 	f->get_buffer(header, 4);
 	if (header[0] == 'R' && header[1] == 'S' && header[2] == 'C' && header[3] == 'C') {
-		//compressed
+		// Compressed.
 		FileAccessCompressed *fac = memnew(FileAccessCompressed);
-		fac->open_after_magic(f);
+		error = fac->open_after_magic(f);
+		if (error != OK) {
+			memdelete(fac);
+			f->close();
+			ERR_FAIL_MSG("Failed to open binary resource file: " + local_path + ".");
+		}
 		f = fac;
 
 	} else if (header[0] != 'R' || header[1] != 'S' || header[2] != 'R' || header[3] != 'C') {
-		//not normal
-
+		// Not normal.
 		error = ERR_FILE_UNRECOGNIZED;
+		f->close();
 		ERR_FAIL_MSG("Unrecognized binary resource file: " + local_path + ".");
 	}
 
@@ -919,6 +854,7 @@ void ResourceInteractiveLoaderBinary::open(FileAccess *p_f) {
 	if (f->eof_reached()) {
 
 		error = ERR_FILE_CORRUPT;
+		f->close();
 		ERR_FAIL_MSG("Premature end of file (EOF): " + local_path + ".");
 	}
 }
@@ -931,14 +867,20 @@ String ResourceInteractiveLoaderBinary::recognize(FileAccess *p_f) {
 	uint8_t header[4];
 	f->get_buffer(header, 4);
 	if (header[0] == 'R' && header[1] == 'S' && header[2] == 'C' && header[3] == 'C') {
-		//compressed
+		// Compressed.
 		FileAccessCompressed *fac = memnew(FileAccessCompressed);
-		fac->open_after_magic(f);
+		error = fac->open_after_magic(f);
+		if (error != OK) {
+			memdelete(fac);
+			f->close();
+			return "";
+		}
 		f = fac;
 
 	} else if (header[0] != 'R' || header[1] != 'S' || header[2] != 'R' || header[3] != 'C') {
-		//not normal
+		// Not normal.
 		error = ERR_FILE_UNRECOGNIZED;
+		f->close();
 		return "";
 	}
 
@@ -1055,14 +997,19 @@ Error ResourceFormatLoaderBinary::rename_dependencies(const String &p_path, cons
 	uint8_t header[4];
 	f->get_buffer(header, 4);
 	if (header[0] == 'R' && header[1] == 'S' && header[2] == 'C' && header[3] == 'C') {
-		//compressed
+		// Compressed.
 		FileAccessCompressed *fac = memnew(FileAccessCompressed);
-		fac->open_after_magic(f);
+		Error err = fac->open_after_magic(f);
+		if (err != OK) {
+			memdelete(fac);
+			memdelete(f);
+			ERR_FAIL_V_MSG(err, "Cannot open file '" + p_path + "'.");
+		}
 		f = fac;
 
 		FileAccessCompressed *facw = memnew(FileAccessCompressed);
 		facw->configure("RSCC");
-		Error err = facw->_open(p_path + ".depren", FileAccess::WRITE);
+		err = facw->_open(p_path + ".depren", FileAccess::WRITE);
 		if (err) {
 			memdelete(fac);
 			memdelete(facw);
@@ -1072,9 +1019,7 @@ Error ResourceFormatLoaderBinary::rename_dependencies(const String &p_path, cons
 		fw = facw;
 
 	} else if (header[0] != 'R' || header[1] != 'S' || header[2] != 'R' || header[3] != 'C') {
-		//not normal
-
-		//error=ERR_FILE_UNRECOGNIZED;
+		// Not normal.
 		memdelete(f);
 		ERR_FAIL_V_MSG(ERR_FILE_UNRECOGNIZED, "Unrecognized binary resource file '" + local_path + "'.");
 	} else {
@@ -1113,7 +1058,7 @@ Error ResourceFormatLoaderBinary::rename_dependencies(const String &p_path, cons
 		memdelete(da);
 		//use the old approach
 
-		WARN_PRINTS("This file is old, so it can't refactor dependencies, opening and resaving '" + p_path + "'.");
+		WARN_PRINT("This file is old, so it can't refactor dependencies, opening and resaving '" + p_path + "'.");
 
 		Error err;
 		f = FileAccess::open(p_path, FileAccess::READ, &err);
@@ -1255,7 +1200,7 @@ String ResourceFormatLoaderBinary::get_resource_type(const String &p_path) const
 	ria->res_path = ria->local_path;
 	//ria->set_local_path( Globals::get_singleton()->localize_path(p_path) );
 	String r = ria->recognize(f);
-	return r;
+	return ClassDB::get_compatibility_remapped_class(r);
 }
 
 ///////////////////////////////////////////////////////////
@@ -1635,7 +1580,7 @@ void ResourceFormatSaverBinaryInstance::_find_resources(const Variant &p_variant
 
 			if (!p_main && (!bundle_resources) && res->get_path().length() && res->get_path().find("::") == -1) {
 				if (res->get_path() == path) {
-					ERR_PRINTS("Circular reference to resource being saved found: '" + local_path + "' will be null next time it's loaded.");
+					ERR_PRINT("Circular reference to resource being saved found: '" + local_path + "' will be null next time it's loaded.");
 					return;
 				}
 				int idx = external_resources.size();

@@ -335,6 +335,19 @@ StringName ClassDB::get_parent_class_nocheck(const StringName &p_class) {
 	return ti->inherits;
 }
 
+StringName ClassDB::get_compatibility_remapped_class(const StringName &p_class) {
+
+	if (classes.has(p_class)) {
+		return p_class;
+	}
+
+	if (compat_classes.has(p_class)) {
+		return compat_classes[p_class];
+	}
+
+	return p_class;
+}
+
 StringName ClassDB::get_parent_class(const StringName &p_class) {
 
 	OBJTYPE_RLOCK;
@@ -541,7 +554,7 @@ Object *ClassDB::instance(const StringName &p_class) {
 	}
 #ifdef TOOLS_ENABLED
 	if (ti->api == API_EDITOR && !Engine::get_singleton()->is_editor_hint()) {
-		ERR_PRINTS("Class '" + String(p_class) + "' can only be instantiated by editor.");
+		ERR_PRINT("Class '" + String(p_class) + "' can only be instantiated by editor.");
 		return NULL;
 	}
 #endif

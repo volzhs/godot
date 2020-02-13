@@ -840,12 +840,30 @@ void GridMapEditor::_text_changed(const String &p_text) {
 
 void GridMapEditor::_sbox_input(const Ref<InputEvent> &p_ie) {
 
-	Ref<InputEventKey> k = p_ie;
+	const Ref<InputEventKey> k = p_ie;
 
 	if (k.is_valid() && (k->get_scancode() == KEY_UP || k->get_scancode() == KEY_DOWN || k->get_scancode() == KEY_PAGEUP || k->get_scancode() == KEY_PAGEDOWN)) {
 
+		// Forward the key input to the ItemList so it can be scrolled
 		mesh_library_palette->call("_gui_input", k);
 		search_box->accept_event();
+	}
+}
+
+void GridMapEditor::_mesh_library_palette_input(const Ref<InputEvent> &p_ie) {
+
+	const Ref<InputEventMouseButton> mb = p_ie;
+
+	// Zoom in/out using Ctrl + mouse wheel
+	if (mb.is_valid() && mb->is_pressed() && mb->get_command()) {
+
+		if (mb->is_pressed() && mb->get_button_index() == BUTTON_WHEEL_UP) {
+			size_slider->set_value(size_slider->get_value() + 0.2);
+		}
+
+		if (mb->is_pressed() && mb->get_button_index() == BUTTON_WHEEL_DOWN) {
+			size_slider->set_value(size_slider->get_value() - 0.2);
+		}
 	}
 }
 
@@ -907,7 +925,7 @@ void GridMapEditor::update_palette() {
 	for (List<_CGMEItemSort>::Element *E = il.front(); E; E = E->next()) {
 		int id = E->get().id;
 		String name = mesh_library->get_item_name(id);
-		Ref<Texture> preview = mesh_library->get_item_preview(id);
+		Ref<Texture2D> preview = mesh_library->get_item_preview(id);
 
 		if (name == "") {
 			name = "#" + itos(id);
@@ -1004,8 +1022,7 @@ void GridMapEditor::_draw_grids(const Vector3 &cell_size) {
 	Vector3 edited_floor = node->has_meta("_editor_floor_") ? node->get_meta("_editor_floor_") : Variant();
 
 	for (int i = 0; i < 3; i++) {
-		if (VS::get_singleton()->mesh_get_surface_count(grid[i]) > 0)
-			VS::get_singleton()->mesh_remove_surface(grid[i], 0);
+		VS::get_singleton()->mesh_clear(grid[i]);
 		edit_floor[i] = edited_floor[i];
 	}
 
@@ -1183,6 +1200,7 @@ void GridMapEditor::_bind_methods() {
 
 	ClassDB::bind_method("_text_changed", &GridMapEditor::_text_changed);
 	ClassDB::bind_method("_sbox_input", &GridMapEditor::_sbox_input);
+	ClassDB::bind_method("_mesh_library_palette_input", &GridMapEditor::_mesh_library_palette_input);
 	ClassDB::bind_method("_icon_size_changed", &GridMapEditor::_icon_size_changed);
 	ClassDB::bind_method("_menu_option", &GridMapEditor::_menu_option);
 	ClassDB::bind_method("_configure", &GridMapEditor::_configure);
@@ -1311,7 +1329,7 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 
 	size_slider = memnew(HSlider);
 	size_slider->set_h_size_flags(SIZE_EXPAND_FILL);
-	size_slider->set_min(0.1f);
+	size_slider->set_min(0.2f);
 	size_slider->set_max(4.0f);
 	size_slider->set_step(0.1f);
 	size_slider->set_value(1.0f);
@@ -1325,6 +1343,7 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 	mesh_library_palette = memnew(ItemList);
 	add_child(mesh_library_palette);
 	mesh_library_palette->set_v_size_flags(SIZE_EXPAND_FILL);
+	mesh_library_palette->connect("gui_input", this, "_mesh_library_palette_input");
 
 	info_message = memnew(Label);
 	info_message->set_text(TTR("Give a MeshLibrary resource to this GridMap to use its meshes."));
@@ -1427,8 +1446,8 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 
 		inner_mat.instance();
 		inner_mat->set_albedo(Color(0.7, 0.7, 1.0, 0.2));
-		inner_mat->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
-		inner_mat->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
+		inner_mat->set_shading_mode(StandardMaterial3D::SHADING_MODE_UNSHADED);
+		inner_mat->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA);
 
 		d[VS::ARRAY_VERTEX] = triangles;
 		VisualServer::get_singleton()->mesh_add_surface_from_arrays(selection_mesh, VS::PRIMITIVE_TRIANGLES, d);
@@ -1437,15 +1456,14 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 		outer_mat.instance();
 		outer_mat->set_albedo(Color(0.7, 0.7, 1.0, 0.8));
 		outer_mat->set_on_top_of_alpha();
-		outer_mat->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
-		outer_mat->set_line_width(3.0);
-		outer_mat->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
+
+		outer_mat->set_shading_mode(StandardMaterial3D::SHADING_MODE_UNSHADED);
+		outer_mat->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA);
 
 		selection_floor_mat.instance();
 		selection_floor_mat->set_albedo(Color(0.80, 0.80, 1.0, 1));
 		selection_floor_mat->set_on_top_of_alpha();
-		selection_floor_mat->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
-		selection_floor_mat->set_line_width(3.0);
+		selection_floor_mat->set_shading_mode(StandardMaterial3D::SHADING_MODE_UNSHADED);
 
 		d[VS::ARRAY_VERTEX] = lines;
 		VisualServer::get_singleton()->mesh_add_surface_from_arrays(selection_mesh, VS::PRIMITIVE_LINES, d);
@@ -1472,10 +1490,10 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 	accumulated_floor_delta = 0.0;
 
 	indicator_mat.instance();
-	indicator_mat->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
-	indicator_mat->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
-	indicator_mat->set_flag(SpatialMaterial::FLAG_SRGB_VERTEX_COLOR, true);
-	indicator_mat->set_flag(SpatialMaterial::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
+	indicator_mat->set_shading_mode(StandardMaterial3D::SHADING_MODE_UNSHADED);
+	indicator_mat->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA);
+	indicator_mat->set_flag(StandardMaterial3D::FLAG_SRGB_VERTEX_COLOR, true);
+	indicator_mat->set_flag(StandardMaterial3D::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
 	indicator_mat->set_albedo(Color(0.8, 0.5, 0.1));
 }
 

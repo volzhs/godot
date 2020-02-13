@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="@GDScript" version="3.2">
+<class name="@GDScript" version="4.0">
 	<brief_description>
 		Built-in GDScript functions.
 	</brief_description>
@@ -254,15 +254,6 @@
 			</argument>
 			<description>
 				Converts from decibels to linear energy (audio).
-			</description>
-		</method>
-		<method name="decimals">
-			<return type="int">
-			</return>
-			<argument index="0" name="step" type="float">
-			</argument>
-			<description>
-				Deprecated alias for [method step_decimals].
 			</description>
 		</method>
 		<method name="dectime">

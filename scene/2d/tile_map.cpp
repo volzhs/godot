@@ -35,6 +35,7 @@
 #include "core/method_bind_ext.gen.inc"
 #include "core/os/os.h"
 #include "scene/2d/area_2d.h"
+#include "servers/navigation_2d_server.h"
 #include "servers/physics_2d_server.h"
 
 int TileMap::_get_quadrant_size() const {
@@ -86,7 +87,7 @@ void TileMap::_notification(int p_what) {
 				if (navigation) {
 					for (Map<PosKey, Quadrant::NavPoly>::Element *F = q.navpoly_ids.front(); F; F = F->next()) {
 
-						navigation->navpoly_remove(F->get().id);
+						Navigation2DServer::get_singleton()->region_set_map(F->get().region, RID());
 					}
 					q.navpoly_ids.clear();
 				}
@@ -163,7 +164,7 @@ void TileMap::_update_quadrant_transform() {
 		if (navigation) {
 			for (Map<PosKey, Quadrant::NavPoly>::Element *F = q.navpoly_ids.front(); F; F = F->next()) {
 
-				navigation->navpoly_set_transform(F->get().id, nav_rel * F->get().xform);
+				Navigation2DServer::get_singleton()->region_set_transform(F->get().region, nav_rel * F->get().xform);
 			}
 		}
 
@@ -377,7 +378,7 @@ void TileMap::update_dirty_quadrants() {
 		if (navigation) {
 			for (Map<PosKey, Quadrant::NavPoly>::Element *E = q.navpoly_ids.front(); E; E = E->next()) {
 
-				navigation->navpoly_remove(E->get().id);
+				Navigation2DServer::get_singleton()->region_set_map(E->get().region, RID());
 			}
 			q.navpoly_ids.clear();
 		}
@@ -398,7 +399,7 @@ void TileMap::update_dirty_quadrants() {
 			//moment of truth
 			if (!tile_set->has_tile(c.id))
 				continue;
-			Ref<Texture> tex = tile_set->tile_get_texture(c.id);
+			Ref<Texture2D> tex = tile_set->tile_get_texture(c.id);
 			Vector2 tile_ofs = tile_set->tile_get_texture_offset(c.id);
 
 			Vector2 wofs = _map_to_world(E->key().x, E->key().y);
@@ -541,7 +542,7 @@ void TileMap::update_dirty_quadrants() {
 				rect.position += tile_ofs;
 			}
 
-			Ref<Texture> normal_map = tile_set->tile_get_normal_map(c.id);
+			Ref<Texture2D> normal_map = tile_set->tile_get_normal_map(c.id);
 			Color modulate = tile_set->tile_get_modulate(c.id);
 			Color self_modulate = get_self_modulate();
 			modulate = Color(modulate.r * self_modulate.r, modulate.g * self_modulate.g,
@@ -549,7 +550,7 @@ void TileMap::update_dirty_quadrants() {
 			if (r == Rect2()) {
 				tex->draw_rect(canvas_item, rect, false, modulate, c.transpose, normal_map);
 			} else {
-				tex->draw_rect_region(canvas_item, rect, r, modulate, c.transpose, normal_map, clip_uv);
+				tex->draw_rect_region(canvas_item, rect, r, modulate, c.transpose, normal_map, Ref<Texture2D>(), Color(1, 1, 1, 1), VS::CANVAS_ITEM_TEXTURE_FILTER_DEFAULT, VS::CANVAS_ITEM_TEXTURE_REPEAT_DEFAULT, clip_uv);
 			}
 
 			Vector<TileSet::ShapeData> shapes = tile_set->tile_get_shapes(c.id);
@@ -611,10 +612,13 @@ void TileMap::update_dirty_quadrants() {
 					xform.set_origin(offset.floor() + q.pos);
 					_fix_cell_transform(xform, c, npoly_ofs, s);
 
-					int pid = navigation->navpoly_add(navpoly, nav_rel * xform);
+					RID region = Navigation2DServer::get_singleton()->region_create();
+					Navigation2DServer::get_singleton()->region_set_map(region, navigation->get_rid());
+					Navigation2DServer::get_singleton()->region_set_transform(region, nav_rel * xform);
+					Navigation2DServer::get_singleton()->region_set_navpoly(region, navpoly);
 
 					Quadrant::NavPoly np;
-					np.id = pid;
+					np.region = region;
 					np.xform = xform;
 					q.navpoly_ids[E->key()] = np;
 
@@ -809,7 +813,7 @@ void TileMap::_erase_quadrant(Map<PosKey, Quadrant>::Element *Q) {
 	if (navigation) {
 		for (Map<PosKey, Quadrant::NavPoly>::Element *E = q.navpoly_ids.front(); E; E = E->next()) {
 
-			navigation->navpoly_remove(E->get().id);
+			Navigation2DServer::get_singleton()->region_set_map(E->get().region, RID());
 		}
 		q.navpoly_ids.clear();
 	}

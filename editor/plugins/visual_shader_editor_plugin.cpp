@@ -116,7 +116,7 @@ void VisualShaderEditor::clear_custom_types() {
 	}
 }
 
-void VisualShaderEditor::add_custom_type(const String &p_name, const Ref<Script> &p_script, const String &p_description, int p_return_icon_type, const String &p_category, const String &p_subcategory) {
+void VisualShaderEditor::add_custom_type(const String &p_name, const Ref<Script> &p_script, const String &p_description, int p_return_icon_type, const String &p_category, const String &p_subcategory, bool p_highend) {
 
 	ERR_FAIL_COND(!p_name.is_valid_identifier());
 	ERR_FAIL_COND(!p_script.is_valid());
@@ -135,6 +135,7 @@ void VisualShaderEditor::add_custom_type(const String &p_name, const Ref<Script>
 	ao.description = p_description;
 	ao.category = p_category;
 	ao.sub_category = p_subcategory;
+	ao.highend = p_highend;
 	ao.is_custom = true;
 
 	bool begin = false;
@@ -247,6 +248,11 @@ void VisualShaderEditor::update_custom_nodes() {
 				subcategory = (String)ref->call("_get_subcategory");
 			}
 
+			bool highend = false;
+			if (ref->has_method("_is_highend")) {
+				highend = (bool)ref->call("_is_highend");
+			}
+
 			Dictionary dict;
 			dict["name"] = name;
 			dict["script"] = script;
@@ -254,6 +260,7 @@ void VisualShaderEditor::update_custom_nodes() {
 			dict["return_icon_type"] = return_icon_type;
 			dict["category"] = category;
 			dict["subcategory"] = subcategory;
+			dict["highend"] = highend;
 
 			String key;
 			key = category;
@@ -277,18 +284,14 @@ void VisualShaderEditor::update_custom_nodes() {
 
 		const Dictionary &value = (Dictionary)added[key];
 
-		add_custom_type(value["name"], value["script"], value["description"], value["return_icon_type"], value["category"], value["subcategory"]);
+		add_custom_type(value["name"], value["script"], value["description"], value["return_icon_type"], value["category"], value["subcategory"], value["highend"]);
 	}
 
 	_update_options_menu();
 }
 
 String VisualShaderEditor::_get_description(int p_idx) {
-	if (add_options[p_idx].highend) {
-		return TTR("(GLES3 only)") + " " + add_options[p_idx].description; // TODO: change it to (Vulkan Only) when its ready
-	} else {
-		return add_options[p_idx].description;
-	}
+	return add_options[p_idx].description;
 }
 
 void VisualShaderEditor::_update_options_menu() {
@@ -556,6 +559,7 @@ void VisualShaderEditor::_update_graph() {
 		}
 
 		Ref<VisualShaderNodeUniform> uniform = vsnode;
+		Ref<VisualShaderNodeScalarUniform> scalar_uniform = vsnode;
 		if (uniform.is_valid()) {
 			graph->add_child(node);
 			_update_created_node(node);
@@ -570,7 +574,9 @@ void VisualShaderEditor::_update_graph() {
 				//shortcut
 				VisualShaderNode::PortType port_right = vsnode->get_output_port_type(0);
 				node->set_slot(0, false, VisualShaderNode::PORT_TYPE_SCALAR, Color(), true, port_right, type_color[port_right]);
-				continue;
+				if (!scalar_uniform.is_valid()) {
+					continue;
+				}
 			}
 			port_offset++;
 		}
@@ -582,11 +588,16 @@ void VisualShaderEditor::_update_graph() {
 			}
 		}
 
-		if (custom_editor && vsnode->get_output_port_count() > 0 && vsnode->get_output_port_name(0) == "" && (vsnode->get_input_port_count() == 0 || vsnode->get_input_port_name(0) == "")) {
+		if (custom_editor && !scalar_uniform.is_valid() && vsnode->get_output_port_count() > 0 && vsnode->get_output_port_name(0) == "" && (vsnode->get_input_port_count() == 0 || vsnode->get_input_port_name(0) == "")) {
 			//will be embedded in first port
 		} else if (custom_editor) {
+
 			port_offset++;
 			node->add_child(custom_editor);
+			if (scalar_uniform.is_valid()) {
+				custom_editor->call_deferred("_show_prop_names", true);
+				continue;
+			}
 			custom_editor = NULL;
 		}
 
@@ -1672,6 +1683,8 @@ void VisualShaderEditor::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_ENTER_TREE || p_what == NOTIFICATION_THEME_CHANGED) {
 
+		highend_label->set_modulate(get_color("vulkan_color", "Editor"));
+
 		error_panel->add_style_override("panel", get_stylebox("bg", "Tree"));
 		error_label->add_color_override("font_color", get_color("error_color", "Editor"));
 
@@ -2029,8 +2042,10 @@ void VisualShaderEditor::_member_selected() {
 
 	if (item != NULL && item->has_meta("id")) {
 		members_dialog->get_ok()->set_disabled(false);
+		highend_label->set_visible(add_options[item->get_meta("id")].highend);
 		node_desc->set_text(_get_description(item->get_meta("id")));
 	} else {
+		highend_label->set_visible(false);
 		members_dialog->get_ok()->set_disabled(true);
 		node_desc->set_text("");
 	}
@@ -2417,9 +2432,21 @@ VisualShaderEditor::VisualShaderEditor() {
 	members->connect("item_selected", this, "_member_selected");
 	members->connect("nothing_selected", this, "_member_unselected");
 
+	HBoxContainer *desc_hbox = memnew(HBoxContainer);
+	members_vb->add_child(desc_hbox);
+
 	Label *desc_label = memnew(Label);
-	members_vb->add_child(desc_label);
+	desc_hbox->add_child(desc_label);
 	desc_label->set_text(TTR("Description:"));
+
+	desc_hbox->add_spacer();
+
+	highend_label = memnew(Label);
+	desc_hbox->add_child(highend_label);
+	highend_label->set_visible(false);
+	highend_label->set_text("Vulkan");
+	highend_label->set_mouse_filter(Control::MOUSE_FILTER_STOP);
+	highend_label->set_tooltip(TTR("High-end node"));
 
 	node_desc = memnew(RichTextLabel);
 	members_vb->add_child(node_desc);
@@ -2685,8 +2712,7 @@ VisualShaderEditor::VisualShaderEditor() {
 
 	add_options.push_back(AddOption("CubeMap", "Textures", "Functions", "VisualShaderNodeCubeMap", TTR("Perform the cubic texture lookup."), -1, -1));
 	texture_node_option_idx = add_options.size();
-	add_options.push_back(AddOption("Texture", "Textures", "Functions", "VisualShaderNodeTexture", TTR("Perform the texture lookup."), -1, -1));
-
+	add_options.push_back(AddOption("Texture2D", "Textures", "Functions", "VisualShaderNodeTexture", TTR("Perform the texture lookup."), -1, -1));
 	add_options.push_back(AddOption("CubeMapUniform", "Textures", "Variables", "VisualShaderNodeCubeMapUniform", TTR("Cubic texture uniform lookup."), -1, -1));
 	add_options.push_back(AddOption("TextureUniform", "Textures", "Variables", "VisualShaderNodeTextureUniform", TTR("2D texture uniform lookup."), -1, -1));
 	add_options.push_back(AddOption("TextureUniformTriplanar", "Textures", "Variables", "VisualShaderNodeTextureUniformTriplanar", TTR("2D texture uniform lookup with triplanar."), -1, -1, VisualShader::TYPE_FRAGMENT | VisualShader::TYPE_LIGHT, Shader::MODE_SPATIAL));
@@ -2886,7 +2912,7 @@ public:
 
 	void setup(const Ref<VisualShaderNodeInput> &p_input) {
 		input = p_input;
-		Ref<Texture> type_icon[5] = {
+		Ref<Texture2D> type_icon[5] = {
 			EditorNode::get_singleton()->get_gui_base()->get_icon("float", "EditorIcons"),
 			EditorNode::get_singleton()->get_gui_base()->get_icon("Vector3", "EditorIcons"),
 			EditorNode::get_singleton()->get_gui_base()->get_icon("bool", "EditorIcons"),
@@ -2972,6 +2998,13 @@ public:
 	bool updating;
 	Ref<VisualShaderNode> node;
 	Vector<EditorProperty *> properties;
+	Vector<Label *> prop_names;
+
+	void _show_prop_names(bool p_show) {
+		for (int i = 0; i < prop_names.size(); i++) {
+			prop_names[i]->set_visible(p_show);
+		}
+	}
 
 	void setup(Ref<Resource> p_parent_resource, Vector<EditorProperty *> p_properties, const Vector<StringName> &p_names, Ref<VisualShaderNode> p_node) {
 		parent_resource = p_parent_resource;
@@ -2981,7 +3014,20 @@ public:
 
 		for (int i = 0; i < p_properties.size(); i++) {
 
-			add_child(p_properties[i]);
+			HBoxContainer *hbox = memnew(HBoxContainer);
+			hbox->set_h_size_flags(SIZE_EXPAND_FILL);
+			add_child(hbox);
+
+			Label *prop_name = memnew(Label);
+			String prop_name_str = p_names[i];
+			prop_name_str = prop_name_str.capitalize() + ":";
+			prop_name->set_text(prop_name_str);
+			prop_name->set_visible(false);
+			hbox->add_child(prop_name);
+			prop_names.push_back(prop_name);
+
+			p_properties[i]->set_h_size_flags(SIZE_EXPAND_FILL);
+			hbox->add_child(p_properties[i]);
 
 			bool res_prop = Object::cast_to<EditorPropertyResource>(p_properties[i]);
 			if (res_prop) {
@@ -3003,6 +3049,7 @@ public:
 		ClassDB::bind_method("_refresh_request", &VisualShaderNodePluginDefaultEditor::_refresh_request);
 		ClassDB::bind_method("_resource_selected", &VisualShaderNodePluginDefaultEditor::_resource_selected);
 		ClassDB::bind_method("_open_inspector", &VisualShaderNodePluginDefaultEditor::_open_inspector);
+		ClassDB::bind_method("_show_prop_names", &VisualShaderNodePluginDefaultEditor::_show_prop_names);
 	}
 };
 

@@ -579,13 +579,6 @@
         ]
       },
       {
-        "name": "godot_color_gray",
-        "return_type": "godot_real",
-        "arguments": [
-          ["const godot_color *", "p_self"]
-        ]
-      },
-      {
         "name": "godot_color_inverted",
         "return_type": "godot_color",
         "arguments": [
@@ -6482,7 +6475,7 @@
           "name": "godot_arvr_blit",
           "return_type": "void",
           "arguments": [
-            ["int", "p_eye"],
+            ["godot_int", "p_eye"],
             ["godot_rid *", "p_render_target"],
             ["godot_rect2 *", "p_screen_rect"]
           ]

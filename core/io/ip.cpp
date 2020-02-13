@@ -71,7 +71,7 @@ struct _IP_ResolverPrivate {
 	}
 
 	Mutex *mutex;
-	Semaphore *sem;
+	SemaphoreOld *sem;
 
 	Thread *thread;
 	//Semaphore* semaphore;
@@ -184,7 +184,7 @@ IP_Address IP::get_resolve_item_address(ResolverID p_id) const {
 	resolver->mutex->lock();
 
 	if (resolver->queue[p_id].status != IP::RESOLVER_STATUS_DONE) {
-		ERR_PRINTS("Resolve of '" + resolver->queue[p_id].hostname + "'' didn't complete yet.");
+		ERR_PRINT("Resolve of '" + resolver->queue[p_id].hostname + "'' didn't complete yet.");
 		resolver->mutex->unlock();
 		return IP_Address();
 	}
@@ -319,7 +319,7 @@ IP::IP() {
 
 #ifndef NO_THREADS
 
-	resolver->sem = Semaphore::create();
+	resolver->sem = SemaphoreOld::create();
 	if (resolver->sem) {
 		resolver->thread_abort = false;
 

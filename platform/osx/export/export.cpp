@@ -74,7 +74,7 @@ protected:
 public:
 	virtual String get_name() const { return "Mac OSX"; }
 	virtual String get_os_name() const { return "OSX"; }
-	virtual Ref<Texture> get_logo() const { return logo; }
+	virtual Ref<Texture2D> get_logo() const { return logo; }
 
 	virtual List<String> get_binary_extensions(const Ref<EditorExportPreset> &p_preset) const {
 		List<String> list;
@@ -692,7 +692,7 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 	unzClose(src_pkg_zip);
 
 	if (!found_binary) {
-		ERR_PRINTS("Requested template binary '" + binary_to_use + "' not found. It might be missing from your template archive.");
+		ERR_PRINT("Requested template binary '" + binary_to_use + "' not found. It might be missing from your template archive.");
 		err = ERR_FILE_NOT_FOUND;
 	}
 

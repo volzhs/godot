@@ -42,12 +42,12 @@ uint32_t EditorOBJImporter::get_import_flags() const {
 	return IMPORT_SCENE;
 }
 
-static Error _parse_material_library(const String &p_path, Map<String, Ref<SpatialMaterial> > &material_map, List<String> *r_missing_deps) {
+static Error _parse_material_library(const String &p_path, Map<String, Ref<StandardMaterial3D> > &material_map, List<String> *r_missing_deps) {
 
 	FileAccessRef f = FileAccess::open(p_path, FileAccess::READ);
 	ERR_FAIL_COND_V_MSG(!f, ERR_CANT_OPEN, vformat("Couldn't open MTL file '%s', it may not exist or not be readable.", p_path));
 
-	Ref<SpatialMaterial> current;
+	Ref<StandardMaterial3D> current;
 	String current_name;
 	String base_path = p_path.get_base_dir();
 	while (true) {
@@ -63,7 +63,7 @@ static Error _parse_material_library(const String &p_path, Map<String, Ref<Spati
 			material_map[current_name] = current;
 		} else if (l.begins_with("Ka ")) {
 			//uv
-			WARN_PRINTS("OBJ: Ambient light for material '" + current_name + "' is ignored in PBR");
+			WARN_PRINT("OBJ: Ambient light for material '" + current_name + "' is ignored in PBR");
 
 		} else if (l.begins_with("Kd ")) {
 			//normal
@@ -102,7 +102,7 @@ static Error _parse_material_library(const String &p_path, Map<String, Ref<Spati
 			c.a = d;
 			current->set_albedo(c);
 			if (c.a < 0.99) {
-				current->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
+				current->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA);
 			}
 		} else if (l.begins_with("Tr ")) {
 			//normal
@@ -114,12 +114,12 @@ static Error _parse_material_library(const String &p_path, Map<String, Ref<Spati
 			c.a = 1.0 - d;
 			current->set_albedo(c);
 			if (c.a < 0.99) {
-				current->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
+				current->set_transparency(StandardMaterial3D::TRANSPARENCY_ALPHA);
 			}
 
 		} else if (l.begins_with("map_Ka ")) {
 			//uv
-			WARN_PRINTS("OBJ: Ambient light texture for material '" + current_name + "' is ignored in PBR");
+			WARN_PRINT("OBJ: Ambient light texture for material '" + current_name + "' is ignored in PBR");
 
 		} else if (l.begins_with("map_Kd ")) {
 			//normal
@@ -133,10 +133,10 @@ static Error _parse_material_library(const String &p_path, Map<String, Ref<Spati
 				path = base_path.plus_file(p);
 			}
 
-			Ref<Texture> texture = ResourceLoader::load(path);
+			Ref<Texture2D> texture = ResourceLoader::load(path);
 
 			if (texture.is_valid()) {
-				current->set_texture(SpatialMaterial::TEXTURE_ALBEDO, texture);
+				current->set_texture(StandardMaterial3D::TEXTURE_ALBEDO, texture);
 			} else if (r_missing_deps) {
 				r_missing_deps->push_back(path);
 			}
@@ -153,10 +153,10 @@ static Error _parse_material_library(const String &p_path, Map<String, Ref<Spati
 				path = base_path.plus_file(p);
 			}
 
-			Ref<Texture> texture = ResourceLoader::load(path);
+			Ref<Texture2D> texture = ResourceLoader::load(path);
 
 			if (texture.is_valid()) {
-				current->set_texture(SpatialMaterial::TEXTURE_METALLIC, texture);
+				current->set_texture(StandardMaterial3D::TEXTURE_METALLIC, texture);
 			} else if (r_missing_deps) {
 				r_missing_deps->push_back(path);
 			}
@@ -173,10 +173,10 @@ static Error _parse_material_library(const String &p_path, Map<String, Ref<Spati
 				path = base_path.plus_file(p);
 			}
 
-			Ref<Texture> texture = ResourceLoader::load(path);
+			Ref<Texture2D> texture = ResourceLoader::load(path);
 
 			if (texture.is_valid()) {
-				current->set_texture(SpatialMaterial::TEXTURE_ROUGHNESS, texture);
+				current->set_texture(StandardMaterial3D::TEXTURE_ROUGHNESS, texture);
 			} else if (r_missing_deps) {
 				r_missing_deps->push_back(path);
 			}
@@ -187,11 +187,11 @@ static Error _parse_material_library(const String &p_path, Map<String, Ref<Spati
 			String p = l.replace("map_bump", "").replace("\\", "/").strip_edges();
 			String path = base_path.plus_file(p);
 
-			Ref<Texture> texture = ResourceLoader::load(path);
+			Ref<Texture2D> texture = ResourceLoader::load(path);
 
 			if (texture.is_valid()) {
-				current->set_feature(SpatialMaterial::FEATURE_NORMAL_MAPPING, true);
-				current->set_texture(SpatialMaterial::TEXTURE_NORMAL, texture);
+				current->set_feature(StandardMaterial3D::FEATURE_NORMAL_MAPPING, true);
+				current->set_texture(StandardMaterial3D::TEXTURE_NORMAL, texture);
 			} else if (r_missing_deps) {
 				r_missing_deps->push_back(path);
 			}
@@ -221,7 +221,7 @@ static Error _parse_obj(const String &p_path, List<Ref<Mesh> > &r_meshes, bool p
 	Vector<Vector2> uvs;
 	String name;
 
-	Map<String, Map<String, Ref<SpatialMaterial> > > material_map;
+	Map<String, Map<String, Ref<StandardMaterial3D> > > material_map;
 
 	Ref<SurfaceTool> surf_tool = memnew(SurfaceTool);
 	surf_tool->begin(Mesh::PRIMITIVE_TRIANGLES);
@@ -397,7 +397,7 @@ static Error _parse_obj(const String &p_path, List<Ref<Mesh> > &r_meshes, bool p
 
 			current_material_library = l.replace("mtllib", "").strip_edges();
 			if (!material_map.has(current_material_library)) {
-				Map<String, Ref<SpatialMaterial> > lib;
+				Map<String, Ref<StandardMaterial3D> > lib;
 				Error err = _parse_material_library(current_material_library, lib, r_missing_deps);
 				if (err == ERR_CANT_OPEN) {
 					String dir = p_path.get_base_dir();

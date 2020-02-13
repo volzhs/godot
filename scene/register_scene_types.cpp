@@ -50,6 +50,8 @@
 #include "scene/2d/mesh_instance_2d.h"
 #include "scene/2d/multimesh_instance_2d.h"
 #include "scene/2d/navigation_2d.h"
+#include "scene/2d/navigation_agent_2d.h"
+#include "scene/2d/navigation_obstacle_2d.h"
 #include "scene/2d/parallax_background.h"
 #include "scene/2d/parallax_layer.h"
 #include "scene/2d/particles_2d.h"
@@ -71,7 +73,6 @@
 #include "scene/animation/animation_node_state_machine.h"
 #include "scene/animation/animation_player.h"
 #include "scene/animation/animation_tree.h"
-#include "scene/animation/animation_tree_player.h"
 #include "scene/animation/root_motion_view.h"
 #include "scene/animation/tween.h"
 #include "scene/audio/audio_stream_player.h"
@@ -145,6 +146,7 @@
 #include "scene/resources/material.h"
 #include "scene/resources/mesh.h"
 #include "scene/resources/mesh_data_tool.h"
+#include "scene/resources/navigation_mesh.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/resources/particles_material.h"
 #include "scene/resources/physics_material.h"
@@ -168,9 +170,6 @@
 #include "scene/resources/world_2d.h"
 #include "scene/scene_string_names.h"
 
-#include "scene/3d/spatial.h"
-#include "scene/3d/world_environment.h"
-
 #ifndef _3D_DISABLED
 #include "scene/3d/area.h"
 #include "scene/3d/arvr_nodes.h"
@@ -189,7 +188,9 @@
 #include "scene/3d/mesh_instance.h"
 #include "scene/3d/multimesh_instance.h"
 #include "scene/3d/navigation.h"
-#include "scene/3d/navigation_mesh.h"
+#include "scene/3d/navigation_agent.h"
+#include "scene/3d/navigation_mesh_instance.h"
+#include "scene/3d/navigation_obstacle.h"
 #include "scene/3d/particles.h"
 #include "scene/3d/path.h"
 #include "scene/3d/physics_body.h"
@@ -201,10 +202,12 @@
 #include "scene/3d/remote_transform.h"
 #include "scene/3d/skeleton.h"
 #include "scene/3d/soft_body.h"
+#include "scene/3d/spatial.h"
 #include "scene/3d/spring_arm.h"
 #include "scene/3d/sprite_3d.h"
 #include "scene/3d/vehicle_body.h"
 #include "scene/3d/visibility_notifier.h"
+#include "scene/3d/world_environment.h"
 #include "scene/animation/skeleton_ik.h"
 #include "scene/resources/environment.h"
 #include "scene/resources/mesh_library.h"
@@ -370,7 +373,6 @@ void register_scene_types() {
 	ClassDB::register_class<AnimationPlayer>();
 	ClassDB::register_class<Tween>();
 
-	ClassDB::register_class<AnimationTreePlayer>();
 	ClassDB::register_class<AnimationTree>();
 	ClassDB::register_class<AnimationNode>();
 	ClassDB::register_class<AnimationRootNode>();
@@ -417,14 +419,11 @@ void register_scene_types() {
 	ClassDB::register_class<ReflectionProbe>();
 	ClassDB::register_class<GIProbe>();
 	ClassDB::register_class<GIProbeData>();
-	ClassDB::register_class<BakedLightmap>();
-	ClassDB::register_class<BakedLightmapData>();
+	//ClassDB::register_class<BakedLightmap>();
+	//ClassDB::register_class<BakedLightmapData>();
 	ClassDB::register_class<Particles>();
 	ClassDB::register_class<CPUParticles>();
 	ClassDB::register_class<Position3D>();
-	ClassDB::register_class<NavigationMeshInstance>();
-	ClassDB::register_class<NavigationMesh>();
-	ClassDB::register_class<Navigation>();
 
 	ClassDB::register_class<RootMotionView>();
 	ClassDB::set_class_enabled("RootMotionView", false); //disabled by default, enabled by editor
@@ -469,9 +468,15 @@ void register_scene_types() {
 	ClassDB::register_class<ConeTwistJoint>();
 	ClassDB::register_class<Generic6DOFJoint>();
 
+	ClassDB::register_class<Navigation>();
+	ClassDB::register_class<NavigationMeshInstance>();
+	ClassDB::register_class<NavigationAgent>();
+	ClassDB::register_class<NavigationObstacle>();
+
 	OS::get_singleton()->yield(); //may take time to init
 
 #endif
+	ClassDB::register_class<NavigationMesh>();
 
 	AcceptDialog::set_swap_ok_cancel(GLOBAL_DEF("gui/common/swap_ok_cancel", bool(OS::get_singleton()->get_swap_ok_cancel())));
 
@@ -519,7 +524,7 @@ void register_scene_types() {
 	ClassDB::register_class<VisualShaderNodeVectorDecompose>();
 	ClassDB::register_class<VisualShaderNodeTransformDecompose>();
 	ClassDB::register_class<VisualShaderNodeTexture>();
-	ClassDB::register_class<VisualShaderNodeCubeMap>();
+	ClassDB::register_class<VisualShaderNodeCubemap>();
 	ClassDB::register_virtual_class<VisualShaderNodeUniform>();
 	ClassDB::register_class<VisualShaderNodeScalarUniform>();
 	ClassDB::register_class<VisualShaderNodeBooleanUniform>();
@@ -528,7 +533,7 @@ void register_scene_types() {
 	ClassDB::register_class<VisualShaderNodeTransformUniform>();
 	ClassDB::register_class<VisualShaderNodeTextureUniform>();
 	ClassDB::register_class<VisualShaderNodeTextureUniformTriplanar>();
-	ClassDB::register_class<VisualShaderNodeCubeMapUniform>();
+	ClassDB::register_class<VisualShaderNodeCubemapUniform>();
 	ClassDB::register_class<VisualShaderNodeIf>();
 	ClassDB::register_class<VisualShaderNodeSwitch>();
 	ClassDB::register_class<VisualShaderNodeScalarSwitch>();
@@ -616,9 +621,11 @@ void register_scene_types() {
 	ClassDB::register_class<SphereMesh>();
 	ClassDB::register_class<PointMesh>();
 	ClassDB::register_virtual_class<Material>();
-	ClassDB::register_class<SpatialMaterial>();
-	SceneTree::add_idle_callback(SpatialMaterial::flush_changes);
-	SpatialMaterial::init_shaders();
+	ClassDB::register_virtual_class<BaseMaterial3D>();
+	ClassDB::register_class<StandardMaterial3D>();
+	ClassDB::register_class<ORMMaterial3D>();
+	SceneTree::add_idle_callback(BaseMaterial3D::flush_changes);
+	BaseMaterial3D::init_shaders();
 
 	ClassDB::register_class<MeshLibrary>();
 
@@ -643,8 +650,10 @@ void register_scene_types() {
 	ClassDB::register_class<PhysicsMaterial>();
 	ClassDB::register_class<World>();
 	ClassDB::register_class<Environment>();
+	ClassDB::register_class<CameraEffects>();
 	ClassDB::register_class<World2D>();
 	ClassDB::register_virtual_class<Texture>();
+	ClassDB::register_virtual_class<Texture2D>();
 	ClassDB::register_virtual_class<Sky>();
 	ClassDB::register_class<PanoramaSky>();
 	ClassDB::register_class<ProceduralSky>();
@@ -658,10 +667,10 @@ void register_scene_types() {
 	ClassDB::register_class<ProxyTexture>();
 	ClassDB::register_class<AnimatedTexture>();
 	ClassDB::register_class<CameraTexture>();
-	ClassDB::register_class<CubeMap>();
 	ClassDB::register_virtual_class<TextureLayered>();
-	ClassDB::register_class<Texture3D>();
-	ClassDB::register_class<TextureArray>();
+	ClassDB::register_class<Cubemap>();
+	ClassDB::register_class<CubemapArray>();
+	ClassDB::register_class<Texture2DArray>();
 	ClassDB::register_class<Animation>();
 	ClassDB::register_virtual_class<Font>();
 	ClassDB::register_class<BitmapFont>();
@@ -713,6 +722,8 @@ void register_scene_types() {
 	ClassDB::register_class<Navigation2D>();
 	ClassDB::register_class<NavigationPolygon>();
 	ClassDB::register_class<NavigationPolygonInstance>();
+	ClassDB::register_class<NavigationAgent2D>();
+	ClassDB::register_class<NavigationObstacle2D>();
 
 	OS::get_singleton()->yield(); //may take time to init
 
@@ -723,10 +734,9 @@ void register_scene_types() {
 	ClassDB::register_virtual_class<SceneTreeTimer>(); //sorry, you can't create it
 
 #ifndef DISABLE_DEPRECATED
-	ClassDB::add_compatibility_class("ImageSkyBox", "PanoramaSky");
-	ClassDB::add_compatibility_class("FixedSpatialMaterial", "SpatialMaterial");
+	ClassDB::add_compatibility_class("SpatialMaterial", "StandardMaterial3D");
 	ClassDB::add_compatibility_class("Mesh", "ArrayMesh");
-
+	ClassDB::add_compatibility_class("AnimationTreePlayer", "AnimationTree");
 #endif
 
 	OS::get_singleton()->yield(); //may take time to init
@@ -749,7 +759,7 @@ void register_scene_types() {
 	if (font_path != String()) {
 		font = ResourceLoader::load(font_path);
 		if (!font.is_valid()) {
-			ERR_PRINTS("Error loading custom font '" + font_path + "'");
+			ERR_PRINT("Error loading custom font '" + font_path + "'");
 		}
 	}
 
@@ -764,7 +774,7 @@ void register_scene_types() {
 				Theme::set_default_font(font);
 			}
 		} else {
-			ERR_PRINTS("Error loading custom theme '" + theme_path + "'");
+			ERR_PRINT("Error loading custom theme '" + theme_path + "'");
 		}
 	}
 }
@@ -799,9 +809,9 @@ void unregister_scene_types() {
 	ResourceLoader::remove_resource_format_loader(resource_loader_bmfont);
 	resource_loader_bmfont.unref();
 
-	//SpatialMaterial is not initialised when 3D is disabled, so it shouldn't be cleaned up either
+	//StandardMaterial3D is not initialised when 3D is disabled, so it shouldn't be cleaned up either
 #ifndef _3D_DISABLED
-	SpatialMaterial::finish_shaders();
+	BaseMaterial3D::finish_shaders();
 #endif // _3D_DISABLED
 
 	ParticlesMaterial::finish_shaders();

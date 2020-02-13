@@ -141,7 +141,10 @@ bool VideoStreamPlaybackWebm::open_file(const String &p_file) {
 			}
 
 			frame_data.resize((webm->getWidth() * webm->getHeight()) << 2);
-			texture->create(webm->getWidth(), webm->getHeight(), Image::FORMAT_RGBA8, Texture::FLAG_FILTER | Texture::FLAG_VIDEO_SURFACE);
+			Ref<Image> img;
+			img.instance();
+			img->create(webm->getWidth(), webm->getHeight(), false, Image::FORMAT_RGBA8);
+			texture->create_from_image(img);
 
 			return true;
 		}
@@ -231,7 +234,7 @@ void VideoStreamPlaybackWebm::set_audio_track(int p_idx) {
 	audio_track = p_idx;
 }
 
-Ref<Texture> VideoStreamPlaybackWebm::get_texture() const {
+Ref<Texture2D> VideoStreamPlaybackWebm::get_texture() const {
 
 	return texture;
 }
@@ -356,7 +359,7 @@ void VideoStreamPlaybackWebm::update(float p_delta) {
 
 						if (converted) {
 							Ref<Image> img = memnew(Image(image.w, image.h, 0, Image::FORMAT_RGBA8, frame_data));
-							texture->set_data(img); //Zero copy send to visual server
+							texture->update(img); //Zero copy send to visual server
 							video_frame_done = true;
 						}
 					}
@@ -393,17 +396,22 @@ int VideoStreamPlaybackWebm::get_mix_rate() const {
 
 inline bool VideoStreamPlaybackWebm::has_enough_video_frames() const {
 	if (video_frames_pos > 0) {
-
-		const double audio_delay = AudioServer::get_singleton()->get_output_latency();
+		// FIXME: AudioServer output latency was fixed in af9bb0e, previously it used to
+		// systematically return 0. Now that it gives a proper latency, it broke this
+		// code where the delay compensation likely never really worked.
+		//const double audio_delay = AudioServer::get_singleton()->get_output_latency();
 		const double video_time = video_frames[video_frames_pos - 1]->time;
-		return video_time >= time + audio_delay + delay_compensation;
+		return video_time >= time + /* audio_delay + */ delay_compensation;
 	}
 	return false;
 }
 
 bool VideoStreamPlaybackWebm::should_process(WebMFrame &video_frame) {
-	const double audio_delay = AudioServer::get_singleton()->get_output_latency();
-	return video_frame.time >= time + audio_delay + delay_compensation;
+	// FIXME: AudioServer output latency was fixed in af9bb0e, previously it used to
+	// systematically return 0. Now that it gives a proper latency, it broke this
+	// code where the delay compensation likely never really worked.
+	//const double audio_delay = AudioServer::get_singleton()->get_output_latency();
+	return video_frame.time >= time + /* audio_delay + */ delay_compensation;
 }
 
 void VideoStreamPlaybackWebm::delete_pointers() {

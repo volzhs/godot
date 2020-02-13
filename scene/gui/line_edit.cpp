@@ -184,6 +184,12 @@ void LineEdit::_gui_input(Ref<InputEvent> p_event) {
 				case KEY_H: {
 					remap_key = KEY_BACKSPACE;
 				} break;
+				case KEY_A: {
+					remap_key = KEY_HOME;
+				} break;
+				case KEY_E: {
+					remap_key = KEY_END;
+				} break;
 			}
 
 			if (remap_key != KEY_UNKNOWN) {
@@ -240,15 +246,7 @@ void LineEdit::_gui_input(Ref<InputEvent> p_event) {
 
 						deselect();
 						text = text.substr(cursor_pos, text.length() - cursor_pos);
-
-						Ref<Font> font = get_font("font");
-
-						cached_width = 0;
-						if (font != NULL) {
-							for (int i = 0; i < text.length(); i++)
-								cached_width += font->get_char_size(text[i]).width;
-						}
-
+						update_cached_width();
 						set_cursor_position(0);
 						_text_changed();
 					}
@@ -636,7 +634,7 @@ bool LineEdit::_is_over_clear_button(const Point2 &p_pos) const {
 	if (!clear_button_enabled || !has_point(p_pos)) {
 		return false;
 	}
-	Ref<Texture> icon = Control::get_icon("clear");
+	Ref<Texture2D> icon = Control::get_icon("clear");
 	int x_ofs = get_stylebox("normal")->get_offset().x;
 	return p_pos.x > get_size().width - icon->get_width() - x_ofs;
 }
@@ -750,7 +748,7 @@ void LineEdit::_notification(int p_what) {
 
 			bool display_clear_icon = !using_placeholder && is_editable() && clear_button_enabled;
 			if (right_icon.is_valid() || display_clear_icon) {
-				Ref<Texture> r_icon = display_clear_icon ? Control::get_icon("clear") : right_icon;
+				Ref<Texture2D> r_icon = display_clear_icon ? Control::get_icon("clear") : right_icon;
 				Color color_icon(1, 1, 1, !is_editable() ? .5 * .9 : .9);
 				if (display_clear_icon) {
 					if (clear_button_status.press_attempt && clear_button_status.pressing_inside) {
@@ -1311,7 +1309,7 @@ void LineEdit::set_cursor_position(int p_pos) {
 		int window_width = get_size().width - style->get_minimum_size().width;
 		bool display_clear_icon = !text.empty() && is_editable() && clear_button_enabled;
 		if (right_icon.is_valid() || display_clear_icon) {
-			Ref<Texture> r_icon = display_clear_icon ? Control::get_icon("clear") : right_icon;
+			Ref<Texture2D> r_icon = display_clear_icon ? Control::get_icon("clear") : right_icon;
 			window_width -= r_icon->get_width();
 		}
 
@@ -1358,18 +1356,10 @@ void LineEdit::set_window_pos(int p_pos) {
 void LineEdit::append_at_cursor(String p_text) {
 
 	if ((max_length <= 0) || (text.length() + p_text.length() <= max_length)) {
-
-		Ref<Font> font = get_font("font");
-		if (font != NULL) {
-			for (int i = 0; i < p_text.length(); i++)
-				cached_width += font->get_char_size(p_text[i]).width;
-		} else {
-			cached_width = 0;
-		}
-
 		String pre = text.substr(0, cursor_pos);
 		String post = text.substr(cursor_pos, text.length() - cursor_pos);
 		text = pre + p_text + post;
+		update_cached_width();
 		set_cursor_position(cursor_pos + p_text.length());
 	} else {
 		emit_signal("text_change_rejected");
@@ -1499,6 +1489,7 @@ bool LineEdit::is_editable() const {
 void LineEdit::set_secret(bool p_secret) {
 
 	pass = p_secret;
+	update_cached_width();
 	update();
 }
 
@@ -1514,6 +1505,7 @@ void LineEdit::set_secret_character(const String &p_string) {
 	ERR_FAIL_COND_MSG(p_string.length() != 1, "Secret character must be exactly one character long (" + itos(p_string.length()) + " characters given).");
 
 	secret_character = p_string;
+	update_cached_width();
 	update();
 }
 
@@ -1658,7 +1650,7 @@ bool LineEdit::is_selecting_enabled() const {
 	return selecting_enabled;
 }
 
-void LineEdit::set_right_icon(const Ref<Texture> &p_icon) {
+void LineEdit::set_right_icon(const Ref<Texture2D> &p_icon) {
 	if (right_icon == p_icon) {
 		return;
 	}
@@ -1667,7 +1659,7 @@ void LineEdit::set_right_icon(const Ref<Texture> &p_icon) {
 	update();
 }
 
-Ref<Texture> LineEdit::get_right_icon() {
+Ref<Texture2D> LineEdit::get_right_icon() {
 	return right_icon;
 }
 
@@ -1683,6 +1675,17 @@ void LineEdit::_emit_text_change() {
 	emit_signal("text_changed", text);
 	_change_notify("text");
 	text_changed_dirty = false;
+}
+
+void LineEdit::update_cached_width() {
+	Ref<Font> font = get_font("font");
+	cached_width = 0;
+	if (font != NULL) {
+		String text = get_text();
+		for (int i = 0; i < text.length(); i++) {
+			cached_width += font->get_char_size(pass ? secret_character[0] : text[i]).width;
+		}
+	}
 }
 
 void LineEdit::update_placeholder_width() {

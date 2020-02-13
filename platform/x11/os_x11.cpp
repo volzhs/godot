@@ -33,10 +33,17 @@
 
 #include "core/os/dir_access.h"
 #include "core/print_string.h"
-#include "drivers/gles2/rasterizer_gles2.h"
-#include "drivers/gles3/rasterizer_gles3.h"
 #include "errno.h"
 #include "key_mapping_x11.h"
+
+#if defined(OPENGL_ENABLED)
+#include "drivers/gles2/rasterizer_gles2.h"
+#endif
+
+#if defined(VULKAN_ENABLED)
+#include "servers/visual/rasterizer_rd/rasterizer_rd.h"
+#endif
+
 #include "servers/visual/visual_server_raster.h"
 #include "servers/visual/visual_server_wrap_mt.h"
 
@@ -230,137 +237,131 @@ Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 		XFree(imvalret);
 	}
 
-/*
-	char* windowid = getenv("GODOT_WINDOWID");
-	if (windowid) {
-
-		//freopen("/home/punto/stdout", "w", stdout);
-		//reopen("/home/punto/stderr", "w", stderr);
-		x11_window = atol(windowid);
-
-		XWindowAttributes xwa;
-		XGetWindowAttributes(x11_display,x11_window,&xwa);
-
-		current_videomode.width = xwa.width;
-		current_videomode.height = xwa.height;
-	};
-	*/
-
-// maybe contextgl wants to be in charge of creating the window
-#if defined(OPENGL_ENABLED)
-	if (getenv("DRI_PRIME") == NULL) {
-		int use_prime = -1;
-
-		if (getenv("PRIMUS_DISPLAY") ||
-				getenv("PRIMUS_libGLd") ||
-				getenv("PRIMUS_libGLa") ||
-				getenv("PRIMUS_libGL") ||
-				getenv("PRIMUS_LOAD_GLOBAL") ||
-				getenv("BUMBLEBEE_SOCKET")) {
-
-			print_verbose("Optirun/primusrun detected. Skipping GPU detection");
-			use_prime = 0;
-		}
-
-		if (getenv("LD_LIBRARY_PATH")) {
-			String ld_library_path(getenv("LD_LIBRARY_PATH"));
-			Vector<String> libraries = ld_library_path.split(":");
-
-			for (int i = 0; i < libraries.size(); ++i) {
-				if (FileAccess::exists(libraries[i] + "/libGL.so.1") ||
-						FileAccess::exists(libraries[i] + "/libGL.so")) {
-
-					print_verbose("Custom libGL override detected. Skipping GPU detection");
-					use_prime = 0;
-				}
-			}
-		}
-
-		if (use_prime == -1) {
-			print_verbose("Detecting GPUs, set DRI_PRIME in the environment to override GPU detection logic.");
-			use_prime = detect_prime();
-		}
-
-		if (use_prime) {
-			print_line("Found discrete GPU, setting DRI_PRIME=1 to use it.");
-			print_line("Note: Set DRI_PRIME=0 in the environment to disable Godot from using the discrete GPU.");
-			setenv("DRI_PRIME", "1", 1);
-		}
-	}
-
-	ContextGL_X11::ContextType opengl_api_type = ContextGL_X11::GLES_3_0_COMPATIBLE;
-
-	if (p_video_driver == VIDEO_DRIVER_GLES2) {
-		opengl_api_type = ContextGL_X11::GLES_2_0_COMPATIBLE;
-	}
-
-	bool editor = Engine::get_singleton()->is_editor_hint();
-	bool gl_initialization_error = false;
-
-	context_gl = NULL;
-	while (!context_gl) {
-		context_gl = memnew(ContextGL_X11(x11_display, x11_window, current_videomode, opengl_api_type));
-
-		if (context_gl->initialize() != OK) {
-			memdelete(context_gl);
-			context_gl = NULL;
-
-			if (GLOBAL_GET("rendering/quality/driver/fallback_to_gles2") || editor) {
-				if (p_video_driver == VIDEO_DRIVER_GLES2) {
-					gl_initialization_error = true;
-					break;
-				}
-
-				p_video_driver = VIDEO_DRIVER_GLES2;
-				opengl_api_type = ContextGL_X11::GLES_2_0_COMPATIBLE;
-			} else {
-				gl_initialization_error = true;
-				break;
-			}
-		}
-	}
-
-	while (true) {
-		if (opengl_api_type == ContextGL_X11::GLES_3_0_COMPATIBLE) {
-			if (RasterizerGLES3::is_viable() == OK) {
-				RasterizerGLES3::register_config();
-				RasterizerGLES3::make_current();
-				break;
-			} else {
-				if (GLOBAL_GET("rendering/quality/driver/fallback_to_gles2") || editor) {
-					p_video_driver = VIDEO_DRIVER_GLES2;
-					opengl_api_type = ContextGL_X11::GLES_2_0_COMPATIBLE;
-					continue;
-				} else {
-					gl_initialization_error = true;
-					break;
-				}
-			}
-		}
-
-		if (opengl_api_type == ContextGL_X11::GLES_2_0_COMPATIBLE) {
-			if (RasterizerGLES2::is_viable() == OK) {
-				RasterizerGLES2::register_config();
-				RasterizerGLES2::make_current();
-				break;
-			} else {
-				gl_initialization_error = true;
-				break;
-			}
-		}
-	}
-
-	if (gl_initialization_error) {
-		OS::get_singleton()->alert("Your video card driver does not support any of the supported OpenGL versions.\n"
-								   "Please update your drivers or if you have a very old or integrated GPU upgrade it.",
-				"Unable to initialize Video driver");
-		return ERR_UNAVAILABLE;
-	}
-
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//TODO - do Vulkan and GLES2 support checks, driver selection and fallback
 	video_driver_index = p_video_driver;
+#ifndef _MSC_VER
+#warning Forcing vulkan video driver because OpenGL not implemented yet
+#endif
+	video_driver_index = VIDEO_DRIVER_VULKAN;
 
-	context_gl->set_use_vsync(current_videomode.use_vsync);
+	print_verbose("Driver: " + String(get_video_driver_name(video_driver_index)) + " [" + itos(video_driver_index) + "]");
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+	//Create window
+
+	long visualMask = VisualScreenMask;
+	int numberOfVisuals;
+	XVisualInfo vInfoTemplate = {};
+	vInfoTemplate.screen = DefaultScreen(x11_display);
+	XVisualInfo *visualInfo = XGetVisualInfo(x11_display, visualMask, &vInfoTemplate, &numberOfVisuals);
+
+	Colormap colormap = XCreateColormap(x11_display, RootWindow(x11_display, vInfoTemplate.screen), visualInfo->visual, AllocNone);
+
+	XSetWindowAttributes windowAttributes = {};
+	windowAttributes.colormap = colormap;
+	windowAttributes.background_pixel = 0xFFFFFFFF;
+	windowAttributes.border_pixel = 0;
+	windowAttributes.event_mask = KeyPressMask | KeyReleaseMask | StructureNotifyMask | ExposureMask;
+
+	unsigned long valuemask = CWBorderPixel | CWColormap | CWEventMask;
+	x11_window = XCreateWindow(x11_display, RootWindow(x11_display, visualInfo->screen), 0, 0, OS::get_singleton()->get_video_mode().width, OS::get_singleton()->get_video_mode().height, 0, visualInfo->depth, InputOutput, visualInfo->visual, valuemask, &windowAttributes);
+
+	//set_class_hint(x11_display, x11_window);
+	XMapWindow(x11_display, x11_window);
+	XFlush(x11_display);
+
+	XSync(x11_display, False);
+	//XSetErrorHandler(oldHandler);
+
+	XFree(visualInfo);
+
+	// Init context and rendering device
+#if defined(OPENGL_ENABLED)
+	if (video_driver_index == VIDEO_DRIVER_GLES2) {
+		if (getenv("DRI_PRIME") == NULL) {
+			int use_prime = -1;
+
+			if (getenv("PRIMUS_DISPLAY") ||
+					getenv("PRIMUS_libGLd") ||
+					getenv("PRIMUS_libGLa") ||
+					getenv("PRIMUS_libGL") ||
+					getenv("PRIMUS_LOAD_GLOBAL") ||
+					getenv("BUMBLEBEE_SOCKET")) {
+
+				print_verbose("Optirun/primusrun detected. Skipping GPU detection");
+				use_prime = 0;
+			}
+
+			if (getenv("LD_LIBRARY_PATH")) {
+				String ld_library_path(getenv("LD_LIBRARY_PATH"));
+				Vector<String> libraries = ld_library_path.split(":");
+
+				for (int i = 0; i < libraries.size(); ++i) {
+					if (FileAccess::exists(libraries[i] + "/libGL.so.1") ||
+							FileAccess::exists(libraries[i] + "/libGL.so")) {
+
+						print_verbose("Custom libGL override detected. Skipping GPU detection");
+						use_prime = 0;
+					}
+				}
+			}
+
+			if (use_prime == -1) {
+				print_verbose("Detecting GPUs, set DRI_PRIME in the environment to override GPU detection logic.");
+				use_prime = detect_prime();
+			}
+
+			if (use_prime) {
+				print_line("Found discrete GPU, setting DRI_PRIME=1 to use it.");
+				print_line("Note: Set DRI_PRIME=0 in the environment to disable Godot from using the discrete GPU.");
+				setenv("DRI_PRIME", "1", 1);
+			}
+		}
+
+		ContextGL_X11::ContextType opengl_api_type = ContextGL_X11::GLES_2_0_COMPATIBLE;
+
+		context_gles2 = memnew(ContextGL_X11(x11_display, x11_window, current_videomode, opengl_api_type));
+
+		if (context_gles2->initialize() != OK) {
+			memdelete(context_gles2);
+			context_gles2 = NULL;
+			ERR_FAIL_V(ERR_UNAVAILABLE);
+		}
+
+		context_gles2->set_use_vsync(current_videomode.use_vsync);
+
+		if (RasterizerGLES2::is_viable() == OK) {
+			RasterizerGLES2::register_config();
+			RasterizerGLES2::make_current();
+		} else {
+			memdelete(context_gles2);
+			context_gles2 = NULL;
+			ERR_FAIL_V(ERR_UNAVAILABLE);
+		}
+	}
+#endif
+#if defined(VULKAN_ENABLED)
+	if (video_driver_index == VIDEO_DRIVER_VULKAN) {
+
+		context_vulkan = memnew(VulkanContextX11);
+		if (context_vulkan->initialize() != OK) {
+			memdelete(context_vulkan);
+			context_vulkan = NULL;
+			ERR_FAIL_V(ERR_UNAVAILABLE);
+		}
+		if (context_vulkan->window_create(x11_window, x11_display, get_video_mode().width, get_video_mode().height) == -1) {
+			memdelete(context_vulkan);
+			context_vulkan = NULL;
+			ERR_FAIL_V(ERR_UNAVAILABLE);
+		}
+
+		//temporary
+		rendering_device_vulkan = memnew(RenderingDeviceVulkan);
+		rendering_device_vulkan->initialize(context_vulkan);
+
+		RasterizerRD::make_current();
+	}
 #endif
 
 	visual_server = memnew(VisualServerRaster);
@@ -526,19 +527,73 @@ Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 			"watch",
 			"left_ptr_watch",
 			"fleur",
-			"hand1",
-			"X_cursor",
-			"sb_v_double_arrow",
-			"sb_h_double_arrow",
+			"dnd-move",
+			"crossed_circle",
+			"v_double_arrow",
+			"h_double_arrow",
 			"size_bdiag",
 			"size_fdiag",
-			"hand1",
-			"sb_v_double_arrow",
-			"sb_h_double_arrow",
+			"move",
+			"row_resize",
+			"col_resize",
 			"question_arrow"
 		};
 
 		img[i] = XcursorLibraryLoadImage(cursor_file[i], cursor_theme, cursor_size);
+		if (!img[i]) {
+			const char *fallback = NULL;
+
+			switch (i) {
+				case CURSOR_POINTING_HAND:
+					fallback = "pointer";
+					break;
+				case CURSOR_CROSS:
+					fallback = "crosshair";
+					break;
+				case CURSOR_WAIT:
+					fallback = "wait";
+					break;
+				case CURSOR_BUSY:
+					fallback = "progress";
+					break;
+				case CURSOR_DRAG:
+					fallback = "grabbing";
+					break;
+				case CURSOR_CAN_DROP:
+					fallback = "hand1";
+					break;
+				case CURSOR_FORBIDDEN:
+					fallback = "forbidden";
+					break;
+				case CURSOR_VSIZE:
+					fallback = "ns-resize";
+					break;
+				case CURSOR_HSIZE:
+					fallback = "ew-resize";
+					break;
+				case CURSOR_BDIAGSIZE:
+					fallback = "fd_double_arrow";
+					break;
+				case CURSOR_FDIAGSIZE:
+					fallback = "bd_double_arrow";
+					break;
+				case CURSOR_MOVE:
+					img[i] = img[CURSOR_DRAG];
+					break;
+				case CURSOR_VSPLIT:
+					fallback = "sb_v_double_arrow";
+					break;
+				case CURSOR_HSPLIT:
+					fallback = "sb_h_double_arrow";
+					break;
+				case CURSOR_HELP:
+					fallback = "help";
+					break;
+			}
+			if (fallback != NULL) {
+				img[i] = XcursorLibraryLoadImage(fallback, cursor_theme, cursor_size);
+			}
+		}
 		if (img[i]) {
 			cursors[i] = XcursorImageLoadCursor(x11_display, img[i]);
 		} else {
@@ -669,14 +724,8 @@ bool OS_X11::refresh_device_info() {
 		int range_max_x = 0;
 		int range_max_y = 0;
 		int pressure_resolution = 0;
-		int pressure_min = 0;
-		int pressure_max = 0;
 		int tilt_resolution_x = 0;
 		int tilt_resolution_y = 0;
-		int tilt_range_min_x = 0;
-		int tilt_range_min_y = 0;
-		int tilt_range_max_x = 0;
-		int tilt_range_max_y = 0;
 		for (int j = 0; j < dev->num_classes; j++) {
 #ifdef TOUCH_ENABLED
 			if (dev->classes[j]->type == XITouchClass && ((XITouchClassInfo *)dev->classes[j])->mode == XIDirectTouch) {
@@ -697,17 +746,14 @@ bool OS_X11::refresh_device_info() {
 					range_max_y = class_info->max;
 					absolute_mode = true;
 				} else if (class_info->number == VALUATOR_PRESSURE && class_info->mode == XIModeAbsolute) {
-					pressure_resolution = class_info->resolution;
-					pressure_min = class_info->min;
-					pressure_max = class_info->max;
+					pressure_resolution = (class_info->max - class_info->min);
+					if (pressure_resolution == 0) pressure_resolution = 1;
 				} else if (class_info->number == VALUATOR_TILTX && class_info->mode == XIModeAbsolute) {
-					tilt_resolution_x = class_info->resolution;
-					tilt_range_min_x = class_info->min;
-					tilt_range_max_x = class_info->max;
+					tilt_resolution_x = (class_info->max - class_info->min);
+					if (tilt_resolution_x == 0) tilt_resolution_x = 1;
 				} else if (class_info->number == VALUATOR_TILTY && class_info->mode == XIModeAbsolute) {
-					tilt_resolution_y = class_info->resolution;
-					tilt_range_min_y = class_info->min;
-					tilt_range_max_y = class_info->max;
+					tilt_resolution_y = (class_info->max - class_info->min);
+					if (tilt_resolution_y == 0) tilt_resolution_y = 1;
 				}
 			}
 		}
@@ -728,15 +774,6 @@ bool OS_X11::refresh_device_info() {
 			print_verbose("XInput: Absolute pointing device: " + String(dev->name));
 		}
 
-		if (pressure_resolution <= 0) {
-			pressure_resolution = (pressure_max - pressure_min);
-		}
-		if (tilt_resolution_x <= 0) {
-			tilt_resolution_x = (tilt_range_max_x - tilt_range_min_x);
-		}
-		if (tilt_resolution_y <= 0) {
-			tilt_resolution_y = (tilt_range_max_y - tilt_range_min_y);
-		}
 		xi.pressure = 0;
 		xi.pen_devices[dev->deviceid] = Vector3(pressure_resolution, tilt_resolution_x, tilt_resolution_y);
 	}
@@ -832,9 +869,28 @@ void OS_X11::finalize() {
 	cursors_cache.clear();
 	visual_server->finish();
 	memdelete(visual_server);
-	//memdelete(rasterizer);
 
 	memdelete(power_manager);
+
+#if defined(OPENGL_ENABLED)
+	if (video_driver_index == VIDEO_DRIVER_GLES2) {
+
+		if (context_gles2)
+			memdelete(context_gles2);
+	}
+#endif
+#if defined(VULKAN_ENABLED)
+	if (video_driver_index == VIDEO_DRIVER_VULKAN) {
+
+		if (rendering_device_vulkan) {
+			rendering_device_vulkan->finalize();
+			memdelete(rendering_device_vulkan);
+		}
+
+		if (context_vulkan)
+			memdelete(context_vulkan);
+	}
+#endif
 
 	if (xrandr_handle)
 		dlclose(xrandr_handle);
@@ -842,9 +898,6 @@ void OS_X11::finalize() {
 	XUnmapWindow(x11_display, x11_window);
 	XDestroyWindow(x11_display, x11_window);
 
-#if defined(OPENGL_ENABLED)
-	memdelete(context_gl);
-#endif
 	for (int i = 0; i < CURSOR_MAX; i++) {
 		if (cursors[i] != None)
 			XFreeCursor(x11_display, cursors[i]);
@@ -1429,11 +1482,15 @@ void OS_X11::set_window_fullscreen(bool p_enabled) {
 		set_window_maximized(true);
 	}
 	set_wm_fullscreen(p_enabled);
-	if (!p_enabled && !current_videomode.always_on_top) {
+	if (!p_enabled && current_videomode.always_on_top) {
 		// Restore
 		set_window_maximized(false);
 	}
-
+	if (!p_enabled) {
+		set_window_position(last_position_before_fs);
+	} else {
+		last_position_before_fs = get_window_position();
+	}
 	current_videomode.fullscreen = p_enabled;
 }
 
@@ -2082,6 +2139,12 @@ void OS_X11::_window_changed(XEvent *event) {
 
 	current_videomode.width = event->xconfigure.width;
 	current_videomode.height = event->xconfigure.height;
+
+#if defined(VULKAN_ENABLED)
+	if (video_driver_index == VIDEO_DRIVER_VULKAN) {
+		context_vulkan->window_resize(0, current_videomode.width, current_videomode.height);
+	}
+#endif
 }
 
 void OS_X11::process_xevents() {
@@ -2970,7 +3033,7 @@ void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 			cursors_cache.erase(p_shape);
 		}
 
-		Ref<Texture> texture = p_cursor;
+		Ref<Texture2D> texture = p_cursor;
 		Ref<AtlasTexture> atlas_texture = p_cursor;
 		Ref<Image> image;
 		Size2 texture_size;
@@ -3066,24 +3129,33 @@ void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 }
 
 void OS_X11::release_rendering_thread() {
-
 #if defined(OPENGL_ENABLED)
-	context_gl->release_current();
+	if (video_driver_index == VIDEO_DRIVER_GLES2) {
+		context_gles2->release_current();
+	}
 #endif
 }
 
 void OS_X11::make_rendering_thread() {
-
 #if defined(OPENGL_ENABLED)
-	context_gl->make_current();
+	if (video_driver_index == VIDEO_DRIVER_GLES2) {
+		context_gles2->make_current();
+	}
 #endif
 }
 
 void OS_X11::swap_buffers() {
-
 #if defined(OPENGL_ENABLED)
-	context_gl->swap_buffers();
+	if (video_driver_index == VIDEO_DRIVER_GLES2) {
+		context_gles2->swap_buffers();
+	}
 #endif
+	/* not needed for now
+#if defined(VULKAN_ENABLED)
+	if (video_driver_index == VIDEO_DRIVER_VULKAN) {
+		context_vulkan->swap_buffers();
+	}
+#endif*/
 }
 
 void OS_X11::alert(const String &p_alert, const String &p_title) {
@@ -3271,19 +3343,13 @@ String OS_X11::get_joy_guid(int p_device) const {
 
 void OS_X11::_set_use_vsync(bool p_enable) {
 #if defined(OPENGL_ENABLED)
-	if (context_gl)
-		context_gl->set_use_vsync(p_enable);
+	if (video_driver_index == VIDEO_DRIVER_GLES2) {
+		if (context_gles2)
+			context_gles2->set_use_vsync(p_enable);
+	}
 #endif
 }
-/*
-bool OS_X11::is_vsync_enabled() const {
 
-	if (context_gl)
-		return context_gl->is_using_vsync();
-
-	return true;
-}
-*/
 void OS_X11::set_context(int p_context) {
 
 	XClassHint *classHint = XAllocClassHint();
@@ -3402,7 +3468,7 @@ Error OS_X11::move_to_trash(const String &p_path) {
 
 	// Issue an error if none of the previous locations is appropriate for the trash can.
 	if (trash_can == "") {
-		ERR_PRINTS("move_to_trash: Could not determine the trash can location");
+		ERR_PRINT("move_to_trash: Could not determine the trash can location");
 		return FAILED;
 	}
 
@@ -3413,7 +3479,7 @@ Error OS_X11::move_to_trash(const String &p_path) {
 
 	// Issue an error if trash can is not created proprely.
 	if (err != OK) {
-		ERR_PRINTS("move_to_trash: Could not create the trash can \"" + trash_can + "\"");
+		ERR_PRINT("move_to_trash: Could not create the trash can \"" + trash_can + "\"");
 		return err;
 	}
 
@@ -3427,7 +3493,7 @@ Error OS_X11::move_to_trash(const String &p_path) {
 
 	// Issue an error if "mv" failed to move the given resource to the trash can.
 	if (err != OK || retval != 0) {
-		ERR_PRINTS("move_to_trash: Could not move the resource \"" + p_path + "\" to the trash can \"" + trash_can + "\"");
+		ERR_PRINT("move_to_trash: Could not move the resource \"" + p_path + "\" to the trash can \"" + trash_can + "\"");
 		return FAILED;
 	}
 
@@ -3502,4 +3568,5 @@ OS_X11::OS_X11() {
 	window_focused = true;
 	xim_style = 0L;
 	mouse_mode = MOUSE_MODE_VISIBLE;
+	last_position_before_fs = Vector2();
 }

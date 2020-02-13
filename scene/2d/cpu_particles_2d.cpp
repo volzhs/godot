@@ -29,7 +29,7 @@
 /*************************************************************************/
 
 #include "cpu_particles_2d.h"
-
+#include "core/core_string_names.h"
 #include "scene/2d/canvas_item.h"
 #include "scene/2d/particles_2d.h"
 #include "scene/resources/particles_material.h"
@@ -58,8 +58,8 @@ void CPUParticles2D::set_amount(int p_amount) {
 		}
 	}
 
-	particle_data.resize((8 + 4 + 1) * p_amount);
-	VS::get_singleton()->multimesh_allocate(multimesh, p_amount, VS::MULTIMESH_TRANSFORM_2D, VS::MULTIMESH_COLOR_8BIT, VS::MULTIMESH_CUSTOM_DATA_FLOAT);
+	particle_data.resize((8 + 4 + 4) * p_amount);
+	VS::get_singleton()->multimesh_allocate(multimesh, p_amount, VS::MULTIMESH_TRANSFORM_2D, true, true);
 
 	particle_order.resize(p_amount);
 }
@@ -169,10 +169,20 @@ void CPUParticles2D::_update_mesh_texture() {
 	vertices.push_back(-tex_size * 0.5 + Vector2(tex_size.x, tex_size.y));
 	vertices.push_back(-tex_size * 0.5 + Vector2(0, tex_size.y));
 	PoolVector<Vector2> uvs;
-	uvs.push_back(Vector2(0, 0));
-	uvs.push_back(Vector2(1, 0));
-	uvs.push_back(Vector2(1, 1));
-	uvs.push_back(Vector2(0, 1));
+	AtlasTexture *atlas_texure = Object::cast_to<AtlasTexture>(*texture);
+	if (atlas_texure && atlas_texure->get_atlas().is_valid()) {
+		Rect2 region_rect = atlas_texure->get_region();
+		Size2 atlas_size = atlas_texure->get_atlas()->get_size();
+		uvs.push_back(Vector2(region_rect.position.x / atlas_size.x, region_rect.position.y / atlas_size.y));
+		uvs.push_back(Vector2((region_rect.position.x + region_rect.size.x) / atlas_size.x, region_rect.position.y / atlas_size.y));
+		uvs.push_back(Vector2((region_rect.position.x + region_rect.size.x) / atlas_size.x, (region_rect.position.y + region_rect.size.y) / atlas_size.y));
+		uvs.push_back(Vector2(region_rect.position.x / atlas_size.x, (region_rect.position.y + region_rect.size.y) / atlas_size.y));
+	} else {
+		uvs.push_back(Vector2(0, 0));
+		uvs.push_back(Vector2(1, 0));
+		uvs.push_back(Vector2(1, 1));
+		uvs.push_back(Vector2(0, 1));
+	}
 	PoolVector<Color> colors;
 	colors.push_back(Color(1, 1, 1, 1));
 	colors.push_back(Color(1, 1, 1, 1));
@@ -197,25 +207,42 @@ void CPUParticles2D::_update_mesh_texture() {
 	VS::get_singleton()->mesh_add_surface_from_arrays(mesh, VS::PRIMITIVE_TRIANGLES, arr);
 }
 
-void CPUParticles2D::set_texture(const Ref<Texture> &p_texture) {
+void CPUParticles2D::set_texture(const Ref<Texture2D> &p_texture) {
+	if (p_texture == texture)
+		return;
+
+	if (texture.is_valid())
+		texture->disconnect(CoreStringNames::get_singleton()->changed, this, "_texture_changed");
 
 	texture = p_texture;
+
+	if (texture.is_valid())
+		texture->connect(CoreStringNames::get_singleton()->changed, this, "_texture_changed");
+
 	update();
 	_update_mesh_texture();
 }
 
-Ref<Texture> CPUParticles2D::get_texture() const {
+void CPUParticles2D::_texture_changed() {
+
+	if (texture.is_valid()) {
+		update();
+		_update_mesh_texture();
+	}
+}
+
+Ref<Texture2D> CPUParticles2D::get_texture() const {
 
 	return texture;
 }
 
-void CPUParticles2D::set_normalmap(const Ref<Texture> &p_normalmap) {
+void CPUParticles2D::set_normalmap(const Ref<Texture2D> &p_normalmap) {
 
 	normalmap = p_normalmap;
 	update();
 }
 
-Ref<Texture> CPUParticles2D::get_normalmap() const {
+Ref<Texture2D> CPUParticles2D::get_normalmap() const {
 
 	return normalmap;
 }
@@ -998,18 +1025,18 @@ void CPUParticles2D::_update_particle_data_buffer() {
 			}
 
 			Color c = r[idx].color;
-			uint8_t *data8 = (uint8_t *)&ptr[8];
-			data8[0] = CLAMP(c.r * 255.0, 0, 255);
-			data8[1] = CLAMP(c.g * 255.0, 0, 255);
-			data8[2] = CLAMP(c.b * 255.0, 0, 255);
-			data8[3] = CLAMP(c.a * 255.0, 0, 255);
 
-			ptr[9] = r[idx].custom[0];
-			ptr[10] = r[idx].custom[1];
-			ptr[11] = r[idx].custom[2];
-			ptr[12] = r[idx].custom[3];
+			ptr[8] = c.r;
+			ptr[9] = c.g;
+			ptr[10] = c.b;
+			ptr[11] = c.a;
 
-			ptr += 13;
+			ptr[12] = r[idx].custom[0];
+			ptr[13] = r[idx].custom[1];
+			ptr[14] = r[idx].custom[2];
+			ptr[15] = r[idx].custom[3];
+
+			ptr += 16;
 		}
 	}
 
@@ -1050,7 +1077,7 @@ void CPUParticles2D::_update_render_thread() {
 	update_mutex->lock();
 #endif
 
-	VS::get_singleton()->multimesh_set_as_bulk_array(multimesh, particle_data);
+	VS::get_singleton()->multimesh_set_buffer(multimesh, particle_data);
 
 #ifndef NO_THREADS
 	update_mutex->unlock();
@@ -1123,7 +1150,7 @@ void CPUParticles2D::_notification(int p_what) {
 					zeromem(ptr, sizeof(float) * 8);
 				}
 
-				ptr += 13;
+				ptr += 16;
 			}
 		}
 	}
@@ -1259,8 +1286,8 @@ void CPUParticles2D::_bind_methods() {
 	// No visibility_rect property contrarily to Particles2D, it's updated automatically.
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "local_coords"), "set_use_local_coordinates", "get_use_local_coordinates");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "draw_order", PROPERTY_HINT_ENUM, "Index,Lifetime"), "set_draw_order", "get_draw_order");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture"), "set_texture", "get_texture");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "normalmap", PROPERTY_HINT_RESOURCE_TYPE, "Texture"), "set_normalmap", "get_normalmap");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_texture", "get_texture");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "normalmap", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_normalmap", "get_normalmap");
 
 	BIND_ENUM_CONSTANT(DRAW_ORDER_INDEX);
 	BIND_ENUM_CONSTANT(DRAW_ORDER_LIFETIME);
@@ -1315,6 +1342,7 @@ void CPUParticles2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("convert_from_particles", "particles"), &CPUParticles2D::convert_from_particles);
 
 	ClassDB::bind_method(D_METHOD("_update_render_thread"), &CPUParticles2D::_update_render_thread);
+	ClassDB::bind_method(D_METHOD("_texture_changed"), &CPUParticles2D::_texture_changed);
 
 	ADD_GROUP("Emission Shape", "emission_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "emission_shape", PROPERTY_HINT_ENUM, "Point,Sphere,Box,Points,Directed Points"), "set_emission_shape", "get_emission_shape");

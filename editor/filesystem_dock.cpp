@@ -45,8 +45,8 @@
 #include "scene/main/viewport.h"
 #include "scene/resources/packed_scene.h"
 
-Ref<Texture> FileSystemDock::_get_tree_item_icon(EditorFileSystemDirectory *p_dir, int p_idx) {
-	Ref<Texture> file_icon;
+Ref<Texture2D> FileSystemDock::_get_tree_item_icon(EditorFileSystemDirectory *p_dir, int p_idx) {
+	Ref<Texture2D> file_icon;
 	if (!p_dir->get_file_import_is_valid(p_idx)) {
 		file_icon = get_icon("ImportFail", "EditorIcons");
 	} else {
@@ -198,11 +198,11 @@ void FileSystemDock::_update_tree(const Vector<String> &p_uncollapsed_paths, boo
 		if (!fave.begins_with("res://"))
 			continue;
 
-		Ref<Texture> folder_icon = get_icon("Folder", "EditorIcons");
+		Ref<Texture2D> folder_icon = get_icon("Folder", "EditorIcons");
 		const Color folder_color = get_color("folder_icon_modulate", "FileDialog");
 
 		String text;
-		Ref<Texture> icon;
+		Ref<Texture2D> icon;
 		Color color;
 		if (fave == "res://") {
 			text = "/";
@@ -496,7 +496,7 @@ void FileSystemDock::navigate_to_path(const String &p_path) {
 	_navigate_to_path(p_path);
 }
 
-void FileSystemDock::_file_list_thumbnail_done(const String &p_path, const Ref<Texture> &p_preview, const Ref<Texture> &p_small_preview, const Variant &p_udata) {
+void FileSystemDock::_file_list_thumbnail_done(const String &p_path, const Ref<Texture2D> &p_preview, const Ref<Texture2D> &p_small_preview, const Variant &p_udata) {
 	if ((file_list_vb->is_visible_in_tree() || path == p_path.get_base_dir()) && p_preview.is_valid()) {
 		Array uarr = p_udata;
 		int idx = uarr[0];
@@ -512,7 +512,7 @@ void FileSystemDock::_file_list_thumbnail_done(const String &p_path, const Ref<T
 	}
 }
 
-void FileSystemDock::_tree_thumbnail_done(const String &p_path, const Ref<Texture> &p_preview, const Ref<Texture> &p_small_preview, const Variant &p_udata) {
+void FileSystemDock::_tree_thumbnail_done(const String &p_path, const Ref<Texture2D> &p_preview, const Ref<Texture2D> &p_small_preview, const Variant &p_udata) {
 	if (p_small_preview.is_valid()) {
 		Array uarr = p_udata;
 		if (tree_update_id == (int)uarr[0]) {
@@ -613,9 +613,9 @@ void FileSystemDock::_update_file_list(bool p_keep_selection) {
 	String ei = "EditorIcons";
 	int thumbnail_size = EditorSettings::get_singleton()->get("docks/filesystem/thumbnail_size");
 	thumbnail_size *= EDSCALE;
-	Ref<Texture> folder_thumbnail;
-	Ref<Texture> file_thumbnail;
-	Ref<Texture> file_thumbnail_broken;
+	Ref<Texture2D> folder_thumbnail;
+	Ref<Texture2D> file_thumbnail;
+	Ref<Texture2D> file_thumbnail_broken;
 
 	bool use_thumbnails = (file_list_display_mode == FILE_LIST_DISPLAY_THUMBNAILS);
 
@@ -645,7 +645,7 @@ void FileSystemDock::_update_file_list(bool p_keep_selection) {
 		files->set_fixed_icon_size(Size2());
 	}
 
-	Ref<Texture> folder_icon = (use_thumbnails) ? folder_thumbnail : get_icon("folder", "FileDialog");
+	Ref<Texture2D> folder_icon = (use_thumbnails) ? folder_thumbnail : get_icon("folder", "FileDialog");
 	const Color folder_color = get_color("folder_icon_modulate", "FileDialog");
 
 	// Build the FileInfo list.
@@ -656,7 +656,7 @@ void FileSystemDock::_update_file_list(bool p_keep_selection) {
 		for (int i = 0; i < favorites.size(); i++) {
 			String favorite = favorites[i];
 			String text;
-			Ref<Texture> icon;
+			Ref<Texture2D> icon;
 			if (favorite == "res://") {
 				text = "/";
 				icon = folder_icon;
@@ -759,8 +759,8 @@ void FileSystemDock::_update_file_list(bool p_keep_selection) {
 		String fpath = finfo->path;
 		String ftype = finfo->type;
 
-		Ref<Texture> type_icon;
-		Ref<Texture> big_icon;
+		Ref<Texture2D> type_icon;
+		Ref<Texture2D> big_icon;
 
 		String tooltip = fpath;
 
@@ -1413,17 +1413,13 @@ void FileSystemDock::_move_operation_confirm(const String &p_to_path, bool overw
 		if (!can_move) {
 			// Ask to do something.
 			overwrite_dialog->popup_centered_minsize();
-			overwrite_dialog->grab_focus();
 			return;
 		}
 	}
 
 	// Check groups.
 	for (int i = 0; i < to_move.size(); i++) {
-
-		print_line("is group: " + to_move[i].path + ": " + itos(EditorFileSystem::get_singleton()->is_group_file(to_move[i].path)));
 		if (to_move[i].is_file && EditorFileSystem::get_singleton()->is_group_file(to_move[i].path)) {
-			print_line("move to: " + p_to_path.plus_file(to_move[i].path.get_file()));
 			EditorFileSystem::get_singleton()->move_group_file(to_move[i].path, p_to_path.plus_file(to_move[i].path.get_file()));
 		}
 	}
@@ -1442,7 +1438,7 @@ void FileSystemDock::_move_operation_confirm(const String &p_to_path, bool overw
 
 	if (is_moved) {
 		int current_tab = editor->get_current_tab();
-		_save_scenes_after_move(file_renames); //save scenes before updating
+		_save_scenes_after_move(file_renames); // Save scenes before updating.
 		_update_dependencies_after_move(file_renames);
 		_update_resource_paths_after_move(file_renames);
 		_update_project_settings_after_move(file_renames);
@@ -1786,6 +1782,14 @@ void FileSystemDock::_resource_created() const {
 	Resource *r = Object::cast_to<Resource>(c);
 	ERR_FAIL_COND(!r);
 
+	PackedScene *scene = Object::cast_to<PackedScene>(r);
+	if (scene) {
+		Node *node = memnew(Node);
+		node->set_name("Node");
+		scene->pack(node);
+		memdelete(node);
+	}
+
 	REF res(r);
 	editor->push_item(c);
 
@@ -1948,7 +1952,7 @@ bool FileSystemDock::can_drop_data_fw(const Point2 &p_point, const Variant &p_da
 			return false;
 
 		// Attempting to move a folder into itself will fail later,
-		// rather than bring up a message don't try to do it in the first place
+		// rather than bring up a message don't try to do it in the first place.
 		to_dir = to_dir.ends_with("/") ? to_dir : (to_dir + "/");
 		Vector<String> fnames = drag_data["files"];
 		for (int i = 0; i < fnames.size(); ++i) {
@@ -2050,11 +2054,15 @@ void FileSystemDock::drop_data_fw(const Point2 &p_point, const Variant &p_data, 
 			Vector<String> fnames = drag_data["files"];
 			to_move.clear();
 			for (int i = 0; i < fnames.size(); i++) {
-				to_move.push_back(FileOrFolder(fnames[i], !fnames[i].ends_with("/")));
+				if (fnames[i].get_base_dir() != to_dir) {
+					to_move.push_back(FileOrFolder(fnames[i], !fnames[i].ends_with("/")));
+				}
 			}
-			_move_operation_confirm(to_dir);
+			if (!to_move.empty()) {
+				_move_operation_confirm(to_dir);
+			}
 		} else if (favorite) {
-			// Add the files from favorites
+			// Add the files from favorites.
 			Vector<String> fnames = drag_data["files"];
 			Vector<String> favorites = EditorSettings::get_singleton()->get_favorites();
 			for (int i = 0; i < fnames.size(); i++) {
@@ -2102,6 +2110,10 @@ void FileSystemDock::_get_drag_target_folder(String &target, bool &target_favori
 					if (fpath.ends_with("/")) {
 						// We drop on a folder.
 						target = fpath;
+						return;
+					} else {
+						// We drop on the folder that the target file is in.
+						target = fpath.get_base_dir();
 						return;
 					}
 				} else {

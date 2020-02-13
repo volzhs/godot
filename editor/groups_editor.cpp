@@ -88,7 +88,7 @@ void GroupDialog::_load_nodes(Node *p_current) {
 		node->set_metadata(0, path);
 		node->set_tooltip(0, path);
 
-		Ref<Texture> icon = EditorNode::get_singleton()->get_object_icon(p_current, "Node");
+		Ref<Texture2D> icon = EditorNode::get_singleton()->get_object_icon(p_current, "Node");
 		node->set_icon(0, icon);
 
 		if (!_can_edit(p_current, selected_group)) {
@@ -197,7 +197,7 @@ void GroupDialog::_add_group(String p_name) {
 	}
 
 	String name = p_name.strip_edges();
-	if (name == "" || groups->search_item_text(name)) {
+	if (name.empty() || groups->get_item_with_text(name)) {
 		return;
 	}
 

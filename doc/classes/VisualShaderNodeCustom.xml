@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="VisualShaderNodeCustom" inherits="VisualShaderNode" version="3.2">
+<class name="VisualShaderNodeCustom" inherits="VisualShaderNode" version="4.0">
 	<brief_description>
 		Virtual class to define custom [VisualShaderNode]s for use in the Visual Shader Editor.
 	</brief_description>
@@ -141,6 +141,14 @@
 			<description>
 				Override this method to define the subcategory of the associated custom node in the Visual Shader Editor's members dialog.
 				Defining this method is [b]optional[/b]. If not overridden, the node will be filed under the root of the main category (see [method _get_category]).
+			</description>
+		</method>
+		<method name="_is_highend" qualifiers="virtual">
+			<return type="bool">
+			</return>
+			<description>
+				Override this method to enable high-end mark in the Visual Shader Editor's members dialog.
+				Defining this method is [b]optional[/b]. If not overridden, it's false.
 			</description>
 		</method>
 	</methods>

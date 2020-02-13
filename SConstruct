@@ -78,7 +78,6 @@ env_base.__class__.add_module_version_string = methods.add_module_version_string
 
 env_base.__class__.add_source_files = methods.add_source_files
 env_base.__class__.use_windows_spawn_fix = methods.use_windows_spawn_fix
-env_base.__class__.split_lib = methods.split_lib
 
 env_base.__class__.add_shared_library = methods.add_shared_library
 env_base.__class__.add_library = methods.add_library
@@ -112,13 +111,13 @@ opts.Add('p', "Platform (alias for 'platform')", '')
 opts.Add('platform', "Target platform (%s)" % ('|'.join(platform_list), ), '')
 opts.Add(EnumVariable('target', "Compilation target", 'debug', ('debug', 'release_debug', 'release')))
 opts.Add(EnumVariable('optimize', "Optimization type", 'speed', ('speed', 'size')))
+
 opts.Add(BoolVariable('tools', "Build the tools (a.k.a. the Godot editor)", True))
 opts.Add(BoolVariable('use_lto', 'Use link-time optimization', False))
 opts.Add(BoolVariable('use_precise_math_checks', 'Math checks use very precise epsilon (useful to debug the engine)', False))
 
 # Components
 opts.Add(BoolVariable('deprecated', "Enable deprecated features", True))
-opts.Add(BoolVariable('gdscript', "Enable GDScript support", True))
 opts.Add(BoolVariable('minizip', "Enable ZIP archive support using minizip", True))
 opts.Add(BoolVariable('xaudio2', "Enable the XAudio2 audio driver", False))
 
@@ -131,7 +130,6 @@ opts.Add(BoolVariable('dev', "If yes, alias for verbose=yes warnings=extra werro
 opts.Add('extra_suffix', "Custom extra suffix added to the base filename of all generated binary files", '')
 opts.Add(BoolVariable('vsproj', "Generate a Visual Studio solution", False))
 opts.Add(EnumVariable('macports_clang', "Build using Clang from MacPorts", 'no', ('no', '5.0', 'devel')))
-opts.Add(BoolVariable('split_libmodules', "Split intermediate libmodules.a in smaller chunks to prevent exceeding linker command line size (forced to True when using MinGW)", False))
 opts.Add(BoolVariable('disable_3d', "Disable 3D nodes for a smaller executable", False))
 opts.Add(BoolVariable('disable_advanced_gui', "Disable advanced GUI nodes and behaviors", False))
 opts.Add(BoolVariable('no_editor_splash', "Don't use the custom splash screen for the editor", False))
@@ -142,6 +140,7 @@ opts.Add(BoolVariable('builtin_bullet', "Use the built-in Bullet library", True)
 opts.Add(BoolVariable('builtin_certs', "Bundle default SSL certificates to be used if you don't specify an override in the project settings", True))
 opts.Add(BoolVariable('builtin_enet', "Use the built-in ENet library", True))
 opts.Add(BoolVariable('builtin_freetype', "Use the built-in FreeType library", True))
+opts.Add(BoolVariable('builtin_glslang', "Use the built-in glslang library", True))
 opts.Add(BoolVariable('builtin_libogg', "Use the built-in libogg library", True))
 opts.Add(BoolVariable('builtin_libpng', "Use the built-in libpng library", True))
 opts.Add(BoolVariable('builtin_libtheora', "Use the built-in libtheora library", True))
@@ -155,7 +154,9 @@ opts.Add(BoolVariable('builtin_opus', "Use the built-in Opus library", True))
 opts.Add(BoolVariable('builtin_pcre2', "Use the built-in PCRE2 library", True))
 opts.Add(BoolVariable('builtin_pcre2_with_jit', "Use JIT compiler for the built-in PCRE2 library", True))
 opts.Add(BoolVariable('builtin_recast', "Use the built-in Recast library", True))
+opts.Add(BoolVariable('builtin_rvo2', "Use the built-in RVO2 library", True))
 opts.Add(BoolVariable('builtin_squish', "Use the built-in squish library", True))
+opts.Add(BoolVariable('builtin_vulkan', "Use the built-in Vulkan loader library and headers", True))
 opts.Add(BoolVariable('builtin_xatlas', "Use the built-in xatlas library", True))
 opts.Add(BoolVariable('builtin_zlib', "Use the built-in zlib library", True))
 opts.Add(BoolVariable('builtin_zstd', "Use the built-in Zstd library", True))
@@ -410,24 +411,14 @@ if selected_platform in platform_list:
     env.module_icons_paths = []
     env.doc_class_path = {}
 
-    for x in module_list:
+    for x in sorted(module_list):
         if not env['module_' + x + '_enabled']:
             continue
         tmppath = "./modules/" + x
         sys.path.insert(0, tmppath)
         env.current_module = x
         import config
-        # can_build changed number of arguments between 3.0 (1) and 3.1 (2),
-        # so try both to preserve compatibility for 3.0 modules
-        can_build = False
-        try:
-            can_build = config.can_build(env, selected_platform)
-        except TypeError:
-            print("Warning: module '%s' uses a deprecated `can_build` "
-                  "signature in its config.py file, it should be "
-                  "`can_build(env, platform)`." % x)
-            can_build = config.can_build(selected_platform)
-        if (can_build):
+        if config.can_build(env, selected_platform):
             config.configure(env)
             env.module_list.append(x)
 
@@ -477,8 +468,6 @@ if selected_platform in platform_list:
             sys.exit(255)
         else:
             env.Append(CPPDEFINES=['_3D_DISABLED'])
-    if env['gdscript']:
-        env.Append(CPPDEFINES=['GDSCRIPT_ENABLED'])
     if env['disable_advanced_gui']:
         if env['tools']:
             print("Build option 'disable_advanced_gui=yes' cannot be used with 'tools=yes' (editor), only with 'tools=no' (export template).")
@@ -498,9 +487,9 @@ if selected_platform in platform_list:
     if not env['verbose']:
         methods.no_verbose(sys, env)
 
-    if (not env["platform"] == "server"): # FIXME: detect GLES3
-        env.Append(BUILDERS = { 'GLES3_GLSL' : env.Builder(action=run_in_subprocess(gles_builders.build_gles3_headers), suffix='glsl.gen.h', src_suffix='.glsl')})
+    if (not env["platform"] == "server"):
         env.Append(BUILDERS = { 'GLES2_GLSL' : env.Builder(action=run_in_subprocess(gles_builders.build_gles2_headers), suffix='glsl.gen.h', src_suffix='.glsl')})
+        env.Append(BUILDERS = { 'RD_GLSL' : env.Builder(action=run_in_subprocess(gles_builders.build_rd_headers), suffix='glsl.gen.h', src_suffix='.glsl')})
 
     scons_cache_path = os.environ.get("SCONS_CACHE")
     if scons_cache_path != None:
