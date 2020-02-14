@@ -2708,31 +2708,43 @@ PropertyInfo ShaderLanguage::uniform_to_property_info(const ShaderNode::Uniform 
 			pi.hint = PROPERTY_HINT_RESOURCE_TYPE;
 			pi.hint_string = "CubeMap";
 		} break;
+		case ShaderLanguage::TYPE_STRUCT: {
+			// FIXME: Implement this.
+		} break;
 	}
 	return pi;
 }
 
 uint32_t ShaderLanguage::get_type_size(DataType p_type) {
 	switch (p_type) {
+		case TYPE_VOID:
+			return 0;
 		case TYPE_BOOL:
 		case TYPE_INT:
 		case TYPE_UINT:
-		case TYPE_FLOAT: return 4;
+		case TYPE_FLOAT:
+			return 4;
 		case TYPE_BVEC2:
 		case TYPE_IVEC2:
 		case TYPE_UVEC2:
-		case TYPE_VEC2: return 8;
+		case TYPE_VEC2:
+			return 8;
 		case TYPE_BVEC3:
 		case TYPE_IVEC3:
 		case TYPE_UVEC3:
-		case TYPE_VEC3: return 12;
+		case TYPE_VEC3:
+			return 12;
 		case TYPE_BVEC4:
 		case TYPE_IVEC4:
 		case TYPE_UVEC4:
-		case TYPE_VEC4: return 16;
-		case TYPE_MAT2: return 8;
-		case TYPE_MAT3: return 12;
-		case TYPE_MAT4: return 16;
+		case TYPE_VEC4:
+			return 16;
+		case TYPE_MAT2:
+			return 8;
+		case TYPE_MAT3:
+			return 12;
+		case TYPE_MAT4:
+			return 16;
 		case TYPE_SAMPLER2D:
 		case TYPE_ISAMPLER2D:
 		case TYPE_USAMPLER2D:
@@ -2742,7 +2754,11 @@ uint32_t ShaderLanguage::get_type_size(DataType p_type) {
 		case TYPE_SAMPLER3D:
 		case TYPE_ISAMPLER3D:
 		case TYPE_USAMPLER3D:
-		case TYPE_SAMPLERCUBE: return 4; //not really, but useful for indices
+		case TYPE_SAMPLERCUBE:
+			return 4; //not really, but useful for indices
+		case TYPE_STRUCT:
+			// FIXME: Implement.
+			return 0;
 	}
 	return 0;
 }
@@ -2933,6 +2949,13 @@ bool ShaderLanguage::_validate_assign(Node *p_node, const Map<StringName, BuiltI
 	} else if (p_node->type == Node::TYPE_MEMBER) {
 
 		MemberNode *member = static_cast<MemberNode *>(p_node);
+
+		if (member->has_swizzling_duplicates) {
+			if (r_message)
+				*r_message = RTR("Swizzling assignment contains duplicates.");
+			return false;
+		}
+
 		return _validate_assign(member->owner, p_builtin_types, r_message);
 
 	} else if (p_node->type == Node::TYPE_VARIABLE) {
@@ -3710,9 +3733,17 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 				String ident = identifier;
 
 				bool ok = true;
+				bool repeated = false;
 				DataType member_type = TYPE_VOID;
 				StringName member_struct_name = "";
 				int array_size = 0;
+
+				Set<char> position_symbols;
+				Set<char> color_symbols;
+				Set<char> texture_symbols;
+
+				bool mix_error = false;
+
 				switch (dt) {
 					case TYPE_STRUCT: {
 						ok = false;
@@ -3758,8 +3789,39 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 							switch (c[i]) {
 								case 'r':
 								case 'g':
+									if (position_symbols.size() > 0 || texture_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!color_symbols.has(c[i])) {
+										color_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
+									break;
 								case 'x':
 								case 'y':
+									if (color_symbols.size() > 0 || texture_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!position_symbols.has(c[i])) {
+										position_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
+									break;
+								case 's':
+								case 't':
+									if (color_symbols.size() > 0 || position_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!texture_symbols.has(c[i])) {
+										texture_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
 									break;
 								default:
 									ok = false;
@@ -3794,9 +3856,41 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 								case 'r':
 								case 'g':
 								case 'b':
+									if (position_symbols.size() > 0 || texture_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!color_symbols.has(c[i])) {
+										color_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
+									break;
 								case 'x':
 								case 'y':
 								case 'z':
+									if (color_symbols.size() > 0 || texture_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!position_symbols.has(c[i])) {
+										position_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
+									break;
+								case 's':
+								case 't':
+								case 'p':
+									if (color_symbols.size() > 0 || position_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!texture_symbols.has(c[i])) {
+										texture_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
 									break;
 								default:
 									ok = false;
@@ -3832,10 +3926,43 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 								case 'g':
 								case 'b':
 								case 'a':
+									if (position_symbols.size() > 0 || texture_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!color_symbols.has(c[i])) {
+										color_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
+									break;
 								case 'x':
 								case 'y':
 								case 'z':
 								case 'w':
+									if (color_symbols.size() > 0 || texture_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!position_symbols.has(c[i])) {
+										position_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
+									break;
+								case 's':
+								case 't':
+								case 'p':
+								case 'q':
+									if (color_symbols.size() > 0 || position_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!texture_symbols.has(c[i])) {
+										texture_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
 									break;
 								default:
 									ok = false;
@@ -3850,8 +3977,12 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 					}
 				}
 
-				if (!ok) {
+				if (mix_error) {
+					_set_error("Cannot combine symbols from different sets in expression ." + ident);
+					return NULL;
+				}
 
+				if (!ok) {
 					_set_error("Invalid member for " + (dt == TYPE_STRUCT ? st : get_datatype_name(dt)) + " expression: ." + ident);
 					return NULL;
 				}
@@ -3865,6 +3996,8 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 				mn->array_size = array_size;
 				mn->name = ident;
 				mn->owner = expr;
+				mn->has_swizzling_duplicates = repeated;
+
 				if (array_size > 0) {
 
 					tk = _get_token();
@@ -6156,6 +6289,13 @@ Error ShaderLanguage::_parse_shader(const Map<StringName, FunctionInfo> &p_funct
 						return ERR_PARSE_ERROR;
 					}
 
+					if (qualifier == ARGUMENT_QUALIFIER_OUT || qualifier == ARGUMENT_QUALIFIER_INOUT) {
+						if (is_sampler_type(get_token_datatype(tk.type))) {
+							_set_error("Opaque types cannot be output parameters.");
+							return ERR_PARSE_ERROR;
+						}
+					}
+
 					if (is_struct) {
 						ptype = TYPE_STRUCT;
 					} else {
@@ -6684,6 +6824,7 @@ Error ShaderLanguage::complete(const String &p_code, const Map<StringName, Funct
 
 			const char colv[4] = { 'r', 'g', 'b', 'a' };
 			const char coordv[4] = { 'x', 'y', 'z', 'w' };
+			const char coordt[4] = { 's', 't', 'p', 'q' };
 
 			int limit = 0;
 
@@ -6721,6 +6862,7 @@ Error ShaderLanguage::complete(const String &p_code, const Map<StringName, Funct
 			for (int i = 0; i < limit; i++) {
 				r_options->push_back(ScriptCodeCompletionOption(String::chr(colv[i]), ScriptCodeCompletionOption::KIND_PLAIN_TEXT));
 				r_options->push_back(ScriptCodeCompletionOption(String::chr(coordv[i]), ScriptCodeCompletionOption::KIND_PLAIN_TEXT));
+				r_options->push_back(ScriptCodeCompletionOption(String::chr(coordt[i]), ScriptCodeCompletionOption::KIND_PLAIN_TEXT));
 			}
 
 		} break;
