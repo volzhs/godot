@@ -41,16 +41,12 @@
 #include "servers/visual/visual_server_raster.h"
 #include "servers/visual_server.h"
 
-Mutex *CanvasItemMaterial::material_mutex = NULL;
+Mutex CanvasItemMaterial::material_mutex;
 SelfList<CanvasItemMaterial>::List *CanvasItemMaterial::dirty_materials = NULL;
 Map<CanvasItemMaterial::MaterialKey, CanvasItemMaterial::ShaderData> CanvasItemMaterial::shader_map;
 CanvasItemMaterial::ShaderNames *CanvasItemMaterial::shader_names = NULL;
 
 void CanvasItemMaterial::init_shaders() {
-
-#ifndef NO_THREADS
-	material_mutex = Mutex::create();
-#endif
 
 	dirty_materials = memnew(SelfList<CanvasItemMaterial>::List);
 
@@ -66,10 +62,6 @@ void CanvasItemMaterial::finish_shaders() {
 	memdelete(dirty_materials);
 	memdelete(shader_names);
 	dirty_materials = NULL;
-
-#ifndef NO_THREADS
-	memdelete(material_mutex);
-#endif
 }
 
 void CanvasItemMaterial::_update_shader() {
@@ -156,44 +148,28 @@ void CanvasItemMaterial::_update_shader() {
 
 void CanvasItemMaterial::flush_changes() {
 
-	if (material_mutex)
-		material_mutex->lock();
+	MutexLock lock(material_mutex);
 
 	while (dirty_materials->first()) {
 
 		dirty_materials->first()->self()->_update_shader();
 	}
-
-	if (material_mutex)
-		material_mutex->unlock();
 }
 
 void CanvasItemMaterial::_queue_shader_change() {
 
-	if (material_mutex)
-		material_mutex->lock();
+	MutexLock lock(material_mutex);
 
 	if (!element.in_list()) {
 		dirty_materials->add(&element);
 	}
-
-	if (material_mutex)
-		material_mutex->unlock();
 }
 
 bool CanvasItemMaterial::_is_shader_dirty() const {
 
-	bool dirty = false;
+	MutexLock lock(material_mutex);
 
-	if (material_mutex)
-		material_mutex->lock();
-
-	dirty = element.in_list();
-
-	if (material_mutex)
-		material_mutex->unlock();
-
-	return dirty;
+	return element.in_list();
 }
 void CanvasItemMaterial::set_blend_mode(BlendMode p_blend_mode) {
 
@@ -332,8 +308,7 @@ CanvasItemMaterial::CanvasItemMaterial() :
 
 CanvasItemMaterial::~CanvasItemMaterial() {
 
-	if (material_mutex)
-		material_mutex->lock();
+	MutexLock lock(material_mutex);
 
 	if (shader_map.has(current_key)) {
 		shader_map[current_key].users--;
@@ -345,9 +320,6 @@ CanvasItemMaterial::~CanvasItemMaterial() {
 
 		VS::get_singleton()->material_set_shader(_get_material(), RID());
 	}
-
-	if (material_mutex)
-		material_mutex->unlock();
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -1179,17 +1151,17 @@ void CanvasItem::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("draw_multiline_colors", "points", "colors", "width"), &CanvasItem::draw_multiline_colors, DEFVAL(1.0));
 	ClassDB::bind_method(D_METHOD("draw_rect", "rect", "color", "filled", "width"), &CanvasItem::draw_rect, DEFVAL(true), DEFVAL(1.0));
 	ClassDB::bind_method(D_METHOD("draw_circle", "position", "radius", "color"), &CanvasItem::draw_circle);
-	ClassDB::bind_method(D_METHOD("draw_texture", "texture", "position", "modulate", "normal_map", "specular_map", "specular_shinness", "texture_filter", "texture_repeat"), &CanvasItem::draw_texture, DEFVAL(Color(1, 1, 1, 1)), DEFVAL(Variant()), DEFVAL(Variant()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
-	ClassDB::bind_method(D_METHOD("draw_texture_rect", "texture", "rect", "tile", "modulate", "transpose", "normal_map", "specular_map", "specular_shinness", "texture_filter", "texture_repeat"), &CanvasItem::draw_texture_rect, DEFVAL(Color(1, 1, 1)), DEFVAL(false), DEFVAL(Variant()), DEFVAL(Variant()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
-	ClassDB::bind_method(D_METHOD("draw_texture_rect_region", "texture", "rect", "src_rect", "modulate", "transpose", "normal_map", "specular_map", "clip_uv", "specular_shinness", "texture_filter", "texture_repeat"), &CanvasItem::draw_texture_rect_region, DEFVAL(Color(1, 1, 1)), DEFVAL(false), DEFVAL(Variant()), DEFVAL(Variant()), DEFVAL(true), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
+	ClassDB::bind_method(D_METHOD("draw_texture", "texture", "position", "modulate", "normal_map", "specular_map", "specular_shininess", "texture_filter", "texture_repeat"), &CanvasItem::draw_texture, DEFVAL(Color(1, 1, 1, 1)), DEFVAL(Ref<Texture2D>()), DEFVAL(Ref<Texture2D>()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
+	ClassDB::bind_method(D_METHOD("draw_texture_rect", "texture", "rect", "tile", "modulate", "transpose", "normal_map", "specular_map", "specular_shininess", "texture_filter", "texture_repeat"), &CanvasItem::draw_texture_rect, DEFVAL(Color(1, 1, 1, 1)), DEFVAL(false), DEFVAL(Ref<Texture2D>()), DEFVAL(Ref<Texture2D>()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
+	ClassDB::bind_method(D_METHOD("draw_texture_rect_region", "texture", "rect", "src_rect", "modulate", "transpose", "normal_map", "specular_map", "specular_shininess", "clip_uv", "texture_filter", "texture_repeat"), &CanvasItem::draw_texture_rect_region, DEFVAL(Color(1, 1, 1, 1)), DEFVAL(false), DEFVAL(Ref<Texture2D>()), DEFVAL(Ref<Texture2D>()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(true), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
 	ClassDB::bind_method(D_METHOD("draw_style_box", "style_box", "rect"), &CanvasItem::draw_style_box);
-	ClassDB::bind_method(D_METHOD("draw_primitive", "points", "colors", "uvs", "texture", "width", "normal_map", "specular_map", "specular_shinness", "texture_filter", "texture_repeat"), &CanvasItem::draw_primitive, DEFVAL(Variant()), DEFVAL(1.0), DEFVAL(Variant()), DEFVAL(Variant()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
-	ClassDB::bind_method(D_METHOD("draw_polygon", "points", "colors", "uvs", "texture", "normal_map", "specular_map", "specular_shinness", "texture_filter", "texture_repeat"), &CanvasItem::draw_polygon, DEFVAL(PoolVector2Array()), DEFVAL(Variant()), DEFVAL(Variant()), DEFVAL(Variant()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
-	ClassDB::bind_method(D_METHOD("draw_colored_polygon", "points", "color", "uvs", "texture", "normal_map", "specular_map", "specular_shinness", "texture_filter", "texture_repeat"), &CanvasItem::draw_colored_polygon, DEFVAL(PoolVector2Array()), DEFVAL(Variant()), DEFVAL(Variant()), DEFVAL(Variant()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
-	ClassDB::bind_method(D_METHOD("draw_string", "font", "position", "text", "modulate", "clip_w"), &CanvasItem::draw_string, DEFVAL(Color(1, 1, 1)), DEFVAL(-1));
-	ClassDB::bind_method(D_METHOD("draw_char", "font", "position", "char", "next", "modulate"), &CanvasItem::draw_char, DEFVAL(Color(1, 1, 1)));
-	ClassDB::bind_method(D_METHOD("draw_mesh", "mesh", "texture", "normal_map", "specular_map", "transform", "modulate", "specular_shinness", "texture_filter", "texture_repeat"), &CanvasItem::draw_mesh, DEFVAL(Ref<Texture2D>()), DEFVAL(Ref<Texture2D>()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(Transform2D()), DEFVAL(Color(1, 1, 1)), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
-	ClassDB::bind_method(D_METHOD("draw_multimesh", "multimesh", "texture", "normal_map", "specular_map", "specular_shinness", "texture_filter", "texture_repeat"), &CanvasItem::draw_multimesh, DEFVAL(Ref<Texture2D>()), DEFVAL(Ref<Texture2D>()), DEFVAL(Ref<Texture2D>()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
+	ClassDB::bind_method(D_METHOD("draw_primitive", "points", "colors", "uvs", "texture", "width", "normal_map", "specular_map", "specular_shininess", "texture_filter", "texture_repeat"), &CanvasItem::draw_primitive, DEFVAL(Ref<Texture2D>()), DEFVAL(1.0), DEFVAL(Ref<Texture2D>()), DEFVAL(Ref<Texture2D>()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
+	ClassDB::bind_method(D_METHOD("draw_polygon", "points", "colors", "uvs", "texture", "normal_map", "specular_map", "specular_shininess", "texture_filter", "texture_repeat"), &CanvasItem::draw_polygon, DEFVAL(PackedVector2Array()), DEFVAL(Ref<Texture2D>()), DEFVAL(Ref<Texture2D>()), DEFVAL(Ref<Texture2D>()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
+	ClassDB::bind_method(D_METHOD("draw_colored_polygon", "points", "color", "uvs", "texture", "normal_map", "specular_map", "specular_shininess", "texture_filter", "texture_repeat"), &CanvasItem::draw_colored_polygon, DEFVAL(PackedVector2Array()), DEFVAL(Ref<Texture2D>()), DEFVAL(Ref<Texture2D>()), DEFVAL(Ref<Texture2D>()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
+	ClassDB::bind_method(D_METHOD("draw_string", "font", "position", "text", "modulate", "clip_w"), &CanvasItem::draw_string, DEFVAL(Color(1, 1, 1, 1)), DEFVAL(-1));
+	ClassDB::bind_method(D_METHOD("draw_char", "font", "position", "char", "next", "modulate"), &CanvasItem::draw_char, DEFVAL(Color(1, 1, 1, 1)));
+	ClassDB::bind_method(D_METHOD("draw_mesh", "mesh", "texture", "normal_map", "specular_map", "specular_shininess", "transform", "modulate", "texture_filter", "texture_repeat"), &CanvasItem::draw_mesh, DEFVAL(Ref<Texture2D>()), DEFVAL(Ref<Texture2D>()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(Transform2D()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
+	ClassDB::bind_method(D_METHOD("draw_multimesh", "multimesh", "texture", "normal_map", "specular_map", "specular_shininess", "texture_filter", "texture_repeat"), &CanvasItem::draw_multimesh, DEFVAL(Ref<Texture2D>()), DEFVAL(Ref<Texture2D>()), DEFVAL(Color(1, 1, 1, 1)), DEFVAL(TEXTURE_FILTER_PARENT_NODE), DEFVAL(TEXTURE_REPEAT_PARENT_NODE));
 
 	ClassDB::bind_method(D_METHOD("draw_set_transform", "position", "rotation", "scale"), &CanvasItem::draw_set_transform);
 	ClassDB::bind_method(D_METHOD("draw_set_transform_matrix", "xform"), &CanvasItem::draw_set_transform_matrix);
@@ -1263,9 +1235,9 @@ void CanvasItem::_bind_methods() {
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_PARENT_NODE);
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_NEAREST);
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_LINEAR);
-	BIND_ENUM_CONSTANT(TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS);
+	BIND_ENUM_CONSTANT(TEXTURE_FILTER_NEAREST_WITH_MIPMAPS);
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_LINEAR_WITH_MIPMAPS);
-	BIND_ENUM_CONSTANT(TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS_ANISOTROPIC);
+	BIND_ENUM_CONSTANT(TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC);
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC);
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_MAX);
 
@@ -1353,7 +1325,7 @@ void CanvasItem::_update_texture_filter_changed(bool p_propagate) {
 				case Viewport::DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST: texture_filter_cache = VS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST; break;
 				case Viewport::DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_LINEAR: texture_filter_cache = VS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR; break;
 				case Viewport::DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS: texture_filter_cache = VS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS; break;
-				case Viewport::DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS: texture_filter_cache = VS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS; break;
+				case Viewport::DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS: texture_filter_cache = VS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS; break;
 				default: {
 				}
 			}

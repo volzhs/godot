@@ -107,7 +107,7 @@ public:
 		List<String> args;
 		String output;
 		Thread *execute_output_thread;
-		Mutex *execute_output_mutex;
+		Mutex execute_output_mutex;
 		int exitcode;
 		volatile bool done;
 	};
@@ -162,6 +162,8 @@ private:
 		RUN_PLAY_NATIVE,
 		RUN_PLAY_CUSTOM_SCENE,
 		RUN_SCENE_SETTINGS,
+		RUN_DEBUG_ONE,
+		RUN_DEBUG_TWO,
 		RUN_SETTINGS,
 		RUN_PROJECT_DATA_FOLDER,
 		RUN_PROJECT_MANAGER,
@@ -639,7 +641,7 @@ private:
 	static void _resource_saved(RES p_resource, const String &p_path);
 	static void _resource_loaded(RES p_resource, const String &p_path);
 
-	void _resources_changed(const PoolVector<String> &p_resources);
+	void _resources_changed(const Vector<String> &p_resources);
 
 	void _feature_profile_changed();
 	bool _is_class_editor_disabled_by_feature_profile(const StringName &p_class);
@@ -764,10 +766,10 @@ public:
 
 	void set_convert_old_scene(bool p_old) { convert_old = p_old; }
 
-	void notify_child_process_exited();
+	void notify_all_debug_sessions_exited();
 
-	OS::ProcessID get_child_process_id() const { return editor_run.get_pid(); }
-	void stop_child_process();
+	OS::ProcessID has_child_process(OS::ProcessID p_pid) const { return editor_run.has_child_process(p_pid); }
+	void stop_child_process(OS::ProcessID p_pid);
 
 	Ref<Theme> get_editor_theme() const { return theme; }
 	Ref<Script> get_object_custom_type_base(const Object *p_object) const;

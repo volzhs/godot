@@ -363,7 +363,6 @@ Ref<Image> StreamTexture::load_image_from_file(FileAccess *f, int p_size_limit) 
 	uint32_t mipmaps = f->get_32();
 	Image::Format format = Image::Format(f->get_32());
 
-	print_line("format: " + itos(data_format) + " size " + Size2i(w, h) + " mipmaps: " + itos(mipmaps));
 	if (data_format == DATA_FORMAT_LOSSLESS || data_format == DATA_FORMAT_LOSSY || data_format == DATA_FORMAT_BASIS_UNIVERSAL) {
 		//look for a PNG or WEBP file inside
 
@@ -388,11 +387,11 @@ Ref<Image> StreamTexture::load_image_from_file(FileAccess *f, int p_size_limit) 
 				continue;
 			}
 
-			PoolVector<uint8_t> pv;
+			Vector<uint8_t> pv;
 			pv.resize(size);
 			{
-				PoolVector<uint8_t>::Write wr = pv.write();
-				f->get_buffer(wr.ptr(), size);
+				uint8_t *wr = pv.ptrw();
+				f->get_buffer(wr, size);
 			}
 
 			Ref<Image> img;
@@ -405,7 +404,6 @@ Ref<Image> StreamTexture::load_image_from_file(FileAccess *f, int p_size_limit) 
 			}
 
 			if (img.is_null() || img->empty()) {
-				memdelete(f);
 				ERR_FAIL_COND_V(img.is_null() || img->empty(), Ref<Image>());
 			}
 
@@ -438,19 +436,19 @@ Ref<Image> StreamTexture::load_image_from_file(FileAccess *f, int p_size_limit) 
 
 		} else {
 			//rarer use case, but needs to be supported
-			PoolVector<uint8_t> img_data;
+			Vector<uint8_t> img_data;
 			img_data.resize(total_size);
 
 			{
-				PoolVector<uint8_t>::Write wr = img_data.write();
+				uint8_t *wr = img_data.ptrw();
 
 				int ofs = 0;
 				for (int i = 0; i < mipmap_images.size(); i++) {
 
-					PoolVector<uint8_t> id = mipmap_images[i]->get_data();
+					Vector<uint8_t> id = mipmap_images[i]->get_data();
 					int len = id.size();
-					PoolVector<uint8_t>::Read r = id.read();
-					copymem(&wr[ofs], r.ptr(), len);
+					const uint8_t *r = id.ptr();
+					copymem(&wr[ofs], r, len);
 					ofs += len;
 				}
 			}
@@ -474,12 +472,12 @@ Ref<Image> StreamTexture::load_image_from_file(FileAccess *f, int p_size_limit) 
 				continue; //oops, size limit enforced, go to next
 			}
 
-			PoolVector<uint8_t> data;
+			Vector<uint8_t> data;
 			data.resize(size - ofs);
 
 			{
-				PoolVector<uint8_t>::Write wr = data.write();
-				f->get_buffer(wr.ptr(), data.size());
+				uint8_t *wr = data.ptrw();
+				f->get_buffer(wr, data.size());
 			}
 
 			Ref<Image> image;
@@ -587,6 +585,8 @@ Error StreamTexture::_load_data(const String &p_path, int &tw, int &th, int &tw_
 	}
 
 	image = load_image_from_file(f, p_size_limit);
+
+	memdelete(f);
 
 	if (image.is_null() || image->empty()) {
 		return ERR_CANT_OPEN;
@@ -796,7 +796,7 @@ StreamTexture::~StreamTexture() {
 	}
 }
 
-RES ResourceFormatLoaderStreamTexture::load(const String &p_path, const String &p_original_path, Error *r_error) {
+RES ResourceFormatLoaderStreamTexture::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress) {
 
 	Ref<StreamTexture> st;
 	st.instance();
@@ -1408,11 +1408,11 @@ void CurveTexture::ensure_default_setup(float p_min, float p_max) {
 void CurveTexture::set_curve(Ref<Curve> p_curve) {
 	if (_curve != p_curve) {
 		if (_curve.is_valid()) {
-			_curve->disconnect(CoreStringNames::get_singleton()->changed, this, "_update");
+			_curve->disconnect(CoreStringNames::get_singleton()->changed, callable_mp(this, &CurveTexture::_update));
 		}
 		_curve = p_curve;
 		if (_curve.is_valid()) {
-			_curve->connect(CoreStringNames::get_singleton()->changed, this, "_update");
+			_curve->connect(CoreStringNames::get_singleton()->changed, callable_mp(this, &CurveTexture::_update));
 		}
 		_update();
 	}
@@ -1420,13 +1420,13 @@ void CurveTexture::set_curve(Ref<Curve> p_curve) {
 
 void CurveTexture::_update() {
 
-	PoolVector<uint8_t> data;
+	Vector<uint8_t> data;
 	data.resize(_width * sizeof(float));
 
 	// The array is locked in that scope
 	{
-		PoolVector<uint8_t>::Write wd8 = data.write();
-		float *wd = (float *)wd8.ptr();
+		uint8_t *wd8 = data.ptrw();
+		float *wd = (float *)wd8;
 
 		if (_curve.is_valid()) {
 			Curve &curve = **_curve;
@@ -1513,11 +1513,11 @@ void GradientTexture::set_gradient(Ref<Gradient> p_gradient) {
 	if (p_gradient == gradient)
 		return;
 	if (gradient.is_valid()) {
-		gradient->disconnect(CoreStringNames::get_singleton()->changed, this, "_update");
+		gradient->disconnect(CoreStringNames::get_singleton()->changed, callable_mp(this, &GradientTexture::_update));
 	}
 	gradient = p_gradient;
 	if (gradient.is_valid()) {
-		gradient->connect(CoreStringNames::get_singleton()->changed, this, "_update");
+		gradient->connect(CoreStringNames::get_singleton()->changed, callable_mp(this, &GradientTexture::_update));
 	}
 	_update();
 	emit_changed();
@@ -1543,10 +1543,10 @@ void GradientTexture::_update() {
 	if (gradient.is_null())
 		return;
 
-	PoolVector<uint8_t> data;
+	Vector<uint8_t> data;
 	data.resize(width * 4);
 	{
-		PoolVector<uint8_t>::Write wd8 = data.write();
+		uint8_t *wd8 = data.ptrw();
 		Gradient &g = **gradient;
 
 		for (int i = 0; i < width; i++) {
@@ -1842,14 +1842,12 @@ void AnimatedTexture::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_frame_delay", "frame", "delay"), &AnimatedTexture::set_frame_delay);
 	ClassDB::bind_method(D_METHOD("get_frame_delay", "frame"), &AnimatedTexture::get_frame_delay);
 
-	ClassDB::bind_method(D_METHOD("_update_proxy"), &AnimatedTexture::_update_proxy);
-
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "frames", PROPERTY_HINT_RANGE, "1," + itos(MAX_FRAMES), PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), "set_frames", "get_frames");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "fps", PROPERTY_HINT_RANGE, "0,1024,0.1"), "set_fps", "get_fps");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "fps", PROPERTY_HINT_RANGE, "0,1024,0.1"), "set_fps", "get_fps");
 
 	for (int i = 0; i < MAX_FRAMES; i++) {
 		ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "frame_" + itos(i) + "/texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_INTERNAL), "set_frame_texture", "get_frame_texture", i);
-		ADD_PROPERTYI(PropertyInfo(Variant::REAL, "frame_" + itos(i) + "/delay_sec", PROPERTY_HINT_RANGE, "0.0,16.0,0.01", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_INTERNAL), "set_frame_delay", "get_frame_delay", i);
+		ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "frame_" + itos(i) + "/delay_sec", PROPERTY_HINT_RANGE, "0.0,16.0,0.01", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_INTERNAL), "set_frame_delay", "get_frame_delay", i);
 	}
 
 	BIND_CONSTANT(MAX_FRAMES);
@@ -1866,7 +1864,7 @@ AnimatedTexture::AnimatedTexture() {
 	fps = 4;
 	prev_ticks = 0;
 	current_frame = 0;
-	VisualServer::get_singleton()->connect("frame_pre_draw", this, "_update_proxy");
+	VisualServer::get_singleton()->connect("frame_pre_draw", callable_mp(this, &AnimatedTexture::_update_proxy));
 
 #ifndef NO_THREADS
 	rw_lock = RWLock::create();
@@ -2026,7 +2024,7 @@ TextureLayered::~TextureLayered() {
 	}
 }
 
-RES ResourceFormatLoaderTextureLayered::load(const String &p_path, const String &p_original_path, Error *r_error) {
+RES ResourceFormatLoaderTextureLayered::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress) {
 
 	if (r_error) {
 		*r_error = ERR_CANT_OPEN;
@@ -2094,11 +2092,11 @@ RES ResourceFormatLoaderTextureLayered::load(const String &p_path, const String 
 			for (int i = 0; i < mipmaps; i++) {
 				uint32_t size = f->get_32();
 
-				PoolVector<uint8_t> pv;
+				Vector<uint8_t> pv;
 				pv.resize(size);
 				{
-					PoolVector<uint8_t>::Write w = pv.write();
-					f->get_buffer(w.ptr(), size);
+					uint8_t *w = pv.ptrw();
+					f->get_buffer(w, size);
 				}
 
 				Ref<Image> img = Image::lossless_unpacker(pv);
@@ -2121,19 +2119,19 @@ RES ResourceFormatLoaderTextureLayered::load(const String &p_path, const String 
 
 			} else {
 				int total_size = Image::get_image_data_size(tw, th, format, true);
-				PoolVector<uint8_t> img_data;
+				Vector<uint8_t> img_data;
 				img_data.resize(total_size);
 
 				{
-					PoolVector<uint8_t>::Write w = img_data.write();
+					uint8_t *w = img_data.ptrw();
 
 					int ofs = 0;
 					for (int i = 0; i < mipmap_images.size(); i++) {
 
-						PoolVector<uint8_t> id = mipmap_images[i]->get_data();
+						Vector<uint8_t> id = mipmap_images[i]->get_data();
 						int len = id.size();
-						PoolVector<uint8_t>::Read r = id.read();
-						copymem(&w[ofs], r.ptr(), len);
+						const uint8_t *r = id.ptr();
+						copymem(&w[ofs], r, len);
 						ofs += len;
 					}
 				}
@@ -2155,12 +2153,12 @@ RES ResourceFormatLoaderTextureLayered::load(const String &p_path, const String 
 
 			int total_size = Image::get_image_data_size(tw, th, format, use_mipmaps);
 
-			PoolVector<uint8_t> img_data;
+			Vector<uint8_t> img_data;
 			img_data.resize(total_size);
 
 			{
-				PoolVector<uint8_t>::Write w = img_data.write();
-				int bytes = f->get_buffer(w.ptr(), total_size);
+				uint8_t *w = img_data.ptrw();
+				int bytes = f->get_buffer(w, total_size);
 				if (bytes != total_size) {
 					if (r_error) {
 						*r_error = ERR_FILE_CORRUPT;

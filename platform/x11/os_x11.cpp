@@ -1888,6 +1888,8 @@ void OS_X11::handle_key_event(XKeyEvent *p_event, bool p_echo) {
 		if (status == XLookupChars) {
 			bool keypress = xkeyevent->type == KeyPress;
 			unsigned int keycode = KeyMappingX11::get_keycode(keysym_keycode);
+			unsigned int physical_keycode = KeyMappingX11::get_scancode(xkeyevent->keycode);
+
 			if (keycode >= 'a' && keycode <= 'z')
 				keycode -= 'a' - 'A';
 
@@ -1896,9 +1898,12 @@ void OS_X11::handle_key_event(XKeyEvent *p_event, bool p_echo) {
 			for (int i = 0; i < tmp.length(); i++) {
 				Ref<InputEventKey> k;
 				k.instance();
-				if (keycode == 0 && tmp[i] == 0) {
+				if (physical_keycode == 0 && keycode == 0 && tmp[i] == 0) {
 					continue;
 				}
+
+				if (keycode == 0)
+					keycode = physical_keycode;
 
 				get_key_modifier_state(xkeyevent->state, k);
 
@@ -1906,13 +1911,16 @@ void OS_X11::handle_key_event(XKeyEvent *p_event, bool p_echo) {
 
 				k->set_pressed(keypress);
 
-				k->set_scancode(keycode);
+				k->set_keycode(keycode);
+
+				k->set_physical_keycode(physical_keycode);
 
 				k->set_echo(false);
 
-				if (k->get_scancode() == KEY_BACKTAB) {
+				if (k->get_keycode() == KEY_BACKTAB) {
 					//make it consistent across platforms.
-					k->set_scancode(KEY_TAB);
+					k->set_keycode(KEY_TAB);
+					k->set_physical_keycode(KEY_TAB);
 					k->set_shift(true);
 				}
 
@@ -1942,6 +1950,7 @@ void OS_X11::handle_key_event(XKeyEvent *p_event, bool p_echo) {
 	// keysym, so it works in all platforms the same.
 
 	unsigned int keycode = KeyMappingX11::get_keycode(keysym_keycode);
+	unsigned int physical_keycode = KeyMappingX11::get_scancode(xkeyevent->keycode);
 
 	/* Phase 3, obtain a unicode character from the keysym */
 
@@ -1961,8 +1970,11 @@ void OS_X11::handle_key_event(XKeyEvent *p_event, bool p_echo) {
 
 	bool keypress = xkeyevent->type == KeyPress;
 
-	if (keycode == 0 && unicode == 0)
+	if (physical_keycode == 0 && keycode == 0 && unicode == 0)
 		return;
+
+	if (keycode == 0)
+		keycode = physical_keycode;
 
 	/* Phase 5, determine modifier mask */
 
@@ -2025,37 +2037,39 @@ void OS_X11::handle_key_event(XKeyEvent *p_event, bool p_echo) {
 	if (keycode >= 'a' && keycode <= 'z')
 		keycode -= 'a' - 'A';
 
-	k->set_scancode(keycode);
+	k->set_keycode(keycode);
+	k->set_physical_keycode(physical_keycode);
 	k->set_unicode(unicode);
 	k->set_echo(p_echo);
 
-	if (k->get_scancode() == KEY_BACKTAB) {
+	if (k->get_keycode() == KEY_BACKTAB) {
 		//make it consistent across platforms.
-		k->set_scancode(KEY_TAB);
+		k->set_keycode(KEY_TAB);
+		k->set_physical_keycode(KEY_TAB);
 		k->set_shift(true);
 	}
 
 	//don't set mod state if modifier keys are released by themselves
 	//else event.is_action() will not work correctly here
 	if (!k->is_pressed()) {
-		if (k->get_scancode() == KEY_SHIFT)
+		if (k->get_keycode() == KEY_SHIFT)
 			k->set_shift(false);
-		else if (k->get_scancode() == KEY_CONTROL)
+		else if (k->get_keycode() == KEY_CONTROL)
 			k->set_control(false);
-		else if (k->get_scancode() == KEY_ALT)
+		else if (k->get_keycode() == KEY_ALT)
 			k->set_alt(false);
-		else if (k->get_scancode() == KEY_META)
+		else if (k->get_keycode() == KEY_META)
 			k->set_metakey(false);
 	}
 
-	bool last_is_pressed = Input::get_singleton()->is_key_pressed(k->get_scancode());
+	bool last_is_pressed = Input::get_singleton()->is_key_pressed(k->get_keycode());
 	if (k->is_pressed()) {
 		if (last_is_pressed) {
 			k->set_echo(true);
 		}
 	}
 
-	//printf("key: %x\n",k->get_scancode());
+	//printf("key: %x\n",k->get_keycode());
 	input->accumulate_input_event(k);
 }
 
@@ -3076,8 +3090,6 @@ void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 		// allocate memory to contain the whole file
 		cursor_image->pixels = (XcursorPixel *)memalloc(size);
 
-		image->lock();
-
 		for (XcursorPixel index = 0; index < image_size; index++) {
 			int row_index = floor(index / texture_size.width) + atlas_rect.position.y;
 			int column_index = (index % int(texture_size.width)) + atlas_rect.position.x;
@@ -3089,8 +3101,6 @@ void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 
 			*(cursor_image->pixels + index) = image->get_pixel(column_index, row_index).to_argb32();
 		}
-
-		image->unlock();
 
 		ERR_FAIL_COND(cursor_image->pixels == NULL);
 
@@ -3269,10 +3279,10 @@ void OS_X11::set_icon(const Ref<Image> &p_icon) {
 			pd.write[0] = w;
 			pd.write[1] = h;
 
-			PoolVector<uint8_t>::Read r = img->get_data().read();
+			const uint8_t *r = img->get_data().ptr();
 
 			long *wr = &pd.write[2];
-			uint8_t const *pr = r.ptr();
+			uint8_t const *pr = r;
 
 			for (int i = 0; i < w * h; i++) {
 				long v = 0;

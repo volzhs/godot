@@ -47,7 +47,7 @@ void Polygon3DEditor::_notification(int p_what) {
 			button_create->set_icon(get_icon("Edit", "EditorIcons"));
 			button_edit->set_icon(get_icon("MovePoint", "EditorIcons"));
 			button_edit->set_pressed(true);
-			get_tree()->connect("node_removed", this, "_node_removed");
+			get_tree()->connect("node_removed", callable_mp(this, &Polygon3DEditor::_node_removed));
 
 		} break;
 		case NOTIFICATION_PROCESS: {
@@ -470,11 +470,11 @@ void Polygon3DEditor::_polygon_draw() {
 
 	Array a;
 	a.resize(Mesh::ARRAY_MAX);
-	PoolVector<Vector3> va;
+	Vector<Vector3> va;
 	{
 
 		va.resize(poly.size());
-		PoolVector<Vector3>::Write w = va.write();
+		Vector3 *w = va.ptrw();
 		for (int i = 0; i < poly.size(); i++) {
 
 			Vector2 p, p2;
@@ -518,9 +518,7 @@ void Polygon3DEditor::edit(Node *p_collision_polygon) {
 
 void Polygon3DEditor::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_menu_option"), &Polygon3DEditor::_menu_option);
 	ClassDB::bind_method(D_METHOD("_polygon_draw"), &Polygon3DEditor::_polygon_draw);
-	ClassDB::bind_method(D_METHOD("_node_removed"), &Polygon3DEditor::_node_removed);
 }
 
 Polygon3DEditor::Polygon3DEditor(EditorNode *p_editor) {
@@ -532,12 +530,12 @@ Polygon3DEditor::Polygon3DEditor(EditorNode *p_editor) {
 	add_child(memnew(VSeparator));
 	button_create = memnew(ToolButton);
 	add_child(button_create);
-	button_create->connect("pressed", this, "_menu_option", varray(MODE_CREATE));
+	button_create->connect("pressed", callable_mp(this, &Polygon3DEditor::_menu_option), varray(MODE_CREATE));
 	button_create->set_toggle_mode(true);
 
 	button_edit = memnew(ToolButton);
 	add_child(button_edit);
-	button_edit->connect("pressed", this, "_menu_option", varray(MODE_EDIT));
+	button_edit->connect("pressed", callable_mp(this, &Polygon3DEditor::_menu_option), varray(MODE_EDIT));
 	button_edit->set_toggle_mode(true);
 
 	mode = MODE_EDIT;

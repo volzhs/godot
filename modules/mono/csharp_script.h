@@ -141,8 +141,8 @@ class CSharpScript : public Script {
 	static int _try_get_member_export_hint(IMonoClassMember *p_member, ManagedType p_type, Variant::Type p_variant_type, bool p_allow_generics, PropertyHint &r_hint, String &r_hint_string);
 #endif
 
-	CSharpInstance *_create_instance(const Variant **p_args, int p_argcount, Object *p_owner, bool p_isref, Variant::CallError &r_error);
-	Variant _new(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	CSharpInstance *_create_instance(const Variant **p_args, int p_argcount, Object *p_owner, bool p_isref, Callable::CallError &r_error);
+	Variant _new(const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 
 	// Do not use unless you know what you are doing
 	friend void GDMonoInternals::tie_managed_to_unmanaged(MonoObject *, Object *);
@@ -154,7 +154,7 @@ class CSharpScript : public Script {
 protected:
 	static void _bind_methods();
 
-	Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 	virtual void _resource_path_changed();
 	bool _get(const StringName &p_name, Variant &r_ret) const;
 	bool _set(const StringName &p_name, const Variant &p_value);
@@ -265,7 +265,7 @@ public:
 
 	/* TODO */ virtual void get_method_list(List<MethodInfo> *p_list) const {}
 	virtual bool has_method(const StringName &p_method) const;
-	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 	virtual void call_multilevel(const StringName &p_method, const Variant **p_args, int p_argcount);
 	virtual void call_multilevel_reversed(const StringName &p_method, const Variant **p_args, int p_argcount);
 
@@ -325,16 +325,16 @@ class CSharpLanguage : public ScriptLanguage {
 	GDMono *gdmono;
 	SelfList<CSharpScript>::List script_list;
 
-	Mutex *script_instances_mutex;
-	Mutex *script_gchandle_release_mutex;
-	Mutex *language_bind_mutex;
+	Mutex script_instances_mutex;
+	Mutex script_gchandle_release_mutex;
+	Mutex language_bind_mutex;
 
 	Map<Object *, CSharpScriptBinding> script_bindings;
 
 #ifdef DEBUG_ENABLED
 	// List of unsafe object references
 	Map<ObjectID, int> unsafe_object_references;
-	Mutex *unsafe_object_references_lock;
+	Mutex unsafe_object_references_lock;
 #endif
 
 	struct StringNameCache {
@@ -376,7 +376,7 @@ class CSharpLanguage : public ScriptLanguage {
 public:
 	StringNameCache string_names;
 
-	Mutex *get_language_bind_mutex() { return language_bind_mutex; }
+	const Mutex &get_language_bind_mutex() { return language_bind_mutex; }
 
 	_FORCE_INLINE_ int get_language_index() { return lang_idx; }
 	void set_language_index(int p_idx);
@@ -432,7 +432,7 @@ public:
 	virtual bool has_named_classes() const;
 	virtual bool supports_builtin_mode() const;
 	/* TODO? */ virtual int find_function(const String &p_function, const String &p_code) const { return -1; }
-	virtual String make_function(const String &p_class, const String &p_name, const PoolStringArray &p_args) const;
+	virtual String make_function(const String &p_class, const String &p_name, const PackedStringArray &p_args) const;
 	virtual String _get_indentation() const;
 	/* TODO? */ virtual void auto_indent_code(String &p_code, int p_from_line, int p_to_line) const {}
 	/* TODO */ virtual void add_global_constant(const StringName &p_variable, const Variant &p_value) {}
@@ -497,7 +497,7 @@ public:
 
 class ResourceFormatLoaderCSharpScript : public ResourceFormatLoader {
 public:
-	virtual RES load(const String &p_path, const String &p_original_path = "", Error *r_error = NULL);
+	virtual RES load(const String &p_path, const String &p_original_path = "", Error *r_error = NULL, bool p_use_sub_threads = false, float *r_progress = nullptr);
 	virtual void get_recognized_extensions(List<String> *p_extensions) const;
 	virtual bool handles_type(const String &p_type) const;
 	virtual String get_resource_type(const String &p_path) const;

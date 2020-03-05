@@ -313,7 +313,7 @@ public:
 	virtual void tag_saved_version();
 	virtual void reload(bool p_soft);
 	virtual void get_breakpoints(List<int> *p_breakpoints);
-	virtual void add_callback(const String &p_function, PoolStringArray p_args);
+	virtual void add_callback(const String &p_function, PackedStringArray p_args);
 	virtual void update_settings();
 	virtual bool show_members_overview();
 	virtual void set_debugger_active(bool p_active);
@@ -341,7 +341,7 @@ protected:
 	static void _bind_methods();
 	static _VisualScriptEditor *singleton;
 
-	static Map<String, RefPtr> custom_nodes;
+	static Map<String, REF> custom_nodes;
 	static Ref<VisualScriptNode> create_node_custom(const String &p_name);
 
 public:

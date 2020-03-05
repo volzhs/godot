@@ -104,7 +104,7 @@ public:
 	virtual Error capture_stop() { return FAILED; }
 	virtual void capture_set_device(const String &p_name) {}
 	virtual String capture_get_device() { return "Default"; }
-	virtual Array capture_get_device_list(); // TODO: convert this and get_device_list to PoolStringArray
+	virtual Array capture_get_device_list(); // TODO: convert this and get_device_list to PackedStringArray
 
 	virtual float get_latency() { return 0; }
 
@@ -238,7 +238,7 @@ private:
 	size_t audio_data_total_mem;
 	size_t audio_data_max_mem;
 
-	Mutex *audio_data_lock;
+	Mutex audio_data_lock;
 
 	void init_channels_and_buffers();
 

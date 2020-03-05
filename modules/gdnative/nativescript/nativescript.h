@@ -35,6 +35,7 @@
 #include "core/io/resource_saver.h"
 #include "core/oa_hash_map.h"
 #include "core/ordered_hash_map.h"
+#include "core/os/mutex.h"
 #include "core/os/thread_safe.h"
 #include "core/resource.h"
 #include "core/script_language.h"
@@ -43,10 +44,6 @@
 
 #include "modules/gdnative/gdnative.h"
 #include <nativescript/godot_nativescript.h>
-
-#ifndef NO_THREADS
-#include "core/os/mutex.h"
-#endif
 
 struct NativeScriptDesc {
 
@@ -127,9 +124,7 @@ class NativeScript : public Script {
 	String script_class_name;
 	String script_class_icon_path;
 
-#ifndef NO_THREADS
-	Mutex *owners_lock;
-#endif
+	Mutex owners_lock;
 	Set<Object *> instance_owners;
 
 protected:
@@ -197,7 +192,7 @@ public:
 	String get_signal_documentation(const StringName &p_signal_name) const;
 	String get_property_documentation(const StringName &p_path) const;
 
-	Variant _new(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	Variant _new(const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 
 	NativeScript();
 	~NativeScript();
@@ -224,7 +219,7 @@ public:
 	virtual Variant::Type get_property_type(const StringName &p_name, bool *r_is_valid) const;
 	virtual void get_method_list(List<MethodInfo> *p_list) const;
 	virtual bool has_method(const StringName &p_method) const;
-	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 	virtual void notification(int p_notification);
 	String to_string(bool *r_valid);
 	virtual Ref<Script> get_script() const;
@@ -266,9 +261,8 @@ private:
 
 	void _unload_stuff(bool p_reload = false);
 
+	Mutex mutex;
 #ifndef NO_THREADS
-	Mutex *mutex;
-
 	Set<Ref<GDNativeLibrary> > libs_to_init;
 	Set<NativeScript *> scripts_to_register;
 	volatile bool has_objects_to_register; // so that we don't lock mutex every frame - it's rarely needed
@@ -352,7 +346,7 @@ public:
 	virtual bool has_named_classes() const;
 	virtual bool supports_builtin_mode() const;
 	virtual int find_function(const String &p_function, const String &p_code) const;
-	virtual String make_function(const String &p_class, const String &p_name, const PoolStringArray &p_args) const;
+	virtual String make_function(const String &p_class, const String &p_name, const PackedStringArray &p_args) const;
 	virtual void auto_indent_code(String &p_code, int p_from_line, int p_to_line) const;
 	virtual void add_global_constant(const StringName &p_variable, const Variant &p_value);
 	virtual String debug_get_error() const;
@@ -412,7 +406,7 @@ public:
 
 class ResourceFormatLoaderNativeScript : public ResourceFormatLoader {
 public:
-	virtual RES load(const String &p_path, const String &p_original_path = "", Error *r_error = NULL);
+	virtual RES load(const String &p_path, const String &p_original_path = "", Error *r_error = NULL, bool p_use_sub_threads = false, float *r_progress = nullptr);
 	virtual void get_recognized_extensions(List<String> *p_extensions) const;
 	virtual bool handles_type(const String &p_type) const;
 	virtual String get_resource_type(const String &p_path) const;

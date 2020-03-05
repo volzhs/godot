@@ -146,12 +146,15 @@ static const _bit _type_list[] = {
 	//types
 	{ Variant::BOOL, "bool" },
 	{ Variant::INT, "int" },
-	{ Variant::REAL, "float" },
+	{ Variant::FLOAT, "float" },
 	{ Variant::STRING, "String" },
 	{ Variant::VECTOR2, "Vector2" },
+	{ Variant::VECTOR2I, "Vector2i" },
 	{ Variant::RECT2, "Rect2" },
+	{ Variant::RECT2I, "Rect2i" },
 	{ Variant::TRANSFORM2D, "Transform2D" },
 	{ Variant::VECTOR3, "Vector3" },
+	{ Variant::VECTOR3I, "Vector3i" },
 	{ Variant::AABB, "AABB" },
 	{ Variant::PLANE, "Plane" },
 	{ Variant::QUAT, "Quat" },
@@ -160,16 +163,21 @@ static const _bit _type_list[] = {
 	{ Variant::COLOR, "Color" },
 	{ Variant::_RID, "RID" },
 	{ Variant::OBJECT, "Object" },
+	{ Variant::STRING_NAME, "StringName" },
 	{ Variant::NODE_PATH, "NodePath" },
 	{ Variant::DICTIONARY, "Dictionary" },
+	{ Variant::CALLABLE, "Callable" },
+	{ Variant::SIGNAL, "Signal" },
 	{ Variant::ARRAY, "Array" },
-	{ Variant::POOL_BYTE_ARRAY, "PoolByteArray" },
-	{ Variant::POOL_INT_ARRAY, "PoolIntArray" },
-	{ Variant::POOL_REAL_ARRAY, "PoolRealArray" },
-	{ Variant::POOL_STRING_ARRAY, "PoolStringArray" },
-	{ Variant::POOL_VECTOR2_ARRAY, "PoolVector2Array" },
-	{ Variant::POOL_VECTOR3_ARRAY, "PoolVector3Array" },
-	{ Variant::POOL_COLOR_ARRAY, "PoolColorArray" },
+	{ Variant::PACKED_BYTE_ARRAY, "PackedByteArray" },
+	{ Variant::PACKED_INT32_ARRAY, "PackedInt32Array" },
+	{ Variant::PACKED_INT64_ARRAY, "PackedInt64Array" },
+	{ Variant::PACKED_FLOAT32_ARRAY, "PackedFloat32Array" },
+	{ Variant::PACKED_FLOAT64_ARRAY, "PackedFloat64Array" },
+	{ Variant::PACKED_STRING_ARRAY, "PackedStringArray" },
+	{ Variant::PACKED_VECTOR2_ARRAY, "PackedVector2Array" },
+	{ Variant::PACKED_VECTOR3_ARRAY, "PackedVector3Array" },
+	{ Variant::PACKED_COLOR_ARRAY, "PackedColorArray" },
 	{ Variant::VARIANT_MAX, NULL },
 };
 
@@ -337,7 +345,7 @@ StringName GDScriptTokenizer::get_token_literal(int p_offset) const {
 				default: {
 				}
 			}
-		}
+		} break;
 		case TK_OP_AND:
 		case TK_OP_OR:
 			break; // Don't get into default, since they can be non-literal
@@ -475,7 +483,7 @@ void GDScriptTokenizerText::_advance() {
 	}
 	while (true) {
 
-		bool is_node_path = false;
+		bool is_string_name = false;
 		StringMode string_mode = STRING_DOUBLE_QUOTE;
 
 		switch (GETCHAR(0)) {
@@ -533,7 +541,7 @@ void GDScriptTokenizerText::_advance() {
 					ignore_warnings = true;
 				}
 #endif // DEBUG_ENABLED
-				FALLTHROUGH;
+				[[fallthrough]];
 			}
 			case '\n': {
 				line++;
@@ -749,8 +757,8 @@ void GDScriptTokenizerText::_advance() {
 					return;
 				}
 				INCPOS(1);
-				is_node_path = true;
-				FALLTHROUGH;
+				is_string_name = true;
+				[[fallthrough]];
 			case '\'':
 			case '"': {
 
@@ -860,8 +868,8 @@ void GDScriptTokenizerText::_advance() {
 				}
 				INCPOS(i);
 
-				if (is_node_path) {
-					_make_constant(NodePath(str));
+				if (is_string_name) {
+					_make_constant(StringName(str));
 				} else {
 					_make_constant(str);
 				}

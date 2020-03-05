@@ -222,15 +222,11 @@ ScriptInstance *NativeScript::instance_create(Object *p_this) {
 	nsi->userdata = script_data->create_func.create_func((godot_object *)p_this, script_data->create_func.method_data);
 #endif
 
-#ifndef NO_THREADS
-	owners_lock->lock();
-#endif
+	{
+		MutexLock lock(owners_lock);
 
-	instance_owners.insert(p_this);
-
-#ifndef NO_THREADS
-	owners_lock->unlock();
-#endif
+		instance_owners.insert(p_this);
+	}
 
 	return nsi;
 }
@@ -725,21 +721,21 @@ String NativeScript::get_property_documentation(const StringName &p_path) const 
 	ERR_FAIL_V_MSG("", "Attempt to get property documentation for non-existent signal.");
 }
 
-Variant NativeScript::_new(const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
+Variant NativeScript::_new(const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 
 	if (lib_path.empty() || class_name.empty() || library.is_null()) {
-		r_error.error = Variant::CallError::CALL_ERROR_INSTANCE_IS_NULL;
+		r_error.error = Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL;
 		return Variant();
 	}
 
 	NativeScriptDesc *script_data = get_script_desc();
 
 	if (!script_data) {
-		r_error.error = Variant::CallError::CALL_ERROR_INSTANCE_IS_NULL;
+		r_error.error = Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL;
 		return Variant();
 	}
 
-	r_error.error = Variant::CallError::CALL_OK;
+	r_error.error = Callable::CallError::CALL_OK;
 
 	REF ref;
 	Object *owner = NULL;
@@ -751,7 +747,7 @@ Variant NativeScript::_new(const Variant **p_args, int p_argcount, Variant::Call
 	}
 
 	if (!owner) {
-		r_error.error = Variant::CallError::CALL_ERROR_INSTANCE_IS_NULL;
+		r_error.error = Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL;
 		return Variant();
 	}
 
@@ -782,17 +778,10 @@ NativeScript::NativeScript() {
 	library = Ref<GDNative>();
 	lib_path = "";
 	class_name = "";
-#ifndef NO_THREADS
-	owners_lock = Mutex::create();
-#endif
 }
 
 NativeScript::~NativeScript() {
 	NSL->unregister_script(this);
-
-#ifndef NO_THREADS
-	memdelete(owners_lock);
-#endif
 }
 
 #define GET_SCRIPT_DESC() script->get_script_desc()
@@ -964,7 +953,7 @@ bool NativeScriptInstance::has_method(const StringName &p_method) const {
 	return script->has_method(p_method);
 }
 
-Variant NativeScriptInstance::call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
+Variant NativeScriptInstance::call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 
 	NativeScriptDesc *script_data = GET_SCRIPT_DESC();
 
@@ -989,14 +978,14 @@ Variant NativeScriptInstance::call(const StringName &p_method, const Variant **p
 
 			Variant res = *(Variant *)&result;
 			godot_variant_destroy(&result);
-			r_error.error = Variant::CallError::CALL_OK;
+			r_error.error = Callable::CallError::CALL_OK;
 			return res;
 		}
 
 		script_data = script_data->base_data;
 	}
 
-	r_error.error = Variant::CallError::CALL_ERROR_INVALID_METHOD;
+	r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
 	return Variant();
 }
 
@@ -1017,9 +1006,9 @@ void NativeScriptInstance::notification(int p_notification) {
 
 String NativeScriptInstance::to_string(bool *r_valid) {
 	if (has_method(CoreStringNames::get_singleton()->_to_string)) {
-		Variant::CallError ce;
+		Callable::CallError ce;
 		Variant ret = call(CoreStringNames::get_singleton()->_to_string, NULL, 0, ce);
-		if (ce.error == Variant::CallError::CALL_OK) {
+		if (ce.error == Callable::CallError::CALL_OK) {
 			if (ret.get_type() != Variant::STRING) {
 				if (r_valid)
 					*r_valid = false;
@@ -1036,21 +1025,21 @@ String NativeScriptInstance::to_string(bool *r_valid) {
 }
 
 void NativeScriptInstance::refcount_incremented() {
-	Variant::CallError err;
+	Callable::CallError err;
 	call("_refcount_incremented", NULL, 0, err);
-	if (err.error != Variant::CallError::CALL_OK && err.error != Variant::CallError::CALL_ERROR_INVALID_METHOD) {
+	if (err.error != Callable::CallError::CALL_OK && err.error != Callable::CallError::CALL_ERROR_INVALID_METHOD) {
 		ERR_PRINT("Failed to invoke _refcount_incremented - should not happen");
 	}
 }
 
 bool NativeScriptInstance::refcount_decremented() {
-	Variant::CallError err;
+	Callable::CallError err;
 	Variant ret = call("_refcount_decremented", NULL, 0, err);
-	if (err.error != Variant::CallError::CALL_OK && err.error != Variant::CallError::CALL_ERROR_INVALID_METHOD) {
+	if (err.error != Callable::CallError::CALL_OK && err.error != Callable::CallError::CALL_ERROR_INVALID_METHOD) {
 		ERR_PRINT("Failed to invoke _refcount_decremented - should not happen");
 		return true; // assume we can destroy the object
 	}
-	if (err.error == Variant::CallError::CALL_ERROR_INVALID_METHOD) {
+	if (err.error == Callable::CallError::CALL_ERROR_INVALID_METHOD) {
 		// the method does not exist, default is true
 		return true;
 	}
@@ -1140,16 +1129,9 @@ NativeScriptInstance::~NativeScriptInstance() {
 	script_data->destroy_func.destroy_func((godot_object *)owner, script_data->destroy_func.method_data, userdata);
 
 	if (owner) {
-
-#ifndef NO_THREADS
-		script->owners_lock->lock();
-#endif
+		MutexLock lock(script->owners_lock);
 
 		script->instance_owners.erase(owner);
-
-#ifndef NO_THREADS
-		script->owners_lock->unlock();
-#endif
 	}
 }
 
@@ -1246,7 +1228,6 @@ NativeScriptLanguage::NativeScriptLanguage() {
 	NativeScriptLanguage::singleton = this;
 #ifndef NO_THREADS
 	has_objects_to_register = false;
-	mutex = Mutex::create();
 #endif
 
 #ifdef DEBUG_ENABLED
@@ -1283,10 +1264,6 @@ NativeScriptLanguage::~NativeScriptLanguage() {
 	NSL->library_classes.clear();
 	NSL->library_gdnatives.clear();
 	NSL->library_script_users.clear();
-
-#ifndef NO_THREADS
-	memdelete(mutex);
-#endif
 }
 
 String NativeScriptLanguage::get_name() const {
@@ -1361,7 +1338,7 @@ bool NativeScriptLanguage::supports_builtin_mode() const {
 int NativeScriptLanguage::find_function(const String &p_function, const String &p_code) const {
 	return -1;
 }
-String NativeScriptLanguage::make_function(const String &p_class, const String &p_name, const PoolStringArray &p_args) const {
+String NativeScriptLanguage::make_function(const String &p_class, const String &p_name, const PackedStringArray &p_args) const {
 	return "";
 }
 void NativeScriptLanguage::auto_indent_code(String &p_code, int p_from_line, int p_to_line) const {
@@ -1413,9 +1390,7 @@ void NativeScriptLanguage::get_public_constants(List<Pair<String, Variant> > *p_
 
 void NativeScriptLanguage::profiling_start() {
 #ifdef DEBUG_ENABLED
-#ifndef NO_THREADS
 	MutexLock lock(mutex);
-#endif
 
 	profile_data.clear();
 	profiling = true;
@@ -1424,9 +1399,7 @@ void NativeScriptLanguage::profiling_start() {
 
 void NativeScriptLanguage::profiling_stop() {
 #ifdef DEBUG_ENABLED
-#ifndef NO_THREADS
 	MutexLock lock(mutex);
-#endif
 
 	profiling = false;
 #endif
@@ -1434,9 +1407,8 @@ void NativeScriptLanguage::profiling_stop() {
 
 int NativeScriptLanguage::profiling_get_accumulated_data(ProfilingInfo *p_info_arr, int p_info_max) {
 #ifdef DEBUG_ENABLED
-#ifndef NO_THREADS
 	MutexLock lock(mutex);
-#endif
+
 	int current = 0;
 
 	for (Map<StringName, ProfileData>::Element *d = profile_data.front(); d; d = d->next()) {
@@ -1458,9 +1430,8 @@ int NativeScriptLanguage::profiling_get_accumulated_data(ProfilingInfo *p_info_a
 
 int NativeScriptLanguage::profiling_get_frame_data(ProfilingInfo *p_info_arr, int p_info_max) {
 #ifdef DEBUG_ENABLED
-#ifndef NO_THREADS
 	MutexLock lock(mutex);
-#endif
+
 	int current = 0;
 
 	for (Map<StringName, ProfileData>::Element *d = profile_data.front(); d; d = d->next()) {
@@ -1484,9 +1455,7 @@ int NativeScriptLanguage::profiling_get_frame_data(ProfilingInfo *p_info_arr, in
 
 void NativeScriptLanguage::profiling_add_data(StringName p_signature, uint64_t p_time) {
 #ifdef DEBUG_ENABLED
-#ifndef NO_THREADS
 	MutexLock lock(mutex);
-#endif
 
 	Map<StringName, ProfileData>::Element *d = profile_data.find(p_signature);
 	if (d) {
@@ -1705,9 +1674,8 @@ void NativeScriptLanguage::defer_init_library(Ref<GDNativeLibrary> lib, NativeSc
 #endif
 
 void NativeScriptLanguage::init_library(const Ref<GDNativeLibrary> &lib) {
-#ifndef NO_THREADS
 	MutexLock lock(mutex);
-#endif
+
 	// See if this library was "registered" already.
 	const String &lib_path = lib->get_current_library_path();
 	ERR_FAIL_COND_MSG(lib_path.length() == 0, lib->get_name() + " does not have a library for the current platform.");
@@ -1743,16 +1711,14 @@ void NativeScriptLanguage::init_library(const Ref<GDNativeLibrary> &lib) {
 }
 
 void NativeScriptLanguage::register_script(NativeScript *script) {
-#ifndef NO_THREADS
 	MutexLock lock(mutex);
-#endif
+
 	library_script_users[script->lib_path].insert(script);
 }
 
 void NativeScriptLanguage::unregister_script(NativeScript *script) {
-#ifndef NO_THREADS
 	MutexLock lock(mutex);
-#endif
+
 	Map<String, Set<NativeScript *> >::Element *S = library_script_users.find(script->lib_path);
 	if (S) {
 		S->get().erase(script);
@@ -1803,9 +1769,7 @@ void NativeScriptLanguage::frame() {
 
 #ifdef DEBUG_ENABLED
 	{
-#ifndef NO_THREADS
 		MutexLock lock(mutex);
-#endif
 
 		for (Map<StringName, ProfileData>::Element *d = profile_data.front(); d; d = d->next()) {
 			d->get().last_frame_call_count = d->get().frame_call_count;
@@ -1867,9 +1831,7 @@ void NativeReloadNode::_notification(int p_what) {
 
 			if (unloaded)
 				break;
-#ifndef NO_THREADS
 			MutexLock lock(NSL->mutex);
-#endif
 			NSL->_unload_stuff(true);
 
 			for (Map<String, Ref<GDNative> >::Element *L = NSL->library_gdnatives.front(); L; L = L->next()) {
@@ -1904,9 +1866,8 @@ void NativeReloadNode::_notification(int p_what) {
 
 			if (!unloaded)
 				break;
-#ifndef NO_THREADS
 			MutexLock lock(NSL->mutex);
-#endif
+
 			Set<StringName> libs_to_remove;
 			for (Map<String, Ref<GDNative> >::Element *L = NSL->library_gdnatives.front(); L; L = L->next()) {
 
@@ -1970,7 +1931,7 @@ void NativeReloadNode::_notification(int p_what) {
 #endif
 }
 
-RES ResourceFormatLoaderNativeScript::load(const String &p_path, const String &p_original_path, Error *r_error) {
+RES ResourceFormatLoaderNativeScript::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress) {
 	return ResourceFormatLoaderText::singleton->load(p_path, p_original_path, r_error);
 }
 

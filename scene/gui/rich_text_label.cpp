@@ -1208,49 +1208,59 @@ void RichTextLabel::_gui_input(Ref<InputEvent> p_event) {
 
 	if (k.is_valid()) {
 		if (k->is_pressed() && !k->get_alt() && !k->get_shift()) {
-			bool handled = true;
-			switch (k->get_scancode()) {
+			bool handled = false;
+			switch (k->get_keycode()) {
 				case KEY_PAGEUP: {
 
-					if (vscroll->is_visible_in_tree())
+					if (vscroll->is_visible_in_tree()) {
 						vscroll->set_value(vscroll->get_value() - vscroll->get_page());
+						handled = true;
+					}
 				} break;
 				case KEY_PAGEDOWN: {
 
-					if (vscroll->is_visible_in_tree())
+					if (vscroll->is_visible_in_tree()) {
 						vscroll->set_value(vscroll->get_value() + vscroll->get_page());
+						handled = true;
+					}
 				} break;
 				case KEY_UP: {
 
-					if (vscroll->is_visible_in_tree())
+					if (vscroll->is_visible_in_tree()) {
 						vscroll->set_value(vscroll->get_value() - get_font("normal_font")->get_height());
+						handled = true;
+					}
 				} break;
 				case KEY_DOWN: {
 
-					if (vscroll->is_visible_in_tree())
+					if (vscroll->is_visible_in_tree()) {
 						vscroll->set_value(vscroll->get_value() + get_font("normal_font")->get_height());
+						handled = true;
+					}
 				} break;
 				case KEY_HOME: {
 
-					if (vscroll->is_visible_in_tree())
+					if (vscroll->is_visible_in_tree()) {
 						vscroll->set_value(0);
+						handled = true;
+					}
 				} break;
 				case KEY_END: {
 
-					if (vscroll->is_visible_in_tree())
+					if (vscroll->is_visible_in_tree()) {
 						vscroll->set_value(vscroll->get_max());
+						handled = true;
+					}
 				} break;
 				case KEY_INSERT:
 				case KEY_C: {
 
 					if (k->get_command()) {
 						selection_copy();
-					} else {
-						handled = false;
+						handled = true;
 					}
 
 				} break;
-				default: handled = false;
 			}
 
 			if (handled)
@@ -2664,7 +2674,7 @@ void RichTextLabel::set_effects(const Vector<Variant> &effects) {
 Vector<Variant> RichTextLabel::get_effects() {
 	Vector<Variant> r;
 	for (int i = 0; i < custom_effects.size(); i++) {
-		r.push_back(custom_effects[i].get_ref_ptr());
+		r.push_back(custom_effects[i]);
 	}
 	return r;
 }
@@ -2689,7 +2699,6 @@ int RichTextLabel::get_content_height() {
 void RichTextLabel::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_gui_input"), &RichTextLabel::_gui_input);
-	ClassDB::bind_method(D_METHOD("_scroll_changed"), &RichTextLabel::_scroll_changed);
 	ClassDB::bind_method(D_METHOD("get_text"), &RichTextLabel::get_text);
 	ClassDB::bind_method(D_METHOD("add_text", "text"), &RichTextLabel::add_text);
 	ClassDB::bind_method(D_METHOD("set_text", "text"), &RichTextLabel::set_text);
@@ -2771,7 +2780,7 @@ void RichTextLabel::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "bbcode_text", PROPERTY_HINT_MULTILINE_TEXT), "set_bbcode", "get_bbcode");
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "visible_characters", PROPERTY_HINT_RANGE, "-1,128000,1"), "set_visible_characters", "get_visible_characters");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "percent_visible", PROPERTY_HINT_RANGE, "0,1,0.001"), "set_percent_visible", "get_percent_visible");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "percent_visible", PROPERTY_HINT_RANGE, "0,1,0.001"), "set_percent_visible", "get_percent_visible");
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "meta_underlined"), "set_meta_underline", "is_meta_underlined");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "tab_size", PROPERTY_HINT_RANGE, "0,24,1"), "set_tab_size", "get_tab_size");
@@ -2953,7 +2962,7 @@ RichTextLabel::RichTextLabel() {
 	vscroll->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, 0);
 	vscroll->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 0);
 	vscroll->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 0);
-	vscroll->connect("value_changed", this, "_scroll_changed");
+	vscroll->connect("value_changed", callable_mp(this, &RichTextLabel::_scroll_changed));
 	vscroll->set_step(1);
 	vscroll->hide();
 	current_idx = 1;

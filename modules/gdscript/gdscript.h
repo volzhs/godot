@@ -73,7 +73,6 @@ class GDScript : public Script {
 	friend class GDScriptFunctions;
 	friend class GDScriptLanguage;
 
-	Variant _static_ref; //used for static call
 	Ref<GDScriptNativeClass> native;
 	Ref<GDScript> base;
 	GDScript *_base; //fast pointer access
@@ -116,7 +115,7 @@ class GDScript : public Script {
 	String fully_qualified_name;
 	SelfList<GDScript> script_list;
 
-	GDScriptInstance *_create_instance(const Variant **p_args, int p_argcount, Object *p_owner, bool p_isref, Variant::CallError &r_error);
+	GDScriptInstance *_create_instance(const Variant **p_args, int p_argcount, Object *p_owner, bool p_isref, Callable::CallError &r_error);
 
 	void _set_subclass_path(Ref<GDScript> &p_sc, const String &p_path);
 
@@ -141,7 +140,7 @@ protected:
 	bool _set(const StringName &p_name, const Variant &p_value);
 	void _get_property_list(List<PropertyInfo> *p_properties) const;
 
-	Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 	//void call_multilevel(const StringName& p_method,const Variant** p_args,int p_argcount);
 
 	static void _bind_methods();
@@ -170,7 +169,7 @@ public:
 	const Map<StringName, GDScriptFunction *> &debug_get_member_functions() const; //this is debug only
 	StringName debug_get_member_by_index(int p_idx) const;
 
-	Variant _new(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	Variant _new(const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 	virtual bool can_instance() const;
 
 	virtual Ref<Script> get_base_script() const;
@@ -241,6 +240,7 @@ class GDScriptInstance : public ScriptInstance {
 	friend class GDScriptFunctions;
 	friend class GDScriptCompiler;
 
+	ObjectID owner_id;
 	Object *owner;
 	Ref<GDScript> script;
 #ifdef DEBUG_ENABLED
@@ -261,7 +261,7 @@ public:
 
 	virtual void get_method_list(List<MethodInfo> *p_list) const;
 	virtual bool has_method(const StringName &p_method) const;
-	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 	virtual void call_multilevel(const StringName &p_method, const Variant **p_args, int p_argcount);
 	virtual void call_multilevel_reversed(const StringName &p_method, const Variant **p_args, int p_argcount);
 
@@ -369,7 +369,7 @@ class GDScriptLanguage : public ScriptLanguage {
 
 	friend class GDScriptInstance;
 
-	Mutex *lock;
+	Mutex lock;
 
 	friend class GDScript;
 
@@ -486,7 +486,7 @@ public:
 	virtual bool supports_builtin_mode() const;
 	virtual bool can_inherit_from_file() { return true; }
 	virtual int find_function(const String &p_function, const String &p_code) const;
-	virtual String make_function(const String &p_class, const String &p_name, const PoolStringArray &p_args) const;
+	virtual String make_function(const String &p_class, const String &p_name, const PackedStringArray &p_args) const;
 	virtual Error complete_code(const String &p_code, const String &p_path, Object *p_owner, List<ScriptCodeCompletionOption> *r_options, bool &r_forced, String &r_call_hint);
 #ifdef TOOLS_ENABLED
 	virtual Error lookup_code(const String &p_code, const String &p_symbol, const String &p_path, Object *p_owner, LookupResult &r_result);
@@ -542,7 +542,7 @@ public:
 
 class ResourceFormatLoaderGDScript : public ResourceFormatLoader {
 public:
-	virtual RES load(const String &p_path, const String &p_original_path = "", Error *r_error = NULL);
+	virtual RES load(const String &p_path, const String &p_original_path = "", Error *r_error = NULL, bool p_use_sub_threads = false, float *r_progress = nullptr);
 	virtual void get_recognized_extensions(List<String> *p_extensions) const;
 	virtual bool handles_type(const String &p_type) const;
 	virtual String get_resource_type(const String &p_path) const;

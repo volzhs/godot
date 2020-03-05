@@ -44,6 +44,7 @@
 #include "core/project_settings.h"
 #include "core/register_core_types.h"
 #include "core/script_debugger_local.h"
+#include "core/script_debugger_remote.h"
 #include "core/script_language.h"
 #include "core/translation.h"
 #include "core/version.h"
@@ -58,7 +59,6 @@
 #include "main/tests/test_main.h"
 #include "modules/register_module_types.h"
 #include "platform/register_platform_apis.h"
-#include "scene/debugger/script_debugger_remote.h"
 #include "scene/main/scene_tree.h"
 #include "scene/main/viewport.h"
 #include "scene/register_scene_types.h"
@@ -203,6 +203,7 @@ void finalize_physics() {
 
 void initialize_navigation_server() {
 	ERR_FAIL_COND(navigation_server != NULL);
+
 	navigation_server = NavigationServerManager::new_default_server();
 	navigation_2d_server = memnew(Navigation2DServer);
 }
@@ -210,6 +211,7 @@ void initialize_navigation_server() {
 void finalize_navigation_server() {
 	memdelete(navigation_server);
 	navigation_server = NULL;
+
 	memdelete(navigation_2d_server);
 	navigation_2d_server = NULL;
 }
@@ -1657,12 +1659,6 @@ bool Main::start() {
 
 		if (!project_manager && !editor) { // game
 			if (game_path != "" || script != "") {
-				if (script_debugger && script_debugger->is_remote()) {
-					ScriptDebuggerRemote *remote_debugger = static_cast<ScriptDebuggerRemote *>(script_debugger);
-
-					remote_debugger->set_scene_tree(sml);
-				}
-
 				//autoload
 				List<PropertyInfo> props;
 				ProjectSettings::get_singleton()->get_property_list(&props);
@@ -1719,7 +1715,7 @@ bool Main::start() {
 						ERR_CONTINUE_MSG(obj == NULL, "Cannot instance script for autoload, expected 'Node' inheritance, got: " + String(ibt));
 
 						n = Object::cast_to<Node>(obj);
-						n->set_script(script_res.get_ref_ptr());
+						n->set_script(script_res);
 					}
 
 					ERR_CONTINUE_MSG(!n, "Path in autoload not a node or script: " + path);
@@ -1823,7 +1819,7 @@ bool Main::start() {
 			GLOBAL_DEF("display/window/stretch/aspect", "ignore");
 			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/aspect", PropertyInfo(Variant::STRING, "display/window/stretch/aspect", PROPERTY_HINT_ENUM, "ignore,keep,keep_width,keep_height,expand"));
 			GLOBAL_DEF("display/window/stretch/shrink", 1.0);
-			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/shrink", PropertyInfo(Variant::REAL, "display/window/stretch/shrink", PROPERTY_HINT_RANGE, "1.0,8.0,0.1"));
+			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/shrink", PropertyInfo(Variant::FLOAT, "display/window/stretch/shrink", PROPERTY_HINT_RANGE, "1.0,8.0,0.1"));
 			sml->set_auto_accept_quit(GLOBAL_DEF("application/config/auto_accept_quit", true));
 			sml->set_quit_on_go_back(GLOBAL_DEF("application/config/quit_on_go_back", true));
 			GLOBAL_DEF("gui/common/snap_controls_to_pixels", true);
@@ -2043,9 +2039,9 @@ bool Main::iteration() {
 			break;
 		}
 
-		message_queue->flush();
+		NavigationServer::get_singleton_mut()->process(frame_slice * time_scale);
 
-		NavigationServer::get_singleton_mut()->step(frame_slice * time_scale);
+		message_queue->flush();
 
 		PhysicsServer::get_singleton()->step(frame_slice * time_scale);
 

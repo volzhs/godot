@@ -70,22 +70,33 @@ void GIProbeEditorPlugin::_notification(int p_what) {
 			return;
 		}
 
-		String text;
-
-		Vector3i size = gi_probe->get_estimated_cell_size();
-		text = itos(size.x) + ", " + itos(size.y) + ", " + itos(size.z);
+		const Vector3i size = gi_probe->get_estimated_cell_size();
+		String text = vformat(String::utf8("%d × %d × %d"), size.x, size.y, size.z);
 		int data_size = 4;
 		if (GLOBAL_GET("rendering/quality/gi_probes/anisotropic")) {
 			data_size += 4;
 		}
-		text += " - VRAM Size: " + String::num(size.x * size.y * size.z * data_size / (1024.0 * 1024.0), 2) + " Mb.";
+		const double size_mb = size.x * size.y * size.z * data_size / (1024.0 * 1024.0);
+		text += " - " + vformat(TTR("VRAM Size: %s MB"), String::num(size_mb, 2));
 
 		if (bake_info->get_text() == text) {
 			return;
 		}
 
-		bake_info->add_color_override("font_color", bake_info->get_color("success_color", "Editor"));
+		// Color the label depending on the estimated performance level.
+		Color color;
+		if (size_mb <= 16.0 + CMP_EPSILON) {
+			// Fast.
+			color = bake_info->get_color("success_color", "Editor");
+		} else if (size_mb <= 64.0 + CMP_EPSILON) {
+			// Medium.
+			color = bake_info->get_color("warning_color", "Editor");
+		} else {
+			// Slow.
+			color = bake_info->get_color("error_color", "Editor");
+		}
 
+		bake_info->add_color_override("font_color", color);
 		bake_info->set_text(text);
 	}
 }
@@ -133,9 +144,6 @@ void GIProbeEditorPlugin::_giprobe_save_path_and_bake(const String &p_path) {
 }
 
 void GIProbeEditorPlugin::_bind_methods() {
-
-	ClassDB::bind_method("_bake", &GIProbeEditorPlugin::_bake);
-	ClassDB::bind_method("_giprobe_save_path_and_bake", &GIProbeEditorPlugin::_giprobe_save_path_and_bake);
 }
 
 GIProbeEditorPlugin::GIProbeEditorPlugin(EditorNode *p_node) {
@@ -147,7 +155,7 @@ GIProbeEditorPlugin::GIProbeEditorPlugin(EditorNode *p_node) {
 	bake = memnew(ToolButton);
 	bake->set_icon(editor->get_gui_base()->get_icon("Bake", "EditorIcons"));
 	bake->set_text(TTR("Bake GI Probe"));
-	bake->connect("pressed", this, "_bake");
+	bake->connect("pressed", callable_mp(this, &GIProbeEditorPlugin::_bake));
 	bake_hb->add_child(bake);
 	bake_info = memnew(Label);
 	bake_info->set_h_size_flags(Control::SIZE_EXPAND_FILL);
@@ -159,7 +167,7 @@ GIProbeEditorPlugin::GIProbeEditorPlugin(EditorNode *p_node) {
 	probe_file = memnew(EditorFileDialog);
 	probe_file->set_mode(EditorFileDialog::MODE_SAVE_FILE);
 	probe_file->add_filter("*.res");
-	probe_file->connect("file_selected", this, "_giprobe_save_path_and_bake");
+	probe_file->connect("file_selected", callable_mp(this, &GIProbeEditorPlugin::_giprobe_save_path_and_bake));
 	get_editor_interface()->get_base_control()->add_child(probe_file);
 	probe_file->set_title(TTR("Select path for GIProbe Data File"));
 

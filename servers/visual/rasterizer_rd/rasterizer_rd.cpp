@@ -121,18 +121,16 @@ void RasterizerRD::initialize() {
 		String error;
 		copy_viewports_rd_shader = RD::get_singleton()->shader_create(source);
 		if (!copy_viewports_rd_shader.is_valid()) {
-			print_line("failed compilation: " + error);
-		} else {
-			print_line("compilation success");
+			print_line("Failed compilation: " + error);
 		}
 	}
 
 	{ //create index array for copy shader
-		PoolVector<uint8_t> pv;
+		Vector<uint8_t> pv;
 		pv.resize(6 * 4);
 		{
-			PoolVector<uint8_t>::Write w = pv.write();
-			int *p32 = (int *)w.ptr();
+			uint8_t *w = pv.ptrw();
+			int *p32 = (int *)w;
 			p32[0] = 0;
 			p32[1] = 1;
 			p32[2] = 2;

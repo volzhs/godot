@@ -208,16 +208,16 @@ int Expression::get_func_argument_count(BuiltinFunc p_func) {
 	return 0;
 }
 
-#define VALIDATE_ARG_NUM(m_arg)                                          \
-	if (!p_inputs[m_arg]->is_num()) {                                    \
-		r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT; \
-		r_error.argument = m_arg;                                        \
-		r_error.expected = Variant::REAL;                                \
-		return;                                                          \
+#define VALIDATE_ARG_NUM(m_arg)                                           \
+	if (!p_inputs[m_arg]->is_num()) {                                     \
+		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT; \
+		r_error.argument = m_arg;                                         \
+		r_error.expected = Variant::FLOAT;                                \
+		return;                                                           \
 	}
 
-void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant *r_return, Variant::CallError &r_error, String &r_error_str) {
-	r_error.error = Variant::CallError::CALL_OK;
+void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant *r_return, Callable::CallError &r_error, String &r_error_str) {
+	r_error.error = Callable::CallError::CALL_OK;
 	switch (p_func) {
 		case MATH_SIN: {
 
@@ -314,15 +314,15 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 
 				int64_t i = *p_inputs[0];
 				*r_return = ABS(i);
-			} else if (p_inputs[0]->get_type() == Variant::REAL) {
+			} else if (p_inputs[0]->get_type() == Variant::FLOAT) {
 
 				real_t r = *p_inputs[0];
 				*r_return = Math::abs(r);
 			} else {
 
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
-				r_error.expected = Variant::REAL;
+				r_error.expected = Variant::FLOAT;
 			}
 		} break;
 		case MATH_SIGN: {
@@ -331,15 +331,15 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 
 				int64_t i = *p_inputs[0];
 				*r_return = i < 0 ? -1 : (i > 0 ? +1 : 0);
-			} else if (p_inputs[0]->get_type() == Variant::REAL) {
+			} else if (p_inputs[0]->get_type() == Variant::FLOAT) {
 
 				real_t r = *p_inputs[0];
 				*r_return = r < 0.0 ? -1.0 : (r > 0.0 ? +1.0 : 0.0);
 			} else {
 
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
-				r_error.expected = Variant::REAL;
+				r_error.expected = Variant::FLOAT;
 			}
 		} break;
 		case MATH_POW: {
@@ -580,7 +580,7 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 
 			if (p_inputs[0]->get_type() != Variant::OBJECT) {
 
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
 				r_error.expected = Variant::OBJECT;
 
@@ -614,7 +614,7 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 
 			if (p_inputs[0]->get_type() != Variant::OBJECT) {
 
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
 				r_error.expected = Variant::OBJECT;
 
@@ -622,7 +622,7 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 			}
 			if (p_inputs[1]->get_type() != Variant::STRING && p_inputs[1]->get_type() != Variant::NODE_PATH) {
 
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 1;
 				r_error.expected = Variant::STRING;
 
@@ -644,7 +644,7 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 			if (type < 0 || type >= Variant::VARIANT_MAX) {
 
 				r_error_str = RTR("Invalid type argument to convert(), use TYPE_* constants.");
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
 				r_error.expected = Variant::INT;
 				return;
@@ -675,7 +675,7 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 
 			if (p_inputs[0]->get_type() != Variant::STRING) {
 
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
 				r_error.expected = Variant::STRING;
 
@@ -687,7 +687,7 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 			if (str.length() != 1) {
 
 				r_error_str = RTR("Expected a string of length 1 (a character).");
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
 				r_error.expected = Variant::STRING;
 
@@ -732,7 +732,7 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 		case STR_TO_VAR: {
 
 			if (p_inputs[0]->get_type() != Variant::STRING) {
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
 				r_error.expected = Variant::STRING;
 
@@ -747,7 +747,7 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 			Error err = VariantParser::parse(&ss, *r_return, errs, line);
 
 			if (err != OK) {
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
 				r_error.expected = Variant::STRING;
 				*r_return = "Parse error at line " + itos(line) + ": " + errs;
@@ -757,12 +757,12 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 		} break;
 		case VAR_TO_BYTES: {
 
-			PoolByteArray barr;
+			PackedByteArray barr;
 			bool full_objects = *p_inputs[1];
 			int len;
 			Error err = encode_variant(*p_inputs[0], NULL, len, full_objects);
 			if (err) {
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
 				r_error.expected = Variant::NIL;
 				r_error_str = "Unexpected error encoding variable to bytes, likely unserializable type found (Object or RID).";
@@ -771,32 +771,32 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 
 			barr.resize(len);
 			{
-				PoolByteArray::Write w = barr.write();
-				encode_variant(*p_inputs[0], w.ptr(), len, full_objects);
+				uint8_t *w = barr.ptrw();
+				encode_variant(*p_inputs[0], w, len, full_objects);
 			}
 			*r_return = barr;
 		} break;
 		case BYTES_TO_VAR: {
 
-			if (p_inputs[0]->get_type() != Variant::POOL_BYTE_ARRAY) {
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+			if (p_inputs[0]->get_type() != Variant::PACKED_BYTE_ARRAY) {
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
-				r_error.expected = Variant::POOL_BYTE_ARRAY;
+				r_error.expected = Variant::PACKED_BYTE_ARRAY;
 
 				return;
 			}
 
-			PoolByteArray varr = *p_inputs[0];
+			PackedByteArray varr = *p_inputs[0];
 			bool allow_objects = *p_inputs[1];
 			Variant ret;
 			{
-				PoolByteArray::Read r = varr.read();
-				Error err = decode_variant(ret, r.ptr(), varr.size(), NULL, allow_objects);
+				const uint8_t *r = varr.ptr();
+				Error err = decode_variant(ret, r, varr.size(), NULL, allow_objects);
 				if (err != OK) {
 					r_error_str = RTR("Not enough bytes for decoding bytes, or invalid format.");
-					r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+					r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 					r_error.argument = 0;
-					r_error.expected = Variant::POOL_BYTE_ARRAY;
+					r_error.expected = Variant::PACKED_BYTE_ARRAY;
 					return;
 				}
 			}
@@ -1161,7 +1161,7 @@ Error Expression::_get_token(Token &r_token) {
 					if (is_float)
 						r_token.value = num.to_double();
 					else
-						r_token.value = num.to_int();
+						r_token.value = num.to_int64();
 					return OK;
 
 				} else if ((cchar >= 'A' && cchar <= 'Z') || (cchar >= 'a' && cchar <= 'z') || cchar == '_') {
@@ -2071,10 +2071,10 @@ bool Expression::_execute(const Array &p_inputs, Object *p_instance, Expression:
 				argp.write[i] = &arr[i];
 			}
 
-			Variant::CallError ce;
+			Callable::CallError ce;
 			r_ret = Variant::construct(constructor->data_type, (const Variant **)argp.ptr(), argp.size(), ce);
 
-			if (ce.error != Variant::CallError::CALL_OK) {
+			if (ce.error != Callable::CallError::CALL_OK) {
 				r_error_str = vformat(RTR("Invalid arguments to construct '%s'"), Variant::get_type_name(constructor->data_type));
 				return true;
 			}
@@ -2099,10 +2099,10 @@ bool Expression::_execute(const Array &p_inputs, Object *p_instance, Expression:
 				argp.write[i] = &arr[i];
 			}
 
-			Variant::CallError ce;
+			Callable::CallError ce;
 			exec_func(bifunc->func, (const Variant **)argp.ptr(), &r_ret, ce, r_error_str);
 
-			if (ce.error != Variant::CallError::CALL_OK) {
+			if (ce.error != Callable::CallError::CALL_OK) {
 				r_error_str = "Builtin Call Failed. " + r_error_str;
 				return true;
 			}
@@ -2134,10 +2134,10 @@ bool Expression::_execute(const Array &p_inputs, Object *p_instance, Expression:
 				argp.write[i] = &arr[i];
 			}
 
-			Variant::CallError ce;
+			Callable::CallError ce;
 			r_ret = base.call(call->method, (const Variant **)argp.ptr(), argp.size(), ce);
 
-			if (ce.error != Variant::CallError::CALL_OK) {
+			if (ce.error != Callable::CallError::CALL_OK) {
 				r_error_str = vformat(RTR("On call to '%s':"), String(call->method));
 				return true;
 			}

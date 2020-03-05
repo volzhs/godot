@@ -34,6 +34,7 @@
 #include "os_windows.h"
 
 #include "core/io/marshalls.h"
+#include "core/script_language.h"
 #include "core/version_generated.gen.h"
 
 #if defined(OPENGL_ENABLED)
@@ -46,7 +47,6 @@
 
 #include "drivers/windows/dir_access_windows.h"
 #include "drivers/windows/file_access_windows.h"
-#include "drivers/windows/mutex_windows.h"
 #include "drivers/windows/rw_lock_windows.h"
 #include "drivers/windows/semaphore_windows.h"
 #include "drivers/windows/thread_windows.h"
@@ -229,7 +229,6 @@ void OS_Windows::initialize_core() {
 
 	ThreadWindows::make_default();
 	SemaphoreWindows::make_default();
-	MutexWindows::make_default();
 	RWLockWindows::make_default();
 
 	FileAccess::make_default<FileAccessWindows>(FileAccess::ACCESS_RESOURCES);
@@ -708,7 +707,7 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 					break;
 				}
 			}
-			FALLTHROUGH;
+			[[fallthrough]];
 		case WM_MBUTTONDOWN:
 		case WM_MBUTTONUP:
 		case WM_RBUTTONDOWN:
@@ -983,7 +982,7 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			if (wParam==VK_WIN) TODO wtf is this?
 				meta_mem=uMsg==WM_KEYDOWN;
 			*/
-			FALLTHROUGH;
+			[[fallthrough]];
 		}
 		case WM_CHAR: {
 
@@ -1134,7 +1133,8 @@ void OS_Windows::process_key_events() {
 					k->set_control(ke.control);
 					k->set_metakey(ke.meta);
 					k->set_pressed(true);
-					k->set_scancode(KeyMappingWindows::get_keysym(ke.wParam));
+					k->set_keycode(KeyMappingWindows::get_keysym(ke.wParam));
+					k->set_physical_keycode(KeyMappingWindows::get_scansym((ke.lParam >> 16) & 0xFF, ke.lParam & (1 << 24)));
 					k->set_unicode(ke.wParam);
 					if (k->get_unicode() && gr_mem) {
 						k->set_alt(false);
@@ -1164,10 +1164,12 @@ void OS_Windows::process_key_events() {
 
 				if ((ke.lParam & (1 << 24)) && (ke.wParam == VK_RETURN)) {
 					// Special case for Numpad Enter key
-					k->set_scancode(KEY_KP_ENTER);
+					k->set_keycode(KEY_KP_ENTER);
 				} else {
-					k->set_scancode(KeyMappingWindows::get_keysym(ke.wParam));
+					k->set_keycode(KeyMappingWindows::get_keysym(ke.wParam));
 				}
+
+				k->set_physical_keycode(KeyMappingWindows::get_scansym((ke.lParam >> 16) & 0xFF, ke.lParam & (1 << 24)));
 
 				if (i + 1 < key_event_pos && key_event_buffer[i + 1].uMsg == WM_CHAR) {
 					k->set_unicode(key_event_buffer[i + 1].wParam);
@@ -2567,7 +2569,6 @@ void OS_Windows::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shap
 		// Create the BITMAP with alpha channel
 		COLORREF *buffer = (COLORREF *)memalloc(sizeof(COLORREF) * image_size);
 
-		image->lock();
 		for (UINT index = 0; index < image_size; index++) {
 			int row_index = floor(index / texture_size.width) + atlas_rect.position.y;
 			int column_index = (index % int(texture_size.width)) + atlas_rect.position.x;
@@ -2579,7 +2580,6 @@ void OS_Windows::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shap
 
 			*(buffer + index) = image->get_pixel(column_index, row_index).to_argb32();
 		}
-		image->unlock();
 
 		// Using 4 channels, so 4 * 8 bits
 		HBITMAP bitmap = CreateBitmap(texture_size.width, texture_size.height, 1, 4 * 8, buffer);
@@ -2724,7 +2724,7 @@ Error OS_Windows::execute(const String &p_path, const List<String> &p_arguments,
 			if (p_pipe_mutex) {
 				p_pipe_mutex->lock();
 			}
-			(*r_pipe) += buf;
+			(*r_pipe) += String::utf8(buf);
 			if (p_pipe_mutex) {
 				p_pipe_mutex->unlock();
 			}
@@ -2934,7 +2934,7 @@ void OS_Windows::set_icon(const Ref<Image> &p_icon) {
 	encode_uint32(0, &icon_bmp[36]);
 
 	uint8_t *wr = &icon_bmp[40];
-	PoolVector<uint8_t>::Read r = icon->get_data().read();
+	const uint8_t *r = icon->get_data().ptr();
 
 	for (int i = 0; i < h; i++) {
 

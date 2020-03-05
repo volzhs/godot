@@ -157,7 +157,8 @@ static NSCursor *cursorFromSelector(SEL selector, SEL fallback = nil) {
 
 			get_key_modifier_state([event modifierFlags], k);
 			k->set_pressed(true);
-			k->set_scancode(KEY_PERIOD);
+			k->set_keycode(KEY_PERIOD);
+			k->set_physical_keycode(KEY_PERIOD);
 			k->set_echo([event isARepeat]);
 
 			OS_OSX::singleton->push_input(k);
@@ -635,7 +636,8 @@ static const NSRange kEmptyRange = { NSNotFound, 0 };
 		ke.pressed = true;
 		ke.echo = false;
 		ke.raw = false; // IME input event
-		ke.scancode = 0;
+		ke.keycode = 0;
+		ke.physical_keycode = 0;
 		ke.unicode = codepoint;
 
 		push_to_key_event_buffer(ke);
@@ -747,7 +749,7 @@ static void _mouseDownEvent(NSEvent *event, int index, int mask, bool pressed) {
 	const Vector2 pos = get_mouse_pos([event locationInWindow], backingScaleFactor);
 	mm->set_position(pos);
 	mm->set_pressure([event pressure]);
-	if ([event subtype] == NSTabletPointEventSubtype) {
+	if ([event subtype] == NSEventSubtypeTabletPoint) {
 		const NSPoint p = [event tilt];
 		mm->set_tilt(Vector2(p.x, p.y));
 	}
@@ -1158,7 +1160,8 @@ static int remapKey(unsigned int key, unsigned int state) {
 				ke.osx_state = [event modifierFlags];
 				ke.pressed = true;
 				ke.echo = [event isARepeat];
-				ke.scancode = remapKey([event keyCode], [event modifierFlags]);
+				ke.keycode = remapKey([event keyCode], [event modifierFlags]);
+				ke.physical_keycode = translateKey([event keyCode]);
 				ke.raw = true;
 				ke.unicode = [characters characterAtIndex:i];
 
@@ -1170,7 +1173,8 @@ static int remapKey(unsigned int key, unsigned int state) {
 			ke.osx_state = [event modifierFlags];
 			ke.pressed = true;
 			ke.echo = [event isARepeat];
-			ke.scancode = remapKey([event keyCode], [event modifierFlags]);
+			ke.keycode = remapKey([event keyCode], [event modifierFlags]);
+			ke.physical_keycode = translateKey([event keyCode]);
 			ke.raw = false;
 			ke.unicode = 0;
 
@@ -1228,7 +1232,8 @@ static int remapKey(unsigned int key, unsigned int state) {
 		}
 
 		ke.osx_state = mod;
-		ke.scancode = remapKey(key, mod);
+		ke.keycode = remapKey(key, mod);
+		ke.physical_keycode = translateKey(key);
 		ke.unicode = 0;
 
 		push_to_key_event_buffer(ke);
@@ -1250,7 +1255,8 @@ static int remapKey(unsigned int key, unsigned int state) {
 				ke.osx_state = [event modifierFlags];
 				ke.pressed = false;
 				ke.echo = [event isARepeat];
-				ke.scancode = remapKey([event keyCode], [event modifierFlags]);
+				ke.keycode = remapKey([event keyCode], [event modifierFlags]);
+				ke.physical_keycode = translateKey([event keyCode]);
 				ke.raw = true;
 				ke.unicode = [characters characterAtIndex:i];
 
@@ -1262,7 +1268,8 @@ static int remapKey(unsigned int key, unsigned int state) {
 			ke.osx_state = [event modifierFlags];
 			ke.pressed = false;
 			ke.echo = [event isARepeat];
-			ke.scancode = remapKey([event keyCode], [event modifierFlags]);
+			ke.keycode = remapKey([event keyCode], [event modifierFlags]);
+			ke.physical_keycode = translateKey([event keyCode]);
 			ke.raw = true;
 			ke.unicode = 0;
 
@@ -1757,7 +1764,7 @@ void OS_OSX::alert(const String &p_alert, const String &p_title) {
 	[window addButtonWithTitle:@"OK"];
 	[window setMessageText:ns_title];
 	[window setInformativeText:ns_alert];
-	[window setAlertStyle:NSWarningAlertStyle];
+	[window setAlertStyle:NSAlertStyleWarning];
 
 	// Display it, then release
 	[window runModal];
@@ -1892,10 +1899,6 @@ void OS_OSX::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 		uint8_t *pixels = [imgrep bitmapData];
 
 		int len = int(texture_size.width * texture_size.height);
-		PoolVector<uint8_t> data = image->get_data();
-		PoolVector<uint8_t>::Read r = data.read();
-
-		image->lock();
 
 		for (int i = 0; i < len; i++) {
 			int row_index = floor(i / texture_size.width) + atlas_rect.position.y;
@@ -1914,8 +1917,6 @@ void OS_OSX::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 			pixels[i * 4 + 2] = ((color)&0xFF) * alpha / 255;
 			pixels[i * 4 + 3] = alpha;
 		}
-
-		image->unlock();
 
 		NSImage *nsimage = [[NSImage alloc] initWithSize:NSMakeSize(texture_size.width, texture_size.height)];
 		[nsimage addRepresentation:imgrep];
@@ -2051,8 +2052,7 @@ void OS_OSX::set_icon(const Ref<Image> &p_icon) {
 	uint8_t *pixels = [imgrep bitmapData];
 
 	int len = img->get_width() * img->get_height();
-	PoolVector<uint8_t> data = img->get_data();
-	PoolVector<uint8_t>::Read r = data.read();
+	const uint8_t *r = img->get_data().ptr();
 
 	/* Premultiply the alpha channel */
 	for (int i = 0; i < len; i++) {
@@ -2852,32 +2852,35 @@ void OS_OSX::process_key_events() {
 			get_key_modifier_state(ke.osx_state, k);
 			k->set_pressed(ke.pressed);
 			k->set_echo(ke.echo);
-			k->set_scancode(ke.scancode);
+			k->set_keycode(ke.keycode);
+			k->set_physical_keycode(ke.physical_keycode);
 			k->set_unicode(ke.unicode);
 
 			push_input(k);
 		} else {
 			// IME input
-			if ((i == 0 && ke.scancode == 0) || (i > 0 && key_event_buffer[i - 1].scancode == 0)) {
+			if ((i == 0 && ke.keycode == 0) || (i > 0 && key_event_buffer[i - 1].keycode == 0)) {
 				k.instance();
 
 				get_key_modifier_state(ke.osx_state, k);
 				k->set_pressed(ke.pressed);
 				k->set_echo(ke.echo);
-				k->set_scancode(0);
+				k->set_keycode(0);
+				k->set_physical_keycode(0);
 				k->set_unicode(ke.unicode);
 
 				push_input(k);
 			}
-			if (ke.scancode != 0) {
+			if (ke.keycode != 0) {
 				k.instance();
 
 				get_key_modifier_state(ke.osx_state, k);
 				k->set_pressed(ke.pressed);
 				k->set_echo(ke.echo);
-				k->set_scancode(ke.scancode);
+				k->set_keycode(ke.keycode);
+				k->set_physical_keycode(ke.physical_keycode);
 
-				if (i + 1 < key_event_pos && key_event_buffer[i + 1].scancode == 0) {
+				if (i + 1 < key_event_pos && key_event_buffer[i + 1].keycode == 0) {
 					k->set_unicode(key_event_buffer[i + 1].unicode);
 				}
 

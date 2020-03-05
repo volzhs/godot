@@ -215,14 +215,14 @@ private:
 	void _files_moved(String p_old_file, String p_new_file);
 	void _folder_moved(String p_old_folder, String p_new_folder);
 
-	void _resource_created() const;
+	void _resource_created();
 	void _make_dir_confirm();
 	void _make_scene_confirm();
 	void _rename_operation_confirm();
 	void _duplicate_operation_confirm();
 	void _move_with_overwrite();
 	bool _check_existing();
-	void _move_operation_confirm(const String &p_to_path, bool overwrite = false);
+	void _move_operation_confirm(const String &p_to_path, bool p_overwrite = false);
 
 	void _tree_rmb_option(int p_option);
 	void _file_list_rmb_option(int p_option);

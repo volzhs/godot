@@ -688,7 +688,7 @@ void EditorPlugin::apply_changes() {
 void EditorPlugin::get_breakpoints(List<String> *p_breakpoints) {
 
 	if (get_script_instance() && get_script_instance()->has_method("get_breakpoints")) {
-		PoolStringArray arr = get_script_instance()->call("get_breakpoints");
+		PackedStringArray arr = get_script_instance()->call("get_breakpoints");
 		for (int i = 0; i < arr.size(); i++)
 			p_breakpoints->push_back(arr[i]);
 	}
@@ -743,8 +743,8 @@ void EditorPlugin::remove_scene_import_plugin(const Ref<EditorSceneImporter> &p_
 	ResourceImporterScene::get_singleton()->remove_importer(p_importer);
 }
 
-int find(const PoolStringArray &a, const String &v) {
-	PoolStringArray::Read r = a.read();
+int find(const PackedStringArray &a, const String &v) {
+	const String *r = a.ptr();
 	for (int j = 0; j < a.size(); ++j) {
 		if (r[j] == v) {
 			return j;
@@ -862,7 +862,7 @@ void EditorPlugin::_bind_methods() {
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo("forward_canvas_force_draw_over_viewport", PropertyInfo(Variant::OBJECT, "overlay", PROPERTY_HINT_RESOURCE_TYPE, "Control")));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::BOOL, "forward_spatial_gui_input", PropertyInfo(Variant::OBJECT, "camera", PROPERTY_HINT_RESOURCE_TYPE, "Camera"), PropertyInfo(Variant::OBJECT, "event", PROPERTY_HINT_RESOURCE_TYPE, "InputEvent")));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::STRING, "get_plugin_name"));
-	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::OBJECT, "get_plugin_icon"));
+	ClassDB::add_virtual_method(get_class_static(), MethodInfo(PropertyInfo(Variant::OBJECT, "icon", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "get_plugin_icon"));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::BOOL, "has_main_screen"));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo("make_visible", PropertyInfo(Variant::BOOL, "visible")));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo("edit", PropertyInfo(Variant::OBJECT, "object")));
@@ -872,7 +872,7 @@ void EditorPlugin::_bind_methods() {
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo("clear"));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo("save_external_data"));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo("apply_changes"));
-	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::POOL_STRING_ARRAY, "get_breakpoints"));
+	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::PACKED_STRING_ARRAY, "get_breakpoints"));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo("set_window_layout", PropertyInfo(Variant::OBJECT, "layout", PROPERTY_HINT_RESOURCE_TYPE, "ConfigFile")));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo("get_window_layout", PropertyInfo(Variant::OBJECT, "layout", PROPERTY_HINT_RESOURCE_TYPE, "ConfigFile")));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::BOOL, "build"));

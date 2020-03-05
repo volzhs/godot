@@ -29,111 +29,120 @@
 /*************************************************************************/
 
 #include "vulkan_context.h"
+
 #include "core/engine.h"
-#include "core/print_string.h"
 #include "core/project_settings.h"
+#include "core/ustring.h"
 #include "core/version.h"
+
 #include "vk_enum_string_helper.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
-#define VULKAN_DEBUG(m_text) print_line(m_text)
 #define APP_SHORT_NAME "GodotEngine"
 
-VKAPI_ATTR VkBool32 VKAPI_CALL VulkanContext::_debug_messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+VKAPI_ATTR VkBool32 VKAPI_CALL VulkanContext::_debug_messenger_callback(
+		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
 		void *pUserData) {
-	char prefix[64] = "";
-	char *message = (char *)malloc(strlen(pCallbackData->pMessage) + 5000);
-	ERR_FAIL_COND_V(!message, false);
 
-	//This error needs to be ignored because the AMD allocator will mix up memory types on IGP processors
+	// This error needs to be ignored because the AMD allocator will mix up memory types on IGP processors.
 	if (strstr(pCallbackData->pMessage, "Mapping an image with layout") != NULL &&
 			strstr(pCallbackData->pMessage, "can result in undefined behavior if this memory is used by the device") != NULL) {
-		free(message);
 		return VK_FALSE;
 	}
-	// This needs to be ignored because Validator is wrong here
+	// This needs to be ignored because Validator is wrong here.
 	if (strstr(pCallbackData->pMessage, "SPIR-V module not valid: Pointer operand") != NULL &&
 			strstr(pCallbackData->pMessage, "must be a memory object") != NULL) {
-		free(message);
 		return VK_FALSE;
 	}
-	if (strstr(pCallbackData->pMessageIdName, "UNASSIGNED-CoreValidation-DrawState-ClearCmdBeforeDraw") != NULL) {
-		free(message);
+	// Workaround for Vulkan-Loader usability bug: https://github.com/KhronosGroup/Vulkan-Loader/issues/262.
+	if (strstr(pCallbackData->pMessage, "wrong ELF class: ELFCLASS32") != NULL) {
+		return VK_FALSE;
+	}
+	if (pCallbackData->pMessageIdName && strstr(pCallbackData->pMessageIdName, "UNASSIGNED-CoreValidation-DrawState-ClearCmdBeforeDraw") != NULL) {
 		return VK_FALSE;
 	}
 
-	if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-		strcat(prefix, "VERBOSE : ");
-	} else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
-		strcat(prefix, "INFO : ");
-	} else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-		strcat(prefix, "WARNING : ");
-	} else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-		strcat(prefix, "ERROR : ");
+	String type_string;
+	switch (messageType) {
+		case (VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT):
+			type_string = "GENERAL";
+			break;
+		case (VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT):
+			type_string = "VALIDATION";
+			break;
+		case (VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT):
+			type_string = "PERFORMANCE";
+			break;
+		case (VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT):
+			type_string = "VALIDATION|PERFORMANCE";
+			break;
 	}
 
-	if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT) {
-		strcat(prefix, "GENERAL");
-	} else {
-		if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) {
-			strcat(prefix, "VALIDATION");
-			//validation_error = 1;
-		}
-		if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT) {
-			if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) {
-				strcat(prefix, "|");
-			}
-			strcat(prefix, "PERFORMANCE");
-		}
-	}
-
-	sprintf(message, "%s - Message Id Number: %d | Message Id Name: %s\n\t%s\n", prefix, pCallbackData->messageIdNumber,
-			pCallbackData->pMessageIdName, pCallbackData->pMessage);
-
+	String objects_string;
 	if (pCallbackData->objectCount > 0) {
-		char tmp_message[500];
-		sprintf(tmp_message, "\n\tObjects - %d\n", pCallbackData->objectCount);
-		strcat(message, tmp_message);
+		objects_string = "\n\tObjects - " + String::num_int64(pCallbackData->objectCount);
 		for (uint32_t object = 0; object < pCallbackData->objectCount; ++object) {
+			objects_string +=
+					"\n\t\tObject[" + String::num_int64(object) + "]" +
+					" - " + string_VkObjectType(pCallbackData->pObjects[object].objectType) +
+					", Handle " + String::num_int64(pCallbackData->pObjects[object].objectHandle);
 			if (NULL != pCallbackData->pObjects[object].pObjectName && strlen(pCallbackData->pObjects[object].pObjectName) > 0) {
-				sprintf(tmp_message, "\t\tObject[%d] - %s, Handle %p, Name \"%s\"\n", object,
-						string_VkObjectType(pCallbackData->pObjects[object].objectType),
-						(void *)(pCallbackData->pObjects[object].objectHandle), pCallbackData->pObjects[object].pObjectName);
-			} else {
-				sprintf(tmp_message, "\t\tObject[%d] - %s, Handle %p\n", object,
-						string_VkObjectType(pCallbackData->pObjects[object].objectType),
-						(void *)(pCallbackData->pObjects[object].objectHandle));
+				objects_string += ", Name \"" + String(pCallbackData->pObjects[object].pObjectName) + "\"";
 			}
-			strcat(message, tmp_message);
 		}
 	}
+
+	String labels_string;
 	if (pCallbackData->cmdBufLabelCount > 0) {
-		char tmp_message[500];
-		sprintf(tmp_message, "\n\tCommand Buffer Labels - %d\n", pCallbackData->cmdBufLabelCount);
-		strcat(message, tmp_message);
+		labels_string = "\n\tCommand Buffer Labels - " + String::num_int64(pCallbackData->cmdBufLabelCount);
 		for (uint32_t cmd_buf_label = 0; cmd_buf_label < pCallbackData->cmdBufLabelCount; ++cmd_buf_label) {
-			sprintf(tmp_message, "\t\tLabel[%d] - %s { %f, %f, %f, %f}\n", cmd_buf_label,
-					pCallbackData->pCmdBufLabels[cmd_buf_label].pLabelName, pCallbackData->pCmdBufLabels[cmd_buf_label].color[0],
-					pCallbackData->pCmdBufLabels[cmd_buf_label].color[1], pCallbackData->pCmdBufLabels[cmd_buf_label].color[2],
-					pCallbackData->pCmdBufLabels[cmd_buf_label].color[3]);
-			strcat(message, tmp_message);
+			labels_string +=
+					"\n\t\tLabel[" + String::num_int64(cmd_buf_label) + "]" +
+					" - " + pCallbackData->pCmdBufLabels[cmd_buf_label].pLabelName +
+					"{ ";
+			for (int color_idx = 0; color_idx < 4; ++color_idx) {
+				labels_string += String::num(pCallbackData->pCmdBufLabels[cmd_buf_label].color[color_idx]);
+				if (color_idx < 3) {
+					labels_string += ", ";
+				}
+			}
+			labels_string += " }";
 		}
 	}
 
-	ERR_PRINT(message);
+	String error_message(type_string +
+						 " - Message Id Number: " + String::num_int64(pCallbackData->messageIdNumber) +
+						 " | Message Id Name: " + pCallbackData->pMessageIdName +
+						 "\n\t" + pCallbackData->pMessage +
+						 objects_string + labels_string);
 
-	free(message);
-
-	if (Engine::get_singleton()->is_abort_on_gpu_errors_enabled()) {
-		abort();
+	// Convert VK severity to our own log macros.
+	switch (messageSeverity) {
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+			print_verbose(error_message);
+			break;
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+			print_line(error_message);
+			break;
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+			WARN_PRINT(error_message);
+			break;
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+			ERR_PRINT(error_message);
+			CRASH_COND_MSG(Engine::get_singleton()->is_abort_on_gpu_errors_enabled(),
+					"Crashing, because abort on GPU errors is enabled.");
+			break;
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:
+			break; // Shouldn't happen, only handling to make compilers happy.
 	}
-	// Don't bail out, but keep going.
-	return false;
+
+	return VK_FALSE;
 }
 
 VkBool32 VulkanContext::_check_layers(uint32_t check_count, const char **check_names, uint32_t layer_count, VkLayerProperties *layers) {
@@ -347,8 +356,39 @@ Error VulkanContext::_create_physical_device() {
 		free(physical_devices);
 		ERR_FAIL_V(ERR_CANT_CREATE);
 	}
-	/* for now, just grab the first physical device */
-	gpu = physical_devices[0];
+
+	/*Find the first discrete GPU with the most VRAM.*/
+	{
+		print_line("Selecting primary GPU.");
+		VkPhysicalDeviceProperties device_properties;
+		VkPhysicalDeviceMemoryProperties memory_properties;
+		gpu = physical_devices[0];
+		uint32_t largest_vram_size = 0;
+		VkPhysicalDeviceType gpu_type = VK_PHYSICAL_DEVICE_TYPE_OTHER;
+		for (uint32_t i = 0; i < gpu_count; i++) {
+			vkGetPhysicalDeviceProperties(physical_devices[i], &device_properties);
+
+			/*Skip virtual and CPU devices for now.*/
+			if (device_properties.deviceType > VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+				continue;
+			}
+
+			vkGetPhysicalDeviceMemoryProperties(physical_devices[i], &memory_properties);
+
+			/*Total all heaps in case of 3GB+1GB configurations and similar.*/
+			uint32_t memory_size = 0;
+			for (uint32_t j = 0; j < memory_properties.memoryHeapCount; j++) {
+				memory_size += memory_properties.memoryHeaps[j].size;
+			}
+
+			if ((device_properties.deviceType >= gpu_type) || (device_properties.deviceType == gpu_type && memory_size > largest_vram_size)) {
+				gpu = physical_devices[i];
+				gpu_type = device_properties.deviceType;
+				largest_vram_size = memory_size;
+				print_line(device_properties.deviceName);
+			}
+		}
+	}
 	free(physical_devices);
 
 	/* Look for device extensions */
@@ -389,15 +429,11 @@ Error VulkanContext::_create_physical_device() {
 				if (!strcmp(VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME, device_extensions[i].extensionName)) {
 					extension_names[enabled_extension_count++] = VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME;
 					VK_KHR_incremental_present_enabled = true;
-					VULKAN_DEBUG("VK_KHR_incremental_present extension enabled\n");
 				}
 				if (enabled_extension_count >= MAX_EXTENSIONS) {
 					free(device_extensions);
 					ERR_FAIL_V_MSG(ERR_BUG, "Enabled extension count reaches MAX_EXTENSIONS, BUG");
 				}
-			}
-			if (!VK_KHR_incremental_present_enabled) {
-				VULKAN_DEBUG("VK_KHR_incremental_present extension NOT AVAILABLE\n");
 			}
 		}
 
@@ -411,15 +447,11 @@ Error VulkanContext::_create_physical_device() {
 				if (!strcmp(VK_GOOGLE_DISPLAY_TIMING_EXTENSION_NAME, device_extensions[i].extensionName)) {
 					extension_names[enabled_extension_count++] = VK_GOOGLE_DISPLAY_TIMING_EXTENSION_NAME;
 					VK_GOOGLE_display_timing_enabled = true;
-					VULKAN_DEBUG("VK_GOOGLE_display_timing extension enabled\n");
 				}
 				if (enabled_extension_count >= MAX_EXTENSIONS) {
 					free(device_extensions);
 					ERR_FAIL_V_MSG(ERR_BUG, "Enabled extension count reaches MAX_EXTENSIONS, BUG");
 				}
-			}
-			if (!VK_GOOGLE_display_timing_enabled) {
-				VULKAN_DEBUG("VK_GOOGLE_display_timing extension NOT AVAILABLE\n");
 			}
 		}
 
@@ -1132,7 +1164,7 @@ Error VulkanContext::initialize() {
 	if (err) {
 		return err;
 	}
-	print_line("Vulkan physical device creation success o_O");
+
 	return OK;
 }
 

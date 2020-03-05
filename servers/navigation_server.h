@@ -37,7 +37,7 @@
 
 #include "core/object.h"
 #include "core/rid.h"
-#include "scene/3d/navigation_mesh_instance.h"
+#include "scene/3d/navigation_region.h"
 
 /// This server uses the concept of internal mutability.
 /// All the constant functions can be called in multithread because internally
@@ -89,6 +89,11 @@ public:
 
 	/// Returns the navigation path to reach the destination from the origin.
 	virtual Vector<Vector3> map_get_path(RID p_map, Vector3 p_origin, Vector3 p_destination, bool p_optimize) const = 0;
+
+	virtual Vector3 map_get_closest_point_to_segment(RID p_map, const Vector3 &p_from, const Vector3 &p_to, const bool p_use_collision = false) const = 0;
+	virtual Vector3 map_get_closest_point(RID p_map, const Vector3 &p_point) const = 0;
+	virtual Vector3 map_get_closest_point_normal(RID p_map, const Vector3 &p_point) const = 0;
+	virtual RID map_get_closest_point_owner(RID p_map, const Vector3 &p_point) const = 0;
 
 	/// Creates a new region.
 	virtual RID region_create() const = 0;
@@ -170,9 +175,11 @@ public:
 	/// Control activation of this server.
 	virtual void set_active(bool p_active) const = 0;
 
-	/// Step the server
-	/// NOTE: This function is not Threadsafe and MUST be called in single thread.
-	virtual void step(real_t delta_time) = 0;
+	/// Process the collision avoidance agents.
+	/// The result of this process is needed by the physics server,
+	/// so this must be called in the main thread.
+	/// Note: This function is not thread safe.
+	virtual void process(real_t delta_time) = 0;
 
 	NavigationServer();
 	virtual ~NavigationServer();

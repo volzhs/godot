@@ -138,9 +138,9 @@ public:
 	enum TextureFilter {
 		TEXTURE_FILTER_NEAREST,
 		TEXTURE_FILTER_LINEAR,
-		TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS,
+		TEXTURE_FILTER_NEAREST_WITH_MIPMAPS,
 		TEXTURE_FILTER_LINEAR_WITH_MIPMAPS,
-		TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS_ANISOTROPIC,
+		TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC,
 		TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC,
 		TEXTURE_FILTER_MAX
 	};
@@ -388,7 +388,7 @@ private:
 		StringName texture_names[TEXTURE_MAX];
 	};
 
-	static Mutex *material_mutex;
+	static Mutex material_mutex;
 	static SelfList<BaseMaterial3D>::List *dirty_materials;
 	static ShaderNames *shader_names;
 

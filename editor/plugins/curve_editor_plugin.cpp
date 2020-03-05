@@ -49,7 +49,7 @@ CurveEditor::CurveEditor() {
 	set_clip_contents(true);
 
 	_context_menu = memnew(PopupMenu);
-	_context_menu->connect("id_pressed", this, "_on_context_menu_item_selected");
+	_context_menu->connect("id_pressed", callable_mp(this, &CurveEditor::on_context_menu_item_selected));
 	add_child(_context_menu);
 
 	_presets_menu = memnew(PopupMenu);
@@ -60,7 +60,7 @@ CurveEditor::CurveEditor() {
 	_presets_menu->add_item(TTR("Ease In"), PRESET_EASE_IN);
 	_presets_menu->add_item(TTR("Ease Out"), PRESET_EASE_OUT);
 	_presets_menu->add_item(TTR("Smoothstep"), PRESET_SMOOTHSTEP);
-	_presets_menu->connect("id_pressed", this, "_on_preset_item_selected");
+	_presets_menu->connect("id_pressed", callable_mp(this, &CurveEditor::on_preset_item_selected));
 	_context_menu->add_child(_presets_menu);
 }
 
@@ -70,15 +70,15 @@ void CurveEditor::set_curve(Ref<Curve> curve) {
 		return;
 
 	if (_curve_ref.is_valid()) {
-		_curve_ref->disconnect(CoreStringNames::get_singleton()->changed, this, "_curve_changed");
-		_curve_ref->disconnect(Curve::SIGNAL_RANGE_CHANGED, this, "_curve_changed");
+		_curve_ref->disconnect(CoreStringNames::get_singleton()->changed, callable_mp(this, &CurveEditor::_curve_changed));
+		_curve_ref->disconnect(Curve::SIGNAL_RANGE_CHANGED, callable_mp(this, &CurveEditor::_curve_changed));
 	}
 
 	_curve_ref = curve;
 
 	if (_curve_ref.is_valid()) {
-		_curve_ref->connect(CoreStringNames::get_singleton()->changed, this, "_curve_changed");
-		_curve_ref->connect(Curve::SIGNAL_RANGE_CHANGED, this, "_curve_changed");
+		_curve_ref->connect(CoreStringNames::get_singleton()->changed, callable_mp(this, &CurveEditor::_curve_changed));
+		_curve_ref->connect(Curve::SIGNAL_RANGE_CHANGED, callable_mp(this, &CurveEditor::_curve_changed));
 	}
 
 	_selected_point = -1;
@@ -238,7 +238,7 @@ void CurveEditor::on_gui_input(const Ref<InputEvent> &p_event) {
 		const InputEventKey &key = **key_ref;
 
 		if (key.is_pressed() && _selected_point != -1) {
-			if (key.get_scancode() == KEY_DELETE)
+			if (key.get_keycode() == KEY_DELETE)
 				remove_point(_selected_point);
 		}
 	}
@@ -749,9 +749,6 @@ void CurveEditor::_draw() {
 
 void CurveEditor::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_gui_input"), &CurveEditor::on_gui_input);
-	ClassDB::bind_method(D_METHOD("_on_preset_item_selected"), &CurveEditor::on_preset_item_selected);
-	ClassDB::bind_method(D_METHOD("_curve_changed"), &CurveEditor::_curve_changed);
-	ClassDB::bind_method(D_METHOD("_on_context_menu_item_selected"), &CurveEditor::on_context_menu_item_selected);
 }
 
 //---------------
@@ -802,8 +799,6 @@ Ref<Texture2D> CurvePreviewGenerator::generate(const Ref<Resource> &p_from, cons
 
 	im.create(thumbnail_size, thumbnail_size / 2, 0, Image::FORMAT_RGBA8);
 
-	im.lock();
-
 	Color bg_color(0.1, 0.1, 0.1, 1.0);
 	for (int i = 0; i < thumbnail_size; i++) {
 		for (int j = 0; j < thumbnail_size / 2; j++) {
@@ -843,8 +838,6 @@ Ref<Texture2D> CurvePreviewGenerator::generate(const Ref<Resource> &p_from, cons
 
 		prev_y = y;
 	}
-
-	im.unlock();
 
 	Ref<ImageTexture> ptex = Ref<ImageTexture>(memnew(ImageTexture));
 

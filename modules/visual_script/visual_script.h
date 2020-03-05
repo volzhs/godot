@@ -155,7 +155,7 @@ public:
 
 	virtual int get_working_memory_size() const { return 0; }
 
-	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, Variant::CallError &r_error, String &r_error_str) = 0; //do a step, return which sequence port to go out
+	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, Callable::CallError &r_error, String &r_error_str) = 0; //do a step, return which sequence port to go out
 
 	Ref<VisualScriptNode> get_base_node() { return Ref<VisualScriptNode>(base); }
 
@@ -408,8 +408,8 @@ class VisualScriptInstance : public ScriptInstance {
 
 	StringName source;
 
-	void _dependency_step(VisualScriptNodeInstance *node, int p_pass, int *pass_stack, const Variant **input_args, Variant **output_args, Variant *variant_stack, Variant::CallError &r_error, String &error_str, VisualScriptNodeInstance **r_error_node);
-	Variant _call_internal(const StringName &p_method, void *p_stack, int p_stack_size, VisualScriptNodeInstance *p_node, int p_flow_stack_pos, int p_pass, bool p_resuming_yield, Variant::CallError &r_error);
+	void _dependency_step(VisualScriptNodeInstance *node, int p_pass, int *pass_stack, const Variant **input_args, Variant **output_args, Variant *variant_stack, Callable::CallError &r_error, String &error_str, VisualScriptNodeInstance **r_error_node);
+	Variant _call_internal(const StringName &p_method, void *p_stack, int p_stack_size, VisualScriptNodeInstance *p_node, int p_flow_stack_pos, int p_pass, bool p_resuming_yield, Callable::CallError &r_error);
 
 	//Map<StringName,Function> functions;
 	friend class VisualScriptFunctionState; //for yield
@@ -422,7 +422,7 @@ public:
 
 	virtual void get_method_list(List<MethodInfo> *p_list) const;
 	virtual bool has_method(const StringName &p_method) const;
-	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 	virtual void notification(int p_notification);
 	String to_string(bool *r_valid);
 
@@ -487,7 +487,7 @@ class VisualScriptFunctionState : public Reference {
 	int flow_stack_pos;
 	int pass;
 
-	Variant _signal_callback(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	Variant _signal_callback(const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 
 protected:
 	static void _bind_methods();
@@ -530,7 +530,7 @@ public:
 
 	static VisualScriptLanguage *singleton;
 
-	Mutex *lock;
+	Mutex lock;
 
 	bool debug_break(const String &p_error, bool p_allow_continue = true);
 	bool debug_break_parse(const String &p_file, int p_node, const String &p_error);
@@ -599,7 +599,7 @@ public:
 	virtual bool has_named_classes() const;
 	virtual bool supports_builtin_mode() const;
 	virtual int find_function(const String &p_function, const String &p_code) const;
-	virtual String make_function(const String &p_class, const String &p_name, const PoolStringArray &p_args) const;
+	virtual String make_function(const String &p_class, const String &p_name, const PackedStringArray &p_args) const;
 	virtual void auto_indent_code(String &p_code, int p_from_line, int p_to_line) const;
 	virtual void add_global_constant(const StringName &p_variable, const Variant &p_value);
 

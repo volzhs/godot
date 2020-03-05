@@ -87,8 +87,8 @@ void VideoStreamPlaybackTheora::video_write(void) {
 	int pitch = 4;
 	frame_data.resize(size.x * size.y * pitch);
 	{
-		PoolVector<uint8_t>::Write w = frame_data.write();
-		char *dst = (char *)w.ptr();
+		uint8_t *w = frame_data.ptrw();
+		char *dst = (char *)w;
 
 		//uv_offset=(ti.pic_x/2)+(yuv[1].stride)*(ti.pic_y/2);
 
@@ -725,7 +725,7 @@ void VideoStreamTheora::_bind_methods() {
 
 ////////////
 
-RES ResourceFormatLoaderTheora::load(const String &p_path, const String &p_original_path, Error *r_error) {
+RES ResourceFormatLoaderTheora::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress) {
 
 	FileAccess *f = FileAccess::open(p_path, FileAccess::READ);
 	if (!f) {

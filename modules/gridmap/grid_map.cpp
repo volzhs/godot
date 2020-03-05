@@ -49,9 +49,9 @@ bool GridMap::_set(const StringName &p_name, const Variant &p_value) {
 
 		if (d.has("cells")) {
 
-			PoolVector<int> cells = d["cells"];
+			Vector<int> cells = d["cells"];
 			int amount = cells.size();
-			PoolVector<int>::Read r = cells.read();
+			const int *r = cells.ptr();
 			ERR_FAIL_COND_V(amount % 3, false); // not even
 			cell_map.clear();
 			for (int i = 0; i < amount / 3; i++) {
@@ -103,10 +103,10 @@ bool GridMap::_get(const StringName &p_name, Variant &r_ret) const {
 
 		Dictionary d;
 
-		PoolVector<int> cells;
+		Vector<int> cells;
 		cells.resize(cell_map.size() * 3);
 		{
-			PoolVector<int>::Write w = cells.write();
+			int *w = cells.ptrw();
 			int i = 0;
 			for (Map<IndexKey, Cell>::Element *E = cell_map.front(); E; E = E->next(), i++) {
 
@@ -439,7 +439,7 @@ bool GridMap::_octant_update(const OctantKey &p_key) {
 		return true;
 	}
 
-	PoolVector<Vector3> col_debug;
+	Vector<Vector3> col_debug;
 
 	/*
 	 * foreach item in this octant,
@@ -874,7 +874,7 @@ void GridMap::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "cell_center_x"), "set_center_x", "get_center_x");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "cell_center_y"), "set_center_y", "get_center_y");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "cell_center_z"), "set_center_z", "get_center_z");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "cell_scale"), "set_cell_scale", "get_cell_scale");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "cell_scale"), "set_cell_scale", "get_cell_scale");
 	ADD_GROUP("Collision", "collision_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "collision_layer", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_collision_layer", "get_collision_layer");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "collision_mask", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_collision_mask", "get_collision_mask");

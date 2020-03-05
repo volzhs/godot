@@ -177,7 +177,7 @@ void TileMap::_update_quadrant_transform() {
 void TileMap::set_tileset(const Ref<TileSet> &p_tileset) {
 
 	if (tile_set.is_valid()) {
-		tile_set->disconnect("changed", this, "_recreate_quadrants");
+		tile_set->disconnect("changed", callable_mp(this, &TileMap::_recreate_quadrants));
 		tile_set->remove_change_receptor(this);
 	}
 
@@ -185,7 +185,7 @@ void TileMap::set_tileset(const Ref<TileSet> &p_tileset) {
 	tile_set = p_tileset;
 
 	if (tile_set.is_valid()) {
-		tile_set->connect("changed", this, "_recreate_quadrants");
+		tile_set->connect("changed", callable_mp(this, &TileMap::_recreate_quadrants));
 		tile_set->add_change_receptor(this);
 	} else {
 		clear();
@@ -629,7 +629,7 @@ void TileMap::update_dirty_quadrants() {
 						vs->canvas_item_set_z_index(debug_navigation_item, VS::CANVAS_ITEM_Z_MAX - 2); // Display one below collision debug
 
 						if (debug_navigation_item.is_valid()) {
-							PoolVector<Vector2> navigation_polygon_vertices = navpoly->get_vertices();
+							Vector<Vector2> navigation_polygon_vertices = navpoly->get_vertices();
 							int vsize = navigation_polygon_vertices.size();
 
 							if (vsize > 2) {
@@ -638,7 +638,7 @@ void TileMap::update_dirty_quadrants() {
 								vertices.resize(vsize);
 								colors.resize(vsize);
 								{
-									PoolVector<Vector2>::Read vr = navigation_polygon_vertices.read();
+									const Vector2 *vr = navigation_polygon_vertices.ptr();
 									for (int j = 0; j < vsize; j++) {
 										vertices.write[j] = vr[j];
 										colors.write[j] = debug_navigation_color;
@@ -853,7 +853,7 @@ void TileMap::_set_celld(const Vector2 &p_pos, const Dictionary &p_data) {
 
 	Variant v_pos_x = p_pos.x, v_pos_y = p_pos.y, v_tile = p_data["id"], v_flip_h = p_data["flip_h"], v_flip_v = p_data["flip_y"], v_transpose = p_data["transpose"], v_autotile_coord = p_data["auto_coord"];
 	const Variant *args[7] = { &v_pos_x, &v_pos_y, &v_tile, &v_flip_h, &v_flip_v, &v_transpose, &v_autotile_coord };
-	Variant::CallError ce;
+	Callable::CallError ce;
 	call("set_cell", args, 7, ce);
 }
 
@@ -1207,12 +1207,12 @@ void TileMap::clear() {
 	used_size_cache_dirty = true;
 }
 
-void TileMap::_set_tile_data(const PoolVector<int> &p_data) {
+void TileMap::_set_tile_data(const Vector<int> &p_data) {
 
 	ERR_FAIL_COND(format > FORMAT_2);
 
 	int c = p_data.size();
-	PoolVector<int>::Read r = p_data.read();
+	const int *r = p_data.ptr();
 
 	int offset = (format == FORMAT_2) ? 3 : 2;
 
@@ -1255,11 +1255,11 @@ void TileMap::_set_tile_data(const PoolVector<int> &p_data) {
 	}
 }
 
-PoolVector<int> TileMap::_get_tile_data() const {
+Vector<int> TileMap::_get_tile_data() const {
 
-	PoolVector<int> data;
+	Vector<int> data;
 	data.resize(tile_map.size() * 3);
-	PoolVector<int>::Write w = data.write();
+	int *w = data.ptrw();
 
 	// Save in highest format
 
@@ -1280,8 +1280,6 @@ PoolVector<int> TileMap::_get_tile_data() const {
 		encode_uint16(E->get().autotile_coord_y, &ptr[10]);
 		idx += 3;
 	}
-
-	w.release();
 
 	return data;
 }
@@ -1885,7 +1883,6 @@ void TileMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("world_to_map", "world_position"), &TileMap::world_to_map);
 
 	ClassDB::bind_method(D_METHOD("_clear_quadrants"), &TileMap::_clear_quadrants);
-	ClassDB::bind_method(D_METHOD("_recreate_quadrants"), &TileMap::_recreate_quadrants);
 	ClassDB::bind_method(D_METHOD("update_dirty_quadrants"), &TileMap::update_dirty_quadrants);
 
 	ClassDB::bind_method(D_METHOD("update_bitmask_area", "position"), &TileMap::update_bitmask_area);
@@ -1911,8 +1908,8 @@ void TileMap::_bind_methods() {
 	ADD_GROUP("Collision", "collision_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "collision_use_parent", PROPERTY_HINT_NONE, ""), "set_collision_use_parent", "get_collision_use_parent");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "collision_use_kinematic", PROPERTY_HINT_NONE, ""), "set_collision_use_kinematic", "get_collision_use_kinematic");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "collision_friction", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_collision_friction", "get_collision_friction");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "collision_bounce", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_collision_bounce", "get_collision_bounce");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "collision_friction", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_collision_friction", "get_collision_friction");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "collision_bounce", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_collision_bounce", "get_collision_bounce");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "collision_layer", PROPERTY_HINT_LAYERS_2D_PHYSICS), "set_collision_layer", "get_collision_layer");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "collision_mask", PROPERTY_HINT_LAYERS_2D_PHYSICS), "set_collision_mask", "get_collision_mask");
 

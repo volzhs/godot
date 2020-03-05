@@ -30,13 +30,12 @@
 
 #include "node.h"
 
-#include <stdint.h>
-
 #include "core/core_string_names.h"
 #include "core/io/resource_loader.h"
 #include "core/message_queue.h"
 #include "core/print_string.h"
 #include "instance_placeholder.h"
+#include "scene/debugger/scene_debugger.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/scene_string_names.h"
 #include "viewport.h"
@@ -44,6 +43,8 @@
 #ifdef TOOLS_ENABLED
 #include "editor/editor_settings.h"
 #endif
+
+#include <stdint.h>
 
 VARIANT_ENUM_CAST(Node::PauseMode);
 
@@ -244,11 +245,7 @@ void Node::_propagate_enter_tree() {
 	data.blocked--;
 
 #ifdef DEBUG_ENABLED
-
-	if (ScriptDebugger::get_singleton() && data.filename != String()) {
-		//used for live edit
-		data.tree->live_scene_edit_cache[data.filename].insert(this);
-	}
+	SceneDebugger::add_to_cache(data.filename, this);
 #endif
 	// enter groups
 }
@@ -268,26 +265,7 @@ void Node::_propagate_exit_tree() {
 	//block while removing children
 
 #ifdef DEBUG_ENABLED
-
-	if (ScriptDebugger::get_singleton() && data.filename != String()) {
-		//used for live edit
-		Map<String, Set<Node *> >::Element *E = data.tree->live_scene_edit_cache.find(data.filename);
-		if (E) {
-			E->get().erase(this);
-			if (E->get().size() == 0) {
-				data.tree->live_scene_edit_cache.erase(E);
-			}
-		}
-
-		Map<Node *, Map<ObjectID, Node *> >::Element *F = data.tree->live_edit_remove_list.find(this);
-		if (F) {
-			for (Map<ObjectID, Node *>::Element *G = F->get().front(); G; G = G->next()) {
-
-				memdelete(G->get());
-			}
-			data.tree->live_edit_remove_list.erase(F);
-		}
-	}
+	SceneDebugger::remove_from_cache(data.filename, this);
 #endif
 	data.blocked++;
 
@@ -592,16 +570,16 @@ void Node::rpc_unreliable_id(int p_peer_id, const StringName &p_method, VARIANT_
 	rpcp(p_peer_id, true, p_method, argptr, argc);
 }
 
-Variant Node::_rpc_bind(const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
+Variant Node::_rpc_bind(const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 
 	if (p_argcount < 1) {
-		r_error.error = Variant::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
+		r_error.error = Callable::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
 		r_error.argument = 1;
 		return Variant();
 	}
 
 	if (p_args[0]->get_type() != Variant::STRING) {
-		r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 0;
 		r_error.expected = Variant::STRING;
 		return Variant();
@@ -611,27 +589,27 @@ Variant Node::_rpc_bind(const Variant **p_args, int p_argcount, Variant::CallErr
 
 	rpcp(0, false, method, &p_args[1], p_argcount - 1);
 
-	r_error.error = Variant::CallError::CALL_OK;
+	r_error.error = Callable::CallError::CALL_OK;
 	return Variant();
 }
 
-Variant Node::_rpc_id_bind(const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
+Variant Node::_rpc_id_bind(const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 
 	if (p_argcount < 2) {
-		r_error.error = Variant::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
+		r_error.error = Callable::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
 		r_error.argument = 2;
 		return Variant();
 	}
 
 	if (p_args[0]->get_type() != Variant::INT) {
-		r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 0;
 		r_error.expected = Variant::INT;
 		return Variant();
 	}
 
 	if (p_args[1]->get_type() != Variant::STRING) {
-		r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 1;
 		r_error.expected = Variant::STRING;
 		return Variant();
@@ -642,20 +620,20 @@ Variant Node::_rpc_id_bind(const Variant **p_args, int p_argcount, Variant::Call
 
 	rpcp(peer_id, false, method, &p_args[2], p_argcount - 2);
 
-	r_error.error = Variant::CallError::CALL_OK;
+	r_error.error = Callable::CallError::CALL_OK;
 	return Variant();
 }
 
-Variant Node::_rpc_unreliable_bind(const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
+Variant Node::_rpc_unreliable_bind(const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 
 	if (p_argcount < 1) {
-		r_error.error = Variant::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
+		r_error.error = Callable::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
 		r_error.argument = 1;
 		return Variant();
 	}
 
 	if (p_args[0]->get_type() != Variant::STRING) {
-		r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 0;
 		r_error.expected = Variant::STRING;
 		return Variant();
@@ -665,27 +643,27 @@ Variant Node::_rpc_unreliable_bind(const Variant **p_args, int p_argcount, Varia
 
 	rpcp(0, true, method, &p_args[1], p_argcount - 1);
 
-	r_error.error = Variant::CallError::CALL_OK;
+	r_error.error = Callable::CallError::CALL_OK;
 	return Variant();
 }
 
-Variant Node::_rpc_unreliable_id_bind(const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
+Variant Node::_rpc_unreliable_id_bind(const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 
 	if (p_argcount < 2) {
-		r_error.error = Variant::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
+		r_error.error = Callable::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
 		r_error.argument = 2;
 		return Variant();
 	}
 
 	if (p_args[0]->get_type() != Variant::INT) {
-		r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 0;
 		r_error.expected = Variant::INT;
 		return Variant();
 	}
 
 	if (p_args[1]->get_type() != Variant::STRING) {
-		r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 1;
 		r_error.expected = Variant::STRING;
 		return Variant();
@@ -696,7 +674,7 @@ Variant Node::_rpc_unreliable_id_bind(const Variant **p_args, int p_argcount, Va
 
 	rpcp(peer_id, true, method, &p_args[2], p_argcount - 2);
 
-	r_error.error = Variant::CallError::CALL_OK;
+	r_error.error = Callable::CallError::CALL_OK;
 	return Variant();
 }
 
@@ -2360,7 +2338,7 @@ void Node::_duplicate_signals(const Node *p_original, Node *p_copy) const {
 			NodePath p = p_original->get_path_to(this);
 			Node *copy = p_copy->get_node(p);
 
-			Node *target = Object::cast_to<Node>(E->get().target);
+			Node *target = Object::cast_to<Node>(E->get().callable.get_object());
 			if (!target) {
 				continue;
 			}
@@ -2368,15 +2346,18 @@ void Node::_duplicate_signals(const Node *p_original, Node *p_copy) const {
 
 			Node *copytarget = target;
 
-			// Atempt to find a path to the duplicate target, if it seems it's not part
+			// Attempt to find a path to the duplicate target, if it seems it's not part
 			// of the duplicated and not yet parented hierarchy then at least try to connect
 			// to the same target as the original
 
 			if (p_copy->has_node(ptarget))
 				copytarget = p_copy->get_node(ptarget);
 
-			if (copy && copytarget && !copy->is_connected(E->get().signal, copytarget, E->get().method)) {
-				copy->connect(E->get().signal, copytarget, E->get().method, E->get().binds, E->get().flags);
+			if (copy && copytarget) {
+				const Callable copy_callable = Callable(copytarget, E->get().callable.get_method());
+				if (!copy->is_connected(E->get().signal.get_name(), copy_callable)) {
+					copy->connect(E->get().signal.get_name(), copy_callable, E->get().binds, E->get().flags);
+				}
 			}
 		}
 	}
@@ -2531,10 +2512,10 @@ void Node::_replace_connections_target(Node *p_new_target) {
 		Connection &c = E->get();
 
 		if (c.flags & CONNECT_PERSIST) {
-			c.source->disconnect(c.signal, this, c.method);
-			bool valid = p_new_target->has_method(c.method) || Ref<Script>(p_new_target->get_script()).is_null() || Ref<Script>(p_new_target->get_script())->has_method(c.method);
-			ERR_CONTINUE_MSG(!valid, "Attempt to connect signal '" + c.source->get_class() + "." + c.signal + "' to nonexistent method '" + c.target->get_class() + "." + c.method + "'.");
-			c.source->connect(c.signal, p_new_target, c.method, c.binds, c.flags);
+			c.signal.get_object()->disconnect(c.signal.get_name(), Callable(this, c.callable.get_method()));
+			bool valid = p_new_target->has_method(c.callable.get_method()) || Ref<Script>(p_new_target->get_script()).is_null() || Ref<Script>(p_new_target->get_script())->has_method(c.callable.get_method());
+			ERR_CONTINUE_MSG(!valid, "Attempt to connect signal '" + c.signal.get_object()->get_class() + "." + c.signal.get_name() + "' to nonexistent method '" + c.callable.get_object()->get_class() + "." + c.callable.get_method() + "'.");
+			c.signal.get_object()->connect(c.signal.get_name(), Callable(p_new_target, c.callable.get_method()), c.binds, c.flags);
 		}
 	}
 }
@@ -2822,7 +2803,7 @@ void Node::_bind_methods() {
 	GLOBAL_DEF("node/name_casing", NAME_CASING_PASCAL_CASE);
 	ProjectSettings::get_singleton()->set_custom_property_info("node/name_casing", PropertyInfo(Variant::INT, "node/name_casing", PROPERTY_HINT_ENUM, "PascalCase,camelCase,snake_case"));
 
-	ClassDB::bind_method(D_METHOD("add_child_below_node", "node", "child_node", "legible_unique_name"), &Node::add_child_below_node, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("add_child_below_node", "preceding_node", "node", "legible_unique_name"), &Node::add_child_below_node, DEFVAL(false));
 
 	ClassDB::bind_method(D_METHOD("set_name", "name"), &Node::set_name);
 	ClassDB::bind_method(D_METHOD("get_name"), &Node::get_name);
@@ -2926,7 +2907,7 @@ void Node::_bind_methods() {
 	{
 		MethodInfo mi;
 
-		mi.arguments.push_back(PropertyInfo(Variant::STRING, "method"));
+		mi.arguments.push_back(PropertyInfo(Variant::STRING_NAME, "method"));
 
 		mi.name = "rpc";
 		ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "rpc", &Node::_rpc_bind, mi);
@@ -2998,15 +2979,15 @@ void Node::_bind_methods() {
 	ADD_GROUP("Pause", "pause_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "pause_mode", PROPERTY_HINT_ENUM, "Inherit,Stop,Process"), "set_pause_mode", "get_pause_mode");
 
-	ADD_PROPERTY(PropertyInfo(Variant::STRING, "name", PROPERTY_HINT_NONE, "", 0), "set_name", "get_name");
+	ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "name", PROPERTY_HINT_NONE, "", 0), "set_name", "get_name");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "filename", PROPERTY_HINT_NONE, "", 0), "set_filename", "get_filename");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "owner", PROPERTY_HINT_RESOURCE_TYPE, "Node", 0), "set_owner", "get_owner");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "multiplayer", PROPERTY_HINT_RESOURCE_TYPE, "MultiplayerAPI", 0), "", "get_multiplayer");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "custom_multiplayer", PROPERTY_HINT_RESOURCE_TYPE, "MultiplayerAPI", 0), "set_custom_multiplayer", "get_custom_multiplayer");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "process_priority"), "set_process_priority", "get_process_priority");
 
-	BIND_VMETHOD(MethodInfo("_process", PropertyInfo(Variant::REAL, "delta")));
-	BIND_VMETHOD(MethodInfo("_physics_process", PropertyInfo(Variant::REAL, "delta")));
+	BIND_VMETHOD(MethodInfo("_process", PropertyInfo(Variant::FLOAT, "delta")));
+	BIND_VMETHOD(MethodInfo("_physics_process", PropertyInfo(Variant::FLOAT, "delta")));
 	BIND_VMETHOD(MethodInfo("_enter_tree"));
 	BIND_VMETHOD(MethodInfo("_exit_tree"));
 	BIND_VMETHOD(MethodInfo("_ready"));

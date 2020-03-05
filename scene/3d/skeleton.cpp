@@ -30,9 +30,8 @@
 
 #include "skeleton.h"
 
-#include "core/message_queue.h"
-
 #include "core/engine.h"
+#include "core/message_queue.h"
 #include "core/project_settings.h"
 #include "scene/3d/physics_body.h"
 #include "scene/resources/surface_tool.h"
@@ -41,6 +40,7 @@ void SkinReference::_skin_changed() {
 	if (skeleton_node) {
 		skeleton_node->_make_dirty();
 	}
+	skeleton_version = 0;
 }
 
 void SkinReference::_bind_methods() {
@@ -322,10 +322,49 @@ void Skeleton::_notification(int p_what) {
 				if (E->get()->bind_count != bind_count) {
 					VS::get_singleton()->skeleton_allocate(skeleton, bind_count);
 					E->get()->bind_count = bind_count;
+					E->get()->skin_bone_indices.resize(bind_count);
+					E->get()->skin_bone_indices_ptrs = E->get()->skin_bone_indices.ptrw();
+				}
+
+				if (E->get()->skeleton_version != version) {
+
+					for (uint32_t i = 0; i < bind_count; i++) {
+						StringName bind_name = skin->get_bind_name(i);
+
+						if (bind_name != StringName()) {
+							//bind name used, use this
+							bool found = false;
+							for (int j = 0; j < len; j++) {
+								if (bonesptr[j].name == bind_name) {
+									E->get()->skin_bone_indices_ptrs[i] = j;
+									found = true;
+									break;
+								}
+							}
+
+							if (!found) {
+								ERR_PRINT("Skin bind #" + itos(i) + " contains named bind '" + String(bind_name) + "' but Skeleton has no bone by that name.");
+								E->get()->skin_bone_indices_ptrs[i] = 0;
+							}
+						} else if (skin->get_bind_bone(i) >= 0) {
+							int bind_index = skin->get_bind_bone(i);
+							if (bind_index >= len) {
+								ERR_PRINT("Skin bind #" + itos(i) + " contains bone index bind: " + itos(bind_index) + " , which is greater than the skeleton bone count: " + itos(len) + ".");
+								E->get()->skin_bone_indices_ptrs[i] = 0;
+							} else {
+								E->get()->skin_bone_indices_ptrs[i] = bind_index;
+							}
+						} else {
+							ERR_PRINT("Skin bind #" + itos(i) + " does not contain a name nor a bone index.");
+							E->get()->skin_bone_indices_ptrs[i] = 0;
+						}
+					}
+
+					E->get()->skeleton_version = version;
 				}
 
 				for (uint32_t i = 0; i < bind_count; i++) {
-					uint32_t bone_index = skin->get_bind_bone(i);
+					uint32_t bone_index = E->get()->skin_bone_indices_ptrs[i];
 					ERR_CONTINUE(bone_index >= (uint32_t)len);
 					vs->skeleton_bone_set_transform(skeleton, i, bonesptr[bone_index].pose_global * skin->get_bind_pose(i));
 				}
@@ -388,6 +427,7 @@ void Skeleton::add_bone(const String &p_name) {
 	b.name = p_name;
 	bones.push_back(b);
 	process_order_dirty = true;
+	version++;
 	_make_dirty();
 	update_gizmo();
 }
@@ -539,7 +579,7 @@ void Skeleton::clear_bones() {
 
 	bones.clear();
 	process_order_dirty = true;
-
+	version++;
 	_make_dirty();
 }
 
@@ -733,7 +773,8 @@ void Skeleton::physical_bones_start_simulation_on(const Array &p_bones) {
 		sim_bones.resize(p_bones.size());
 		int c = 0;
 		for (int i = sim_bones.size() - 1; 0 <= i; --i) {
-			if (Variant::STRING == p_bones.get(i).get_type()) {
+			Variant::Type type = p_bones.get(i).get_type();
+			if (Variant::STRING == type || Variant::STRING_NAME == type) {
 				int bone_id = find_bone(p_bones.get(i));
 				if (bone_id != -1)
 					sim_bones.write[c++] = bone_id;
@@ -829,7 +870,7 @@ Ref<SkinReference> Skeleton::register_skin(const Ref<Skin> &p_skin) {
 
 	skin_bindings.insert(skin_ref.operator->());
 
-	skin->connect("changed", skin_ref.operator->(), "_skin_changed");
+	skin->connect_compat("changed", skin_ref.operator->(), "_skin_changed");
 
 	_make_dirty(); //skin needs to be updated, so update skeleton
 
@@ -894,6 +935,7 @@ Skeleton::Skeleton() {
 
 	animate_physical_bones = true;
 	dirty = false;
+	version = 1;
 	process_order_dirty = true;
 }
 

@@ -150,7 +150,7 @@ void AbstractPolygon2DEditor::_action_add_polygon(const Variant &p_polygon) {
 
 void AbstractPolygon2DEditor::_action_remove_polygon(int p_idx) {
 
-	_action_set_polygon(p_idx, _get_polygon(p_idx), PoolVector<Vector2>());
+	_action_set_polygon(p_idx, _get_polygon(p_idx), Vector<Vector2>());
 }
 
 void AbstractPolygon2DEditor::_action_set_polygon(int p_idx, const Variant &p_polygon) {
@@ -209,8 +209,8 @@ void AbstractPolygon2DEditor::_notification(int p_what) {
 			button_delete->set_icon(EditorNode::get_singleton()->get_gui_base()->get_icon("CurveDelete", "EditorIcons"));
 			button_edit->set_pressed(true);
 
-			get_tree()->connect("node_removed", this, "_node_removed");
-			create_resource->connect("confirmed", this, "_create_resource");
+			get_tree()->connect("node_removed", callable_mp(this, &AbstractPolygon2DEditor::_node_removed));
+			create_resource->connect("confirmed", callable_mp(this, &AbstractPolygon2DEditor::_create_resource));
 		} break;
 	}
 }
@@ -256,7 +256,7 @@ void AbstractPolygon2DEditor::_wip_close() {
 		undo_redo->create_action(TTR("Create Polygon"));
 		_action_add_polygon(wip);
 		if (_has_uv()) {
-			undo_redo->add_do_method(_get_node(), "set_uv", PoolVector<Vector2>());
+			undo_redo->add_do_method(_get_node(), "set_uv", Vector<Vector2>());
 			undo_redo->add_undo_method(_get_node(), "set_uv", _get_node()->get("uv"));
 		}
 		_commit_action();
@@ -533,7 +533,7 @@ bool AbstractPolygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 
 	if (k.is_valid() && k->is_pressed()) {
 
-		if (k->get_scancode() == KEY_DELETE || k->get_scancode() == KEY_BACKSPACE) {
+		if (k->get_keycode() == KEY_DELETE || k->get_keycode() == KEY_BACKSPACE) {
 
 			if (wip_active && selected_point.polygon == -1) {
 
@@ -555,10 +555,10 @@ bool AbstractPolygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 					return true;
 				}
 			}
-		} else if (wip_active && k->get_scancode() == KEY_ENTER) {
+		} else if (wip_active && k->get_keycode() == KEY_ENTER) {
 
 			_wip_close();
-		} else if (wip_active && k->get_scancode() == KEY_ESCAPE) {
+		} else if (wip_active && k->get_keycode() == KEY_ESCAPE) {
 			_wip_cancel();
 		}
 	}
@@ -584,7 +584,7 @@ void AbstractPolygon2DEditor::forward_canvas_draw_over_viewport(Control *p_overl
 		if (wip_active && wip_destructive && j != -1)
 			continue;
 
-		PoolVector<Vector2> points;
+		Vector<Vector2> points;
 		Vector2 offset;
 
 		if (wip_active && j == edited_point.polygon) {
@@ -695,15 +695,11 @@ void AbstractPolygon2DEditor::edit(Node *p_polygon) {
 }
 
 void AbstractPolygon2DEditor::_bind_methods() {
-
-	ClassDB::bind_method(D_METHOD("_node_removed"), &AbstractPolygon2DEditor::_node_removed);
-	ClassDB::bind_method(D_METHOD("_menu_option"), &AbstractPolygon2DEditor::_menu_option);
-	ClassDB::bind_method(D_METHOD("_create_resource"), &AbstractPolygon2DEditor::_create_resource);
 }
 
 void AbstractPolygon2DEditor::remove_point(const Vertex &p_vertex) {
 
-	PoolVector<Vector2> vertices = _get_polygon(p_vertex.polygon);
+	Vector<Vector2> vertices = _get_polygon(p_vertex.polygon);
 
 	if (vertices.size() > (_is_line() ? 2 : 3)) {
 
@@ -744,7 +740,7 @@ AbstractPolygon2DEditor::PosVertex AbstractPolygon2DEditor::closest_point(const 
 
 	for (int j = 0; j < n_polygons; j++) {
 
-		PoolVector<Vector2> points = _get_polygon(j);
+		Vector<Vector2> points = _get_polygon(j);
 		const Vector2 offset = _get_offset(j);
 		const int n_points = points.size();
 
@@ -777,7 +773,7 @@ AbstractPolygon2DEditor::PosVertex AbstractPolygon2DEditor::closest_edge_point(c
 
 	for (int j = 0; j < n_polygons; j++) {
 
-		PoolVector<Vector2> points = _get_polygon(j);
+		Vector<Vector2> points = _get_polygon(j);
 		const Vector2 offset = _get_offset(j);
 		const int n_points = points.size();
 		const int n_segments = n_points - (_is_line() ? 1 : 0);
@@ -820,17 +816,17 @@ AbstractPolygon2DEditor::AbstractPolygon2DEditor(EditorNode *p_editor, bool p_wi
 	add_child(memnew(VSeparator));
 	button_create = memnew(ToolButton);
 	add_child(button_create);
-	button_create->connect("pressed", this, "_menu_option", varray(MODE_CREATE));
+	button_create->connect("pressed", callable_mp(this, &AbstractPolygon2DEditor::_menu_option), varray(MODE_CREATE));
 	button_create->set_toggle_mode(true);
 
 	button_edit = memnew(ToolButton);
 	add_child(button_edit);
-	button_edit->connect("pressed", this, "_menu_option", varray(MODE_EDIT));
+	button_edit->connect("pressed", callable_mp(this, &AbstractPolygon2DEditor::_menu_option), varray(MODE_EDIT));
 	button_edit->set_toggle_mode(true);
 
 	button_delete = memnew(ToolButton);
 	add_child(button_delete);
-	button_delete->connect("pressed", this, "_menu_option", varray(MODE_DELETE));
+	button_delete->connect("pressed", callable_mp(this, &AbstractPolygon2DEditor::_menu_option), varray(MODE_DELETE));
 	button_delete->set_toggle_mode(true);
 
 	create_resource = memnew(ConfirmationDialog);

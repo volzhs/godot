@@ -361,7 +361,7 @@ Node *EditorAutoloadSettings::_create_autoload(const String &p_path) {
 		ERR_FAIL_COND_V_MSG(obj == NULL, NULL, "Cannot instance script for autoload, expected 'Node' inheritance, got: " + String(ibt) + ".");
 
 		n = Object::cast_to<Node>(obj);
-		n->set_script(s.get_ref_ptr());
+		n->set_script(s);
 	}
 
 	ERR_FAIL_COND_V_MSG(!n, NULL, "Path in autoload not a node or script: " + p_path + ".");
@@ -521,7 +521,7 @@ Variant EditorAutoloadSettings::get_drag_data_fw(const Point2 &p_point, Control 
 	if (autoload_cache.size() <= 1)
 		return false;
 
-	PoolStringArray autoloads;
+	PackedStringArray autoloads;
 
 	TreeItem *next = tree->get_next_selected(NULL);
 
@@ -612,7 +612,7 @@ void EditorAutoloadSettings::drop_data_fw(const Point2 &p_point, const Variant &
 	}
 
 	Dictionary drop_data = p_data;
-	PoolStringArray autoloads = drop_data["autoloads"];
+	PackedStringArray autoloads = drop_data["autoloads"];
 
 	Vector<int> orders;
 	orders.resize(autoload_cache.size());
@@ -736,16 +736,7 @@ void EditorAutoloadSettings::autoload_remove(const String &p_name) {
 
 void EditorAutoloadSettings::_bind_methods() {
 
-	ClassDB::bind_method("_autoload_add", &EditorAutoloadSettings::_autoload_add);
-	ClassDB::bind_method("_autoload_selected", &EditorAutoloadSettings::_autoload_selected);
-	ClassDB::bind_method("_autoload_edited", &EditorAutoloadSettings::_autoload_edited);
-	ClassDB::bind_method("_autoload_button_pressed", &EditorAutoloadSettings::_autoload_button_pressed);
-	ClassDB::bind_method("_autoload_activated", &EditorAutoloadSettings::_autoload_activated);
-	ClassDB::bind_method("_autoload_path_text_changed", &EditorAutoloadSettings::_autoload_path_text_changed);
-	ClassDB::bind_method("_autoload_text_entered", &EditorAutoloadSettings::_autoload_text_entered);
-	ClassDB::bind_method("_autoload_text_changed", &EditorAutoloadSettings::_autoload_text_changed);
 	ClassDB::bind_method("_autoload_open", &EditorAutoloadSettings::_autoload_open);
-	ClassDB::bind_method("_autoload_file_callback", &EditorAutoloadSettings::_autoload_file_callback);
 
 	ClassDB::bind_method("get_drag_data_fw", &EditorAutoloadSettings::get_drag_data_fw);
 	ClassDB::bind_method("can_drop_data_fw", &EditorAutoloadSettings::can_drop_data_fw);
@@ -835,8 +826,8 @@ EditorAutoloadSettings::EditorAutoloadSettings() {
 	autoload_add_path = memnew(EditorLineEditFileChooser);
 	autoload_add_path->set_h_size_flags(SIZE_EXPAND_FILL);
 	autoload_add_path->get_file_dialog()->set_mode(EditorFileDialog::MODE_OPEN_FILE);
-	autoload_add_path->get_file_dialog()->connect("file_selected", this, "_autoload_file_callback");
-	autoload_add_path->get_line_edit()->connect("text_changed", this, "_autoload_path_text_changed");
+	autoload_add_path->get_file_dialog()->connect("file_selected", callable_mp(this, &EditorAutoloadSettings::_autoload_file_callback));
+	autoload_add_path->get_line_edit()->connect("text_changed", callable_mp(this, &EditorAutoloadSettings::_autoload_path_text_changed));
 
 	hbc->add_child(autoload_add_path);
 
@@ -846,13 +837,13 @@ EditorAutoloadSettings::EditorAutoloadSettings() {
 
 	autoload_add_name = memnew(LineEdit);
 	autoload_add_name->set_h_size_flags(SIZE_EXPAND_FILL);
-	autoload_add_name->connect("text_entered", this, "_autoload_text_entered");
-	autoload_add_name->connect("text_changed", this, "_autoload_text_changed");
+	autoload_add_name->connect("text_entered", callable_mp(this, &EditorAutoloadSettings::_autoload_text_entered));
+	autoload_add_name->connect("text_changed", callable_mp(this, &EditorAutoloadSettings::_autoload_text_changed));
 	hbc->add_child(autoload_add_name);
 
 	add_autoload = memnew(Button);
 	add_autoload->set_text(TTR("Add"));
-	add_autoload->connect("pressed", this, "_autoload_add");
+	add_autoload->connect("pressed", callable_mp(this, &EditorAutoloadSettings::_autoload_add));
 	// The button will be enabled once a valid name is entered (either automatically or manually).
 	add_autoload->set_disabled(true);
 	hbc->add_child(add_autoload);
@@ -882,10 +873,10 @@ EditorAutoloadSettings::EditorAutoloadSettings() {
 	tree->set_column_expand(3, false);
 	tree->set_column_min_width(3, 120 * EDSCALE);
 
-	tree->connect("cell_selected", this, "_autoload_selected");
-	tree->connect("item_edited", this, "_autoload_edited");
-	tree->connect("button_pressed", this, "_autoload_button_pressed");
-	tree->connect("item_activated", this, "_autoload_activated");
+	tree->connect("cell_selected", callable_mp(this, &EditorAutoloadSettings::_autoload_selected));
+	tree->connect("item_edited", callable_mp(this, &EditorAutoloadSettings::_autoload_edited));
+	tree->connect("button_pressed", callable_mp(this, &EditorAutoloadSettings::_autoload_button_pressed));
+	tree->connect("item_activated", callable_mp(this, &EditorAutoloadSettings::_autoload_activated));
 	tree->set_v_size_flags(SIZE_EXPAND_FILL);
 
 	add_child(tree, true);

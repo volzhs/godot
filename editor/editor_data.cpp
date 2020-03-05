@@ -435,10 +435,14 @@ void EditorData::restore_editor_global_states() {
 
 void EditorData::paste_object_params(Object *p_object) {
 
+	ERR_FAIL_NULL(p_object);
+	undo_redo.create_action(TTR("Paste Params"));
 	for (List<PropertyData>::Element *E = clipboard.front(); E; E = E->next()) {
-
-		p_object->set(E->get().name, E->get().value);
+		String name = E->get().name;
+		undo_redo.add_do_property(p_object, name, E->get().value);
+		undo_redo.add_undo_property(p_object, name, p_object->get(name));
 	}
+	undo_redo.commit_action();
 }
 
 bool EditorData::call_build() {
@@ -506,7 +510,7 @@ Object *EditorData::instance_custom_type(const String &p_type, const String &p_i
 				if (ob->is_class("Node")) {
 					ob->call("set_name", p_type);
 				}
-				ob->set_script(script.get_ref_ptr());
+				ob->set_script(script);
 				return ob;
 			}
 		}
@@ -907,7 +911,7 @@ Object *EditorData::script_class_instance(const String &p_class) {
 		if (obj) {
 			Ref<Script> script = script_class_load_script(p_class);
 			if (script.is_valid())
-				obj->set_script(script.get_ref_ptr());
+				obj->set_script(script);
 			return obj;
 		}
 	}
@@ -1024,7 +1028,7 @@ void EditorSelection::add_node(Node *p_node) {
 	}
 	selection[p_node] = meta;
 
-	p_node->connect("tree_exiting", this, "_node_removed", varray(p_node), CONNECT_ONESHOT);
+	p_node->connect("tree_exiting", callable_mp(this, &EditorSelection::_node_removed), varray(p_node), CONNECT_ONESHOT);
 
 	//emit_signal("selection_changed");
 }
@@ -1042,7 +1046,7 @@ void EditorSelection::remove_node(Node *p_node) {
 	if (meta)
 		memdelete(meta);
 	selection.erase(p_node);
-	p_node->disconnect("tree_exiting", this, "_node_removed");
+	p_node->disconnect("tree_exiting", callable_mp(this, &EditorSelection::_node_removed));
 	//emit_signal("selection_changed");
 }
 bool EditorSelection::is_selected(Node *p_node) const {
@@ -1076,7 +1080,6 @@ Array EditorSelection::get_selected_nodes() {
 
 void EditorSelection::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_node_removed"), &EditorSelection::_node_removed);
 	ClassDB::bind_method(D_METHOD("clear"), &EditorSelection::clear);
 	ClassDB::bind_method(D_METHOD("add_node", "node"), &EditorSelection::add_node);
 	ClassDB::bind_method(D_METHOD("remove_node", "node"), &EditorSelection::remove_node);

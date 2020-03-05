@@ -137,7 +137,7 @@ public:
 	virtual Rect2 get_item_rect() const = 0;
 
 	virtual AABB get_aabb() const;
-	virtual PoolVector<Face3> get_faces(uint32_t p_usage_flags) const;
+	virtual Vector<Face3> get_faces(uint32_t p_usage_flags) const;
 	Ref<TriangleMesh> generate_triangle_mesh() const;
 
 	SpriteBase3D();
@@ -156,6 +156,8 @@ class Sprite3D : public SpriteBase3D {
 
 	int vframes;
 	int hframes;
+
+	void _texture_changed();
 
 protected:
 	virtual void _draw();

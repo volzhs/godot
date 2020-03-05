@@ -52,11 +52,10 @@ enum BasisDecompressFormat {
 
 basist::etc1_global_selector_codebook *sel_codebook = nullptr;
 
-static PoolVector<uint8_t> basis_universal_packer(const Ref<Image> &p_image, Image::UsedChannels p_channels) {
-
-	PoolVector<uint8_t> budata;
-
 #ifdef TOOLS_ENABLED
+static Vector<uint8_t> basis_universal_packer(const Ref<Image> &p_image, Image::UsedChannels p_channels) {
+
+	Vector<uint8_t> budata;
 
 	{
 		Ref<Image> image = p_image->duplicate();
@@ -74,10 +73,10 @@ static PoolVector<uint8_t> basis_universal_packer(const Ref<Image> &p_image, Ima
 		basisu::image buimg(image->get_width(), image->get_height());
 
 		{
-			PoolVector<uint8_t> vec = image->get_data();
-			PoolVector<uint8_t>::Read r = vec.read();
+			Vector<uint8_t> vec = image->get_data();
+			const uint8_t *r = vec.ptr();
 
-			memcpy(buimg.get_ptr(), r.ptr(), vec.size());
+			memcpy(buimg.get_ptr(), r, vec.size());
 		}
 
 		//image->save_png("pepeche.png");
@@ -117,14 +116,10 @@ static PoolVector<uint8_t> basis_universal_packer(const Ref<Image> &p_image, Ima
 #ifdef USE_RG_AS_RGBA
 				image->convert_rg_to_ra_rgba8();
 				decompress_format = BASIS_DECOMPRESS_RG_AS_RA;
-
 #else
-
 				params.m_seperate_rg_to_color_alpha = true;
 				decompress_format = BASIS_DECOMPRESS_RG;
-
 #endif
-
 			} break;
 			case Image::USED_CHANNELS_RGB: {
 				decompress_format = BASIS_DECOMPRESS_RGB;
@@ -145,22 +140,22 @@ static PoolVector<uint8_t> basis_universal_packer(const Ref<Image> &p_image, Ima
 		budata.resize(buvec.size() + 4);
 
 		{
-			PoolVector<uint8_t>::Write w = budata.write();
-			uint32_t *decf = (uint32_t *)w.ptr();
+			uint8_t *w = budata.ptrw();
+			uint32_t *decf = (uint32_t *)w;
 			*decf = decompress_format;
-			memcpy(w.ptr() + 4, &buvec[0], buvec.size());
+			memcpy(w + 4, &buvec[0], buvec.size());
 		}
 	}
 
-#endif
 	return budata;
 }
+#endif // TOOLS_ENABLED
 
-static Ref<Image> basis_universal_unpacker(const PoolVector<uint8_t> &p_buffer) {
+static Ref<Image> basis_universal_unpacker(const Vector<uint8_t> &p_buffer) {
 	Ref<Image> image;
 
-	PoolVector<uint8_t>::Read r = p_buffer.read();
-	const uint8_t *ptr = r.ptr();
+	const uint8_t *r = p_buffer.ptr();
+	const uint8_t *ptr = r;
 	int size = p_buffer.size();
 
 	basist::transcoder_texture_format format;
@@ -241,12 +236,12 @@ static Ref<Image> basis_universal_unpacker(const PoolVector<uint8_t> &p_buffer) 
 	tr.get_image_info(ptr, size, info, 0);
 
 	int block_size = basist::basis_get_bytes_per_block(format);
-	PoolVector<uint8_t> gpudata;
+	Vector<uint8_t> gpudata;
 	gpudata.resize(info.m_total_blocks * block_size);
 
 	{
-		PoolVector<uint8_t>::Write w = gpudata.write();
-		uint8_t *dst = w.ptr();
+		uint8_t *w = gpudata.ptrw();
+		uint8_t *dst = w;
 		for (int i = 0; i < gpudata.size(); i++)
 			dst[i] = 0x00;
 
@@ -286,7 +281,7 @@ void unregister_basis_universal_types() {
 
 #ifdef TOOLS_ENABLED
 	delete sel_codebook;
-#endif
 	Image::basis_universal_packer = NULL;
+#endif
 	Image::basis_universal_unpacker = NULL;
 }

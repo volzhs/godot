@@ -67,18 +67,6 @@ static _FORCE_INLINE_ void store_transform_3x3(const Transform &p_mtx, float *p_
 	p_array[11] = 0;
 }
 
-static _FORCE_INLINE_ void store_transform_3x3_430(const Transform &p_mtx, float *p_array) {
-	p_array[0] = p_mtx.basis.elements[0][0];
-	p_array[1] = p_mtx.basis.elements[1][0];
-	p_array[2] = p_mtx.basis.elements[2][0];
-	p_array[3] = p_mtx.basis.elements[0][1];
-	p_array[4] = p_mtx.basis.elements[1][1];
-	p_array[5] = p_mtx.basis.elements[2][1];
-	p_array[6] = p_mtx.basis.elements[0][2];
-	p_array[7] = p_mtx.basis.elements[1][2];
-	p_array[8] = p_mtx.basis.elements[2][2];
-}
-
 static _FORCE_INLINE_ void store_camera(const CameraMatrix &p_mtx, float *p_array) {
 
 	for (int i = 0; i < 4; i++) {
@@ -1906,8 +1894,16 @@ void RasterizerSceneHighEndRD::_render_scene(RID p_render_buffer, const Transfor
 
 	if (draw_sky) {
 		RENDER_TIMESTAMP("Render Sky");
+
+		CameraMatrix projection = p_cam_projection;
+		if (p_reflection_probe.is_valid()) {
+			CameraMatrix correction;
+			correction.set_depth_correction(true);
+			projection = correction * p_cam_projection;
+		}
+
 		RD::DrawListID draw_list = RD::get_singleton()->draw_list_begin(opaque_framebuffer, RD::INITIAL_ACTION_CONTINUE, can_continue ? RD::FINAL_ACTION_CONTINUE : RD::FINAL_ACTION_READ, RD::INITIAL_ACTION_CONTINUE, can_continue ? RD::FINAL_ACTION_CONTINUE : RD::FINAL_ACTION_READ);
-		_draw_sky(draw_list, RD::get_singleton()->framebuffer_get_format(opaque_framebuffer), p_environment, p_cam_projection, p_cam_transform, 1.0);
+		_draw_sky(draw_list, RD::get_singleton()->framebuffer_get_format(opaque_framebuffer), p_environment, projection, p_cam_transform, 1.0);
 		RD::get_singleton()->draw_list_end();
 
 		if (using_separate_specular && !can_continue) {
@@ -2104,15 +2100,15 @@ void RasterizerSceneHighEndRD::_update_render_base_uniform_set() {
 			RID *ids_ptr = u.ids.ptrw();
 			ids_ptr[0] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST, VS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
 			ids_ptr[1] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, VS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
-			ids_ptr[2] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS, VS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+			ids_ptr[2] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS, VS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
 			ids_ptr[3] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, VS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
-			ids_ptr[4] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS_ANISOTROPIC, VS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+			ids_ptr[4] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC, VS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
 			ids_ptr[5] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC, VS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
 			ids_ptr[6] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST, VS::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED);
 			ids_ptr[7] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, VS::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED);
-			ids_ptr[8] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS, VS::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED);
+			ids_ptr[8] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS, VS::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED);
 			ids_ptr[9] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, VS::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED);
-			ids_ptr[10] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS_ANISOTROPIC, VS::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED);
+			ids_ptr[10] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC, VS::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED);
 			ids_ptr[11] = storage->sampler_rd_get_default(VS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC, VS::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED);
 			uniforms.push_back(u);
 		}
@@ -2697,8 +2693,30 @@ RasterizerSceneHighEndRD::~RasterizerSceneHighEndRD() {
 		RD::get_singleton()->free(view_dependant_uniform_set);
 	}
 
+	RD::get_singleton()->free(default_render_buffers_uniform_set);
+	RD::get_singleton()->free(default_radiance_uniform_set);
+	RD::get_singleton()->free(default_vec4_xform_buffer);
+	RD::get_singleton()->free(shadow_sampler);
+
+	storage->free(wireframe_material_shader);
+	storage->free(overdraw_material_shader);
+	storage->free(default_shader);
+
+	storage->free(wireframe_material);
+	storage->free(overdraw_material);
+	storage->free(default_material);
+
 	{
+		RD::get_singleton()->free(scene_state.uniform_buffer);
+		RD::get_singleton()->free(scene_state.instance_buffer);
+		RD::get_singleton()->free(scene_state.gi_probe_buffer);
+		RD::get_singleton()->free(scene_state.directional_light_buffer);
+		RD::get_singleton()->free(scene_state.light_buffer);
 		RD::get_singleton()->free(scene_state.reflection_buffer);
+		memdelete_arr(scene_state.instances);
+		memdelete_arr(scene_state.gi_probes);
+		memdelete_arr(scene_state.directional_lights);
+		memdelete_arr(scene_state.lights);
 		memdelete_arr(scene_state.reflections);
 	}
 }

@@ -36,6 +36,8 @@
 #include "servers/visual/rasterizer_rd/shaders/blur.glsl.gen.h"
 #include "servers/visual/rasterizer_rd/shaders/bokeh_dof.glsl.gen.h"
 #include "servers/visual/rasterizer_rd/shaders/copy.glsl.gen.h"
+#include "servers/visual/rasterizer_rd/shaders/cubemap_downsampler.glsl.gen.h"
+#include "servers/visual/rasterizer_rd/shaders/cubemap_filter.glsl.gen.h"
 #include "servers/visual/rasterizer_rd/shaders/cubemap_roughness.glsl.gen.h"
 #include "servers/visual/rasterizer_rd/shaders/luminance_reduce.glsl.gen.h"
 #include "servers/visual/rasterizer_rd/shaders/roughness_limiter.glsl.gen.h"
@@ -125,6 +127,8 @@ class RasterizerEffectsRD {
 		uint32_t sample_count;
 		float roughness;
 		uint32_t use_direct_write;
+		float face_size;
+		float pad[3];
 	};
 
 	struct CubemapRoughness {
@@ -132,7 +136,7 @@ class RasterizerEffectsRD {
 		CubemapRoughnessPushConstant push_constant;
 		CubemapRoughnessShaderRD shader;
 		RID shader_version;
-		RenderPipelineVertexFormatCacheRD pipelines[CUBEMAP_ROUGHNESS_SOURCE_MAX];
+		RID pipelines[CUBEMAP_ROUGHNESS_SOURCE_MAX];
 	} roughness;
 
 	struct SkyPushConstant {
@@ -355,6 +359,46 @@ class RasterizerEffectsRD {
 
 	} roughness_limiter;
 
+	enum CubemapDownsamplerSource {
+		CUBEMAP_DOWNSAMPLER_SOURCE_PANORAMA,
+		CUBEMAP_DOWNSAMPLER_SOURCE_CUBEMAP,
+		CUBEMAP_DOWNSAMPLER_SOURCE_MAX
+	};
+
+	struct CubemapDownsamplerPushConstant {
+		uint32_t face_size;
+		float pad[3];
+	};
+
+	struct CubemapDownsampler {
+
+		CubemapDownsamplerPushConstant push_constant;
+		CubemapDownsamplerShaderRD shader;
+		RID shader_version;
+		RID pipelines[CUBEMAP_DOWNSAMPLER_SOURCE_MAX];
+
+	} cubemap_downsampler;
+
+	enum CubemapFilterMode {
+		FILTER_MODE_HIGH_QUALITY,
+		FILTER_MODE_LOW_QUALITY,
+		FILTER_MODE_HIGH_QUALITY_ARRAY,
+		FILTER_MODE_LOW_QUALITY_ARRAY,
+		FILTER_MODE_MAX,
+	};
+
+	struct CubemapFilter {
+
+		CubemapFilterShaderRD shader;
+		RID shader_version;
+		RID pipelines[FILTER_MODE_MAX];
+		RID uniform_set;
+		RID image_uniform_set;
+		RID coefficient_buffer;
+		bool use_high_quality;
+
+	} filter;
+
 	RID default_sampler;
 	RID default_mipmap_sampler;
 	RID index_buffer;
@@ -377,7 +421,7 @@ public:
 	void gaussian_blur(RID p_source_rd_texture, RID p_framebuffer_half, RID p_rd_texture_half, RID p_dest_framebuffer, const Vector2 &p_pixel_size, const Rect2 &p_region);
 	void gaussian_glow(RID p_source_rd_texture, RID p_framebuffer_half, RID p_rd_texture_half, RID p_dest_framebuffer, const Vector2 &p_pixel_size, float p_strength = 1.0, bool p_first_pass = false, float p_luminance_cap = 16.0, float p_exposure = 1.0, float p_bloom = 0.0, float p_hdr_bleed_treshold = 1.0, float p_hdr_bleed_scale = 1.0, RID p_auto_exposure = RID(), float p_auto_exposure_grey = 1.0);
 
-	void cubemap_roughness(RID p_source_rd_texture, bool p_source_is_panorama, RID p_dest_framebuffer, uint32_t p_face_id, uint32_t p_sample_count, float p_roughness);
+	void cubemap_roughness(RID p_source_rd_texture, bool p_source_is_panorama, RID p_dest_framebuffer, uint32_t p_face_id, uint32_t p_sample_count, float p_roughness, float p_size);
 	void render_panorama(RD::DrawListID p_list, RenderingDevice::FramebufferFormatID p_fb_format, RID p_panorama, const CameraMatrix &p_camera, const Basis &p_orientation, float p_alpha, float p_multipler);
 	void make_mipmap(RID p_source_rd_texture, RID p_framebuffer_half, const Vector2 &p_pixel_size);
 	void copy_cubemap_to_dp(RID p_source_rd_texture, RID p_dest_framebuffer, const Rect2 &p_rect, float p_z_near, float p_z_far, float p_bias, bool p_dp_flip);
@@ -424,6 +468,8 @@ public:
 	void generate_ssao(RID p_depth_buffer, RID p_normal_buffer, const Size2i &p_depth_buffer_size, RID p_depth_mipmaps_texture, const Vector<RID> &depth_mipmaps, RID p_ao1, bool p_half_size, RID p_ao2, RID p_upscale_buffer, float p_intensity, float p_radius, float p_bias, const CameraMatrix &p_projection, VS::EnvironmentSSAOQuality p_quality, VS::EnvironmentSSAOBlur p_blur, float p_edge_sharpness);
 
 	void roughness_limit(RID p_source_normal, RID p_roughness, const Size2i &p_size, float p_curve);
+	void cubemap_downsample(RID p_source_cubemap, bool p_source_is_panorama, RID p_dest_cubemap, const Size2i &p_size);
+	void cubemap_filter(RID p_source_cubemap, Vector<RID> p_dest_cubemap, bool p_use_array);
 
 	RasterizerEffectsRD();
 	~RasterizerEffectsRD();

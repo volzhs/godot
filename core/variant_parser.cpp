@@ -81,6 +81,7 @@ const char *VariantParser::tk_name[TK_MAX] = {
 	"')'",
 	"identifier",
 	"string",
+	"string_name",
 	"number",
 	"color",
 	"':'",
@@ -92,6 +93,8 @@ const char *VariantParser::tk_name[TK_MAX] = {
 };
 
 Error VariantParser::get_token(Stream *p_stream, Token &r_token, int &line, String &r_err_str) {
+
+	bool string_name = false;
 
 	while (true) {
 
@@ -204,6 +207,17 @@ Error VariantParser::get_token(Stream *p_stream, Token &r_token, int &line, Stri
 				r_token.type = TK_COLOR;
 				return OK;
 			};
+			case '@': {
+				cchar = p_stream->get_char();
+				if (cchar != '"') {
+					r_err_str = "Expected '\"' after '@'";
+					r_token.type = TK_ERROR;
+					return ERR_PARSE_ERROR;
+				}
+
+				string_name = true;
+				[[fallthrough]];
+			}
 			case '"': {
 
 				String str;
@@ -285,8 +299,14 @@ Error VariantParser::get_token(Stream *p_stream, Token &r_token, int &line, Stri
 				if (p_stream->is_utf8()) {
 					str.parse_utf8(str.ascii(true).get_data());
 				}
-				r_token.type = TK_STRING;
-				r_token.value = str;
+				if (string_name) {
+					r_token.type = TK_STRING_NAME;
+					r_token.value = StringName(str);
+					string_name = false; //reset
+				} else {
+					r_token.type = TK_STRING;
+					r_token.value = str;
+				}
 				return OK;
 
 			} break;
@@ -512,6 +532,10 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 			value = false;
 		else if (id == "null" || id == "nil")
 			value = Variant();
+		else if (id == "inf")
+			value = Math_INF;
+		else if (id == "nan")
+			value = Math_NAN;
 		else if (id == "Vector2") {
 
 			Vector<float> args;
@@ -524,6 +548,19 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 			}
 
 			value = Vector2(args[0], args[1]);
+			return OK;
+		} else if (id == "Vector2i") {
+
+			Vector<int32_t> args;
+			Error err = _parse_construct<int32_t>(p_stream, args, line, r_err_str);
+			if (err)
+				return err;
+
+			if (args.size() != 2) {
+				r_err_str = "Expected 2 arguments for constructor";
+			}
+
+			value = Vector2i(args[0], args[1]);
 			return OK;
 		} else if (id == "Rect2") {
 
@@ -538,6 +575,19 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 
 			value = Rect2(args[0], args[1], args[2], args[3]);
 			return OK;
+		} else if (id == "Rect2i") {
+
+			Vector<int32_t> args;
+			Error err = _parse_construct<int32_t>(p_stream, args, line, r_err_str);
+			if (err)
+				return err;
+
+			if (args.size() != 4) {
+				r_err_str = "Expected 4 arguments for constructor";
+			}
+
+			value = Rect2i(args[0], args[1], args[2], args[3]);
+			return OK;
 		} else if (id == "Vector3") {
 
 			Vector<float> args;
@@ -550,6 +600,19 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 			}
 
 			value = Vector3(args[0], args[1], args[2]);
+			return OK;
+		} else if (id == "Vector3i") {
+
+			Vector<int32_t> args;
+			Error err = _parse_construct<int32_t>(p_stream, args, line, r_err_str);
+			if (err)
+				return err;
+
+			if (args.size() != 3) {
+				r_err_str = "Expected 3 arguments for constructor";
+			}
+
+			value = Vector3i(args[0], args[1], args[2]);
 			return OK;
 		} else if (id == "Transform2D" || id == "Matrix32") { //compatibility
 
@@ -861,18 +924,18 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 				}
 			}
 
-		} else if (id == "PoolByteArray" || id == "ByteArray") {
+		} else if (id == "PackedByteArray" || id == "PoolByteArray" || id == "ByteArray") {
 
 			Vector<uint8_t> args;
 			Error err = _parse_construct<uint8_t>(p_stream, args, line, r_err_str);
 			if (err)
 				return err;
 
-			PoolVector<uint8_t> arr;
+			Vector<uint8_t> arr;
 			{
 				int len = args.size();
 				arr.resize(len);
-				PoolVector<uint8_t>::Write w = arr.write();
+				uint8_t *w = arr.ptrw();
 				for (int i = 0; i < len; i++) {
 					w[i] = args[i];
 				}
@@ -882,20 +945,20 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 
 			return OK;
 
-		} else if (id == "PoolIntArray" || id == "IntArray") {
+		} else if (id == "PackedInt32Array" || id == "PackedIntArray" || id == "PoolIntArray" || id == "IntArray") {
 
-			Vector<int> args;
-			Error err = _parse_construct<int>(p_stream, args, line, r_err_str);
+			Vector<int32_t> args;
+			Error err = _parse_construct<int32_t>(p_stream, args, line, r_err_str);
 			if (err)
 				return err;
 
-			PoolVector<int> arr;
+			Vector<int32_t> arr;
 			{
-				int len = args.size();
+				int32_t len = args.size();
 				arr.resize(len);
-				PoolVector<int>::Write w = arr.write();
-				for (int i = 0; i < len; i++) {
-					w[i] = int(args[i]);
+				int32_t *w = arr.ptrw();
+				for (int32_t i = 0; i < len; i++) {
+					w[i] = int32_t(args[i]);
 				}
 			}
 
@@ -903,18 +966,39 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 
 			return OK;
 
-		} else if (id == "PoolRealArray" || id == "FloatArray") {
+		} else if (id == "PackedInt64Array") {
+
+			Vector<int64_t> args;
+			Error err = _parse_construct<int64_t>(p_stream, args, line, r_err_str);
+			if (err)
+				return err;
+
+			Vector<int64_t> arr;
+			{
+				int64_t len = args.size();
+				arr.resize(len);
+				int64_t *w = arr.ptrw();
+				for (int64_t i = 0; i < len; i++) {
+					w[i] = int64_t(args[i]);
+				}
+			}
+
+			value = arr;
+
+			return OK;
+
+		} else if (id == "PackedFloat32Array" || id == "PackedRealArray" || id == "PoolRealArray" || id == "FloatArray") {
 
 			Vector<float> args;
 			Error err = _parse_construct<float>(p_stream, args, line, r_err_str);
 			if (err)
 				return err;
 
-			PoolVector<float> arr;
+			Vector<float> arr;
 			{
 				int len = args.size();
 				arr.resize(len);
-				PoolVector<float>::Write w = arr.write();
+				float *w = arr.ptrw();
 				for (int i = 0; i < len; i++) {
 					w[i] = args[i];
 				}
@@ -923,7 +1007,27 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 			value = arr;
 
 			return OK;
-		} else if (id == "PoolStringArray" || id == "StringArray") {
+		} else if (id == "PackedFloat64Array") {
+
+			Vector<double> args;
+			Error err = _parse_construct<double>(p_stream, args, line, r_err_str);
+			if (err)
+				return err;
+
+			Vector<double> arr;
+			{
+				int len = args.size();
+				arr.resize(len);
+				double *w = arr.ptrw();
+				for (int i = 0; i < len; i++) {
+					w[i] = args[i];
+				}
+			}
+
+			value = arr;
+
+			return OK;
+		} else if (id == "PackedStringArray" || id == "PoolStringArray" || id == "StringArray") {
 
 			get_token(p_stream, token, line, r_err_str);
 			if (token.type != TK_PARENTHESIS_OPEN) {
@@ -960,11 +1064,11 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 				cs.push_back(token.value);
 			}
 
-			PoolVector<String> arr;
+			Vector<String> arr;
 			{
 				int len = cs.size();
 				arr.resize(len);
-				PoolVector<String>::Write w = arr.write();
+				String *w = arr.ptrw();
 				for (int i = 0; i < len; i++) {
 					w[i] = cs[i];
 				}
@@ -974,18 +1078,18 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 
 			return OK;
 
-		} else if (id == "PoolVector2Array" || id == "Vector2Array") {
+		} else if (id == "PackedVector2Array" || id == "PoolVector2Array" || id == "Vector2Array") {
 
 			Vector<float> args;
 			Error err = _parse_construct<float>(p_stream, args, line, r_err_str);
 			if (err)
 				return err;
 
-			PoolVector<Vector2> arr;
+			Vector<Vector2> arr;
 			{
 				int len = args.size() / 2;
 				arr.resize(len);
-				PoolVector<Vector2>::Write w = arr.write();
+				Vector2 *w = arr.ptrw();
 				for (int i = 0; i < len; i++) {
 					w[i] = Vector2(args[i * 2 + 0], args[i * 2 + 1]);
 				}
@@ -995,18 +1099,18 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 
 			return OK;
 
-		} else if (id == "PoolVector3Array" || id == "Vector3Array") {
+		} else if (id == "PackedVector3Array" || id == "PoolVector3Array" || id == "Vector3Array") {
 
 			Vector<float> args;
 			Error err = _parse_construct<float>(p_stream, args, line, r_err_str);
 			if (err)
 				return err;
 
-			PoolVector<Vector3> arr;
+			Vector<Vector3> arr;
 			{
 				int len = args.size() / 3;
 				arr.resize(len);
-				PoolVector<Vector3>::Write w = arr.write();
+				Vector3 *w = arr.ptrw();
 				for (int i = 0; i < len; i++) {
 					w[i] = Vector3(args[i * 3 + 0], args[i * 3 + 1], args[i * 3 + 2]);
 				}
@@ -1016,18 +1120,18 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 
 			return OK;
 
-		} else if (id == "PoolColorArray" || id == "ColorArray") {
+		} else if (id == "PackedColorArray" || id == "PoolColorArray" || id == "ColorArray") {
 
 			Vector<float> args;
 			Error err = _parse_construct<float>(p_stream, args, line, r_err_str);
 			if (err)
 				return err;
 
-			PoolVector<Color> arr;
+			Vector<Color> arr;
 			{
 				int len = args.size() / 4;
 				arr.resize(len);
-				PoolVector<Color>::Write w = arr.write();
+				Color *w = arr.ptrw();
 				for (int i = 0; i < len; i++) {
 					w[i] = Color(args[i * 4 + 0], args[i * 4 + 1], args[i * 4 + 2], args[i * 4 + 3]);
 				}
@@ -1048,6 +1152,10 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 		value = token.value;
 		return OK;
 	} else if (token.type == TK_STRING) {
+
+		value = token.value;
+		return OK;
+	} else if (token.type == TK_STRING_NAME) {
 
 		value = token.value;
 		return OK;
@@ -1392,11 +1500,13 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 
 			p_store_string_func(p_store_string_ud, itos(p_variant.operator int64_t()));
 		} break;
-		case Variant::REAL: {
+		case Variant::FLOAT: {
 
 			String s = rtosfix(p_variant.operator real_t());
-			if (s.find(".") == -1 && s.find("e") == -1)
-				s += ".0";
+			if (s != "inf" && s != "nan") {
+				if (s.find(".") == -1 && s.find("e") == -1)
+					s += ".0";
+			}
 			p_store_string_func(p_store_string_ud, s);
 		} break;
 		case Variant::STRING: {
@@ -1411,16 +1521,32 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 			Vector2 v = p_variant;
 			p_store_string_func(p_store_string_ud, "Vector2( " + rtosfix(v.x) + ", " + rtosfix(v.y) + " )");
 		} break;
+		case Variant::VECTOR2I: {
+
+			Vector2i v = p_variant;
+			p_store_string_func(p_store_string_ud, "Vector2i( " + itos(v.x) + ", " + itos(v.y) + " )");
+		} break;
 		case Variant::RECT2: {
 
 			Rect2 aabb = p_variant;
 			p_store_string_func(p_store_string_ud, "Rect2( " + rtosfix(aabb.position.x) + ", " + rtosfix(aabb.position.y) + ", " + rtosfix(aabb.size.x) + ", " + rtosfix(aabb.size.y) + " )");
 
 		} break;
+		case Variant::RECT2I: {
+
+			Rect2i aabb = p_variant;
+			p_store_string_func(p_store_string_ud, "Rect2i( " + itos(aabb.position.x) + ", " + itos(aabb.position.y) + ", " + itos(aabb.size.x) + ", " + itos(aabb.size.y) + " )");
+
+		} break;
 		case Variant::VECTOR3: {
 
 			Vector3 v = p_variant;
 			p_store_string_func(p_store_string_ud, "Vector3( " + rtosfix(v.x) + ", " + rtosfix(v.y) + ", " + rtosfix(v.z) + " )");
+		} break;
+		case Variant::VECTOR3I: {
+
+			Vector3i v = p_variant;
+			p_store_string_func(p_store_string_ud, "Vector3i( " + itos(v.x) + ", " + itos(v.y) + ", " + itos(v.z) + " )");
 		} break;
 		case Variant::PLANE: {
 
@@ -1496,6 +1622,14 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 
 			Color c = p_variant;
 			p_store_string_func(p_store_string_ud, "Color( " + rtosfix(c.r) + ", " + rtosfix(c.g) + ", " + rtosfix(c.b) + ", " + rtosfix(c.a) + " )");
+
+		} break;
+		case Variant::STRING_NAME: {
+
+			String str = p_variant;
+
+			str = "@\"" + str.c_escape() + "\"";
+			p_store_string_func(p_store_string_ud, str);
 
 		} break;
 		case Variant::NODE_PATH: {
@@ -1609,32 +1743,13 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 
 		} break;
 
-		case Variant::POOL_BYTE_ARRAY: {
+		case Variant::PACKED_BYTE_ARRAY: {
 
-			p_store_string_func(p_store_string_ud, "PoolByteArray( ");
+			p_store_string_func(p_store_string_ud, "PackedByteArray( ");
 			String s;
-			PoolVector<uint8_t> data = p_variant;
+			Vector<uint8_t> data = p_variant;
 			int len = data.size();
-			PoolVector<uint8_t>::Read r = data.read();
-			const uint8_t *ptr = r.ptr();
-			for (int i = 0; i < len; i++) {
-
-				if (i > 0)
-					p_store_string_func(p_store_string_ud, ", ");
-
-				p_store_string_func(p_store_string_ud, itos(ptr[i]));
-			}
-
-			p_store_string_func(p_store_string_ud, " )");
-
-		} break;
-		case Variant::POOL_INT_ARRAY: {
-
-			p_store_string_func(p_store_string_ud, "PoolIntArray( ");
-			PoolVector<int> data = p_variant;
-			int len = data.size();
-			PoolVector<int>::Read r = data.read();
-			const int *ptr = r.ptr();
+			const uint8_t *ptr = data.ptr();
 
 			for (int i = 0; i < len; i++) {
 
@@ -1647,13 +1762,48 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 			p_store_string_func(p_store_string_ud, " )");
 
 		} break;
-		case Variant::POOL_REAL_ARRAY: {
+		case Variant::PACKED_INT32_ARRAY: {
 
-			p_store_string_func(p_store_string_ud, "PoolRealArray( ");
-			PoolVector<real_t> data = p_variant;
+			p_store_string_func(p_store_string_ud, "PackedInt32Array( ");
+			Vector<int32_t> data = p_variant;
+			int32_t len = data.size();
+			const int32_t *ptr = data.ptr();
+
+			for (int32_t i = 0; i < len; i++) {
+
+				if (i > 0)
+					p_store_string_func(p_store_string_ud, ", ");
+
+				p_store_string_func(p_store_string_ud, itos(ptr[i]));
+			}
+
+			p_store_string_func(p_store_string_ud, " )");
+
+		} break;
+		case Variant::PACKED_INT64_ARRAY: {
+
+			p_store_string_func(p_store_string_ud, "PackedInt64Array( ");
+			Vector<int64_t> data = p_variant;
+			int64_t len = data.size();
+			const int64_t *ptr = data.ptr();
+
+			for (int64_t i = 0; i < len; i++) {
+
+				if (i > 0)
+					p_store_string_func(p_store_string_ud, ", ");
+
+				p_store_string_func(p_store_string_ud, itos(ptr[i]));
+			}
+
+			p_store_string_func(p_store_string_ud, " )");
+
+		} break;
+		case Variant::PACKED_FLOAT32_ARRAY: {
+
+			p_store_string_func(p_store_string_ud, "PackedFloat32Array( ");
+			Vector<float> data = p_variant;
 			int len = data.size();
-			PoolVector<real_t>::Read r = data.read();
-			const real_t *ptr = r.ptr();
+			const float *ptr = data.ptr();
 
 			for (int i = 0; i < len; i++) {
 
@@ -1665,13 +1815,30 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 			p_store_string_func(p_store_string_ud, " )");
 
 		} break;
-		case Variant::POOL_STRING_ARRAY: {
+		case Variant::PACKED_FLOAT64_ARRAY: {
 
-			p_store_string_func(p_store_string_ud, "PoolStringArray( ");
-			PoolVector<String> data = p_variant;
+			p_store_string_func(p_store_string_ud, "PackedFloat64Array( ");
+			Vector<double> data = p_variant;
 			int len = data.size();
-			PoolVector<String>::Read r = data.read();
-			const String *ptr = r.ptr();
+			const double *ptr = data.ptr();
+
+			for (int i = 0; i < len; i++) {
+
+				if (i > 0)
+					p_store_string_func(p_store_string_ud, ", ");
+				p_store_string_func(p_store_string_ud, rtosfix(ptr[i]));
+			}
+
+			p_store_string_func(p_store_string_ud, " )");
+
+		} break;
+		case Variant::PACKED_STRING_ARRAY: {
+
+			p_store_string_func(p_store_string_ud, "PackedStringArray( ");
+			Vector<String> data = p_variant;
+			int len = data.size();
+			const String *ptr = data.ptr();
+
 			String s;
 			//write_string("\n");
 
@@ -1686,13 +1853,12 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 			p_store_string_func(p_store_string_ud, " )");
 
 		} break;
-		case Variant::POOL_VECTOR2_ARRAY: {
+		case Variant::PACKED_VECTOR2_ARRAY: {
 
-			p_store_string_func(p_store_string_ud, "PoolVector2Array( ");
-			PoolVector<Vector2> data = p_variant;
+			p_store_string_func(p_store_string_ud, "PackedVector2Array( ");
+			Vector<Vector2> data = p_variant;
 			int len = data.size();
-			PoolVector<Vector2>::Read r = data.read();
-			const Vector2 *ptr = r.ptr();
+			const Vector2 *ptr = data.ptr();
 
 			for (int i = 0; i < len; i++) {
 
@@ -1704,13 +1870,12 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 			p_store_string_func(p_store_string_ud, " )");
 
 		} break;
-		case Variant::POOL_VECTOR3_ARRAY: {
+		case Variant::PACKED_VECTOR3_ARRAY: {
 
-			p_store_string_func(p_store_string_ud, "PoolVector3Array( ");
-			PoolVector<Vector3> data = p_variant;
+			p_store_string_func(p_store_string_ud, "PackedVector3Array( ");
+			Vector<Vector3> data = p_variant;
 			int len = data.size();
-			PoolVector<Vector3>::Read r = data.read();
-			const Vector3 *ptr = r.ptr();
+			const Vector3 *ptr = data.ptr();
 
 			for (int i = 0; i < len; i++) {
 
@@ -1722,14 +1887,13 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 			p_store_string_func(p_store_string_ud, " )");
 
 		} break;
-		case Variant::POOL_COLOR_ARRAY: {
+		case Variant::PACKED_COLOR_ARRAY: {
 
-			p_store_string_func(p_store_string_ud, "PoolColorArray( ");
+			p_store_string_func(p_store_string_ud, "PackedColorArray( ");
 
-			PoolVector<Color> data = p_variant;
+			Vector<Color> data = p_variant;
 			int len = data.size();
-			PoolVector<Color>::Read r = data.read();
-			const Color *ptr = r.ptr();
+			const Color *ptr = data.ptr();
 
 			for (int i = 0; i < len; i++) {
 

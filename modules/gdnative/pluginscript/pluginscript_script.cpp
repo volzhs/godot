@@ -55,9 +55,9 @@ void PluginScript::_bind_methods() {
 	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "new", &PluginScript::_new, MethodInfo("new"));
 }
 
-PluginScriptInstance *PluginScript::_create_instance(const Variant **p_args, int p_argcount, Object *p_owner, Variant::CallError &r_error) {
+PluginScriptInstance *PluginScript::_create_instance(const Variant **p_args, int p_argcount, Object *p_owner, Callable::CallError &r_error) {
 
-	r_error.error = Variant::CallError::CALL_OK;
+	r_error.error = Callable::CallError::CALL_OK;
 
 	// Create instance
 	PluginScriptInstance *instance = memnew(PluginScriptInstance());
@@ -67,7 +67,7 @@ PluginScriptInstance *PluginScript::_create_instance(const Variant **p_args, int
 		_instances.insert(instance->get_owner());
 		_language->unlock();
 	} else {
-		r_error.error = Variant::CallError::CALL_ERROR_INSTANCE_IS_NULL;
+		r_error.error = Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL;
 		memdelete(instance);
 		ERR_FAIL_V(NULL);
 	}
@@ -83,12 +83,12 @@ PluginScriptInstance *PluginScript::_create_instance(const Variant **p_args, int
 	return instance;
 }
 
-Variant PluginScript::_new(const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
+Variant PluginScript::_new(const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 
-	r_error.error = Variant::CallError::CALL_OK;
+	r_error.error = Callable::CallError::CALL_OK;
 
 	if (!_valid) {
-		r_error.error = Variant::CallError::CALL_ERROR_INVALID_METHOD;
+		r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
 		return Variant();
 	}
 
@@ -102,7 +102,7 @@ Variant PluginScript::_new(const Variant **p_args, int p_argcount, Variant::Call
 	}
 
 	if (!owner) {
-		r_error.error = Variant::CallError::CALL_ERROR_INSTANCE_IS_NULL;
+		r_error.error = Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL;
 		return Variant();
 	}
 
@@ -201,7 +201,7 @@ ScriptInstance *PluginScript::instance_create(Object *p_this) {
 		}
 	}
 
-	Variant::CallError unchecked_error;
+	Callable::CallError unchecked_error;
 	return _create_instance(NULL, 0, p_this, unchecked_error);
 }
 
@@ -428,22 +428,22 @@ ScriptLanguage *PluginScript::get_language() const {
 
 Error PluginScript::load_source_code(const String &p_path) {
 
-	PoolVector<uint8_t> sourcef;
+	Vector<uint8_t> sourcef;
 	Error err;
 	FileAccess *f = FileAccess::open(p_path, FileAccess::READ, &err);
 	ERR_FAIL_COND_V_MSG(err, err, "Cannot open file '" + p_path + "'.");
 
 	int len = f->get_len();
 	sourcef.resize(len + 1);
-	PoolVector<uint8_t>::Write w = sourcef.write();
-	int r = f->get_buffer(w.ptr(), len);
+	uint8_t *w = sourcef.ptrw();
+	int r = f->get_buffer(w, len);
 	f->close();
 	memdelete(f);
 	ERR_FAIL_COND_V(r != len, ERR_CANT_OPEN);
 	w[len] = 0;
 
 	String s;
-	if (s.parse_utf8((const char *)w.ptr())) {
+	if (s.parse_utf8((const char *)w)) {
 		ERR_FAIL_V_MSG(ERR_INVALID_DATA, "Script '" + p_path + "' contains invalid unicode (UTF-8), so it was not loaded. Please ensure that scripts are saved in valid UTF-8 unicode.");
 	}
 

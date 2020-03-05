@@ -503,23 +503,23 @@ String BindingsGenerator::bbcode_to_xml(const String &p_bbcode, const TypeInterf
 				xml_output.append("<c>");
 				xml_output.append(tag);
 				xml_output.append("</c>");
-			} else if (tag == "PoolByteArray") {
+			} else if (tag == "PackedByteArray") {
 				xml_output.append("<see cref=\"byte\"/>");
-			} else if (tag == "PoolIntArray") {
+			} else if (tag == "PackedInt32Array") {
 				xml_output.append("<see cref=\"int\"/>");
-			} else if (tag == "PoolRealArray") {
+			} else if (tag == "PackedFloat32Array") {
 #ifdef REAL_T_IS_DOUBLE
 				xml_output.append("<see cref=\"double\"/>");
 #else
 				xml_output.append("<see cref=\"float\"/>");
 #endif
-			} else if (tag == "PoolStringArray") {
+			} else if (tag == "PackedStringArray") {
 				xml_output.append("<see cref=\"string\"/>");
-			} else if (tag == "PoolVector2Array") {
+			} else if (tag == "PackedVector2Array") {
 				xml_output.append("<see cref=\"" BINDINGS_NAMESPACE ".Vector2\"/>");
-			} else if (tag == "PoolVector3Array") {
+			} else if (tag == "PackedVector3Array") {
 				xml_output.append("<see cref=\"" BINDINGS_NAMESPACE ".Vector3\"/>");
-			} else if (tag == "PoolColorArray") {
+			} else if (tag == "PackedColorArray") {
 				xml_output.append("<see cref=\"" BINDINGS_NAMESPACE ".Color\"/>");
 			} else {
 				const TypeInterface *target_itype = _get_type_or_null(TypeReference(tag));
@@ -2054,7 +2054,7 @@ Error BindingsGenerator::_generate_glue_method(const BindingsGenerator::TypeInte
 		}
 
 		if (p_imethod.is_vararg) {
-			p_output.append("\tVariant::CallError vcall_error;\n\t");
+			p_output.append("\tCallable::CallError vcall_error;\n\t");
 
 			if (!ret_void) {
 				// See the comment on the C_LOCAL_VARARG_RET declaration
@@ -2383,7 +2383,7 @@ bool BindingsGenerator::_populate_object_type_interfaces() {
 			} else {
 				if (return_info.type == Variant::INT) {
 					imethod.return_type.cname = _get_int_type_name_from_meta(m ? m->get_argument_meta(-1) : GodotTypeInfo::METADATA_NONE);
-				} else if (return_info.type == Variant::REAL) {
+				} else if (return_info.type == Variant::FLOAT) {
 					imethod.return_type.cname = _get_float_type_name_from_meta(m ? m->get_argument_meta(-1) : GodotTypeInfo::METADATA_NONE);
 				} else {
 					imethod.return_type.cname = Variant::get_type_name(return_info.type);
@@ -2410,7 +2410,7 @@ bool BindingsGenerator::_populate_object_type_interfaces() {
 				} else {
 					if (arginfo.type == Variant::INT) {
 						iarg.type.cname = _get_int_type_name_from_meta(m ? m->get_argument_meta(i) : GodotTypeInfo::METADATA_NONE);
-					} else if (arginfo.type == Variant::REAL) {
+					} else if (arginfo.type == Variant::FLOAT) {
 						iarg.type.cname = _get_float_type_name_from_meta(m ? m->get_argument_meta(i) : GodotTypeInfo::METADATA_NONE);
 					} else {
 						iarg.type.cname = Variant::get_type_name(arginfo.type);
@@ -2581,7 +2581,7 @@ bool BindingsGenerator::_arg_default_value_from_variant(const Variant &p_val, Ar
 				r_iarg.default_argument = "(%s)" + r_iarg.default_argument;
 			}
 			break;
-		case Variant::REAL:
+		case Variant::FLOAT:
 #ifndef REAL_T_IS_DOUBLE
 			r_iarg.default_argument += "f";
 #endif
@@ -2628,13 +2628,15 @@ bool BindingsGenerator::_arg_default_value_from_variant(const Variant &p_val, Ar
 			r_iarg.default_argument = "null";
 			break;
 		case Variant::ARRAY:
-		case Variant::POOL_BYTE_ARRAY:
-		case Variant::POOL_INT_ARRAY:
-		case Variant::POOL_REAL_ARRAY:
-		case Variant::POOL_STRING_ARRAY:
-		case Variant::POOL_VECTOR2_ARRAY:
-		case Variant::POOL_VECTOR3_ARRAY:
-		case Variant::POOL_COLOR_ARRAY:
+		case Variant::PACKED_BYTE_ARRAY:
+		case Variant::PACKED_INT32_ARRAY:
+		case Variant::PACKED_FLOAT32_ARRAY:
+		case Variant::PACKED_INT64_ARRAY:
+		case Variant::PACKED_FLOAT64_ARRAY:
+		case Variant::PACKED_STRING_ARRAY:
+		case Variant::PACKED_VECTOR2_ARRAY:
+		case Variant::PACKED_VECTOR3_ARRAY:
+		case Variant::PACKED_COLOR_ARRAY:
 			r_iarg.default_argument = "new %s {}";
 			r_iarg.def_param_mode = ArgumentInterface::NULLABLE_REF;
 			break;
@@ -2914,20 +2916,20 @@ void BindingsGenerator::_populate_builtin_type_interfaces() {
 
 #define INSERT_ARRAY(m_type, m_proxy_t) INSERT_ARRAY_FULL(m_type, m_type, m_proxy_t)
 
-	INSERT_ARRAY(PoolIntArray, int);
-	INSERT_ARRAY_FULL(PoolByteArray, PoolByteArray, byte);
+	INSERT_ARRAY(PackedInt32Array, int);
+	INSERT_ARRAY_FULL(PackedByteArray, PackedByteArray, byte);
 
 #ifdef REAL_T_IS_DOUBLE
-	INSERT_ARRAY(PoolRealArray, double);
+	INSERT_ARRAY(PackedFloat32Array, double);
 #else
-	INSERT_ARRAY(PoolRealArray, float);
+	INSERT_ARRAY(PackedFloat32Array, float);
 #endif
 
-	INSERT_ARRAY(PoolStringArray, string);
+	INSERT_ARRAY(PackedStringArray, string);
 
-	INSERT_ARRAY(PoolColorArray, Color);
-	INSERT_ARRAY(PoolVector2Array, Vector2);
-	INSERT_ARRAY(PoolVector3Array, Vector3);
+	INSERT_ARRAY(PackedColorArray, Color);
+	INSERT_ARRAY(PackedVector2Array, Vector2);
+	INSERT_ARRAY(PackedVector3Array, Vector3);
 
 #undef INSERT_ARRAY
 
