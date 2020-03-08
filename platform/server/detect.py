@@ -159,6 +159,10 @@ def configure(env):
             sys.exit(255)
         env.ParseConfig('pkg-config bullet --cflags --libs')
 
+    if False:  # not env['builtin_assimp']:
+        # FIXME: Add min version check
+        env.ParseConfig('pkg-config assimp --cflags --libs')
+
     if not env['builtin_enet']:
         env.ParseConfig('pkg-config libenet --cflags --libs')
 
@@ -224,7 +228,8 @@ def configure(env):
     env.Append(CPPDEFINES=['SERVER_ENABLED', 'UNIX_ENABLED'])
 
     if (platform.system() == "Darwin"):
-        env.Append(LINKFLAGS=['-framework', 'Cocoa', '-framework', 'Carbon', '-lz', '-framework', 'IOKit'])
+        env.AppendUnique(FRAMEWORKS=['Cocoa', 'Carbon', 'IOKit'])
+        env.Append(LIBS=['z'])
 
     env.Append(LIBS=['pthread'])
 
