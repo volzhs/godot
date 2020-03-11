@@ -4,7 +4,7 @@
 ## assimp
 
 - Upstream: http://github.com/assimp/assimp
-- Version: git (0201fc57dca48910ca7f9fdf7457534ea6a57efc, 2020)
+- Version: git (308db73d0b3c2d1870cd3e465eaa283692a4cf23, 2019)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -274,6 +274,9 @@ File extracted from upstream release tarball (`-apache.tgz` variant):
 - LICENSE and apache-2.0.txt files
 - Applied the patch in `thirdparty/mbedtls/patches/1453.diff` (PR 1453).
   Soon to be merged upstream. Check it out at next update.
+- Applied the patch in `thirdparty/mbedtls/patches/padlock.diff`. This disables
+  VIA padlock support which defines a symbol `unsupported` which clashes with
+  a pre-defined symbol.
 - Added 2 files `godot_core_mbedtls_platform.{c,h}` providing configuration
   for light bundling with core.
 
