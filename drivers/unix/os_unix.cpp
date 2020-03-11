@@ -32,13 +32,14 @@
 
 #ifdef UNIX_ENABLED
 
+#include "core/debugger/engine_debugger.h"
+#include "core/debugger/script_debugger.h"
 #include "core/os/thread_dummy.h"
 #include "core/project_settings.h"
 #include "drivers/unix/dir_access_unix.h"
 #include "drivers/unix/file_access_unix.h"
 #include "drivers/unix/net_socket_posix.h"
 #include "drivers/unix/rw_lock_posix.h"
-#include "drivers/unix/semaphore_posix.h"
 #include "drivers/unix/thread_posix.h"
 #include "servers/visual_server.h"
 
@@ -95,16 +96,16 @@ void OS_Unix::debug_break() {
 };
 
 static void handle_interrupt(int sig) {
-	if (ScriptDebugger::get_singleton() == NULL)
+	if (!EngineDebugger::is_active())
 		return;
 
-	ScriptDebugger::get_singleton()->set_depth(-1);
-	ScriptDebugger::get_singleton()->set_lines_left(1);
+	EngineDebugger::get_script_debugger()->set_depth(-1);
+	EngineDebugger::get_script_debugger()->set_lines_left(1);
 }
 
 void OS_Unix::initialize_debugging() {
 
-	if (ScriptDebugger::get_singleton() != NULL) {
+	if (EngineDebugger::is_active()) {
 		struct sigaction action;
 		memset(&action, 0, sizeof(action));
 		action.sa_handler = handle_interrupt;
@@ -121,13 +122,9 @@ void OS_Unix::initialize_core() {
 
 #ifdef NO_THREADS
 	ThreadDummy::make_default();
-	SemaphoreDummy::make_default();
 	RWLockDummy::make_default();
 #else
 	ThreadPosix::make_default();
-#if !defined(OSX_ENABLED) && !defined(IPHONE_ENABLED)
-	SemaphorePosix::make_default();
-#endif
 	RWLockPosix::make_default();
 #endif
 	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);

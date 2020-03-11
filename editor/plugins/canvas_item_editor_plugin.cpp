@@ -462,7 +462,15 @@ Point2 CanvasItemEditor::snap_point(Point2 p_target, unsigned int p_modes, unsig
 }
 
 float CanvasItemEditor::snap_angle(float p_target, float p_start) const {
-	return (((smart_snap_active || snap_rotation) ^ Input::get_singleton()->is_key_pressed(KEY_CONTROL)) && snap_rotation_step != 0) ? Math::stepify(p_target - snap_rotation_offset, snap_rotation_step) + snap_rotation_offset : p_target;
+	if (((smart_snap_active || snap_rotation) ^ Input::get_singleton()->is_key_pressed(KEY_CONTROL)) && snap_rotation_step != 0) {
+		if (snap_relative) {
+			return Math::stepify(p_target - snap_rotation_offset, snap_rotation_step) + snap_rotation_offset + (p_start - (int)(p_start / snap_rotation_step) * snap_rotation_step);
+		} else {
+			return Math::stepify(p_target - snap_rotation_offset, snap_rotation_step) + snap_rotation_offset;
+		}
+	} else {
+		return p_target;
+	}
 }
 
 void CanvasItemEditor::_unhandled_key_input(const Ref<InputEvent> &p_ev) {
@@ -3992,7 +4000,7 @@ void CanvasItemEditor::_notification(int p_what) {
 		if (!is_visible() && override_camera_button->is_pressed()) {
 			EditorDebuggerNode *debugger = EditorDebuggerNode::get_singleton();
 
-			debugger->set_camera_override(ScriptEditorDebugger::OVERRIDE_NONE);
+			debugger->set_camera_override(EditorDebuggerNode::OVERRIDE_NONE);
 			override_camera_button->set_pressed(false);
 		}
 	}
@@ -4348,9 +4356,9 @@ void CanvasItemEditor::_button_override_camera(bool p_pressed) {
 	EditorDebuggerNode *debugger = EditorDebuggerNode::get_singleton();
 
 	if (p_pressed) {
-		debugger->set_camera_override(ScriptEditorDebugger::OVERRIDE_2D);
+		debugger->set_camera_override(EditorDebuggerNode::OVERRIDE_2D);
 	} else {
-		debugger->set_camera_override(ScriptEditorDebugger::OVERRIDE_NONE);
+		debugger->set_camera_override(EditorDebuggerNode::OVERRIDE_NONE);
 	}
 }
 

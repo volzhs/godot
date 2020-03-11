@@ -279,31 +279,6 @@ static inline char *loader_platform_dirname(char *path) {
     return path;
 }
 
-// WIN32 runtime doesn't have basename().
-// Microsoft also doesn't have basename().  Paths are different on Windows, and
-// so this is just a temporary solution in order to get us compiling, so that we
-// can test some scenarios, and develop the correct solution for Windows.
-// TODO: Develop a better, permanent solution for Windows, to replace this
-// temporary code:
-static char *loader_platform_basename(char *pathname) {
-    char *current, *next;
-
-    // TODO/TBD: Do we need to deal with the Windows's ":" character?
-
-    for (current = pathname; *current != '\0'; current = next) {
-        next = strchr(current, DIRECTORY_SYMBOL);
-        if (next == NULL) {
-            // No more DIRECTORY_SYMBOL's so return p:
-            return current;
-        } else {
-            // Point one character past the DIRECTORY_SYMBOL:
-            next++;
-        }
-    }
-    // We shouldn't get to here, but this makes the compiler happy:
-    return current;
-}
-
 // Dynamic Loading:
 typedef HMODULE loader_platform_dl_handle;
 static loader_platform_dl_handle loader_platform_open_library(const char *lib_path) {
@@ -336,15 +311,15 @@ static char *loader_platform_get_proc_address_error(const char *name) {
 typedef HANDLE loader_platform_thread;
 
 // __declspec(thread) is not supported by MinGW compiler (ignored with warning or
-//                    cause erorr depending on compiler switches)
+//                    cause error depending on compiler switches)
 //
 // __thread should be used instead
 //
 // __MINGW32__ defined for both 32 and 64 bit MinGW compilers, so it is enough to
-// detect any (32 or 64) flawor of MinGW compiler.
+// detect any (32 or 64) flavor of MinGW compiler.
 //
 // @note __GNUC__ could be used as a more generic way to detect _any_
-//       GCC[-compitible] compiler on Windows, but this fix was tested
+//       GCC[-compatible] compiler on Windows, but this fix was tested
 //       only with MinGW, so keep it explicit at the moment.
 #if defined(__MINGW32__)
 #define THREAD_LOCAL_DECL __thread

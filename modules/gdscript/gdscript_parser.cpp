@@ -3102,18 +3102,18 @@ void GDScriptParser::_parse_block(BlockNode *p_block, bool p_static) {
 						Vector<Node *> args;
 						Vector<double> constants;
 
-						bool constant = false;
+						bool constant = true;
 
 						for (int i = 1; i < op->arguments.size(); i++) {
 							args.push_back(op->arguments[i]);
-							if (constant && op->arguments[i]->type == Node::TYPE_CONSTANT) {
+							if (op->arguments[i]->type == Node::TYPE_CONSTANT) {
 								ConstantNode *c = static_cast<ConstantNode *>(op->arguments[i]);
 								if (c->value.get_type() == Variant::FLOAT || c->value.get_type() == Variant::INT) {
 									constants.push_back(c->value);
-									constant = true;
 								}
 							} else {
 								constant = false;
+								break;
 							}
 						}
 
@@ -3809,6 +3809,12 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 						}
 
 						StringName argname = tokenizer->get_token_identifier();
+						for (int i = 0; i < arguments.size(); i++) {
+							if (arguments[i] == argname) {
+								_set_error("The argument name \"" + String(argname) + "\" is defined multiple times.");
+								return;
+							}
+						}
 						arguments.push_back(argname);
 #ifdef DEBUG_ENABLED
 						arguments_usage.push_back(0);
@@ -5225,6 +5231,10 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 					_set_error(String() + "Unexpected constant of type: " + Variant::get_type_name(tokenizer->get_token_constant().get_type()));
 					return;
 				}
+			} break;
+
+			case GDScriptTokenizer::TK_CF_PASS: {
+				tokenizer->advance();
 			} break;
 
 			default: {

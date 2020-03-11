@@ -9,8 +9,19 @@ Subcategories (`###` level) where needed are separated by a single empty line.
 ## assimp
 
 - Upstream: http://github.com/assimp/assimp
-- Version: git (308db73d0b3c2d1870cd3e465eaa283692a4cf23)
+- Version: git (308db73d0b3c2d1870cd3e465eaa283692a4cf23, 2019)
 - License: BSD-3-Clause
+
+Files extracted from upstream source:
+
+- Run `cmake .` in root folder to generate files
+- `code/{CApi,Common,FBX,Material,PostProcessing}/`
+- `contrib/utf8cpp/source/`
+- `include/`
+- `revision.h`
+- `CREDITS` and `LICENSE` files
+- `rm -f code/Common/ZipArchiveIOSystem.cpp include/assimp/ZipArchiveIOSystem.h
+   include/assimp/irrXMLWrapper.h`
 
 
 ## basis_universal
@@ -151,11 +162,21 @@ the GLES version Godot targets.
 ## glslang
 
 - Upstream: https://github.com/KhronosGroup/glslang
-- Version: rev.3226
+- Version: git (4fc7a33910fb8e40b970d160e1b38ab3f67fe0f3, 2020)
 - License: glslang
 
-Important: File `glslang/glslang/Include/Common.h` has
-Godot-made change marked with `// -- GODOT --` comments.
+Version should be kept in sync with the one of the used Vulkan SDK (see `vulkan`
+section). Check Vulkan-ValidationLayers at the matching SDK tag for the known
+good glslang commit: https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/scripts/known_good.json
+
+Files extracted from upstream source:
+
+- `glslang`, `OGLCompilersDLL`, `SPIRV`
+- `LICENSE.txt`
+- Unnecessary files like `CMakeLists.txt`, `revision.template` and
+  `updateGrammar` removed.
+
+Patches in the `patches` directory should be re-applied after updates.
 
 
 ## jpeg-compressor
@@ -281,7 +302,7 @@ changes are marked with `// -- GODOT --` comments.
 ## mbedtls
 
 - Upstream: https://tls.mbed.org/
-- Version: 2.16.4
+- Version: 2.16.5
 - License: Apache 2.0
 
 File extracted from upstream release tarball (`-apache.tgz` variant):
@@ -291,9 +312,9 @@ File extracted from upstream release tarball (`-apache.tgz` variant):
 - LICENSE and apache-2.0.txt files
 - Applied the patch in `thirdparty/mbedtls/patches/1453.diff` (PR 1453).
   Soon to be merged upstream. Check it out at next update.
-- Applied the patch in `thirdparty/mbedtls/patches/padlock.diff`. This disables VIA
-  padlock support which defines a symbol `unsupported` which clashes with
-  a symbol in libwebsockets.
+- Applied the patch in `thirdparty/mbedtls/patches/padlock.diff`. This disables
+  VIA padlock support which defines a symbol `unsupported` which clashes with
+  a pre-defined symbol.
 - Added 2 files `godot_core_mbedtls_platform.{c,h}` providing configuration
   for light bundling with core.
 
@@ -301,7 +322,7 @@ File extracted from upstream release tarball (`-apache.tgz` variant):
 ## miniupnpc
 
 - Upstream: https://github.com/miniupnp/miniupnp/tree/master/miniupnpc
-- Version: git (0ab1d67, 2019)
+- Version: git (4436632, 2020)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -531,7 +552,7 @@ folder.
 ## vulkan
 
 - Upstream: https://github.com/KhronosGroup/Vulkan-Loader
-- Version: 1.1.127
+- Version: sdk-1.2.131.2
 - License: Apache 2.0
 
 Unless there is a specific reason to package a more recent version, please stick
@@ -547,10 +568,13 @@ Files extracted from upstream source:
   `loader/` folder
 - `LICENSE.txt`
 
-`vk_enum_string_helper.h` is taken from the match `Vulkan-ValidationLayers` SDK
-release: https://github.com/KhronosGroup/Vulkan-Loader/tree/master/loader/generated
+`vk_enum_string_helper.h` is taken from the matching `Vulkan-ValidationLayers`
+SDK release: https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/layers/generated/vk_enum_string_helper.h
 
 `vk_mem_alloc.h` is taken from https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
+Version: 2.3.0
+
+Patches in the `patches` directory should be re-applied after updates.
 
 
 ## wslay
