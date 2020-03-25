@@ -96,7 +96,7 @@ namespace GodotTools.Export
             if (type != Internal.CSharpLanguageType)
                 return;
 
-            if (Path.GetExtension(path) != $".{Internal.CSharpLanguageExtension}")
+            if (Path.GetExtension(path) != Internal.CSharpLanguageExtension)
                 throw new ArgumentException($"Resource of type {Internal.CSharpLanguageType} has an invalid file extension: {path}", nameof(path));
 
             // TODO What if the source file is not part of the game's C# project
@@ -150,7 +150,7 @@ namespace GodotTools.Export
             string outputDir = new FileInfo(path).Directory?.FullName ??
                                throw new FileNotFoundException("Base directory not found");
 
-            string buildConfig = isDebug ? "Debug" : "Release";
+            string buildConfig = isDebug ? "ExportDebug" : "ExportRelease";
 
             string scriptsMetadataPath = Path.Combine(GodotSharpDirs.ResMetadataDir, $"scripts_metadata.{(isDebug ? "debug" : "release")}");
             CsProjOperations.GenerateScriptsMetadata(GodotSharpDirs.ProjectCsProjPath, scriptsMetadataPath);
