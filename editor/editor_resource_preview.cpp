@@ -109,9 +109,10 @@ void EditorResourcePreview::_thread_func(void *ud) {
 
 void EditorResourcePreview::_preview_ready(const String &p_str, const Ref<Texture2D> &p_texture, const Ref<Texture2D> &p_small_texture, ObjectID id, const StringName &p_func, const Variant &p_ud) {
 
-	MutexLock lock(preview_mutex);
 	String path = p_str;
 	{
+		MutexLock lock(preview_mutex);
+
 		uint32_t hash = 0;
 		uint64_t modified_time = 0;
 
@@ -167,7 +168,7 @@ void EditorResourcePreview::_generate_preview(Ref<ImageTexture> &r_texture, Ref<
 		}
 		r_texture = generated;
 
-		int small_thumbnail_size = EditorNode::get_singleton()->get_theme_base()->get_icon("Object", "EditorIcons")->get_width(); // Kind of a workaround to retrieve the default icon size
+		int small_thumbnail_size = EditorNode::get_singleton()->get_theme_base()->get_theme_icon("Object", "EditorIcons")->get_width(); // Kind of a workaround to retrieve the default icon size
 		small_thumbnail_size *= EDSCALE;
 
 		if (preview_generators[i]->can_generate_small_preview()) {
@@ -364,7 +365,6 @@ void EditorResourcePreview::queue_edited_resource_preview(const Ref<Resource> &p
 
 			cache[path_id].order = order++;
 			p_receiver->call(p_receiver_func, path_id, cache[path_id].preview, cache[path_id].small_preview, p_userdata);
-			preview_mutex.unlock();
 			return;
 		}
 
@@ -391,7 +391,6 @@ void EditorResourcePreview::queue_resource_preview(const String &p_path, Object 
 		if (cache.has(p_path)) {
 			cache[p_path].order = order++;
 			p_receiver->call(p_receiver_func, p_path, cache[p_path].preview, cache[p_path].small_preview, p_userdata);
-			preview_mutex.unlock();
 			return;
 		}
 
@@ -436,9 +435,10 @@ void EditorResourcePreview::_bind_methods() {
 
 void EditorResourcePreview::check_for_invalidation(const String &p_path) {
 
-	MutexLock lock(preview_mutex);
 	bool call_invalidated = false;
 	{
+		MutexLock lock(preview_mutex);
+
 		if (cache.has(p_path)) {
 
 			uint64_t modified_time = FileAccess::get_modified_time(p_path);
@@ -465,7 +465,7 @@ void EditorResourcePreview::stop() {
 		preview_sem.post();
 		while (!exited) {
 			OS::get_singleton()->delay_usec(10000);
-			VisualServer::get_singleton()->sync(); //sync pending stuff, as thread may be blocked on visual server
+			RenderingServer::get_singleton()->sync(); //sync pending stuff, as thread may be blocked on visual server
 		}
 		Thread::wait_to_finish(thread);
 		memdelete(thread);

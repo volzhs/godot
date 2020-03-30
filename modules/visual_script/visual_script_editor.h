@@ -114,7 +114,7 @@ class VisualScriptEditor : public ScriptEditorBase {
 	UndoRedo *undo_redo;
 
 	Tree *members;
-	PopupDialog *function_name_edit;
+	AcceptDialog *function_name_edit;
 	LineEdit *function_name_box;
 
 	Label *hint_text;
@@ -133,10 +133,10 @@ class VisualScriptEditor : public ScriptEditorBase {
 		String name;
 		Variant::Type ret;
 		bool ret_variant;
-		Vector<Pair<Variant::Type, String> > args;
+		Vector<Pair<Variant::Type, String>> args;
 	};
 
-	HashMap<StringName, Ref<StyleBox> > node_styles;
+	HashMap<StringName, Ref<StyleBox>> node_styles;
 	StringName edited_func;
 	StringName default_func;
 
@@ -153,7 +153,7 @@ class VisualScriptEditor : public ScriptEditorBase {
 
 	struct Clipboard {
 
-		Map<int, Ref<VisualScriptNode> > nodes;
+		Map<int, Ref<VisualScriptNode>> nodes;
 		Map<int, Vector2> nodes_positions;
 
 		Set<VisualScript::SequenceConnection> sequence_connections;
@@ -298,7 +298,7 @@ public:
 	virtual Vector<String> get_functions();
 	virtual void reload_text();
 	virtual String get_name();
-	virtual Ref<Texture2D> get_icon();
+	virtual Ref<Texture2D> get_theme_icon();
 	virtual bool is_unsaved();
 	virtual Variant get_edit_state();
 	virtual void set_edit_state(const Variant &p_state);

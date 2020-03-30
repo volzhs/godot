@@ -29,9 +29,9 @@
 /*************************************************************************/
 
 #include "arvr_interface_gdnative.h"
-#include "main/input_default.h"
+#include "core/input/input_filter.h"
 #include "servers/arvr/arvr_positional_tracker.h"
-#include "servers/visual/visual_server_globals.h"
+#include "servers/rendering/rendering_server_globals.h"
 
 void ARVRInterfaceGDNative::_bind_methods() {
 	ADD_PROPERTY_DEFAULT("interface_is_initialized", false);
@@ -292,7 +292,7 @@ void GDAPI godot_arvr_blit(godot_int p_eye, godot_rid *p_render_target, godot_re
 #warning this needs to be redone
 #endif
 #if 0
-	VSG::rasterizer->blit_render_target_to_screen(*render_target, screen_rect, 0);
+	RSG::rasterizer->blit_render_target_to_screen(*render_target, screen_rect, 0);
 #endif
 }
 
@@ -302,13 +302,13 @@ godot_int GDAPI godot_arvr_get_texid(godot_rid *p_render_target) {
 #if 0
 	RID *render_target = (RID *)p_render_target;
 
-	RID eye_texture = VSG::storage->render_target_get_texture(*render_target);
+	RID eye_texture = RSG::storage->render_target_get_texture(*render_target);
 #endif
 
 #ifndef _MSC_VER
 #warning need to obtain this ID again
 #endif
-	uint32_t texid = 0; //VS::get_singleton()->texture_get_texid(eye_texture);
+	uint32_t texid = 0; //RS::get_singleton()->texture_get_texid(eye_texture);
 
 	return texid;
 }
@@ -317,7 +317,7 @@ godot_int GDAPI godot_arvr_add_controller(char *p_device_name, godot_int p_hand,
 	ARVRServer *arvr_server = ARVRServer::get_singleton();
 	ERR_FAIL_NULL_V(arvr_server, 0);
 
-	InputDefault *input = (InputDefault *)Input::get_singleton();
+	InputFilter *input = InputFilter::get_singleton();
 	ERR_FAIL_NULL_V(input, 0);
 
 	ARVRPositionalTracker *new_tracker = memnew(ARVRPositionalTracker);
@@ -356,7 +356,7 @@ void GDAPI godot_arvr_remove_controller(godot_int p_controller_id) {
 	ARVRServer *arvr_server = ARVRServer::get_singleton();
 	ERR_FAIL_NULL(arvr_server);
 
-	InputDefault *input = (InputDefault *)Input::get_singleton();
+	InputFilter *input = InputFilter::get_singleton();
 	ERR_FAIL_NULL(input);
 
 	ARVRPositionalTracker *remove_tracker = arvr_server->find_by_type_and_id(ARVRServer::TRACKER_CONTROLLER, p_controller_id);
@@ -394,7 +394,7 @@ void GDAPI godot_arvr_set_controller_button(godot_int p_controller_id, godot_int
 	ARVRServer *arvr_server = ARVRServer::get_singleton();
 	ERR_FAIL_NULL(arvr_server);
 
-	InputDefault *input = (InputDefault *)Input::get_singleton();
+	InputFilter *input = InputFilter::get_singleton();
 	ERR_FAIL_NULL(input);
 
 	ARVRPositionalTracker *tracker = arvr_server->find_by_type_and_id(ARVRServer::TRACKER_CONTROLLER, p_controller_id);
@@ -410,14 +410,14 @@ void GDAPI godot_arvr_set_controller_axis(godot_int p_controller_id, godot_int p
 	ARVRServer *arvr_server = ARVRServer::get_singleton();
 	ERR_FAIL_NULL(arvr_server);
 
-	InputDefault *input = (InputDefault *)Input::get_singleton();
+	InputFilter *input = InputFilter::get_singleton();
 	ERR_FAIL_NULL(input);
 
 	ARVRPositionalTracker *tracker = arvr_server->find_by_type_and_id(ARVRServer::TRACKER_CONTROLLER, p_controller_id);
 	if (tracker != NULL) {
 		int joyid = tracker->get_joy_id();
 		if (joyid != -1) {
-			InputDefault::JoyAxis jx;
+			InputFilter::JoyAxis jx;
 			jx.min = p_can_be_negative ? -1 : 0;
 			jx.value = p_value;
 			input->joy_axis(joyid, p_axis, jx);

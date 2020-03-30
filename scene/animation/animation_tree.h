@@ -32,8 +32,8 @@
 #define ANIMATION_GRAPH_PLAYER_H
 
 #include "animation_player.h"
-#include "scene/3d/skeleton.h"
-#include "scene/3d/spatial.h"
+#include "scene/3d/node_3d.h"
+#include "scene/3d/skeleton_3d.h"
 #include "scene/resources/animation.h"
 
 class AnimationNodeBlendTree;
@@ -192,8 +192,8 @@ private:
 	};
 
 	struct TrackCacheTransform : public TrackCache {
-		Spatial *spatial;
-		Skeleton *skeleton;
+		Node3D *spatial;
+		Skeleton3D *skeleton;
 		int bone_idx;
 		Vector3 loc;
 		Quat rot;
@@ -285,7 +285,7 @@ private:
 	void _tree_changed();
 	void _update_properties();
 	List<PropertyInfo> properties;
-	HashMap<StringName, HashMap<StringName, StringName> > property_parent_map;
+	HashMap<StringName, HashMap<StringName, StringName>> property_parent_map;
 	HashMap<StringName, Variant> property_map;
 
 	struct Activity {
@@ -293,7 +293,7 @@ private:
 		float activity;
 	};
 
-	HashMap<StringName, Vector<Activity> > input_activity_map;
+	HashMap<StringName, Vector<Activity>> input_activity_map;
 	HashMap<StringName, Vector<Activity> *> input_activity_map_get;
 
 	void _update_properties_for_node(const String &p_base_path, Ref<AnimationNode> node);

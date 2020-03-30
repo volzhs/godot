@@ -35,7 +35,6 @@
 
 #include "../mono_gc_handle.h"
 #include "../utils/macros.h"
-#include "../utils/thread_local.h"
 #include "gd_mono_header.h"
 
 #include "core/object.h"
@@ -93,7 +92,14 @@ _FORCE_INLINE_ bool is_main_thread() {
 	return mono_domain_get() != NULL && mono_thread_get_main() == mono_thread_current();
 }
 
+uint32_t new_strong_gchandle(MonoObject *p_object);
+uint32_t new_strong_gchandle_pinned(MonoObject *p_object);
+uint32_t new_weak_gchandle(MonoObject *p_object);
+void free_gchandle(uint32_t p_gchandle);
+
 void runtime_object_init(MonoObject *p_this_obj, GDMonoClass *p_class, MonoException **r_exc = NULL);
+
+bool mono_delegate_equal(MonoDelegate *p_a, MonoDelegate *p_b);
 
 GDMonoClass *get_object_class(MonoObject *p_object);
 GDMonoClass *type_get_proxy_class(const StringName &p_type);
@@ -101,6 +107,7 @@ GDMonoClass *get_class_native_base(GDMonoClass *p_class);
 
 MonoObject *create_managed_for_godot_object(GDMonoClass *p_class, const StringName &p_native, Object *p_object);
 
+MonoObject *create_managed_from(const StringName &p_from);
 MonoObject *create_managed_from(const NodePath &p_from);
 MonoObject *create_managed_from(const RID &p_from);
 MonoObject *create_managed_from(const Array &p_from, GDMonoClass *p_class);
@@ -123,7 +130,7 @@ void print_unhandled_exception(MonoException *p_exc);
  */
 void set_pending_exception(MonoException *p_exc);
 
-extern _THREAD_LOCAL_(int) current_invoke_count;
+extern thread_local int current_invoke_count;
 
 _FORCE_INLINE_ int get_runtime_invoke_count() {
 	return current_invoke_count;
@@ -152,9 +159,11 @@ private:
 	MonoThread *mono_thread;
 };
 
+StringName get_native_godot_class_name(GDMonoClass *p_class);
+
 } // namespace GDMonoUtils
 
-#define NATIVE_GDMONOCLASS_NAME(m_class) (GDMonoMarshal::mono_string_to_godot((MonoString *)m_class->get_field(BINDINGS_NATIVE_NAME_FIELD)->get_value(NULL)))
+#define NATIVE_GDMONOCLASS_NAME(m_class) (GDMonoUtils::get_native_godot_class_name(m_class))
 
 #define GD_MONO_BEGIN_RUNTIME_INVOKE                                              \
 	int &_runtime_invoke_count_ref = GDMonoUtils::get_runtime_invoke_count_ref(); \

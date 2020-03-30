@@ -824,16 +824,16 @@
 		</member>
 		<member name="mono/unhandled_exception_policy" type="int" setter="" getter="" default="0">
 		</member>
-		<member name="network/limits/debugger/max_chars_per_second" type="int" setter="" getter="" default="2048">
+		<member name="network/limits/debugger/max_chars_per_second" type="int" setter="" getter="" default="32768">
 			Maximum amount of characters allowed to send as output from the debugger. Over this value, content is dropped. This helps not to stall the debugger connection.
 		</member>
-		<member name="network/limits/debugger/max_errors_per_second" type="int" setter="" getter="" default="100">
+		<member name="network/limits/debugger/max_errors_per_second" type="int" setter="" getter="" default="400">
 			Maximum number of errors allowed to be sent from the debugger. Over this value, content is dropped. This helps not to stall the debugger connection.
 		</member>
-		<member name="network/limits/debugger/max_queued_messages" type="int" setter="" getter="" default="10">
+		<member name="network/limits/debugger/max_queued_messages" type="int" setter="" getter="" default="2048">
 			Maximum amount of messages in the debugger queue. Over this value, content is dropped. This helps to limit the debugger memory usage.
 		</member>
-		<member name="network/limits/debugger/max_warnings_per_second" type="int" setter="" getter="" default="100">
+		<member name="network/limits/debugger/max_warnings_per_second" type="int" setter="" getter="" default="400">
 			Maximum number of warnings allowed to be sent from the debugger. Over this value, content is dropped. This helps not to stall the debugger connection.
 		</member>
 		<member name="network/limits/packet_peer_stream/max_buffer_po2" type="int" setter="" getter="" default="16">
@@ -1036,7 +1036,7 @@
 		<member name="rendering/quality/reflection_atlas/reflection_count" type="int" setter="" getter="" default="64">
 			Number of cubemaps to store in the reflection atlas. The number of [ReflectionProbe]s in a scene will be limited by this amount. A higher number requires more VRAM.
 		</member>
-		<member name="rendering/quality/reflection_atlas/reflection_size" type="int" setter="" getter="" default="128">
+		<member name="rendering/quality/reflection_atlas/reflection_size" type="int" setter="" getter="" default="256">
 			Size of cubemap faces for [ReflectionProbe]s. A higher number requires more VRAM and may make reflection probe updating slower.
 		</member>
 		<member name="rendering/quality/reflection_atlas/reflection_size.mobile" type="int" setter="" getter="" default="128">
@@ -1051,7 +1051,7 @@
 		<member name="rendering/quality/reflections/ggx_samples.mobile" type="int" setter="" getter="" default="128">
 			Lower-end override for [member rendering/quality/reflections/ggx_samples] on mobile devices, due to performance concerns or driver support.
 		</member>
-		<member name="rendering/quality/reflections/roughness_layers" type="int" setter="" getter="" default="6">
+		<member name="rendering/quality/reflections/roughness_layers" type="int" setter="" getter="" default="8">
 			Limits the number of layers to use in radiance maps when using importance sampling. A lower number will be slightly faster and take up less VRAM.
 		</member>
 		<member name="rendering/quality/reflections/texture_array_reflections" type="bool" setter="" getter="" default="true">

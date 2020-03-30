@@ -268,7 +268,7 @@ private:
 	} cache;
 
 	Map<int, int> color_region_cache;
-	Map<int, Map<int, HighlighterInfo> > syntax_highlighting_cache;
+	Map<int, Map<int, HighlighterInfo>> syntax_highlighting_cache;
 
 	struct TextOperation {
 
@@ -585,6 +585,7 @@ public:
 
 	bool is_insert_text_operation();
 
+	void set_highlighted_word(const String &new_word);
 	void set_text(String p_text);
 	void insert_text_at_cursor(const String &p_text);
 	void insert_at(const String &p_text, int at);

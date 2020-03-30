@@ -1517,7 +1517,7 @@ GDScriptParser::Node *GDScriptParser::_parse_expression(Node *p_parent, bool p_s
 				}
 			}
 
-			//consecutively do unary opeators
+			//consecutively do unary operators
 			for (int i = expr_pos - 1; i >= next_op; i--) {
 
 				OperatorNode *op = alloc_node<OperatorNode>();
@@ -3113,7 +3113,6 @@ void GDScriptParser::_parse_block(BlockNode *p_block, bool p_static) {
 								}
 							} else {
 								constant = false;
-								break;
 							}
 						}
 
@@ -8534,7 +8533,7 @@ Error GDScriptParser::_parse(const String &p_base_path) {
 #ifdef DEBUG_ENABLED
 
 	// Resolve warning ignores
-	Vector<Pair<int, String> > warning_skips = tokenizer->get_warning_skips();
+	Vector<Pair<int, String>> warning_skips = tokenizer->get_warning_skips();
 	bool warning_is_error = GLOBAL_GET("debug/gdscript/warnings/treat_warnings_as_errors").booleanize();
 	for (List<GDScriptWarning>::Element *E = warnings.front(); E;) {
 		GDScriptWarning &w = E->get();

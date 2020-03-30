@@ -32,10 +32,10 @@
 #define OS_JAVASCRIPT_H
 
 #include "audio_driver_javascript.h"
+#include "core/input/input_filter.h"
 #include "drivers/unix/os_unix.h"
-#include "main/input_default.h"
 #include "servers/audio_server.h"
-#include "servers/visual/rasterizer.h"
+#include "servers/rendering/rasterizer.h"
 
 #include <emscripten/html5.h>
 
@@ -52,7 +52,7 @@ class OS_JavaScript : public OS_Unix {
 	Ref<InputEventKey> deferred_key_event;
 	CursorShape cursor_shape;
 	String cursors[CURSOR_MAX];
-	Map<CursorShape, Vector<Variant> > cursors_cache;
+	Map<CursorShape, Vector<Variant>> cursors_cache;
 	Point2 touches[32];
 
 	Point2i last_click_pos;

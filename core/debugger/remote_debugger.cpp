@@ -33,11 +33,12 @@
 #include "core/debugger/debugger_marshalls.h"
 #include "core/debugger/engine_debugger.h"
 #include "core/debugger/script_debugger.h"
-#include "core/os/input.h"
+#include "core/input/input_filter.h"
 #include "core/os/os.h"
 #include "core/project_settings.h"
 #include "core/script_language.h"
 #include "scene/main/node.h"
+#include "servers/display_server.h"
 
 template <typename T>
 void RemoteDebugger::_bind_profiler(const String &p_name, T *p_prof) {
@@ -353,18 +354,18 @@ struct RemoteDebugger::VisualProfiler {
 	Map<StringName, ServerInfo> server_data;
 
 	void toggle(bool p_enable, const Array &p_opts) {
-		VS::get_singleton()->set_frame_profiling_enabled(p_enable);
+		RS::get_singleton()->set_frame_profiling_enabled(p_enable);
 	}
 
 	void add(const Array &p_data) {}
 
 	void tick(float p_frame_time, float p_idle_time, float p_physics_time, float p_physics_frame_time) {
-		Vector<VS::FrameProfileArea> profile_areas = VS::get_singleton()->get_frame_profile();
+		Vector<RS::FrameProfileArea> profile_areas = RS::get_singleton()->get_frame_profile();
 		DebuggerMarshalls::VisualProfilerFrame frame;
 		if (!profile_areas.size())
 			return;
 
-		frame.frame_number = VS::get_singleton()->get_frame_profile_frame();
+		frame.frame_number = RS::get_singleton()->get_frame_profile_frame();
 		frame.areas.append_array(profile_areas);
 		EngineDebugger::get_singleton()->send_message("visual:profile_frame", frame.serialize());
 	}
@@ -403,10 +404,10 @@ void RemoteDebugger::_send_resource_usage() {
 
 	DebuggerMarshalls::ResourceUsage usage;
 
-	List<VS::TextureInfo> tinfo;
-	VS::get_singleton()->texture_debug_usage(&tinfo);
+	List<RS::TextureInfo> tinfo;
+	RS::get_singleton()->texture_debug_usage(&tinfo);
 
-	for (List<VS::TextureInfo>::Element *E = tinfo.front(); E; E = E->next()) {
+	for (List<RS::TextureInfo>::Element *E = tinfo.front(); E; E = E->next()) {
 
 		DebuggerMarshalls::ResourceInfo info;
 		info.path = E->get().path;
@@ -658,9 +659,9 @@ void RemoteDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 
 	servers_profiler->skip_profile_frame = true; // Avoid frame time spike in debug.
 
-	Input::MouseMode mouse_mode = Input::get_singleton()->get_mouse_mode();
-	if (mouse_mode != Input::MOUSE_MODE_VISIBLE)
-		Input::get_singleton()->set_mouse_mode(Input::MOUSE_MODE_VISIBLE);
+	InputFilter::MouseMode mouse_mode = InputFilter::get_singleton()->get_mouse_mode();
+	if (mouse_mode != InputFilter::MOUSE_MODE_VISIBLE)
+		InputFilter::get_singleton()->set_mouse_mode(InputFilter::MOUSE_MODE_VISIBLE);
 
 	uint64_t loop_begin_usec = 0;
 	uint64_t loop_time_sec = 0;
@@ -694,7 +695,7 @@ void RemoteDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 			} else if (command == "continue") {
 				script_debugger->set_depth(-1);
 				script_debugger->set_lines_left(-1);
-				OS::get_singleton()->move_window_to_foreground();
+				DisplayServer::get_singleton()->window_move_to_foreground();
 				break;
 
 			} else if (command == "break") {
@@ -770,16 +771,16 @@ void RemoteDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 
 		// This is for the camera override to stay live even when the game is paused from the editor
 		loop_time_sec = (OS::get_singleton()->get_ticks_usec() - loop_begin_usec) / 1000000.0f;
-		VisualServer::get_singleton()->sync();
-		if (VisualServer::get_singleton()->has_changed()) {
-			VisualServer::get_singleton()->draw(true, loop_time_sec * Engine::get_singleton()->get_time_scale());
+		RenderingServer::get_singleton()->sync();
+		if (RenderingServer::get_singleton()->has_changed()) {
+			RenderingServer::get_singleton()->draw(true, loop_time_sec * Engine::get_singleton()->get_time_scale());
 		}
 	}
 
 	send_message("debug_exit", Array());
 
-	if (mouse_mode != Input::MOUSE_MODE_VISIBLE)
-		Input::get_singleton()->set_mouse_mode(mouse_mode);
+	if (mouse_mode != InputFilter::MOUSE_MODE_VISIBLE)
+		InputFilter::get_singleton()->set_mouse_mode(mouse_mode);
 }
 
 void RemoteDebugger::poll_events(bool p_is_idle) {
@@ -887,7 +888,7 @@ RemoteDebugger::RemoteDebugger(Ref<RemoteDebuggerPeer> p_peer) {
 	visual_profiler = memnew(VisualProfiler);
 	_bind_profiler("visual", visual_profiler);
 
-	// Perfromance Profiler
+	// Performance Profiler
 	Object *perf = Engine::get_singleton()->get_singleton_object("Performance");
 	if (perf) {
 		performance_profiler = memnew(PerformanceProfiler(perf));

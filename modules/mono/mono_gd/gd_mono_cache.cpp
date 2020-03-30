@@ -103,23 +103,29 @@ void CachedData::clear_godot_api_cache() {
 	rawclass_Dictionary = NULL;
 
 	class_Vector2 = NULL;
+	class_Vector2i = NULL;
 	class_Rect2 = NULL;
+	class_Rect2i = NULL;
 	class_Transform2D = NULL;
 	class_Vector3 = NULL;
+	class_Vector3i = NULL;
 	class_Basis = NULL;
 	class_Quat = NULL;
 	class_Transform = NULL;
 	class_AABB = NULL;
 	class_Color = NULL;
 	class_Plane = NULL;
+	class_StringName = NULL;
 	class_NodePath = NULL;
 	class_RID = NULL;
 	class_GodotObject = NULL;
 	class_GodotResource = NULL;
 	class_Node = NULL;
 	class_Control = NULL;
-	class_Spatial = NULL;
+	class_Node3D = NULL;
 	class_WeakRef = NULL;
+	class_Callable = NULL;
+	class_SignalInfo = NULL;
 	class_Array = NULL;
 	class_Dictionary = NULL;
 	class_MarshalUtils = NULL;
@@ -145,6 +151,7 @@ void CachedData::clear_godot_api_cache() {
 	field_GodotMethodAttribute_methodName = NULL;
 
 	field_GodotObject_ptr = NULL;
+	field_StringName_ptr = NULL;
 	field_NodePath_ptr = NULL;
 	field_Image_ptr = NULL;
 	field_RID_ptr = NULL;
@@ -153,8 +160,12 @@ void CachedData::clear_godot_api_cache() {
 	methodthunk_Array_GetPtr.nullify();
 	methodthunk_Dictionary_GetPtr.nullify();
 	methodthunk_SignalAwaiter_SignalCallback.nullify();
-	methodthunk_SignalAwaiter_FailureCallback.nullify();
 	methodthunk_GodotTaskScheduler_Activate.nullify();
+
+	methodthunk_Delegate_Equals.nullify();
+
+	methodthunk_DelegateUtils_TrySerializeDelegate.nullify();
+	methodthunk_DelegateUtils_TryDeserializeDelegate.nullify();
 
 	// Start of MarshalUtils methods
 
@@ -178,7 +189,7 @@ void CachedData::clear_godot_api_cache() {
 
 	// End of MarshalUtils methods
 
-	task_scheduler_handle = Ref<MonoGCHandle>();
+	task_scheduler_handle = Ref<MonoGCHandleRef>();
 }
 
 #define GODOT_API_CLASS(m_class) (GDMono::get_singleton()->get_core_api_assembly()->get_class(BINDINGS_NAMESPACE, #m_class))
@@ -211,6 +222,8 @@ void update_corlib_cache() {
 	CACHE_METHOD_AND_CHECK(System_Diagnostics_StackTrace, ctor_Exception_bool, CACHED_CLASS(System_Diagnostics_StackTrace)->get_method_with_desc("System.Diagnostics.StackTrace:.ctor(System.Exception,bool)", true));
 #endif
 
+	CACHE_METHOD_THUNK_AND_CHECK(Delegate, Equals, GDMono::get_singleton()->get_corlib_assembly()->get_class("System", "Delegate")->get_method_with_desc("System.Delegate:Equals(object)", 1));
+
 	CACHE_CLASS_AND_CHECK(KeyNotFoundException, GDMono::get_singleton()->get_corlib_assembly()->get_class("System.Collections.Generic", "KeyNotFoundException"));
 
 	cached_data.corlib_cache_updated = true;
@@ -219,23 +232,29 @@ void update_corlib_cache() {
 void update_godot_api_cache() {
 
 	CACHE_CLASS_AND_CHECK(Vector2, GODOT_API_CLASS(Vector2));
+	CACHE_CLASS_AND_CHECK(Vector2i, GODOT_API_CLASS(Vector2i));
 	CACHE_CLASS_AND_CHECK(Rect2, GODOT_API_CLASS(Rect2));
+	CACHE_CLASS_AND_CHECK(Rect2i, GODOT_API_CLASS(Rect2i));
 	CACHE_CLASS_AND_CHECK(Transform2D, GODOT_API_CLASS(Transform2D));
 	CACHE_CLASS_AND_CHECK(Vector3, GODOT_API_CLASS(Vector3));
+	CACHE_CLASS_AND_CHECK(Vector3i, GODOT_API_CLASS(Vector3i));
 	CACHE_CLASS_AND_CHECK(Basis, GODOT_API_CLASS(Basis));
 	CACHE_CLASS_AND_CHECK(Quat, GODOT_API_CLASS(Quat));
 	CACHE_CLASS_AND_CHECK(Transform, GODOT_API_CLASS(Transform));
 	CACHE_CLASS_AND_CHECK(AABB, GODOT_API_CLASS(AABB));
 	CACHE_CLASS_AND_CHECK(Color, GODOT_API_CLASS(Color));
 	CACHE_CLASS_AND_CHECK(Plane, GODOT_API_CLASS(Plane));
+	CACHE_CLASS_AND_CHECK(StringName, GODOT_API_CLASS(StringName));
 	CACHE_CLASS_AND_CHECK(NodePath, GODOT_API_CLASS(NodePath));
 	CACHE_CLASS_AND_CHECK(RID, GODOT_API_CLASS(RID));
 	CACHE_CLASS_AND_CHECK(GodotObject, GODOT_API_CLASS(Object));
 	CACHE_CLASS_AND_CHECK(GodotResource, GODOT_API_CLASS(Resource));
 	CACHE_CLASS_AND_CHECK(Node, GODOT_API_CLASS(Node));
 	CACHE_CLASS_AND_CHECK(Control, GODOT_API_CLASS(Control));
-	CACHE_CLASS_AND_CHECK(Spatial, GODOT_API_CLASS(Spatial));
+	CACHE_CLASS_AND_CHECK(Node3D, GODOT_API_CLASS(Node3Dshou));
 	CACHE_CLASS_AND_CHECK(WeakRef, GODOT_API_CLASS(WeakRef));
+	CACHE_CLASS_AND_CHECK(Callable, GODOT_API_CLASS(Callable));
+	CACHE_CLASS_AND_CHECK(SignalInfo, GODOT_API_CLASS(SignalInfo));
 	CACHE_CLASS_AND_CHECK(Array, GODOT_API_NS_CLASS(BINDINGS_NAMESPACE_COLLECTIONS, Array));
 	CACHE_CLASS_AND_CHECK(Dictionary, GODOT_API_NS_CLASS(BINDINGS_NAMESPACE_COLLECTIONS, Dictionary));
 	CACHE_CLASS_AND_CHECK(MarshalUtils, GODOT_API_CLASS(MarshalUtils));
@@ -261,6 +280,7 @@ void update_godot_api_cache() {
 	CACHE_FIELD_AND_CHECK(GodotMethodAttribute, methodName, CACHED_CLASS(GodotMethodAttribute)->get_field("methodName"));
 
 	CACHE_FIELD_AND_CHECK(GodotObject, ptr, CACHED_CLASS(GodotObject)->get_field(BINDINGS_PTR_FIELD));
+	CACHE_FIELD_AND_CHECK(StringName, ptr, CACHED_CLASS(StringName)->get_field(BINDINGS_PTR_FIELD));
 	CACHE_FIELD_AND_CHECK(NodePath, ptr, CACHED_CLASS(NodePath)->get_field(BINDINGS_PTR_FIELD));
 	CACHE_FIELD_AND_CHECK(RID, ptr, CACHED_CLASS(RID)->get_field(BINDINGS_PTR_FIELD));
 
@@ -268,8 +288,10 @@ void update_godot_api_cache() {
 	CACHE_METHOD_THUNK_AND_CHECK(Array, GetPtr, GODOT_API_NS_CLASS(BINDINGS_NAMESPACE_COLLECTIONS, Array)->get_method("GetPtr", 0));
 	CACHE_METHOD_THUNK_AND_CHECK(Dictionary, GetPtr, GODOT_API_NS_CLASS(BINDINGS_NAMESPACE_COLLECTIONS, Dictionary)->get_method("GetPtr", 0));
 	CACHE_METHOD_THUNK_AND_CHECK(SignalAwaiter, SignalCallback, GODOT_API_CLASS(SignalAwaiter)->get_method("SignalCallback", 1));
-	CACHE_METHOD_THUNK_AND_CHECK(SignalAwaiter, FailureCallback, GODOT_API_CLASS(SignalAwaiter)->get_method("FailureCallback", 0));
 	CACHE_METHOD_THUNK_AND_CHECK(GodotTaskScheduler, Activate, GODOT_API_CLASS(GodotTaskScheduler)->get_method("Activate", 0));
+
+	CACHE_METHOD_THUNK_AND_CHECK(DelegateUtils, TrySerializeDelegate, GODOT_API_CLASS(DelegateUtils)->get_method("TrySerializeDelegate", 2));
+	CACHE_METHOD_THUNK_AND_CHECK(DelegateUtils, TryDeserializeDelegate, GODOT_API_CLASS(DelegateUtils)->get_method("TryDeserializeDelegate", 2));
 
 	// Start of MarshalUtils methods
 
@@ -300,7 +322,7 @@ void update_godot_api_cache() {
 	// TODO Move to CSharpLanguage::init() and do handle disposal
 	MonoObject *task_scheduler = mono_object_new(mono_domain_get(), GODOT_API_CLASS(GodotTaskScheduler)->get_mono_ptr());
 	GDMonoUtils::runtime_object_init(task_scheduler, GODOT_API_CLASS(GodotTaskScheduler));
-	cached_data.task_scheduler_handle = MonoGCHandle::create_strong(task_scheduler);
+	cached_data.task_scheduler_handle = MonoGCHandleRef::create_strong(task_scheduler);
 
 	cached_data.godot_api_cache_updated = true;
 }

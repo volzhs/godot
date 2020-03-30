@@ -86,10 +86,9 @@ MonoObject *unmanaged_get_managed(Object *unmanaged) {
 		}
 	}
 
-	Ref<MonoGCHandle> &gchandle = script_binding.gchandle;
-	ERR_FAIL_COND_V(gchandle.is_null(), NULL);
+	MonoGCHandleData &gchandle = script_binding.gchandle;
 
-	MonoObject *target = gchandle->get_target();
+	MonoObject *target = gchandle.get_target();
 
 	if (target)
 		return target;
@@ -106,7 +105,7 @@ MonoObject *unmanaged_get_managed(Object *unmanaged) {
 	MonoObject *mono_object = GDMonoUtils::create_managed_for_godot_object(script_binding.wrapper_class, script_binding.type_name, unmanaged);
 	ERR_FAIL_NULL_V(mono_object, NULL);
 
-	gchandle->set_handle(MonoGCHandle::new_strong_handle(mono_object), MonoGCHandle::STRONG_HANDLE);
+	gchandle = MonoGCHandleData::new_strong_handle(mono_object);
 
 	// Tie managed to unmanaged
 	Reference *ref = Object::cast_to<Reference>(unmanaged);
@@ -156,10 +155,33 @@ bool is_thread_attached() {
 	return mono_domain_get() != NULL;
 }
 
+uint32_t new_strong_gchandle(MonoObject *p_object) {
+	return mono_gchandle_new(p_object, /* pinned: */ false);
+}
+
+uint32_t new_strong_gchandle_pinned(MonoObject *p_object) {
+	return mono_gchandle_new(p_object, /* pinned: */ true);
+}
+
+uint32_t new_weak_gchandle(MonoObject *p_object) {
+	return mono_gchandle_new_weakref(p_object, /* track_resurrection: */ false);
+}
+
+void free_gchandle(uint32_t p_gchandle) {
+	mono_gchandle_free(p_gchandle);
+}
+
 void runtime_object_init(MonoObject *p_this_obj, GDMonoClass *p_class, MonoException **r_exc) {
 	GDMonoMethod *ctor = p_class->get_method(".ctor", 0);
 	ERR_FAIL_NULL(ctor);
 	ctor->invoke_raw(p_this_obj, NULL, r_exc);
+}
+
+bool mono_delegate_equal(MonoDelegate *p_a, MonoDelegate *p_b) {
+	MonoException *exc = NULL;
+	MonoBoolean res = CACHED_METHOD_THUNK(Delegate, Equals).invoke((MonoObject *)p_a, (MonoObject *)p_b, &exc);
+	UNHANDLED_EXCEPTION(exc);
+	return (bool)res;
 }
 
 GDMonoClass *get_object_class(MonoObject *p_object) {
@@ -216,6 +238,18 @@ MonoObject *create_managed_for_godot_object(GDMonoClass *p_class, const StringNa
 
 	// Construct
 	GDMonoUtils::runtime_object_init(mono_object, p_class);
+
+	return mono_object;
+}
+
+MonoObject *create_managed_from(const StringName &p_from) {
+	MonoObject *mono_object = mono_object_new(mono_domain_get(), CACHED_CLASS_RAW(StringName));
+	ERR_FAIL_NULL_V(mono_object, NULL);
+
+	// Construct
+	GDMonoUtils::runtime_object_init(mono_object, CACHED_CLASS(StringName));
+
+	CACHED_FIELD(StringName, ptr)->set_value_raw(mono_object, memnew(StringName(p_from)));
 
 	return mono_object;
 }
@@ -362,7 +396,11 @@ void debug_send_unhandled_exception_error(MonoException *p_exc) {
 		return;
 	}
 
-	_TLS_RECURSION_GUARD_;
+	static thread_local bool _recursion_flag_ = false;
+	if (_recursion_flag_)
+		return;
+	_recursion_flag_ = true;
+	SCOPE_EXIT { _recursion_flag_ = false; };
 
 	ScriptLanguage::StackInfo separator;
 	separator.file = String();
@@ -439,8 +477,7 @@ void set_pending_exception(MonoException *p_exc) {
 #endif
 }
 
-_THREAD_LOCAL_(int)
-current_invoke_count = 0;
+thread_local int current_invoke_count = 0;
 
 MonoObject *runtime_invoke(MonoMethod *p_method, void *p_obj, void **p_params, MonoException **r_exc) {
 	GD_MONO_BEGIN_RUNTIME_INVOKE;
@@ -644,6 +681,10 @@ ScopeThreadAttach::~ScopeThreadAttach() {
 	}
 }
 
-// namespace Marshal
+StringName get_native_godot_class_name(GDMonoClass *p_class) {
+	MonoObject *native_name_obj = p_class->get_field(BINDINGS_NATIVE_NAME_FIELD)->get_value(NULL);
+	StringName *ptr = GDMonoMarshal::unbox<StringName *>(CACHED_FIELD(StringName, ptr)->get_value(native_name_obj));
+	return ptr ? *ptr : StringName();
+}
 
 } // namespace GDMonoUtils

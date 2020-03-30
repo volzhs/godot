@@ -36,7 +36,7 @@
 #include "editor/editor_file_system.h"
 #include "editor/editor_node.h"
 
-void ResourceImporterTexture::_texture_reimport_roughness(const Ref<StreamTexture> &p_tex, const String &p_normal_path, VS::TextureDetectRoughnessChannel p_channel) {
+void ResourceImporterTexture::_texture_reimport_roughness(const Ref<StreamTexture> &p_tex, const String &p_normal_path, RS::TextureDetectRoughnessChannel p_channel) {
 
 	MutexLock lock(singleton->mutex);
 
@@ -350,7 +350,7 @@ void ResourceImporterTexture::_save_stex(const Ref<Image> &p_image, const String
 
 	f->store_32(flags);
 	f->store_32(p_limit_mipmap);
-	//reserverd for future use
+	//reserved for future use
 	f->store_32(0);
 	f->store_32(0);
 	f->store_32(0);

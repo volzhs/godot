@@ -39,8 +39,8 @@
 #include "drivers/unix/file_access_unix.h"
 #include "file_access_android.h"
 #include "main/main.h"
-#include "servers/visual/visual_server_raster.h"
-#include "servers/visual/visual_server_wrap_mt.h"
+#include "servers/rendering/rendering_server_raster.h"
+#include "servers/rendering/rendering_server_wrap_mt.h"
 
 #include "dir_access_jandroid.h"
 #include "file_access_jandroid.h"
@@ -91,7 +91,7 @@ void OS_Android::initialize_core() {
 		FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);
 	else {
 #ifdef USE_JAVA_FILE_ACCESS
-		FileAccess::make_default<FileAccessBufferedFA<FileAccessJAndroid> >(FileAccess::ACCESS_RESOURCES);
+		FileAccess::make_default<FileAccessBufferedFA<FileAccessJAndroid>>(FileAccess::ACCESS_RESOURCES);
 #else
 		//FileAccess::make_default<FileAccessBufferedFA<FileAccessAndroid> >(FileAccess::ACCESS_RESOURCES);
 		FileAccess::make_default<FileAccessAndroid>(FileAccess::ACCESS_RESOURCES);
@@ -146,12 +146,12 @@ Error OS_Android::initialize(const VideoMode &p_desired, int p_video_driver, int
 
 	video_driver_index = p_video_driver;
 
-	visual_server = memnew(VisualServerRaster);
+	rendering_server = memnew(RenderingServerRaster);
 	if (get_render_thread_mode() != RENDER_THREAD_UNSAFE) {
-		visual_server = memnew(VisualServerWrapMT(visual_server, false));
+		rendering_server = memnew(RenderingServerWrapMT(rendering_server, false));
 	}
 
-	visual_server->init();
+	rendering_server->init();
 
 	AudioDriverManager::initialize(p_audio_driver);
 
@@ -306,14 +306,14 @@ void OS_Android::main_loop_end() {
 void OS_Android::main_loop_focusout() {
 
 	if (main_loop)
-		main_loop->notification(MainLoop::NOTIFICATION_WM_FOCUS_OUT);
+		main_loop->notification(NOTIFICATION_WM_FOCUS_OUT);
 	audio_driver_android.set_pause(true);
 }
 
 void OS_Android::main_loop_focusin() {
 
 	if (main_loop)
-		main_loop->notification(MainLoop::NOTIFICATION_WM_FOCUS_IN);
+		main_loop->notification(NOTIFICATION_WM_FOCUS_IN);
 	audio_driver_android.set_pause(false);
 }
 
@@ -568,7 +568,7 @@ void OS_Android::init_video_mode(int p_video_width, int p_video_height) {
 void OS_Android::main_loop_request_go_back() {
 
 	if (main_loop)
-		main_loop->notification(MainLoop::NOTIFICATION_WM_GO_BACK_REQUEST);
+		main_loop->notification(NOTIFICATION_WM_GO_BACK_REQUEST);
 }
 
 void OS_Android::set_display_size(Size2 p_size) {
@@ -759,7 +759,7 @@ OS_Android::OS_Android(GodotJavaWrapper *p_godot_java, GodotIOJavaWrapper *p_god
 	//rasterizer = NULL;
 	use_gl2 = false;
 
-	visual_server = NULL;
+	rendering_server = NULL;
 
 	godot_java = p_godot_java;
 	godot_io_java = p_godot_io_java;

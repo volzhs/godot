@@ -31,8 +31,8 @@
 #include "shader.h"
 #include "core/os/file_access.h"
 #include "scene/scene_string_names.h"
-#include "servers/visual/shader_language.h"
-#include "servers/visual_server.h"
+#include "servers/rendering/shader_language.h"
+#include "servers/rendering_server.h"
 #include "texture.h"
 
 Shader::Mode Shader::get_mode() const {
@@ -48,11 +48,13 @@ void Shader::set_code(const String &p_code) {
 		mode = MODE_CANVAS_ITEM;
 	} else if (type == "particles") {
 		mode = MODE_PARTICLES;
+	} else if (type == "sky") {
+		mode = MODE_SKY;
 	} else {
 		mode = MODE_SPATIAL;
 	}
 
-	VisualServer::get_singleton()->shader_set_code(shader, p_code);
+	RenderingServer::get_singleton()->shader_set_code(shader, p_code);
 	params_cache_dirty = true;
 
 	emit_changed();
@@ -61,7 +63,7 @@ void Shader::set_code(const String &p_code) {
 String Shader::get_code() const {
 
 	_update_shader();
-	return VisualServer::get_singleton()->shader_get_code(shader);
+	return RenderingServer::get_singleton()->shader_get_code(shader);
 }
 
 void Shader::get_param_list(List<PropertyInfo> *p_params) const {
@@ -69,7 +71,7 @@ void Shader::get_param_list(List<PropertyInfo> *p_params) const {
 	_update_shader();
 
 	List<PropertyInfo> local;
-	VisualServer::get_singleton()->shader_get_param_list(shader, &local);
+	RenderingServer::get_singleton()->shader_get_param_list(shader, &local);
 	params_cache.clear();
 	params_cache_dirty = false;
 
@@ -102,10 +104,10 @@ void Shader::set_default_texture_param(const StringName &p_param, const Ref<Text
 
 	if (p_texture.is_valid()) {
 		default_textures[p_param] = p_texture;
-		VS::get_singleton()->shader_set_default_texture_param(shader, p_param, p_texture->get_rid());
+		RS::get_singleton()->shader_set_default_texture_param(shader, p_param, p_texture->get_rid());
 	} else {
 		default_textures.erase(p_param);
-		VS::get_singleton()->shader_set_default_texture_param(shader, p_param, RID());
+		RS::get_singleton()->shader_set_default_texture_param(shader, p_param, RID());
 	}
 
 	emit_changed();
@@ -121,7 +123,7 @@ Ref<Texture2D> Shader::get_default_texture_param(const StringName &p_param) cons
 
 void Shader::get_default_texture_param_list(List<StringName> *r_textures) const {
 
-	for (const Map<StringName, Ref<Texture2D> >::Element *E = default_textures.front(); E; E = E->next()) {
+	for (const Map<StringName, Ref<Texture2D>>::Element *E = default_textures.front(); E; E = E->next()) {
 
 		r_textures->push_back(E->key());
 	}
@@ -158,18 +160,19 @@ void Shader::_bind_methods() {
 	BIND_ENUM_CONSTANT(MODE_SPATIAL);
 	BIND_ENUM_CONSTANT(MODE_CANVAS_ITEM);
 	BIND_ENUM_CONSTANT(MODE_PARTICLES);
+	BIND_ENUM_CONSTANT(MODE_SKY);
 }
 
 Shader::Shader() {
 
 	mode = MODE_SPATIAL;
-	shader = VisualServer::get_singleton()->shader_create();
+	shader = RenderingServer::get_singleton()->shader_create();
 	params_cache_dirty = true;
 }
 
 Shader::~Shader() {
 
-	VisualServer::get_singleton()->free(shader);
+	RenderingServer::get_singleton()->free(shader);
 }
 ////////////
 

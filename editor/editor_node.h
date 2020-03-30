@@ -84,6 +84,8 @@ class Tabs;
 class TextureProgress;
 class ToolButton;
 class VSplitContainer;
+class Window;
+class SubViewport;
 
 class EditorNode : public Node {
 
@@ -206,7 +208,7 @@ private:
 		TOOL_MENU_BASE = 1000
 	};
 
-	Viewport *scene_root; //root of the scene being edited
+	SubViewport *scene_root; //root of the scene being edited
 
 	PanelContainer *scene_root_parent;
 	Control *theme_base;
@@ -348,11 +350,14 @@ private:
 	Button *new_inherited_button;
 	String open_import_request;
 
+	Vector<Control *> floating_docks;
+
 	TabContainer *dock_slot[DOCK_SLOT_MAX];
 	Rect2 dock_select_rect[DOCK_SLOT_MAX];
 	int dock_select_rect_over;
 	PopupPanel *dock_select_popup;
 	Control *dock_select;
+	Button *dock_float;
 	ToolButton *dock_tab_move_left;
 	ToolButton *dock_tab_move_right;
 	int dock_popup_selected;
@@ -493,7 +498,8 @@ private:
 	void _add_to_recent_scenes(const String &p_scene);
 	void _update_recent_scenes();
 	void _open_recent_scene(int p_idx);
-	void _global_menu_action(const Variant &p_id, const Variant &p_meta);
+	void _global_menu_scene(const Variant &p_tag);
+	void _global_menu_new_window(const Variant &p_tag);
 	void _dropped_files(const Vector<String> &p_files, int p_screen);
 	void _add_dropped_files_recursive(const Vector<String> &p_files, String to_path);
 	String _recent_scene;
@@ -513,7 +519,7 @@ private:
 	Set<FileDialog *> file_dialogs;
 	Set<EditorFileDialog *> editor_file_dialogs;
 
-	Map<String, Ref<Texture2D> > icon_type_cache;
+	Map<String, Ref<Texture2D>> icon_type_cache;
 	void _build_icon_type_cache();
 
 	bool _initializing_addons;
@@ -536,7 +542,7 @@ private:
 	void _find_node_types(Node *p_node, int &count_2d, int &count_3d);
 	void _save_scene_with_preview(String p_file, int p_idx = -1);
 
-	Map<String, Set<String> > dependency_errors;
+	Map<String, Set<String>> dependency_errors;
 
 	static void _dependency_error_report(void *ud, const String &p_path, const String &p_dep, const String &p_type) {
 		EditorNode *en = (EditorNode *)ud;
@@ -560,6 +566,8 @@ private:
 
 	bool _find_scene_in_use(Node *p_node, const String &p_path) const;
 
+	void _update_dock_containers();
+
 	void _dock_select_input(const Ref<InputEvent> &p_input);
 	void _dock_move_left();
 	void _dock_move_right();
@@ -567,6 +575,8 @@ private:
 	void _dock_pre_popup(int p_which);
 	void _dock_split_dragged(int ofs);
 	void _dock_popup_exit();
+	void _dock_floating_close_request(Control *p_control);
+	void _dock_make_float();
 	void _scene_tab_changed(int p_tab);
 	void _scene_tab_closed(int p_tab, int option = SCENE_TAB_CLOSE);
 	void _scene_tab_hover(int p_tab);
@@ -622,7 +632,7 @@ private:
 
 	void _update_update_spinner();
 
-	Vector<Ref<EditorResourceConversionPlugin> > resource_conversion_plugins;
+	Vector<Ref<EditorResourceConversionPlugin>> resource_conversion_plugins;
 
 	PrintHandlerList print_handler;
 	static void _print_handler(void *p_this, const String &p_string, bool p_error);
@@ -724,7 +734,7 @@ public:
 
 	Node *get_edited_scene() { return editor_data.get_edited_scene_root(); }
 
-	Viewport *get_scene_root() { return scene_root; } //root of the scene being edited
+	SubViewport *get_scene_root() { return scene_root; } //root of the scene being edited
 
 	void fix_dependencies(const String &p_for_file);
 	void clear_scene() { _cleanup_scene(); }
@@ -844,7 +854,7 @@ public:
 
 	void add_resource_conversion_plugin(const Ref<EditorResourceConversionPlugin> &p_plugin);
 	void remove_resource_conversion_plugin(const Ref<EditorResourceConversionPlugin> &p_plugin);
-	Vector<Ref<EditorResourceConversionPlugin> > find_resource_conversion_plugin(const Ref<Resource> &p_for_resource);
+	Vector<Ref<EditorResourceConversionPlugin>> find_resource_conversion_plugin(const Ref<Resource> &p_for_resource);
 
 	static void add_init_callback(EditorNodeInitCallback p_callback) { _init_callbacks.push_back(p_callback); }
 	static void add_build_callback(EditorBuildCallback p_callback);
@@ -884,7 +894,7 @@ public:
 	bool forward_gui_input(const Ref<InputEvent> &p_event);
 	void forward_canvas_draw_over_viewport(Control *p_overlay);
 	void forward_canvas_force_draw_over_viewport(Control *p_overlay);
-	bool forward_spatial_gui_input(Camera *p_camera, const Ref<InputEvent> &p_event, bool serve_when_force_input_enabled);
+	bool forward_spatial_gui_input(Camera3D *p_camera, const Ref<InputEvent> &p_event, bool serve_when_force_input_enabled);
 	void forward_spatial_draw_over_viewport(Control *p_overlay);
 	void forward_spatial_force_draw_over_viewport(Control *p_overlay);
 	void add_plugin(EditorPlugin *p_plugin);

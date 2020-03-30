@@ -96,14 +96,13 @@ class RenameDialog : public ConfirmationDialog {
 	Label *lbl_preview_title;
 	Label *lbl_preview;
 
-	List<Pair<NodePath, String> > to_rename;
+	List<Pair<NodePath, String>> to_rename;
 	Node *preview_node;
 	bool lock_preview_update;
 	ErrorHandlerList eh;
 	bool has_errors;
 
 protected:
-	void _notification(int p_what){};
 	static void _bind_methods();
 	virtual void _post_popup();
 

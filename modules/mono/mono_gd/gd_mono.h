@@ -105,7 +105,7 @@ private:
 	MonoDomain *root_domain;
 	MonoDomain *scripts_domain;
 
-	HashMap<uint32_t, HashMap<String, GDMonoAssembly *> > assemblies;
+	HashMap<uint32_t, HashMap<String, GDMonoAssembly *>> assemblies;
 
 	GDMonoAssembly *corlib_assembly;
 	GDMonoAssembly *project_assembly;
@@ -203,7 +203,7 @@ public:
 
 	static GDMono *get_singleton() { return singleton; }
 
-	GD_NORETURN static void unhandled_exception_hook(MonoObject *p_exc, void *p_user_data);
+	[[noreturn]] static void unhandled_exception_hook(MonoObject *p_exc, void *p_user_data);
 
 	UnhandledExceptionPolicy get_unhandled_exception_policy() const { return unhandled_exception_policy; }
 

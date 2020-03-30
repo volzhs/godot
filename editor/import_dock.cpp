@@ -112,19 +112,19 @@ void ImportDock::set_edit_path(const String &p_path) {
 
 	_update_options(config);
 
-	List<Ref<ResourceImporter> > importers;
+	List<Ref<ResourceImporter>> importers;
 	ResourceFormatImporter::get_singleton()->get_importers_for_extension(p_path.get_extension(), &importers);
-	List<Pair<String, String> > importer_names;
+	List<Pair<String, String>> importer_names;
 
-	for (List<Ref<ResourceImporter> >::Element *E = importers.front(); E; E = E->next()) {
+	for (List<Ref<ResourceImporter>>::Element *E = importers.front(); E; E = E->next()) {
 		importer_names.push_back(Pair<String, String>(E->get()->get_visible_name(), E->get()->get_importer_name()));
 	}
 
-	importer_names.sort_custom<PairSort<String, String> >();
+	importer_names.sort_custom<PairSort<String, String>>();
 
 	import_as->clear();
 
-	for (List<Pair<String, String> >::Element *E = importer_names.front(); E; E = E->next()) {
+	for (List<Pair<String, String>>::Element *E = importer_names.front(); E; E = E->next()) {
 		import_as->add_item(E->get().first);
 		import_as->set_item_metadata(import_as->get_item_count() - 1, E->get().second);
 		if (E->get().second == params->importer->get_importer_name()) {
@@ -240,19 +240,19 @@ void ImportDock::set_edit_multiple_paths(const Vector<String> &p_paths) {
 
 	params->update();
 
-	List<Ref<ResourceImporter> > importers;
+	List<Ref<ResourceImporter>> importers;
 	ResourceFormatImporter::get_singleton()->get_importers_for_extension(p_paths[0].get_extension(), &importers);
-	List<Pair<String, String> > importer_names;
+	List<Pair<String, String>> importer_names;
 
-	for (List<Ref<ResourceImporter> >::Element *E = importers.front(); E; E = E->next()) {
+	for (List<Ref<ResourceImporter>>::Element *E = importers.front(); E; E = E->next()) {
 		importer_names.push_back(Pair<String, String>(E->get()->get_visible_name(), E->get()->get_importer_name()));
 	}
 
-	importer_names.sort_custom<PairSort<String, String> >();
+	importer_names.sort_custom<PairSort<String, String>>();
 
 	import_as->clear();
 
-	for (List<Pair<String, String> >::Element *E = importer_names.front(); E; E = E->next()) {
+	for (List<Pair<String, String>>::Element *E = importer_names.front(); E; E = E->next()) {
 		import_as->add_item(E->get().first);
 		import_as->set_item_metadata(import_as->get_item_count() - 1, E->get().second);
 		if (E->get().second == params->importer->get_importer_name()) {
@@ -424,7 +424,7 @@ void ImportDock::_reimport_attempt() {
 
 	if (need_restart) {
 		label_warning->set_visible(used_in_resources);
-		reimport_confirm->popup_centered_minsize();
+		reimport_confirm->popup_centered();
 		return;
 	}
 
@@ -492,13 +492,13 @@ void ImportDock::_notification(int p_what) {
 
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
 
-			imported->add_style_override("normal", get_stylebox("normal", "LineEdit"));
+			imported->add_theme_style_override("normal", get_theme_stylebox("normal", "LineEdit"));
 		} break;
 
 		case NOTIFICATION_ENTER_TREE: {
 
 			import_opts->edit(params);
-			label_warning->add_color_override("font_color", get_color("warning_color", "Editor"));
+			label_warning->add_theme_color_override("font_color", get_theme_color("warning_color", "Editor"));
 		} break;
 	}
 }
@@ -526,7 +526,7 @@ ImportDock::ImportDock() {
 
 	set_name("Import");
 	imported = memnew(Label);
-	imported->add_style_override("normal", EditorNode::get_singleton()->get_gui_base()->get_stylebox("normal", "LineEdit"));
+	imported->add_theme_style_override("normal", EditorNode::get_singleton()->get_gui_base()->get_theme_stylebox("normal", "LineEdit"));
 	imported->set_clip_text(true);
 	add_child(imported);
 	HBoxContainer *hb = memnew(HBoxContainer);

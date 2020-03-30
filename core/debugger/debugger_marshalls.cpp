@@ -32,8 +32,8 @@
 
 #include "core/io/marshalls.h"
 
-#define CHECK_SIZE(arr, expected, what) ERR_FAIL_COND_V_MSG((uint32_t)arr.size() < (uint32_t)(expected), false, String("Malformed ") + what + " message from script debugger, message too short. Exptected size: " + itos(expected) + ", actual size: " + itos(arr.size()))
-#define CHECK_END(arr, expected, what) ERR_FAIL_COND_V_MSG((uint32_t)arr.size() > (uint32_t)expected, false, String("Malformed ") + what + " message from script debugger, message too long. Exptected size: " + itos(expected) + ", actual size: " + itos(arr.size()))
+#define CHECK_SIZE(arr, expected, what) ERR_FAIL_COND_V_MSG((uint32_t)arr.size() < (uint32_t)(expected), false, String("Malformed ") + what + " message from script debugger, message too short. Expected size: " + itos(expected) + ", actual size: " + itos(arr.size()))
+#define CHECK_END(arr, expected, what) ERR_FAIL_COND_V_MSG((uint32_t)arr.size() > (uint32_t)expected, false, String("Malformed ") + what + " message from script debugger, message too long. Expected size: " + itos(expected) + ", actual size: " + itos(arr.size()))
 
 Array DebuggerMarshalls::ResourceUsage::serialize() {
 	infos.sort();
@@ -317,7 +317,7 @@ bool DebuggerMarshalls::VisualProfilerFrame::deserialize(const Array &p_arr) {
 	CHECK_SIZE(p_arr, size, "VisualProfilerFrame");
 	int idx = 2;
 	areas.resize(size / 3);
-	VS::FrameProfileArea *w = areas.ptrw();
+	RS::FrameProfileArea *w = areas.ptrw();
 	for (int i = 0; i < size / 3; i++) {
 		w[i].name = p_arr[idx];
 		w[i].cpu_msec = p_arr[idx + 1];

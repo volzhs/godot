@@ -103,7 +103,7 @@ public:
 
 	void sort() {
 
-		sort_custom<_DefaultComparator<T> >();
+		sort_custom<_DefaultComparator<T>>();
 	}
 
 	void ordered_insert(const T &p_val) {
@@ -181,4 +181,4 @@ bool Vector<T>::push_back(T p_elem) {
 	return false;
 }
 
-#endif
+#endif // VECTOR_H

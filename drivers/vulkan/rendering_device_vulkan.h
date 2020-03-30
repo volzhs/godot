@@ -34,7 +34,7 @@
 #include "core/oa_hash_map.h"
 #include "core/os/thread_safe.h"
 #include "core/rid_owner.h"
-#include "servers/visual/rendering_device.h"
+#include "servers/rendering/rendering_device.h"
 
 #ifdef DEBUG_ENABLED
 #define _DEBUG
@@ -98,8 +98,8 @@ class RenderingDeviceVulkan : public RenderingDevice {
 
 	VkDevice device;
 
-	Map<RID, Set<RID> > dependency_map; //IDs to IDs that depend on it
-	Map<RID, Set<RID> > reverse_dependency_map; //same as above, but in reverse
+	Map<RID, Set<RID>> dependency_map; //IDs to IDs that depend on it
+	Map<RID, Set<RID>> reverse_dependency_map; //same as above, but in reverse
 
 	void _add_dependency(RID p_id, RID p_depends_on);
 	void _free_dependencies(RID p_id);
@@ -602,7 +602,7 @@ class RenderingDeviceVulkan : public RenderingDevice {
 		uint32_t usage;
 	};
 
-	Map<DescriptorPoolKey, Set<DescriptorPool *> > descriptor_pools;
+	Map<DescriptorPoolKey, Set<DescriptorPool *>> descriptor_pools;
 	uint32_t max_descriptors_per_pool;
 
 	DescriptorPool *_descriptor_pool_allocate(const DescriptorPoolKey &p_key);
@@ -968,7 +968,7 @@ class RenderingDeviceVulkan : public RenderingDevice {
 	void _free_rids(T &p_owner, const char *p_type);
 
 public:
-	virtual RID texture_create(const TextureFormat &p_format, const TextureView &p_view, const Vector<Vector<uint8_t> > &p_data = Vector<Vector<uint8_t> >());
+	virtual RID texture_create(const TextureFormat &p_format, const TextureView &p_view, const Vector<Vector<uint8_t>> &p_data = Vector<Vector<uint8_t>>());
 	virtual RID texture_create_shared(const TextureView &p_view, RID p_with_texture);
 
 	virtual RID texture_create_shared_from_slice(const TextureView &p_view, RID p_with_texture, uint32_t p_layer, uint32_t p_mipmap, TextureSliceType p_slice_type = TEXTURE_SLICE_2D);
@@ -1052,15 +1052,15 @@ public:
 	/**** SCREEN ****/
 	/****************/
 
-	virtual int screen_get_width(int p_screen = 0) const;
-	virtual int screen_get_height(int p_screen = 0) const;
+	virtual int screen_get_width(DisplayServer::WindowID p_screen = 0) const;
+	virtual int screen_get_height(DisplayServer::WindowID p_screen = 0) const;
 	virtual FramebufferFormatID screen_get_framebuffer_format() const;
 
 	/********************/
 	/**** DRAW LISTS ****/
 	/********************/
 
-	virtual DrawListID draw_list_begin_for_screen(int p_screen = 0, const Color &p_clear_color = Color());
+	virtual DrawListID draw_list_begin_for_screen(DisplayServer::WindowID p_screen = 0, const Color &p_clear_color = Color());
 
 	virtual DrawListID draw_list_begin(RID p_framebuffer, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values = Vector<Color>(), float p_clear_depth = 1.0, uint32_t p_clear_stencil = 0, const Rect2 &p_region = Rect2());
 	virtual Error draw_list_begin_split(RID p_framebuffer, uint32_t p_splits, DrawListID *r_split_ids, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values = Vector<Color>(), float p_clear_depth = 1.0, uint32_t p_clear_stencil = 0, const Rect2 &p_region = Rect2());

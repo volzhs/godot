@@ -71,8 +71,9 @@ class TranslationServer : public Object {
 	String locale;
 	String fallback;
 
-	Set<Ref<Translation> > translations;
+	Set<Ref<Translation>> translations;
 	Ref<Translation> tool_translation;
+	Ref<Translation> doc_translation;
 
 	Map<String, String> locale_name_map;
 
@@ -109,6 +110,8 @@ public:
 
 	void set_tool_translation(const Ref<Translation> &p_translation);
 	StringName tool_translate(const StringName &p_message) const;
+	void set_doc_translation(const Ref<Translation> &p_translation);
+	StringName doc_translate(const StringName &p_message) const;
 
 	void setup();
 

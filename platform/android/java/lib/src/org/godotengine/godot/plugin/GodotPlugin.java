@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -34,6 +34,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.view.Surface;
 import android.view.View;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -84,8 +85,10 @@ public abstract class GodotPlugin {
 
 	/**
 	 * Register the plugin with Godot native code.
+	 *
+	 * This method is invoked on the render thread.
 	 */
-	public final void onGLRegisterPluginWithGodotNative() {
+	public final void onRegisterPluginWithGodotNative() {
 		nativeRegisterSingleton(getPluginName());
 
 		Class clazz = getClass();
@@ -169,9 +172,9 @@ public abstract class GodotPlugin {
 	public boolean onMainBackPressed() { return false; }
 
 	/**
-	 * Invoked on the GL thread when the Godot main loop has started.
+	 * Invoked on the render thread when the Godot main loop has started.
 	 */
-	public void onGLGodotMainLoopStarted() {}
+	public void onGodotMainLoopStarted() {}
 
 	/**
 	 * Invoked once per frame on the GL thread after the frame is drawn.
@@ -188,6 +191,22 @@ public abstract class GodotPlugin {
 	 * Called on the GL thread when the surface is created or recreated.
 	 */
 	public void onGLSurfaceCreated(GL10 gl, EGLConfig config) {}
+
+	/**
+	 * Invoked once per frame on the Vulkan thread after the frame is drawn.
+	 */
+	public void onVkDrawFrame() {}
+
+	/**
+	 * Called on the Vulkan thread after the surface is created and whenever the surface size
+	 * changes.
+	 */
+	public void onVkSurfaceChanged(Surface surface, int width, int height) {}
+
+	/**
+	 * Called on the Vulkan thread when the surface is created or recreated.
+	 */
+	public void onVkSurfaceCreated(Surface surface) {}
 
 	/**
 	 * Returns the name of the plugin.
@@ -225,12 +244,12 @@ public abstract class GodotPlugin {
 	}
 
 	/**
-	 * Queue the specified action to be run on the GL thread.
+	 * Queue the specified action to be run on the render thread.
 	 *
-	 * @param action the action to run on the GL thread
+	 * @param action the action to run on the render thread
 	 */
-	protected void runOnGLThread(Runnable action) {
-		godot.runOnGLThread(action);
+	protected void runOnRenderThread(Runnable action) {
+		godot.runOnRenderThread(action);
 	}
 
 	/**

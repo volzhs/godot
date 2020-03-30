@@ -50,7 +50,7 @@ void CollisionPolygon2D::_build_polygon() {
 
 		//here comes the sun, lalalala
 		//decompose concave into multiple convex polygons and add them
-		Vector<Vector<Vector2> > decomp = _decompose_in_convex();
+		Vector<Vector<Vector2>> decomp = _decompose_in_convex();
 		for (int i = 0; i < decomp.size(); i++) {
 			Ref<ConvexPolygonShape2D> convex = memnew(ConvexPolygonShape2D);
 			convex->set_points(decomp[i]);
@@ -76,8 +76,8 @@ void CollisionPolygon2D::_build_polygon() {
 	}
 }
 
-Vector<Vector<Vector2> > CollisionPolygon2D::_decompose_in_convex() {
-	Vector<Vector<Vector2> > decomp = Geometry::decompose_polygon_in_convex(polygon);
+Vector<Vector<Vector2>> CollisionPolygon2D::_decompose_in_convex() {
+	Vector<Vector<Vector2>> decomp = Geometry::decompose_polygon_in_convex(polygon);
 	return decomp;
 }
 
@@ -106,7 +106,7 @@ void CollisionPolygon2D::_notification(int p_what) {
 			/*if (Engine::get_singleton()->is_editor_hint()) {
 				//display above all else
 				set_z_as_relative(false);
-				set_z_index(VS::CANVAS_ITEM_Z_MAX - 1);
+				set_z_index(RS::CANVAS_ITEM_Z_MAX - 1);
 			}*/
 
 		} break;
@@ -148,7 +148,7 @@ void CollisionPolygon2D::_notification(int p_what) {
 #define DEBUG_DECOMPOSE
 #if defined(TOOLS_ENABLED) && defined(DEBUG_DECOMPOSE)
 
-			Vector<Vector<Vector2> > decomp = _decompose_in_convex();
+			Vector<Vector<Vector2>> decomp = _decompose_in_convex();
 
 			Color c(0.4, 0.9, 0.1);
 			for (int i = 0; i < decomp.size(); i++) {

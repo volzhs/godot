@@ -37,6 +37,10 @@
 #include "gd_mono_marshal.h"
 #include "gd_mono_utils.h"
 
+void GDMonoField::set_value(MonoObject *p_object, MonoObject *p_value) {
+	mono_field_set_value(p_object, mono_field, p_value);
+}
+
 void GDMonoField::set_value_raw(MonoObject *p_object, void *p_ptr) {
 	mono_field_set_value(p_object, mono_field, &p_ptr);
 }
@@ -128,8 +132,18 @@ void GDMonoField::set_value_from_variant(MonoObject *p_object, const Variant &p_
 				break;
 			}
 
+			if (tclass == CACHED_CLASS(Vector2i)) {
+				SET_FROM_STRUCT(Vector2i);
+				break;
+			}
+
 			if (tclass == CACHED_CLASS(Rect2)) {
 				SET_FROM_STRUCT(Rect2);
+				break;
+			}
+
+			if (tclass == CACHED_CLASS(Rect2i)) {
+				SET_FROM_STRUCT(Rect2i);
 				break;
 			}
 
@@ -140,6 +154,11 @@ void GDMonoField::set_value_from_variant(MonoObject *p_object, const Variant &p_
 
 			if (tclass == CACHED_CLASS(Vector3)) {
 				SET_FROM_STRUCT(Vector3);
+				break;
+			}
+
+			if (tclass == CACHED_CLASS(Vector3i)) {
+				SET_FROM_STRUCT(Vector3i);
 				break;
 			}
 
@@ -170,6 +189,18 @@ void GDMonoField::set_value_from_variant(MonoObject *p_object, const Variant &p_
 
 			if (tclass == CACHED_CLASS(Plane)) {
 				SET_FROM_STRUCT(Plane);
+				break;
+			}
+
+			if (tclass == CACHED_CLASS(Callable)) {
+				GDMonoMarshal::M_Callable val = GDMonoMarshal::callable_to_managed(p_value.operator Callable());
+				mono_field_set_value(p_object, mono_field, &val);
+				break;
+			}
+
+			if (tclass == CACHED_CLASS(SignalInfo)) {
+				GDMonoMarshal::M_SignalInfo val = GDMonoMarshal::signal_info_to_managed(p_value.operator Signal());
+				mono_field_set_value(p_object, mono_field, &val);
 				break;
 			}
 
@@ -256,8 +287,18 @@ void GDMonoField::set_value_from_variant(MonoObject *p_object, const Variant &p_
 				break;
 			}
 
-			if (array_type->eklass == REAL_T_MONOCLASS) {
+			if (array_type->eklass == CACHED_CLASS_RAW(int64_t)) {
+				SET_FROM_ARRAY(PackedInt64Array);
+				break;
+			}
+
+			if (array_type->eklass == CACHED_CLASS_RAW(float)) {
 				SET_FROM_ARRAY(PackedFloat32Array);
+				break;
+			}
+
+			if (array_type->eklass == CACHED_CLASS_RAW(double)) {
+				SET_FROM_ARRAY(PackedFloat64Array);
 				break;
 			}
 
@@ -290,6 +331,12 @@ void GDMonoField::set_value_from_variant(MonoObject *p_object, const Variant &p_
 			// GodotObject
 			if (CACHED_CLASS(GodotObject)->is_assignable_from(type_class)) {
 				MonoObject *managed = GDMonoUtils::unmanaged_get_managed(p_value.operator Object *());
+				mono_field_set_value(p_object, mono_field, managed);
+				break;
+			}
+
+			if (CACHED_CLASS(StringName) == type_class) {
+				MonoObject *managed = GDMonoUtils::create_managed_from(p_value.operator StringName());
 				mono_field_set_value(p_object, mono_field, managed);
 				break;
 			}
@@ -386,11 +433,20 @@ void GDMonoField::set_value_from_variant(MonoObject *p_object, const Variant &p_
 				case Variant::VECTOR2: {
 					SET_FROM_STRUCT(Vector2);
 				} break;
+				case Variant::VECTOR2I: {
+					SET_FROM_STRUCT(Vector2i);
+				} break;
 				case Variant::RECT2: {
 					SET_FROM_STRUCT(Rect2);
 				} break;
+				case Variant::RECT2I: {
+					SET_FROM_STRUCT(Rect2i);
+				} break;
 				case Variant::VECTOR3: {
 					SET_FROM_STRUCT(Vector3);
+				} break;
+				case Variant::VECTOR3I: {
+					SET_FROM_STRUCT(Vector3i);
 				} break;
 				case Variant::TRANSFORM2D: {
 					SET_FROM_STRUCT(Transform2D);
@@ -413,6 +469,10 @@ void GDMonoField::set_value_from_variant(MonoObject *p_object, const Variant &p_
 				case Variant::COLOR: {
 					SET_FROM_STRUCT(Color);
 				} break;
+				case Variant::STRING_NAME: {
+					MonoObject *managed = GDMonoUtils::create_managed_from(p_value.operator StringName());
+					mono_field_set_value(p_object, mono_field, managed);
+				} break;
 				case Variant::NODE_PATH: {
 					MonoObject *managed = GDMonoUtils::create_managed_from(p_value.operator NodePath());
 					mono_field_set_value(p_object, mono_field, managed);
@@ -424,8 +484,15 @@ void GDMonoField::set_value_from_variant(MonoObject *p_object, const Variant &p_
 				case Variant::OBJECT: {
 					MonoObject *managed = GDMonoUtils::unmanaged_get_managed(p_value.operator Object *());
 					mono_field_set_value(p_object, mono_field, managed);
-					break;
-				}
+				} break;
+				case Variant::CALLABLE: {
+					GDMonoMarshal::M_Callable val = GDMonoMarshal::callable_to_managed(p_value.operator Callable());
+					mono_field_set_value(p_object, mono_field, &val);
+				} break;
+				case Variant::SIGNAL: {
+					GDMonoMarshal::M_SignalInfo val = GDMonoMarshal::signal_info_to_managed(p_value.operator Signal());
+					mono_field_set_value(p_object, mono_field, &val);
+				} break;
 				case Variant::DICTIONARY: {
 					MonoObject *managed = GDMonoUtils::create_managed_from(p_value.operator Dictionary(), CACHED_CLASS(Dictionary));
 					mono_field_set_value(p_object, mono_field, managed);
@@ -440,8 +507,14 @@ void GDMonoField::set_value_from_variant(MonoObject *p_object, const Variant &p_
 				case Variant::PACKED_INT32_ARRAY: {
 					SET_FROM_ARRAY(PackedInt32Array);
 				} break;
+				case Variant::PACKED_INT64_ARRAY: {
+					SET_FROM_ARRAY(PackedInt64Array);
+				} break;
 				case Variant::PACKED_FLOAT32_ARRAY: {
 					SET_FROM_ARRAY(PackedFloat32Array);
+				} break;
+				case Variant::PACKED_FLOAT64_ARRAY: {
+					SET_FROM_ARRAY(PackedFloat64Array);
 				} break;
 				case Variant::PACKED_STRING_ARRAY: {
 					SET_FROM_ARRAY(PackedStringArray);

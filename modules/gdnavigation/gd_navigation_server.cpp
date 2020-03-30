@@ -41,7 +41,7 @@
 */
 
 /// Creates a struct for each function and a function that once called creates
-/// an instance of that struct with the submited parameters.
+/// an instance of that struct with the submitted parameters.
 /// Then, that struct is stored in an array; the `sync` function consume that array.
 
 #define COMMAND_1(F_NAME, T_0, D_0)                      \
@@ -114,7 +114,7 @@
 	void GdNavigationServer::MERGE(_cmd_, F_NAME)(T_0 D_0, T_1 D_1, T_2 D_2, T_3 D_3)
 
 GdNavigationServer::GdNavigationServer() :
-		NavigationServer(),
+		NavigationServer3D(),
 		active(true) {
 }
 

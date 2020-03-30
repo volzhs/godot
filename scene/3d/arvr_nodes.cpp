@@ -29,7 +29,7 @@
 /*************************************************************************/
 
 #include "arvr_nodes.h"
-#include "core/os/input.h"
+#include "core/input/input_filter.h"
 #include "servers/arvr/arvr_interface.h"
 #include "servers/arvr_server.h"
 
@@ -75,7 +75,7 @@ Vector3 ARVRCamera::project_local_ray_normal(const Point2 &p_pos) const {
 	Ref<ARVRInterface> arvr_interface = arvr_server->get_primary_interface();
 	if (arvr_interface.is_null()) {
 		// we might be in the editor or have VR turned off, just call superclass
-		return Camera::project_local_ray_normal(p_pos);
+		return Camera3D::project_local_ray_normal(p_pos);
 	}
 
 	ERR_FAIL_COND_V_MSG(!is_inside_tree(), Vector3(), "Camera is not inside scene.");
@@ -99,7 +99,7 @@ Point2 ARVRCamera::unproject_position(const Vector3 &p_pos) const {
 	Ref<ARVRInterface> arvr_interface = arvr_server->get_primary_interface();
 	if (arvr_interface.is_null()) {
 		// we might be in the editor or have VR turned off, just call superclass
-		return Camera::unproject_position(p_pos);
+		return Camera3D::unproject_position(p_pos);
 	}
 
 	ERR_FAIL_COND_V_MSG(!is_inside_tree(), Vector2(), "Camera is not inside scene.");
@@ -128,7 +128,7 @@ Vector3 ARVRCamera::project_position(const Point2 &p_point, float p_z_depth) con
 	Ref<ARVRInterface> arvr_interface = arvr_server->get_primary_interface();
 	if (arvr_interface.is_null()) {
 		// we might be in the editor or have VR turned off, just call superclass
-		return Camera::project_position(p_point, p_z_depth);
+		return Camera3D::project_position(p_point, p_z_depth);
 	}
 
 	ERR_FAIL_COND_V_MSG(!is_inside_tree(), Vector3(), "Camera is not inside scene.");
@@ -157,7 +157,7 @@ Vector<Plane> ARVRCamera::get_frustum() const {
 	Ref<ARVRInterface> arvr_interface = arvr_server->get_primary_interface();
 	if (arvr_interface.is_null()) {
 		// we might be in the editor or have VR turned off, just call superclass
-		return Camera::get_frustum();
+		return Camera3D::get_frustum();
 	}
 
 	ERR_FAIL_COND_V(!is_inside_world(), Vector<Plane>());
@@ -206,7 +206,7 @@ void ARVRController::_notification(int p_what) {
 					// check button states
 					for (int i = 0; i < 16; i++) {
 						bool was_pressed = (button_states & mask) == mask;
-						bool is_pressed = Input::get_singleton()->is_joy_button_pressed(joy_id, i);
+						bool is_pressed = InputFilter::get_singleton()->is_joy_button_pressed(joy_id, i);
 
 						if (!was_pressed && is_pressed) {
 							emit_signal("button_pressed", i);
@@ -306,7 +306,7 @@ bool ARVRController::is_button_pressed(int p_button) const {
 		return false;
 	};
 
-	return Input::get_singleton()->is_joy_button_pressed(joy_id, p_button);
+	return InputFilter::get_singleton()->is_joy_button_pressed(joy_id, p_button);
 };
 
 float ARVRController::get_joystick_axis(int p_axis) const {
@@ -315,7 +315,7 @@ float ARVRController::get_joystick_axis(int p_axis) const {
 		return 0.0;
 	};
 
-	return Input::get_singleton()->get_joy_axis(joy_id, p_axis);
+	return InputFilter::get_singleton()->get_joy_axis(joy_id, p_axis);
 };
 
 real_t ARVRController::get_rumble() const {

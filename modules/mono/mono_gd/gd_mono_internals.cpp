@@ -33,7 +33,6 @@
 #include "../csharp_script.h"
 #include "../mono_gc_handle.h"
 #include "../utils/macros.h"
-#include "../utils/thread_local.h"
 #include "gd_mono_class.h"
 #include "gd_mono_marshal.h"
 #include "gd_mono_utils.h"
@@ -76,7 +75,7 @@ void tie_managed_to_unmanaged(MonoObject *managed, Object *unmanaged) {
 		script_binding.inited = true;
 		script_binding.type_name = NATIVE_GDMONOCLASS_NAME(klass);
 		script_binding.wrapper_class = klass;
-		script_binding.gchandle = ref ? MonoGCHandle::create_weak(managed) : MonoGCHandle::create_strong(managed);
+		script_binding.gchandle = ref ? MonoGCHandleData::new_weak_handle(managed) : MonoGCHandleData::new_strong_handle(managed);
 		script_binding.owner = unmanaged;
 
 		if (ref) {
@@ -102,15 +101,17 @@ void tie_managed_to_unmanaged(MonoObject *managed, Object *unmanaged) {
 		return;
 	}
 
-	Ref<MonoGCHandle> gchandle = ref ? MonoGCHandle::create_weak(managed) : MonoGCHandle::create_strong(managed);
+	MonoGCHandleData gchandle = ref ? MonoGCHandleData::new_weak_handle(managed) : MonoGCHandleData::new_strong_handle(managed);
 
 	Ref<CSharpScript> script = CSharpScript::create_for_managed_type(klass, native);
 
 	CRASH_COND(script.is_null());
 
-	ScriptInstance *si = CSharpInstance::create_for_managed_type(unmanaged, script.ptr(), gchandle);
+	CSharpInstance *csharp_instance = CSharpInstance::create_for_managed_type(unmanaged, script.ptr(), gchandle);
 
-	unmanaged->set_script_and_instance(script, si);
+	unmanaged->set_script_and_instance(script, csharp_instance);
+
+	csharp_instance->connect_event_signals();
 }
 
 void unhandled_exception(MonoException *p_exc) {

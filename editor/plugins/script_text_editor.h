@@ -178,6 +178,7 @@ protected:
 
 	void _goto_line(int p_line) { goto_line(p_line); }
 	void _lookup_symbol(const String &p_symbol, int p_row, int p_column);
+	void _validate_symbol(const String &p_symbol);
 
 	void _lookup_connections(int p_row, String p_method);
 
@@ -200,7 +201,7 @@ public:
 	virtual Vector<String> get_functions();
 	virtual void reload_text();
 	virtual String get_name();
-	virtual Ref<Texture2D> get_icon();
+	virtual Ref<Texture2D> get_theme_icon();
 	virtual bool is_unsaved();
 	virtual Variant get_edit_state();
 	virtual void set_edit_state(const Variant &p_state);

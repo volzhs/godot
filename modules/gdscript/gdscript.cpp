@@ -522,7 +522,7 @@ void GDScript::update_exports() {
 void GDScript::_set_subclass_path(Ref<GDScript> &p_sc, const String &p_path) {
 
 	p_sc->path = p_path;
-	for (Map<StringName, Ref<GDScript> >::Element *E = p_sc->subclasses.front(); E; E = E->next()) {
+	for (Map<StringName, Ref<GDScript>>::Element *E = p_sc->subclasses.front(); E; E = E->next()) {
 
 		_set_subclass_path(E->get(), p_path);
 	}
@@ -592,57 +592,12 @@ Error GDScript::reload(bool p_keep_state) {
 
 	valid = true;
 
-	for (Map<StringName, Ref<GDScript> >::Element *E = subclasses.front(); E; E = E->next()) {
+	for (Map<StringName, Ref<GDScript>>::Element *E = subclasses.front(); E; E = E->next()) {
 
 		_set_subclass_path(E->get(), path);
 	}
 
-	// Copy the base rpc methods so we don't mask their IDs.
-	rpc_functions.clear();
-	rpc_variables.clear();
-	if (base.is_valid()) {
-		rpc_functions = base->rpc_functions;
-		rpc_variables = base->rpc_variables;
-	}
-
-	GDScript *cscript = this;
-	Map<StringName, Ref<GDScript> >::Element *sub_E = subclasses.front();
-	while (cscript) {
-		// RPC Methods
-		for (Map<StringName, GDScriptFunction *>::Element *E = cscript->member_functions.front(); E; E = E->next()) {
-			if (E->get()->get_rpc_mode() != MultiplayerAPI::RPC_MODE_DISABLED) {
-				ScriptNetData nd;
-				nd.name = E->key();
-				nd.mode = E->get()->get_rpc_mode();
-				if (-1 == rpc_functions.find(nd)) {
-					rpc_functions.push_back(nd);
-				}
-			}
-		}
-		// RSet
-		for (Map<StringName, MemberInfo>::Element *E = cscript->member_indices.front(); E; E = E->next()) {
-			if (E->get().rpc_mode != MultiplayerAPI::RPC_MODE_DISABLED) {
-				ScriptNetData nd;
-				nd.name = E->key();
-				nd.mode = E->get().rpc_mode;
-				if (-1 == rpc_variables.find(nd)) {
-					rpc_variables.push_back(nd);
-				}
-			}
-		}
-
-		if (cscript != this)
-			sub_E = sub_E->next();
-
-		if (sub_E)
-			cscript = sub_E->get().ptr();
-		else
-			cscript = NULL;
-	}
-
-	// Sort so we are 100% that they are always the same.
-	rpc_functions.sort_custom<SortNetData>();
-	rpc_variables.sort_custom<SortNetData>();
+	_init_rpc_methods_properties();
 
 	return OK;
 }
@@ -715,8 +670,8 @@ StringName GDScript::get_rset_property(const uint16_t p_rset_member_id) const {
 }
 
 MultiplayerAPI::RPCMode GDScript::get_rset_mode_by_id(const uint16_t p_rset_member_id) const {
-	ERR_FAIL_COND_V(p_rset_member_id >= rpc_functions.size(), MultiplayerAPI::RPC_MODE_DISABLED);
-	return rpc_functions[p_rset_member_id].mode;
+	ERR_FAIL_COND_V(p_rset_member_id >= rpc_variables.size(), MultiplayerAPI::RPC_MODE_DISABLED);
+	return rpc_variables[p_rset_member_id].mode;
 }
 
 MultiplayerAPI::RPCMode GDScript::get_rset_mode(const StringName &p_variable) const {
@@ -760,7 +715,7 @@ bool GDScript::_get(const StringName &p_name, Variant &r_ret) const {
 			}
 
 			{
-				const Map<StringName, Ref<GDScript> >::Element *E = subclasses.find(p_name);
+				const Map<StringName, Ref<GDScript>>::Element *E = subclasses.find(p_name);
 				if (E) {
 
 					r_ret = E->get();
@@ -876,10 +831,12 @@ Error GDScript::load_byte_code(const String &p_path) {
 
 	valid = true;
 
-	for (Map<StringName, Ref<GDScript> >::Element *E = subclasses.front(); E; E = E->next()) {
+	for (Map<StringName, Ref<GDScript>>::Element *E = subclasses.front(); E; E = E->next()) {
 
 		_set_subclass_path(E->get(), path);
 	}
+
+	_init_rpc_methods_properties();
 
 	return OK;
 }
@@ -953,7 +910,7 @@ bool GDScript::has_script_signal(const StringName &p_signal) const {
 }
 void GDScript::get_script_signal_list(List<MethodInfo> *r_signals) const {
 
-	for (const Map<StringName, Vector<StringName> >::Element *E = _signals.front(); E; E = E->next()) {
+	for (const Map<StringName, Vector<StringName>>::Element *E = _signals.front(); E; E = E->next()) {
 
 		MethodInfo mi;
 		mi.name = E->key();
@@ -1006,7 +963,7 @@ void GDScript::_save_orphaned_subclasses() {
 	};
 	Vector<ClassRefWithName> weak_subclasses;
 	// collect subclasses ObjectID and name
-	for (Map<StringName, Ref<GDScript> >::Element *E = subclasses.front(); E; E = E->next()) {
+	for (Map<StringName, Ref<GDScript>>::Element *E = subclasses.front(); E; E = E->next()) {
 		E->get()->_owner = NULL; //bye, you are no longer owned cause I died
 		ClassRefWithName subclass;
 		subclass.id = E->get()->get_instance_id();
@@ -1028,6 +985,55 @@ void GDScript::_save_orphaned_subclasses() {
 		// subclass is not released
 		GDScriptLanguage::get_singleton()->add_orphan_subclass(subclass.fully_qualified_name, subclass.id);
 	}
+}
+
+void GDScript::_init_rpc_methods_properties() {
+	// Copy the base rpc methods so we don't mask their IDs.
+	rpc_functions.clear();
+	rpc_variables.clear();
+	if (base.is_valid()) {
+		rpc_functions = base->rpc_functions;
+		rpc_variables = base->rpc_variables;
+	}
+
+	GDScript *cscript = this;
+	Map<StringName, Ref<GDScript>>::Element *sub_E = subclasses.front();
+	while (cscript) {
+		// RPC Methods
+		for (Map<StringName, GDScriptFunction *>::Element *E = cscript->member_functions.front(); E; E = E->next()) {
+			if (E->get()->get_rpc_mode() != MultiplayerAPI::RPC_MODE_DISABLED) {
+				ScriptNetData nd;
+				nd.name = E->key();
+				nd.mode = E->get()->get_rpc_mode();
+				if (-1 == rpc_functions.find(nd)) {
+					rpc_functions.push_back(nd);
+				}
+			}
+		}
+		// RSet
+		for (Map<StringName, MemberInfo>::Element *E = cscript->member_indices.front(); E; E = E->next()) {
+			if (E->get().rpc_mode != MultiplayerAPI::RPC_MODE_DISABLED) {
+				ScriptNetData nd;
+				nd.name = E->key();
+				nd.mode = E->get().rpc_mode;
+				if (-1 == rpc_variables.find(nd)) {
+					rpc_variables.push_back(nd);
+				}
+			}
+		}
+
+		if (cscript != this)
+			sub_E = sub_E->next();
+
+		if (sub_E)
+			cscript = sub_E->get().ptr();
+		else
+			cscript = NULL;
+	}
+
+	// Sort so we are 100% that they are always the same.
+	rpc_functions.sort_custom<SortNetData>();
+	rpc_variables.sort_custom<SortNetData>();
 }
 
 GDScript::~GDScript() {
@@ -1655,7 +1661,7 @@ void GDScriptLanguage::reload_all_scripts() {
 
 #ifdef DEBUG_ENABLED
 	print_verbose("GDScript: Reloading all scripts");
-	List<Ref<GDScript> > scripts;
+	List<Ref<GDScript>> scripts;
 	{
 		MutexLock lock(this->lock);
 
@@ -1673,7 +1679,7 @@ void GDScriptLanguage::reload_all_scripts() {
 
 	scripts.sort_custom<GDScriptDepSort>(); //update in inheritance dependency order
 
-	for (List<Ref<GDScript> >::Element *E = scripts.front(); E; E = E->next()) {
+	for (List<Ref<GDScript>>::Element *E = scripts.front(); E; E = E->next()) {
 
 		print_verbose("GDScript: Reloading: " + E->get()->get_path());
 		E->get()->load_source_code(E->get()->get_path());
@@ -1686,7 +1692,7 @@ void GDScriptLanguage::reload_tool_script(const Ref<Script> &p_script, bool p_so
 
 #ifdef DEBUG_ENABLED
 
-	List<Ref<GDScript> > scripts;
+	List<Ref<GDScript>> scripts;
 	{
 		MutexLock lock(this->lock);
 
@@ -1702,30 +1708,30 @@ void GDScriptLanguage::reload_tool_script(const Ref<Script> &p_script, bool p_so
 
 	//when someone asks you why dynamically typed languages are easier to write....
 
-	Map<Ref<GDScript>, Map<ObjectID, List<Pair<StringName, Variant> > > > to_reload;
+	Map<Ref<GDScript>, Map<ObjectID, List<Pair<StringName, Variant>>>> to_reload;
 
 	//as scripts are going to be reloaded, must proceed without locking here
 
 	scripts.sort_custom<GDScriptDepSort>(); //update in inheritance dependency order
 
-	for (List<Ref<GDScript> >::Element *E = scripts.front(); E; E = E->next()) {
+	for (List<Ref<GDScript>>::Element *E = scripts.front(); E; E = E->next()) {
 
 		bool reload = E->get() == p_script || to_reload.has(E->get()->get_base());
 
 		if (!reload)
 			continue;
 
-		to_reload.insert(E->get(), Map<ObjectID, List<Pair<StringName, Variant> > >());
+		to_reload.insert(E->get(), Map<ObjectID, List<Pair<StringName, Variant>>>());
 
 		if (!p_soft_reload) {
 
 			//save state and remove script from instances
-			Map<ObjectID, List<Pair<StringName, Variant> > > &map = to_reload[E->get()];
+			Map<ObjectID, List<Pair<StringName, Variant>>> &map = to_reload[E->get()];
 
 			while (E->get()->instances.front()) {
 				Object *obj = E->get()->instances.front()->get();
 				//save instance info
-				List<Pair<StringName, Variant> > state;
+				List<Pair<StringName, Variant>> state;
 				if (obj->get_script_instance()) {
 
 					obj->get_script_instance()->get_property_state(state);
@@ -1743,8 +1749,8 @@ void GDScriptLanguage::reload_tool_script(const Ref<Script> &p_script, bool p_so
 				//save instance info
 				if (obj->get_script_instance()) {
 
-					map.insert(obj->get_instance_id(), List<Pair<StringName, Variant> >());
-					List<Pair<StringName, Variant> > &state = map[obj->get_instance_id()];
+					map.insert(obj->get_instance_id(), List<Pair<StringName, Variant>>());
+					List<Pair<StringName, Variant>> &state = map[obj->get_instance_id()];
 					obj->get_script_instance()->get_property_state(state);
 					obj->set_script(Variant());
 				} else {
@@ -1755,21 +1761,21 @@ void GDScriptLanguage::reload_tool_script(const Ref<Script> &p_script, bool p_so
 
 #endif
 
-			for (Map<ObjectID, List<Pair<StringName, Variant> > >::Element *F = E->get()->pending_reload_state.front(); F; F = F->next()) {
+			for (Map<ObjectID, List<Pair<StringName, Variant>>>::Element *F = E->get()->pending_reload_state.front(); F; F = F->next()) {
 				map[F->key()] = F->get(); //pending to reload, use this one instead
 			}
 		}
 	}
 
-	for (Map<Ref<GDScript>, Map<ObjectID, List<Pair<StringName, Variant> > > >::Element *E = to_reload.front(); E; E = E->next()) {
+	for (Map<Ref<GDScript>, Map<ObjectID, List<Pair<StringName, Variant>>>>::Element *E = to_reload.front(); E; E = E->next()) {
 
 		Ref<GDScript> scr = E->key();
 		scr->reload(p_soft_reload);
 
 		//restore state if saved
-		for (Map<ObjectID, List<Pair<StringName, Variant> > >::Element *F = E->get().front(); F; F = F->next()) {
+		for (Map<ObjectID, List<Pair<StringName, Variant>>>::Element *F = E->get().front(); F; F = F->next()) {
 
-			List<Pair<StringName, Variant> > &saved_state = F->get();
+			List<Pair<StringName, Variant>> &saved_state = F->get();
 
 			Object *obj = ObjectDB::get_instance(F->key());
 			if (!obj)
@@ -1793,11 +1799,11 @@ void GDScriptLanguage::reload_tool_script(const Ref<Script> &p_script, bool p_so
 
 			if (script_instance->is_placeholder() && scr->is_placeholder_fallback_enabled()) {
 				PlaceHolderScriptInstance *placeholder = static_cast<PlaceHolderScriptInstance *>(script_instance);
-				for (List<Pair<StringName, Variant> >::Element *G = saved_state.front(); G; G = G->next()) {
+				for (List<Pair<StringName, Variant>>::Element *G = saved_state.front(); G; G = G->next()) {
 					placeholder->property_set_fallback(G->get().first, G->get().second);
 				}
 			} else {
-				for (List<Pair<StringName, Variant> >::Element *G = saved_state.front(); G; G = G->next()) {
+				for (List<Pair<StringName, Variant>>::Element *G = saved_state.front(); G; G = G->next()) {
 					script_instance->set(G->get().first, G->get().second);
 				}
 			}

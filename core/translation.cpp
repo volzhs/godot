@@ -995,7 +995,7 @@ String TranslationServer::get_locale_name(const String &p_locale) const {
 
 Array TranslationServer::get_loaded_locales() const {
 	Array locales;
-	for (const Set<Ref<Translation> >::Element *E = translations.front(); E; E = E->next()) {
+	for (const Set<Ref<Translation>>::Element *E = translations.front(); E; E = E->next()) {
 
 		const Ref<Translation> &t = E->get();
 		ERR_FAIL_COND_V(t.is_null(), Array());
@@ -1072,7 +1072,7 @@ StringName TranslationServer::translate(const StringName &p_message) const {
 	String lang = get_language_code(locale);
 	bool near_match = false;
 
-	for (const Set<Ref<Translation> >::Element *E = translations.front(); E; E = E->next()) {
+	for (const Set<Ref<Translation>>::Element *E = translations.front(); E; E = E->next()) {
 		const Ref<Translation> &t = E->get();
 		ERR_FAIL_COND_V(t.is_null(), p_message);
 		String l = t->get_locale();
@@ -1105,7 +1105,7 @@ StringName TranslationServer::translate(const StringName &p_message) const {
 		String fallback_lang = get_language_code(fallback);
 		near_match = false;
 
-		for (const Set<Ref<Translation> >::Element *E = translations.front(); E; E = E->next()) {
+		for (const Set<Ref<Translation>>::Element *E = translations.front(); E; E = E->next()) {
 			const Ref<Translation> &t = E->get();
 			ERR_FAIL_COND_V(t.is_null(), p_message);
 			String l = t->get_locale();
@@ -1176,7 +1176,6 @@ void TranslationServer::setup() {
 		set_locale(OS::get_singleton()->get_locale());
 	fallback = GLOBAL_DEF("locale/fallback", "en");
 #ifdef TOOLS_ENABLED
-
 	{
 		String options = "";
 		int idx = 0;
@@ -1189,7 +1188,6 @@ void TranslationServer::setup() {
 		ProjectSettings::get_singleton()->set_custom_property_info("locale/fallback", PropertyInfo(Variant::STRING, "locale/fallback", PROPERTY_HINT_ENUM, options));
 	}
 #endif
-	//load translations
 }
 
 void TranslationServer::set_tool_translation(const Ref<Translation> &p_translation) {
@@ -1197,15 +1195,26 @@ void TranslationServer::set_tool_translation(const Ref<Translation> &p_translati
 }
 
 StringName TranslationServer::tool_translate(const StringName &p_message) const {
-
 	if (tool_translation.is_valid()) {
 		StringName r = tool_translation->get_message(p_message);
-
 		if (r) {
 			return r;
 		}
 	}
+	return p_message;
+}
 
+void TranslationServer::set_doc_translation(const Ref<Translation> &p_translation) {
+	doc_translation = p_translation;
+}
+
+StringName TranslationServer::doc_translate(const StringName &p_message) const {
+	if (doc_translation.is_valid()) {
+		StringName r = doc_translation->get_message(p_message);
+		if (r) {
+			return r;
+		}
+	}
 	return p_message;
 }
 

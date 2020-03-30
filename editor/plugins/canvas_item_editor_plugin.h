@@ -33,12 +33,12 @@
 
 #include "editor/editor_node.h"
 #include "editor/editor_plugin.h"
-#include "scene/2d/canvas_item.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/check_box.h"
 #include "scene/gui/label.h"
 #include "scene/gui/panel_container.h"
 #include "scene/gui/spin_box.h"
+#include "scene/main/canvas_item.h"
 
 class CanvasItemEditorViewport;
 
@@ -687,7 +687,7 @@ class CanvasItemEditorViewport : public Control {
 	CanvasItemEditor *canvas_item_editor;
 	Node2D *preview_node;
 	AcceptDialog *accept;
-	WindowDialog *selector;
+	AcceptDialog *selector;
 	Label *selector_label;
 	Label *label;
 	Label *label_desc;

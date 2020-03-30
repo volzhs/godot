@@ -29,6 +29,7 @@
 /*************************************************************************/
 
 #include "java_godot_lib_jni.h"
+
 #include "java_godot_io_wrapper.h"
 #include "java_godot_wrapper.h"
 
@@ -37,17 +38,18 @@
 #include "api/java_class_wrapper.h"
 #include "audio_driver_jandroid.h"
 #include "core/engine.h"
+#include "core/input/input_filter.h"
 #include "core/project_settings.h"
 #include "dir_access_jandroid.h"
 #include "file_access_android.h"
 #include "file_access_jandroid.h"
 #include "jni_utils.h"
-#include "main/input_default.h"
 #include "main/main.h"
 #include "net_socket_android.h"
 #include "os_android.h"
 #include "string_android.h"
 #include "thread_jandroid.h"
+
 #include <unistd.h>
 
 static JavaClassWrapper *java_class_wrapper = NULL;
@@ -207,7 +209,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_step(JNIEnv *env, jcl
 		}
 
 		os_android->main_loop_begin();
-		godot_java->on_gl_godot_main_loop_started(env);
+		godot_java->on_godot_main_loop_started(env);
 		++step;
 	}
 

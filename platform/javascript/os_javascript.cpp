@@ -31,11 +31,12 @@
 #include "os_javascript.h"
 
 #include "core/io/file_access_buffered_fa.h"
-#include "drivers/gles2/rasterizer_gles2.h"
+//#include "drivers/gles2/rasterizer_gles2.h"
+#include "drivers/dummy/rasterizer_dummy.h"
 #include "drivers/unix/dir_access_unix.h"
 #include "drivers/unix/file_access_unix.h"
 #include "main/main.h"
-#include "servers/visual/visual_server_raster.h"
+#include "servers/rendering/rendering_server_raster.h"
 
 #include <emscripten.h>
 #include <png.h>
@@ -469,7 +470,7 @@ void OS_JavaScript::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_s
 
 	if (p_cursor.is_valid()) {
 
-		Map<CursorShape, Vector<Variant> >::Element *cursor_c = cursors_cache.find(p_shape);
+		Map<CursorShape, Vector<Variant>>::Element *cursor_c = cursors_cache.find(p_shape);
 
 		if (cursor_c) {
 			if (cursor_c->get()[0] == p_cursor && cursor_c->get()[1] == p_hotspot) {
@@ -539,15 +540,11 @@ void OS_JavaScript::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_s
 
 		PackedByteArray png;
 		size_t len;
-		const uint8_t *r = image->get_data().ptr();
-		ERR_FAIL_COND(!png_image_write_get_memory_size(png_meta, len, 0, r.ptr(), 0, NULL));
+		PackedByteArray data = image->get_data();
+		ERR_FAIL_COND(!png_image_write_get_memory_size(png_meta, len, 0, data.ptr(), 0, NULL));
 
 		png.resize(len);
-		uint8_t *w = png.ptrw();
-		ERR_FAIL_COND(!png_image_write_to_memory(&png_meta, w.ptr(), &len, 0, r.ptr(), 0, NULL));
-		w = uint8_t * ();
-
-		r = png.ptr();
+		ERR_FAIL_COND(!png_image_write_to_memory(&png_meta, png.ptrw(), &len, 0, data.ptr(), 0, NULL));
 
 		char *object_url;
 		/* clang-format off */
@@ -562,9 +559,8 @@ void OS_JavaScript::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_s
 			var string_on_wasm_heap = _malloc(length_bytes);
 			setValue(PTR, string_on_wasm_heap, '*');
 			stringToUTF8(url, string_on_wasm_heap, length_bytes);
-		}, r.ptr(), len, &object_url);
+		}, png.ptr(), len, &object_url);
 		/* clang-format on */
-		r = const uint8_t * ();
 
 		String url = String::utf8(object_url) + "?" + itos(p_hotspot.x) + " " + itos(p_hotspot.y);
 
@@ -891,11 +887,12 @@ int OS_JavaScript::get_current_video_driver() const {
 void OS_JavaScript::initialize_core() {
 
 	OS_Unix::initialize_core();
-	FileAccess::make_default<FileAccessBufferedFA<FileAccessUnix> >(FileAccess::ACCESS_RESOURCES);
+	FileAccess::make_default<FileAccessBufferedFA<FileAccessUnix>>(FileAccess::ACCESS_RESOURCES);
 }
 
 Error OS_JavaScript::initialize(const VideoMode &p_desired, int p_video_driver, int p_audio_driver) {
 
+#if 0
 	EmscriptenWebGLContextAttributes attributes;
 	emscripten_webgl_init_context_attributes(&attributes);
 	attributes.alpha = GLOBAL_GET("display/window/per_pixel_transparency/allowed");
@@ -938,6 +935,7 @@ Error OS_JavaScript::initialize(const VideoMode &p_desired, int p_video_driver, 
 	if (p_desired.fullscreen) {
 		/* clang-format off */
 		EM_ASM({
+			const canvas = Module.canvas;
 			(canvas.requestFullscreen || canvas.msRequestFullscreen ||
 				canvas.mozRequestFullScreen || canvas.mozRequestFullscreen ||
 				canvas.webkitRequestFullscreen
@@ -952,6 +950,8 @@ Error OS_JavaScript::initialize(const VideoMode &p_desired, int p_video_driver, 
 	} else {
 		set_window_size(get_window_size());
 	}
+#endif
+	RasterizerDummy::make_current(); // TODO GLES2 in Godot 4.0... or webgpu?
 
 	char locale_ptr[16];
 	/* clang-format off */
@@ -962,7 +962,7 @@ Error OS_JavaScript::initialize(const VideoMode &p_desired, int p_video_driver, 
 	setenv("LANG", locale_ptr, true);
 
 	AudioDriverManager::initialize(p_audio_driver);
-	VisualServer *visual_server = memnew(VisualServerRaster());
+	RenderingServer *rendering_server = memnew(RenderingServerRaster());
 	input = memnew(InputDefault);
 
 	EMSCRIPTEN_RESULT result;
@@ -1009,14 +1009,14 @@ Error OS_JavaScript::initialize(const VideoMode &p_desired, int p_video_driver, 
 			update_clipboard(evt.clipboardData.getData('text'));
 		}, true);
 	},
-		MainLoop::NOTIFICATION_WM_MOUSE_ENTER,
-		MainLoop::NOTIFICATION_WM_MOUSE_EXIT,
-		MainLoop::NOTIFICATION_WM_FOCUS_IN,
-		MainLoop::NOTIFICATION_WM_FOCUS_OUT
+		NOTIFICATION_WM_MOUSE_ENTER,
+		NOTIFICATION_WM_MOUSE_EXIT,
+		NOTIFICATION_WM_FOCUS_IN,
+		NOTIFICATION_WM_FOCUS_OUT
 	);
 	/* clang-format on */
 
-	visual_server->init();
+	rendering_server->init();
 
 	return OK;
 }
@@ -1121,8 +1121,8 @@ int OS_JavaScript::get_process_id() const {
 
 extern "C" EMSCRIPTEN_KEEPALIVE void send_notification(int p_notification) {
 
-	if (p_notification == MainLoop::NOTIFICATION_WM_MOUSE_ENTER || p_notification == MainLoop::NOTIFICATION_WM_MOUSE_EXIT) {
-		cursor_inside_canvas = p_notification == MainLoop::NOTIFICATION_WM_MOUSE_ENTER;
+	if (p_notification == NOTIFICATION_WM_MOUSE_ENTER || p_notification == NOTIFICATION_WM_MOUSE_EXIT) {
+		cursor_inside_canvas = p_notification == NOTIFICATION_WM_MOUSE_ENTER;
 	}
 	OS_JavaScript::get_singleton()->get_main_loop()->notification(p_notification);
 }
@@ -1181,15 +1181,12 @@ void OS_JavaScript::set_icon(const Ref<Image> &p_icon) {
 
 	PackedByteArray png;
 	size_t len;
-	const uint8_t *r = icon->get_data().ptr();
-	ERR_FAIL_COND(!png_image_write_get_memory_size(png_meta, len, 0, r.ptr(), 0, NULL));
+	PackedByteArray data = icon->get_data();
+	ERR_FAIL_COND(!png_image_write_get_memory_size(png_meta, len, 0, data.ptr(), 0, NULL));
 
 	png.resize(len);
-	uint8_t *w = png.ptrw();
-	ERR_FAIL_COND(!png_image_write_to_memory(&png_meta, w.ptr(), &len, 0, r.ptr(), 0, NULL));
-	w = uint8_t * ();
+	ERR_FAIL_COND(!png_image_write_to_memory(&png_meta, png.ptrw(), &len, 0, data.ptr(), 0, NULL));
 
-	r = png.ptr();
 	/* clang-format off */
 	EM_ASM_ARGS({
 		var PNG_PTR = $0;
@@ -1205,7 +1202,7 @@ void OS_JavaScript::set_icon(const Ref<Image> &p_icon) {
 			document.head.appendChild(link);
 		}
 		link.href = url;
-	}, r.ptr(), len);
+	}, png.ptr(), len);
 	/* clang-format on */
 }
 
