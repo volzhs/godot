@@ -571,7 +571,7 @@ private:
 			Rect2 atlas_rect;
 		};
 
-		RS::LightType light_type;
+		RS::LightType light_type = RS::LIGHT_DIRECTIONAL;
 
 		ShadowTransform shadow_transform[4];
 
@@ -581,7 +581,7 @@ private:
 
 		Vector3 light_vector;
 		Vector3 spot_vector;
-		float linear_att;
+		float linear_att = 0.0;
 
 		uint64_t shadow_pass = 0;
 		uint64_t last_scene_pass = 0;
@@ -590,7 +590,7 @@ private:
 		uint32_t light_index = 0;
 		uint32_t light_directional_index = 0;
 
-		uint32_t current_shadow_atlas_key;
+		uint32_t current_shadow_atlas_key = 0;
 
 		Vector2 dp;
 
@@ -646,7 +646,6 @@ private:
 		float glow_hdr_bleed_threshold = 1.0;
 		float glow_hdr_luminance_cap = 12.0;
 		float glow_hdr_bleed_scale = 2.0;
-		bool glow_bicubic_upscale = false;
 
 		/// SSAO
 
@@ -662,6 +661,7 @@ private:
 
 	RS::EnvironmentSSAOQuality ssao_quality = RS::ENV_SSAO_QUALITY_MEDIUM;
 	bool ssao_half_size = false;
+	bool glow_bicubic_upscale = false;
 
 	static uint64_t auto_exposure_counter;
 
@@ -827,7 +827,8 @@ public:
 
 	bool is_environment(RID p_env) const;
 
-	void environment_set_glow(RID p_env, bool p_enable, int p_level_flags, float p_intensity, float p_strength, float p_mix, float p_bloom_threshold, RS::EnvironmentGlowBlendMode p_blend_mode, float p_hdr_bleed_threshold, float p_hdr_bleed_scale, float p_hdr_luminance_cap, bool p_bicubic_upscale);
+	void environment_set_glow(RID p_env, bool p_enable, int p_level_flags, float p_intensity, float p_strength, float p_mix, float p_bloom_threshold, RS::EnvironmentGlowBlendMode p_blend_mode, float p_hdr_bleed_threshold, float p_hdr_bleed_scale, float p_hdr_luminance_cap);
+	void environment_glow_set_use_bicubic_upscale(bool p_enable);
 
 	void environment_set_fog(RID p_env, bool p_enable, float p_begin, float p_end, RID p_gradient_texture) {}
 
