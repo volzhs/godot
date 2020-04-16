@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  gd_mono_android.h                                                    */
+/*  RequestParams.java                                                   */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,25 +28,57 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef GD_MONO_ANDROID_H
-#define GD_MONO_ANDROID_H
+package org.godotengine.godot.plugin.payment.utils;
 
-#if defined(ANDROID_ENABLED)
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 
-#include "core/ustring.h"
+/**
+ *
+ * @author Luis Linietsky <luis.linietsky@gmail.com>
+ */
+public class RequestParams {
 
-namespace GDMonoAndroid {
+	private HashMap<String, String> params;
+	private String url;
 
-String get_app_native_lib_dir();
+	public RequestParams() {
+		params = new HashMap<String, String>();
+	}
 
-void initialize();
+	public void put(String key, String value) {
+		params.put(key, value);
+	}
 
-void register_internal_calls();
+	public String get(String key) {
+		return params.get(key);
+	}
 
-void cleanup();
+	public void remove(Object key) {
+		params.remove(key);
+	}
 
-} // namespace GDMonoAndroid
+	public boolean has(String key) {
+		return params.containsKey(key);
+	}
 
-#endif // ANDROID_ENABLED
+	public List<NameValuePair> toPairsList() {
+		List<NameValuePair> fields = new ArrayList<NameValuePair>();
 
-#endif // GD_MONO_ANDROID_H
+		for (String key : params.keySet()) {
+			fields.add(new BasicNameValuePair(key, this.get(key)));
+		}
+		return fields;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+}

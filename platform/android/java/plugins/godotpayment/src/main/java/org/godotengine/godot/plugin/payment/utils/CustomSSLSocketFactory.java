@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  RequestParams.java                                                   */
+/*  CustomSSLSocketFactory.java                                          */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,58 +28,43 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-package org.godotengine.godot.utils;
+package org.godotengine.godot.plugin.payment.utils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 
 /**
  *
  * @author Luis Linietsky <luis.linietsky@gmail.com>
  */
-public class RequestParams {
+public class CustomSSLSocketFactory extends SSLSocketFactory {
+	SSLContext sslContext = SSLContext.getInstance("TLS");
 
-	private HashMap<String, String> params;
-	private String url;
+	public CustomSSLSocketFactory(KeyStore truststore) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+		super(truststore);
 
-	public RequestParams() {
-		params = new HashMap<String, String>();
+		TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
+		tmf.init(truststore);
+
+		sslContext.init(null, tmf.getTrustManagers(), null);
 	}
 
-	public void put(String key, String value) {
-		params.put(key, value);
+	@Override
+	public Socket createSocket(Socket socket, String host, int port, boolean autoClose) throws IOException, UnknownHostException {
+		return sslContext.getSocketFactory().createSocket(socket, host, port, autoClose);
 	}
 
-	public String get(String key) {
-		return params.get(key);
-	}
-
-	public void remove(Object key) {
-		params.remove(key);
-	}
-
-	public boolean has(String key) {
-		return params.containsKey(key);
-	}
-
-	public List<NameValuePair> toPairsList() {
-		List<NameValuePair> fields = new ArrayList<NameValuePair>();
-
-		for (String key : params.keySet()) {
-			fields.add(new BasicNameValuePair(key, this.get(key)));
-		}
-		return fields;
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
+	@Override
+	public Socket createSocket() throws IOException {
+		return sslContext.getSocketFactory().createSocket();
 	}
 }

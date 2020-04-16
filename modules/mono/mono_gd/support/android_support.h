@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  CustomSSLSocketFactory.java                                          */
+/*  android_support.h                                                    */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,42 +28,28 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-package org.godotengine.godot.utils;
-import java.io.IOException;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-import org.apache.http.conn.ssl.SSLSocketFactory;
+#ifndef ANDROID_SUPPORT_H
+#define ANDROID_SUPPORT_H
 
-/**
- *
- * @author Luis Linietsky <luis.linietsky@gmail.com>
- */
-public class CustomSSLSocketFactory extends SSLSocketFactory {
-	SSLContext sslContext = SSLContext.getInstance("TLS");
+#if defined(ANDROID_ENABLED)
 
-	public CustomSSLSocketFactory(KeyStore truststore) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-		super(truststore);
+#include "core/ustring.h"
 
-		TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
-		tmf.init(truststore);
+namespace gdmono {
+namespace android {
+namespace support {
 
-		sslContext.init(null, tmf.getTrustManagers(), null);
-	}
+String get_app_native_lib_dir();
 
-	@Override
-	public Socket createSocket(Socket socket, String host, int port, boolean autoClose) throws IOException, UnknownHostException {
-		return sslContext.getSocketFactory().createSocket(socket, host, port, autoClose);
-	}
+void initialize();
+void cleanup();
 
-	@Override
-	public Socket createSocket() throws IOException {
-		return sslContext.getSocketFactory().createSocket();
-	}
-}
+void register_internal_calls();
+
+} // namespace support
+} // namespace android
+} // namespace gdmono
+
+#endif // ANDROID_ENABLED
+
+#endif // ANDROID_SUPPORT_H
