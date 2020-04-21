@@ -254,10 +254,10 @@ bool DisplayServerX11::_refresh_device_info() {
 		bool absolute_mode = false;
 		int resolution_x = 0;
 		int resolution_y = 0;
-		int range_min_x = 0;
-		int range_min_y = 0;
-		int range_max_x = 0;
-		int range_max_y = 0;
+		double range_min_x = 0;
+		double range_min_y = 0;
+		double range_max_x = 0;
+		double range_max_y = 0;
 		int pressure_resolution = 0;
 		int tilt_resolution_x = 0;
 		int tilt_resolution_y = 0;
@@ -1471,8 +1471,11 @@ DisplayServer::WindowMode DisplayServerX11::window_get_mode(WindowID p_window) c
 
 		if (result == Success && data) {
 			long *state = (long *)data;
-			if (state[0] == WM_IconicState)
+			if (state[0] == WM_IconicState) {
+				XFree(data);
 				return WINDOW_MODE_MINIMIZED;
+			}
+			XFree(data);
 		}
 	}
 

@@ -58,6 +58,11 @@ params;
 
 layout(set = 0, binding = 0) uniform sampler material_samplers[12];
 
+layout(set = 0, binding = 1, std430) restrict readonly buffer GlobalVariableData {
+	vec4 data[];
+}
+global_variables;
+
 #ifdef USE_MATERIAL_UNIFORMS
 layout(set = 1, binding = 0, std140) uniform MaterialUniforms{
 	/* clang-format off */
@@ -96,9 +101,8 @@ layout(set = 2, binding = 2) uniform texture2D quarter_res;
 #endif
 
 struct DirectionalLightData {
-	vec3 direction;
-	float energy;
-	vec3 color;
+	vec4 direction_energy;
+	vec4 color_size;
 	bool enabled;
 };
 
@@ -141,15 +145,15 @@ void main() {
 	vec4 quarter_res_color = vec4(1.0);
 
 #ifdef USE_CUBEMAP_PASS
-	float using_cubemap = 1.0;
+	vec3 inverted_cube_normal = cube_normal;
+	inverted_cube_normal.z *= -1.0;
 #ifdef USES_HALF_RES_COLOR
-	half_res_color = texture(samplerCube(half_res, material_samplers[SAMPLER_LINEAR_WITH_MIPMAPS_CLAMP]), cube_normal);
+	half_res_color = texture(samplerCube(half_res, material_samplers[SAMPLER_LINEAR_WITH_MIPMAPS_CLAMP]), inverted_cube_normal);
 #endif
 #ifdef USES_QUARTER_RES_COLOR
-	quarter_res_color = texture(samplerCube(quarter_res, material_samplers[SAMPLER_LINEAR_WITH_MIPMAPS_CLAMP]), cube_normal);
+	quarter_res_color = texture(samplerCube(quarter_res, material_samplers[SAMPLER_LINEAR_WITH_MIPMAPS_CLAMP]), inverted_cube_normal);
 #endif
 #else
-	float using_cubemap = 0.0;
 #ifdef USES_HALF_RES_COLOR
 	half_res_color = textureLod(sampler2D(half_res, material_samplers[SAMPLER_LINEAR_CLAMP]), uv, 0.0);
 #endif
@@ -178,4 +182,10 @@ FRAGMENT_SHADER_CODE
 
 	frag_color.rgb = color * params.position_multiplier.w;
 	frag_color.a = alpha;
+
+	// Blending is disabled for Sky, so alpha doesn't blend
+	// alpha is used for subsurface scattering so make sure it doesn't get applied to Sky
+	if (!AT_CUBEMAP_PASS && !AT_HALF_RES_PASS && !AT_QUARTER_RES_PASS) {
+		frag_color.a = 0.0;
+	}
 }

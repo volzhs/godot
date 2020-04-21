@@ -37,12 +37,22 @@ layout(set = 0, binding = 3, std140) uniform SceneData {
 	vec2 viewport_size;
 	vec2 screen_pixel_size;
 
-	//used for shadow mapping only
-	float z_offset;
-	float z_slope_scale;
-
 	float time;
 	float reflection_multiplier; // one normally, zero when rendering reflections
+
+	bool pancake_shadows;
+	uint pad;
+
+	//use vec4s because std140 doesnt play nice with vec2s, z and w are wasted
+	vec4 directional_penumbra_shadow_kernel[32];
+	vec4 directional_soft_shadow_kernel[32];
+	vec4 penumbra_shadow_kernel[32];
+	vec4 soft_shadow_kernel[32];
+
+	uint directional_penumbra_shadow_samples;
+	uint directional_soft_shadow_samples;
+	uint penumbra_shadow_samples;
+	uint soft_shadow_samples;
 
 	vec4 ambient_light_color_energy;
 
@@ -124,31 +134,39 @@ struct InstanceData {
 	mat4 transform;
 	mat4 normal_transform;
 	uint flags;
-	uint instance_ofs; //instance_offset in instancing/skeleton buffer
+	uint instance_uniforms_ofs; //base offset in global buffer for instance variables
 	uint gi_offset; //GI information when using lightmapping (VCT or lightmap)
 	uint layer_mask;
 };
 
-layout(set = 0, binding = 4, std430) buffer Instances {
+layout(set = 0, binding = 4, std430) restrict readonly buffer Instances {
 	InstanceData data[];
 }
 instances;
 
-struct LightData { //this structure needs to be 128 bits
+struct LightData { //this structure needs to be as packed as possible
 	vec3 position;
 	float inv_radius;
 	vec3 direction;
+	float size;
 	uint attenuation_energy; //attenuation
 	uint color_specular; //rgb color, a specular (8 bit unorm)
 	uint cone_attenuation_angle; // attenuation and angle, (16bit float)
-	uint mask;
 	uint shadow_color_enabled; //shadow rgb color, a>0.5 enabled (8bit unorm)
-	vec4 atlas_rect; //used for shadow atlas uv on omni, and for projection atlas on spot
+	vec4 atlas_rect; // rect in the shadow atlas
 	mat4 shadow_matrix;
+	float shadow_bias;
+	float shadow_normal_bias;
+	float transmittance_bias;
+	float soft_shadow_size; // for spot, it's the size in uv coordinates of the light, for omni it's the span angle
+	float soft_shadow_scale; // scales the shadow kernel for blurrier shadows
+	uint mask;
+	uint pad[2];
+	vec4 projector_rect; //projector rect in srgb decal atlas
 };
 
-layout(set = 0, binding = 5, std140) uniform Lights {
-	LightData data[MAX_LIGHT_DATA_STRUCTS];
+layout(set = 0, binding = 5, std430) restrict readonly buffer Lights {
+	LightData data[];
 }
 lights;
 
@@ -173,18 +191,33 @@ struct DirectionalLightData {
 	vec3 direction;
 	float energy;
 	vec3 color;
+	float size;
 	float specular;
-	vec3 shadow_color;
 	uint mask;
+	float softshadow_angle;
+	float soft_shadow_scale;
 	bool blend_splits;
 	bool shadow_enabled;
 	float fade_from;
 	float fade_to;
+	vec4 shadow_bias;
+	vec4 shadow_normal_bias;
+	vec4 shadow_transmittance_bias;
+	vec4 shadow_transmittance_z_scale;
+	vec4 shadow_range_begin;
 	vec4 shadow_split_offsets;
 	mat4 shadow_matrix1;
 	mat4 shadow_matrix2;
 	mat4 shadow_matrix3;
 	mat4 shadow_matrix4;
+	vec4 shadow_color1;
+	vec4 shadow_color2;
+	vec4 shadow_color3;
+	vec4 shadow_color4;
+	vec2 uv_scale1;
+	vec2 uv_scale2;
+	vec2 uv_scale3;
+	vec2 uv_scale4;
 };
 
 layout(set = 0, binding = 7, std140) uniform DirectionalLights {
@@ -219,14 +252,45 @@ layout(set = 0, binding = 9) uniform texture3D gi_probe_textures[MAX_GI_PROBE_TE
 #define CLUSTER_POINTER_MASK ((1 << CLUSTER_COUNTER_SHIFT) - 1)
 #define CLUSTER_COUNTER_MASK 0xfff
 
-layout(set = 0, binding = 10) uniform utexture3D cluster_texture;
+layout(set = 0, binding = 10) uniform texture2D decal_atlas;
+layout(set = 0, binding = 11) uniform texture2D decal_atlas_srgb;
 
-layout(set = 0, binding = 11, std430) buffer ClusterData {
+struct DecalData {
+	mat4 xform; //to decal transform
+	vec3 inv_extents;
+	float albedo_mix;
+	vec4 albedo_rect;
+	vec4 normal_rect;
+	vec4 orm_rect;
+	vec4 emission_rect;
+	vec4 modulate;
+	float emission_energy;
+	uint mask;
+	float upper_fade;
+	float lower_fade;
+	mat3x4 normal_xform;
+	vec3 normal;
+	float normal_fade;
+};
+
+layout(set = 0, binding = 12, std430) restrict readonly buffer Decals {
+	DecalData data[];
+}
+decals;
+
+layout(set = 0, binding = 13) uniform utexture3D cluster_texture;
+
+layout(set = 0, binding = 14, std430) restrict readonly buffer ClusterData {
 	uint indices[];
 }
 cluster_data;
 
-layout(set = 0, binding = 12) uniform texture2D directional_shadow_atlas;
+layout(set = 0, binding = 15) uniform texture2D directional_shadow_atlas;
+
+layout(set = 0, binding = 16, std430) restrict readonly buffer GlobalVariableData {
+	vec4 data[];
+}
+global_variables;
 
 // decal atlas
 
@@ -258,7 +322,7 @@ layout(set = 3, binding = 4) uniform texture2D ao_buffer;
 
 /* Set 4 Skeleton & Instancing (Multimesh) */
 
-layout(set = 4, binding = 0, std430) buffer Transforms {
+layout(set = 4, binding = 0, std430) restrict readonly buffer Transforms {
 	vec4 data[];
 }
 transforms;

@@ -937,7 +937,7 @@ Error VulkanContext::_update_swap_chain(Window *window) {
 		/*compositeAlpha*/ compositeAlpha,
 		/*presentMode*/ swapchainPresentMode,
 		/*clipped*/ true,
-		/*oldSwapchain*/ nullptr,
+		/*oldSwapchain*/ VK_NULL_HANDLE,
 	};
 
 	err = fpCreateSwapchainKHR(device, &swapchain_ci, nullptr, &window->swapchain);
@@ -1499,8 +1499,100 @@ VulkanContext::VulkanContext() {
 	swapchainImageCount = 0;
 }
 
+RID VulkanContext::local_device_create() {
+	LocalDevice ld;
+
+	{ //create device
+		VkResult err;
+		float queue_priorities[1] = { 0.0 };
+		VkDeviceQueueCreateInfo queues[2];
+		queues[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queues[0].pNext = nullptr;
+		queues[0].queueFamilyIndex = graphics_queue_family_index;
+		queues[0].queueCount = 1;
+		queues[0].pQueuePriorities = queue_priorities;
+		queues[0].flags = 0;
+
+		VkDeviceCreateInfo sdevice = {
+			/*sType =*/VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+			/*pNext */ nullptr,
+			/*flags */ 0,
+			/*queueCreateInfoCount */ 1,
+			/*pQueueCreateInfos */ queues,
+			/*enabledLayerCount */ 0,
+			/*ppEnabledLayerNames */ nullptr,
+			/*enabledExtensionCount */ enabled_extension_count,
+			/*ppEnabledExtensionNames */ (const char *const *)extension_names,
+			/*pEnabledFeatures */ &physical_device_features, // If specific features are required, pass them in here
+		};
+		err = vkCreateDevice(gpu, &sdevice, nullptr, &ld.device);
+		ERR_FAIL_COND_V(err, RID());
+	}
+
+	{ //create graphics queue
+
+		vkGetDeviceQueue(ld.device, graphics_queue_family_index, 0, &ld.queue);
+	}
+
+	return local_device_owner.make_rid(ld);
+}
+
+VkDevice VulkanContext::local_device_get_vk_device(RID p_local_device) {
+	LocalDevice *ld = local_device_owner.getornull(p_local_device);
+	return ld->device;
+}
+
+void VulkanContext::local_device_push_command_buffers(RID p_local_device, const VkCommandBuffer *p_buffers, int p_count) {
+
+	LocalDevice *ld = local_device_owner.getornull(p_local_device);
+	ERR_FAIL_COND(ld->waiting);
+
+	VkSubmitInfo submit_info;
+	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.pNext = nullptr;
+	submit_info.pWaitDstStageMask = nullptr;
+	submit_info.waitSemaphoreCount = 0;
+	submit_info.pWaitSemaphores = nullptr;
+	submit_info.commandBufferCount = p_count;
+	submit_info.pCommandBuffers = p_buffers;
+	submit_info.signalSemaphoreCount = 0;
+	submit_info.pSignalSemaphores = nullptr;
+
+	VkResult err = vkQueueSubmit(ld->queue, 1, &submit_info, VK_NULL_HANDLE);
+	ERR_FAIL_COND(err);
+
+	ld->waiting = true;
+}
+
+void VulkanContext::local_device_sync(RID p_local_device) {
+
+	LocalDevice *ld = local_device_owner.getornull(p_local_device);
+	ERR_FAIL_COND(!ld->waiting);
+
+	vkDeviceWaitIdle(ld->device);
+	ld->waiting = false;
+}
+
+void VulkanContext::local_device_free(RID p_local_device) {
+
+	LocalDevice *ld = local_device_owner.getornull(p_local_device);
+	vkDestroyDevice(ld->device, nullptr);
+	local_device_owner.free(p_local_device);
+}
+
 VulkanContext::~VulkanContext() {
 	if (queue_props) {
 		free(queue_props);
 	}
+	for (uint32_t i = 0; i < FRAME_LAG; i++) {
+		vkDestroyFence(device, fences[i], nullptr);
+		vkDestroySemaphore(device, image_acquired_semaphores[i], nullptr);
+		vkDestroySemaphore(device, draw_complete_semaphores[i], nullptr);
+		if (separate_present_queue) {
+			vkDestroySemaphore(device, image_ownership_semaphores[i], nullptr);
+		}
+	}
+	DestroyDebugUtilsMessengerEXT(inst, dbg_messenger, nullptr);
+	vkDestroyDevice(device, nullptr);
+	vkDestroyInstance(inst, nullptr);
 }

@@ -111,6 +111,13 @@ void NativeScript::_placeholder_erased(PlaceHolderScriptInstance *p_placeholder)
 
 #endif
 
+bool NativeScript::inherits_script(const Ref<Script> &p_script) const {
+#ifndef _MSC_VER
+#warning inheritance needs to be implemented in NativeScript
+#endif
+	return false;
+}
+
 void NativeScript::set_class_name(String p_class_name) {
 	class_name = p_class_name;
 }
@@ -1931,7 +1938,7 @@ void NativeReloadNode::_notification(int p_what) {
 #endif
 }
 
-RES ResourceFormatLoaderNativeScript::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress) {
+RES ResourceFormatLoaderNativeScript::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, bool p_no_cache) {
 	return ResourceFormatLoaderText::singleton->load(p_path, p_original_path, r_error);
 }
 

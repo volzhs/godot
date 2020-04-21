@@ -48,7 +48,7 @@
 #include "scene/2d/touch_screen_button.h"
 #include "scene/gui/grid_container.h"
 #include "scene/gui/nine_patch_rect.h"
-#include "scene/gui/viewport_container.h"
+#include "scene/gui/subviewport_container.h"
 #include "scene/main/canvas_layer.h"
 #include "scene/main/window.h"
 #include "scene/resources/packed_scene.h"
@@ -1919,6 +1919,7 @@ bool CanvasItemEditor::_gui_input_scale(const Ref<InputEvent> &p_event) {
 			Point2 offset = drag_to_local - drag_from_local;
 
 			Size2 scale = canvas_item->call("get_scale");
+			Size2 original_scale = scale;
 			float ratio = scale.y / scale.x;
 			if (drag_type == DRAG_SCALE_BOTH) {
 				Size2 scale_factor = drag_to_local / drag_from_local;
@@ -1931,6 +1932,7 @@ bool CanvasItemEditor::_gui_input_scale(const Ref<InputEvent> &p_event) {
 				Size2 scale_factor = Vector2(offset.x, -offset.y) / SCALE_HANDLE_DISTANCE;
 				Size2 parent_scale = parent_xform.get_scale();
 				scale_factor *= Vector2(1.0 / parent_scale.x, 1.0 / parent_scale.y);
+
 				if (drag_type == DRAG_SCALE_X) {
 					scale.x += scale_factor.x;
 					if (uniform) {
@@ -1945,8 +1947,13 @@ bool CanvasItemEditor::_gui_input_scale(const Ref<InputEvent> &p_event) {
 			}
 
 			if (snap_scale && !is_ctrl) {
-				scale.x = roundf(scale.x / snap_scale_step) * snap_scale_step;
-				scale.y = roundf(scale.y / snap_scale_step) * snap_scale_step;
+				if (snap_relative) {
+					scale.x = original_scale.x * (roundf((scale.x / original_scale.x) / snap_scale_step) * snap_scale_step);
+					scale.y = original_scale.y * (roundf((scale.y / original_scale.y) / snap_scale_step) * snap_scale_step);
+				} else {
+					scale.x = roundf(scale.x / snap_scale_step) * snap_scale_step;
+					scale.y = roundf(scale.y / snap_scale_step) * snap_scale_step;
+				}
 			}
 
 			canvas_item->call("set_scale", scale);
@@ -3193,12 +3200,14 @@ void CanvasItemEditor::_draw_selection() {
 
 	RID ci = viewport->get_canvas_item();
 
-	List<CanvasItem *> selection = _get_edited_canvas_items(false, false);
+	List<CanvasItem *> selection = _get_edited_canvas_items(true, false);
 
 	bool single = selection.size() == 1;
 	for (List<CanvasItem *>::Element *E = selection.front(); E; E = E->next()) {
 		CanvasItem *canvas_item = Object::cast_to<CanvasItem>(E->get());
 		CanvasItemEditorSelectedItem *se = editor_selection->get_node_editor_data<CanvasItemEditorSelectedItem>(canvas_item);
+
+		bool item_locked = canvas_item->has_meta("_edit_lock_");
 
 		// Draw the previous position if we are dragging the node
 		if (show_helpers &&
@@ -3239,6 +3248,10 @@ void CanvasItemEditor::_draw_selection() {
 
 			Color c = Color(1, 0.6, 0.4, 0.7);
 
+			if (item_locked) {
+				c = Color(0.7, 0.7, 0.7, 0.7);
+			}
+
 			for (int i = 0; i < 4; i++) {
 				viewport->draw_line(endpoints[i], endpoints[(i + 1) % 4], c, Math::round(2 * EDSCALE));
 			}
@@ -3251,7 +3264,7 @@ void CanvasItemEditor::_draw_selection() {
 			viewport->draw_set_transform_matrix(viewport->get_transform());
 		}
 
-		if (single && (tool == TOOL_SELECT || tool == TOOL_MOVE || tool == TOOL_SCALE || tool == TOOL_ROTATE || tool == TOOL_EDIT_PIVOT)) { //kind of sucks
+		if (single && !item_locked && (tool == TOOL_SELECT || tool == TOOL_MOVE || tool == TOOL_SCALE || tool == TOOL_ROTATE || tool == TOOL_EDIT_PIVOT)) { //kind of sucks
 			// Draw the pivot
 			if (canvas_item->_edit_use_pivot()) {
 
@@ -5434,7 +5447,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	viewport_scrollable->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	viewport_scrollable->connect("draw", callable_mp(this, &CanvasItemEditor::_update_scrollbars));
 
-	ViewportContainer *scene_tree = memnew(ViewportContainer);
+	SubViewportContainer *scene_tree = memnew(SubViewportContainer);
 	viewport_scrollable->add_child(scene_tree);
 	scene_tree->set_stretch(true);
 	scene_tree->set_anchors_and_margins_preset(Control::PRESET_WIDE);

@@ -1243,7 +1243,7 @@ void ScriptEditor::_menu_option(int p_option) {
 					file_system_dock->navigate_to_path(path);
 					// Ensure that the FileSystem dock is visible.
 					TabContainer *tab_container = (TabContainer *)file_system_dock->get_parent_control();
-					tab_container->set_current_tab(file_system_dock->get_position_in_parent());
+					tab_container->set_current_tab(file_system_dock->get_index());
 				}
 			} break;
 			case CLOSE_DOCS: {
@@ -1778,9 +1778,11 @@ void ScriptEditor::_update_script_names() {
 			if (built_in) {
 
 				name = path.get_file();
-				String resource_name = se->get_edited_resource()->get_name();
+				const String &resource_name = se->get_edited_resource()->get_name();
 				if (resource_name != "") {
-					name = name.substr(0, name.find("::", 0) + 2) + resource_name;
+					// If the built-in script has a custom resource name defined,
+					// display the built-in script name as follows: `ResourceName (scene_file.tscn)`
+					name = vformat("%s (%s)", resource_name, name.substr(0, name.find("::", 0)));
 				}
 			} else {
 

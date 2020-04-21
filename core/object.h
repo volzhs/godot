@@ -60,7 +60,6 @@ enum PropertyHint {
 	PROPERTY_HINT_ENUM, ///< hint_text= "val1,val2,val3,etc"
 	PROPERTY_HINT_EXP_EASING, /// exponential easing function (Math::ease) use "attenuation" hint string to revert (flip h), "full" to also include in/out. (ie: "attenuation,inout")
 	PROPERTY_HINT_LENGTH, ///< hint_text= "length" (as integer)
-	PROPERTY_HINT_SPRITE_FRAME, // FIXME: Obsolete: drop whenever we can break compat. Keeping now for GDNative compat.
 	PROPERTY_HINT_KEY_ACCEL, ///< hint_text= "length" (as integer)
 	PROPERTY_HINT_FLAGS, ///< hint_text= "flag1,flag2,etc" (as bit flags)
 	PROPERTY_HINT_LAYERS_2D_RENDER,
@@ -92,6 +91,7 @@ enum PropertyHint {
 	PROPERTY_HINT_NODE_PATH_VALID_TYPES,
 	PROPERTY_HINT_SAVE_FILE, ///< a file path must be passed, hint_text (optionally) is a filter "*.png,*.wav,*.doc,". This opens a save dialog
 	PROPERTY_HINT_INT_IS_OBJECTID,
+	PROPERTY_HINT_ARRAY_TYPE,
 	PROPERTY_HINT_MAX,
 	// When updating PropertyHint, also sync the hardcoded list in VisualScriptEditorVariableEdit
 };
@@ -107,10 +107,7 @@ enum PropertyUsageFlags {
 	PROPERTY_USAGE_INTERNATIONALIZED = 64, //hint for internationalized strings
 	PROPERTY_USAGE_GROUP = 128, //used for grouping props in the editor
 	PROPERTY_USAGE_CATEGORY = 256,
-	// FIXME: Drop in 4.0, possibly reorder other flags?
-	// Those below are deprecated thanks to ClassDB's now class value cache
-	//PROPERTY_USAGE_STORE_IF_NONZERO = 512, //only store if nonzero
-	//PROPERTY_USAGE_STORE_IF_NONONE = 1024, //only store if false
+	PROPERTY_USAGE_SUBGROUP = 512,
 	PROPERTY_USAGE_NO_INSTANCE_STATE = 2048,
 	PROPERTY_USAGE_RESTART_IF_CHANGED = 4096,
 	PROPERTY_USAGE_SCRIPT_VARIABLE = 8192,
@@ -138,6 +135,7 @@ enum PropertyUsageFlags {
 #define ADD_PROPERTYI(m_property, m_setter, m_getter, m_index) ClassDB::add_property(get_class_static(), m_property, _scs_create(m_setter), _scs_create(m_getter), m_index)
 #define ADD_PROPERTY_DEFAULT(m_property, m_default) ClassDB::set_property_default_value(get_class_static(), m_property, m_default)
 #define ADD_GROUP(m_name, m_prefix) ClassDB::add_property_group(get_class_static(), m_name, m_prefix)
+#define ADD_SUBGROUP(m_name, m_prefix) ClassDB::add_property_subgroup(get_class_static(), m_name, m_prefix)
 
 struct PropertyInfo {
 

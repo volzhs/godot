@@ -48,7 +48,7 @@
 #include "scene/3d/mesh_instance_3d.h"
 #include "scene/3d/physics_body_3d.h"
 #include "scene/3d/visual_instance_3d.h"
-#include "scene/gui/viewport_container.h"
+#include "scene/gui/subviewport_container.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/resources/surface_tool.h"
 #include "servers/display_server.h"
@@ -347,7 +347,7 @@ void Node3DEditorViewport::_update_camera(float p_interp_delta) {
 		if (orthogonal) {
 			float half_fov = Math::deg2rad(get_fov()) / 2.0;
 			float height = 2.0 * cursor.distance * Math::tan(half_fov);
-			camera->set_orthogonal(height, 0.1, 8192);
+			camera->set_orthogonal(height, get_znear(), get_zfar());
 		} else {
 			camera->set_perspective(get_fov(), get_znear(), get_zfar());
 		}
@@ -364,7 +364,7 @@ Transform Node3DEditorViewport::to_camera_transform(const Cursor &p_cursor) cons
 	camera_transform.basis.rotate(Vector3(0, 1, 0), -p_cursor.y_rot);
 
 	if (orthogonal)
-		camera_transform.translate(0, 0, 4096);
+		camera_transform.translate(0, 0, (get_zfar() - get_znear()) / 2.0);
 	else
 		camera_transform.translate(0, 0, p_cursor.distance);
 
@@ -418,12 +418,12 @@ Vector3 Node3DEditorViewport::_get_camera_position() const {
 
 Point2 Node3DEditorViewport::_point_to_screen(const Vector3 &p_point) {
 
-	return camera->unproject_position(p_point) * viewport_container->get_stretch_shrink();
+	return camera->unproject_position(p_point) * subviewport_container->get_stretch_shrink();
 }
 
 Vector3 Node3DEditorViewport::_get_ray_pos(const Vector2 &p_pos) const {
 
-	return camera->project_ray_origin(p_pos / viewport_container->get_stretch_shrink());
+	return camera->project_ray_origin(p_pos / subviewport_container->get_stretch_shrink());
 }
 
 Vector3 Node3DEditorViewport::_get_camera_normal() const {
@@ -433,7 +433,7 @@ Vector3 Node3DEditorViewport::_get_camera_normal() const {
 
 Vector3 Node3DEditorViewport::_get_ray(const Vector2 &p_pos) const {
 
-	return camera->project_ray_normal(p_pos / viewport_container->get_stretch_shrink());
+	return camera->project_ray_normal(p_pos / subviewport_container->get_stretch_shrink());
 }
 
 void Node3DEditorViewport::_clear_selected() {
@@ -494,7 +494,7 @@ ObjectID Node3DEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, b
 
 	Vector3 ray = _get_ray(p_pos);
 	Vector3 pos = _get_ray_pos(p_pos);
-	Vector2 shrinked_pos = p_pos / viewport_container->get_stretch_shrink();
+	Vector2 shrinked_pos = p_pos / subviewport_container->get_stretch_shrink();
 
 	Vector<ObjectID> instances = RenderingServer::get_singleton()->instances_cull_ray(pos, ray, get_tree()->get_root()->get_world()->get_scenario());
 	Set<Ref<EditorNode3DGizmo>> found_gizmos;
@@ -2287,9 +2287,27 @@ void Node3DEditorViewport::_update_freelook(real_t delta) {
 		return;
 	}
 
-	const Vector3 forward = camera->get_transform().basis.xform(Vector3(0, 0, -1));
+	const FreelookNavigationScheme navigation_scheme = (FreelookNavigationScheme)EditorSettings::get_singleton()->get("editors/3d/freelook/freelook_navigation_scheme").operator int();
+
+	Vector3 forward;
+	if (navigation_scheme == FREELOOK_FULLY_AXIS_LOCKED) {
+		// Forward/backward keys will always go straight forward/backward, never moving on the Y axis.
+		forward = Vector3(0, 0, -1).rotated(Vector3(0, 1, 0), camera->get_rotation().y);
+	} else {
+		// Forward/backward keys will be relative to the camera pitch.
+		forward = camera->get_transform().basis.xform(Vector3(0, 0, -1));
+	}
+
 	const Vector3 right = camera->get_transform().basis.xform(Vector3(1, 0, 0));
-	const Vector3 up = camera->get_transform().basis.xform(Vector3(0, 1, 0));
+
+	Vector3 up;
+	if (navigation_scheme == FREELOOK_PARTIALLY_AXIS_LOCKED || navigation_scheme == FREELOOK_FULLY_AXIS_LOCKED) {
+		// Up/down keys will always go up/down regardless of camera pitch.
+		up = Vector3(0, 1, 0);
+	} else {
+		// Up/down keys will be relative to the camera pitch.
+		up = camera->get_transform().basis.xform(Vector3(0, 1, 0));
+	}
 
 	Vector3 direction;
 
@@ -2472,17 +2490,21 @@ void Node3DEditorViewport::_notification(int p_what) {
 
 		bool shrink = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_HALF_RESOLUTION));
 
-		if (shrink != (viewport_container->get_stretch_shrink() > 1)) {
-			viewport_container->set_stretch_shrink(shrink ? 2 : 1);
+		if (shrink != (subviewport_container->get_stretch_shrink() > 1)) {
+			subviewport_container->set_stretch_shrink(shrink ? 2 : 1);
 		}
 
 		//update msaa if changed
 
-		int msaa_mode = ProjectSettings::get_singleton()->get("rendering/quality/filters/msaa");
+		int msaa_mode = ProjectSettings::get_singleton()->get("rendering/quality/screen_filters/msaa");
 		viewport->set_msaa(Viewport::MSAA(msaa_mode));
+		int ssaa_mode = GLOBAL_GET("rendering/quality/screen_filters/screen_space_aa");
+		viewport->set_screen_space_aa(Viewport::ScreenSpaceAA(ssaa_mode));
 
 		bool show_info = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_INFORMATION));
-		info_label->set_visible(show_info);
+		if (show_info != info_label->is_visible()) {
+			info_label->set_visible(show_info);
+		}
 
 		Camera3D *current_camera;
 
@@ -2509,17 +2531,46 @@ void Node3DEditorViewport::_notification(int p_what) {
 			text += TTR("Surface Changes") + ": " + itos(viewport->get_render_info(Viewport::RENDER_INFO_SURFACE_CHANGES_IN_FRAME)) + "\n";
 			text += TTR("Draw Calls") + ": " + itos(viewport->get_render_info(Viewport::RENDER_INFO_DRAW_CALLS_IN_FRAME)) + "\n";
 			text += TTR("Vertices") + ": " + itos(viewport->get_render_info(Viewport::RENDER_INFO_VERTICES_IN_FRAME));
+
 			info_label->set_text(text);
 		}
 
 		// FPS Counter.
-		bool show_fps = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_FPS));
-		fps_label->set_visible(show_fps);
+		bool show_fps = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_FRAME_TIME));
 
+		if (show_fps != fps_label->is_visible()) {
+			fps_label->set_visible(show_fps);
+			RS::get_singleton()->viewport_set_measure_render_time(viewport->get_viewport_rid(), show_fps);
+			for (int i = 0; i < FRAME_TIME_HISTORY; i++) {
+				cpu_time_history[i] = 0;
+				gpu_time_history[i] = 0;
+			}
+			cpu_time_history_index = 0;
+			cpu_time_history_index = 0;
+		}
 		if (show_fps) {
+
+			cpu_time_history[cpu_time_history_index] = RS::get_singleton()->viewport_get_measured_render_time_cpu(viewport->get_viewport_rid());
+			cpu_time_history_index = (cpu_time_history_index + 1) % FRAME_TIME_HISTORY;
+			float cpu_time = 0.0;
+			for (int i = 0; i < FRAME_TIME_HISTORY; i++) {
+				cpu_time += cpu_time_history[i];
+			}
+			cpu_time /= FRAME_TIME_HISTORY;
+
+			gpu_time_history[gpu_time_history_index] = RS::get_singleton()->viewport_get_measured_render_time_gpu(viewport->get_viewport_rid());
+			gpu_time_history_index = (gpu_time_history_index + 1) % FRAME_TIME_HISTORY;
+			float gpu_time = 0.0;
+			for (int i = 0; i < FRAME_TIME_HISTORY; i++) {
+				gpu_time += gpu_time_history[i];
+			}
+			gpu_time /= FRAME_TIME_HISTORY;
+
 			String text;
-			const float temp_fps = Engine::get_singleton()->get_frames_per_second();
-			text += TTR(vformat("FPS: %d (%s ms)", temp_fps, String::num(1000.0f / temp_fps, 2)));
+			text += TTR("CPU Time") + ": " + String::num(cpu_time, 1) + " ms\n";
+			text += TTR("GPU Time") + ": " + String::num(gpu_time, 1) + " ms\n";
+			text += TTR("FPS") + ": " + itos(1000.0 / gpu_time);
+
 			fps_label->set_text(text);
 		}
 
@@ -2980,9 +3031,9 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 			view_menu->get_popup()->set_item_checked(idx, !current);
 
 		} break;
-		case VIEW_FPS: {
+		case VIEW_FRAME_TIME: {
 
-			int idx = view_menu->get_popup()->get_item_index(VIEW_FPS);
+			int idx = view_menu->get_popup()->get_item_index(VIEW_FRAME_TIME);
 			bool current = view_menu->get_popup()->is_item_checked(idx);
 			view_menu->get_popup()->set_item_checked(idx, !current);
 
@@ -3000,6 +3051,8 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 		case VIEW_DISPLAY_DEBUG_GIPROBE_EMISSION:
 		case VIEW_DISPLAY_DEBUG_SCENE_LUMINANCE:
 		case VIEW_DISPLAY_DEBUG_SSAO:
+		case VIEW_DISPLAY_DEBUG_PSSM_SPLITS:
+		case VIEW_DISPLAY_DEBUG_DECAL_ATLAS:
 		case VIEW_DISPLAY_DEBUG_ROUGHNESS_LIMITER: {
 
 			static const int display_options[] = {
@@ -3018,6 +3071,8 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 				VIEW_DISPLAY_DEBUG_SCENE_LUMINANCE,
 				VIEW_DISPLAY_DEBUG_SSAO,
 				VIEW_DISPLAY_DEBUG_ROUGHNESS_LIMITER,
+				VIEW_DISPLAY_DEBUG_PSSM_SPLITS,
+				VIEW_DISPLAY_DEBUG_DECAL_ATLAS,
 				VIEW_MAX
 			};
 			static const Viewport::DebugDraw debug_draw_modes[] = {
@@ -3036,6 +3091,8 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 				Viewport::DEBUG_DRAW_SCENE_LUMINANCE,
 				Viewport::DEBUG_DRAW_SSAO,
 				Viewport::DEBUG_DRAW_ROUGHNESS_LIMITER,
+				Viewport::DEBUG_DRAW_PSSM_SPLITS,
+				Viewport::DEBUG_DRAW_DECAL_ATLAS,
 			};
 
 			int idx = 0;
@@ -3237,8 +3294,8 @@ void Node3DEditorViewport::update_transform_gizmo_view() {
 	const int viewport_base_height = 400 * MAX(1, EDSCALE);
 	gizmo_scale =
 			(gizmo_size / Math::abs(dd)) * MAX(1, EDSCALE) *
-			MIN(viewport_base_height, viewport_container->get_size().height) / viewport_base_height /
-			viewport_container->get_stretch_shrink();
+			MIN(viewport_base_height, subviewport_container->get_size().height) / viewport_base_height /
+			subviewport_container->get_stretch_shrink();
 	Vector3 scale = Vector3(1, 1, 1) * gizmo_scale;
 
 	xform.basis.scale(scale);
@@ -3335,12 +3392,12 @@ void Node3DEditorViewport::set_state(const Dictionary &p_state) {
 		if (view_menu->get_popup()->is_item_checked(idx) != information)
 			_menu_option(VIEW_INFORMATION);
 	}
-	if (p_state.has("fps")) {
-		bool fps = p_state["fps"];
+	if (p_state.has("frame_time")) {
+		bool fps = p_state["frame_time"];
 
-		int idx = view_menu->get_popup()->get_item_index(VIEW_FPS);
+		int idx = view_menu->get_popup()->get_item_index(VIEW_FRAME_TIME);
 		if (view_menu->get_popup()->is_item_checked(idx) != fps)
-			_menu_option(VIEW_FPS);
+			_menu_option(VIEW_FRAME_TIME);
 	}
 	if (p_state.has("half_res")) {
 		bool half_res = p_state["half_res"];
@@ -3397,8 +3454,8 @@ Dictionary Node3DEditorViewport::get_state() const {
 	d["doppler"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_AUDIO_DOPPLER));
 	d["gizmos"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_GIZMOS));
 	d["information"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_INFORMATION));
-	d["fps"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_FPS));
-	d["half_res"] = viewport_container->get_stretch_shrink() > 1;
+	d["frame_time"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_FRAME_TIME));
+	d["half_res"] = subviewport_container->get_stretch_shrink() > 1;
 	d["cinematic_preview"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_CINEMATIC_PREVIEW));
 	if (previewing)
 		d["previewing"] = EditorNode::get_singleton()->get_edited_scene()->get_path_to(previewing);
@@ -3809,6 +3866,9 @@ void Node3DEditorViewport::drop_data_fw(const Point2 &p_point, const Variant &p_
 
 Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, EditorNode *p_editor, int p_index) {
 
+	cpu_time_history_index = 0;
+	gpu_time_history_index = 0;
+
 	_edit.mode = TRANSFORM_NONE;
 	_edit.plane = TRANSFORM_VIEW;
 	_edit.edited_gizmo = 0;
@@ -3829,8 +3889,8 @@ Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, Edito
 	zoom_indicator_delay = 0.0;
 
 	spatial_editor = p_spatial_editor;
-	ViewportContainer *c = memnew(ViewportContainer);
-	viewport_container = c;
+	SubViewportContainer *c = memnew(SubViewportContainer);
+	subviewport_container = c;
 	c->set_stretch(true);
 	add_child(c);
 	c->set_anchors_and_margins_preset(Control::PRESET_WIDE);
@@ -3887,10 +3947,14 @@ Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, Edito
 	view_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_lighting", TTR("Display Lighting")), VIEW_DISPLAY_LIGHTING);
 	view_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_unshaded", TTR("Display Unshaded")), VIEW_DISPLAY_SHADELESS);
 	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_NORMAL), true);
+	display_submenu->add_radio_check_item(TTR("Directional Shadow Splits"), VIEW_DISPLAY_DEBUG_PSSM_SPLITS);
+	display_submenu->add_separator();
 	display_submenu->add_radio_check_item(TTR("Normal Buffer"), VIEW_DISPLAY_NORMAL_BUFFER);
 	display_submenu->add_separator();
 	display_submenu->add_radio_check_item(TTR("Shadow Atlas"), VIEW_DISPLAY_DEBUG_SHADOW_ATLAS);
 	display_submenu->add_radio_check_item(TTR("Directional Shadow"), VIEW_DISPLAY_DEBUG_DIRECTIONAL_SHADOW_ATLAS);
+	display_submenu->add_separator();
+	display_submenu->add_radio_check_item(TTR("Decal Atlas"), VIEW_DISPLAY_DEBUG_DECAL_ATLAS);
 	display_submenu->add_separator();
 	display_submenu->add_radio_check_item(TTR("GIProbe Lighting"), VIEW_DISPLAY_DEBUG_GIPROBE_LIGHTING);
 	display_submenu->add_radio_check_item(TTR("GIProbe Albedo"), VIEW_DISPLAY_DEBUG_GIPROBE_ALBEDO);
@@ -3907,7 +3971,7 @@ Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, Edito
 	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_environment", TTR("View Environment")), VIEW_ENVIRONMENT);
 	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_gizmos", TTR("View Gizmos")), VIEW_GIZMOS);
 	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_information", TTR("View Information")), VIEW_INFORMATION);
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_fps", TTR("View FPS")), VIEW_FPS);
+	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_fps", TTR("View Frame Time")), VIEW_FRAME_TIME);
 	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_ENVIRONMENT), true);
 	view_menu->get_popup()->add_separator();
 	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_half_resolution", TTR("Half Resolution")), VIEW_HALF_RESOLUTION);
@@ -3984,7 +4048,7 @@ Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, Edito
 	fps_label->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, 10 * EDSCALE);
 	fps_label->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, -10 * EDSCALE);
 	fps_label->set_h_grow_direction(GROW_DIRECTION_BEGIN);
-	fps_label->set_tooltip(TTR("Note: The FPS value displayed is the editor's framerate.\nIt cannot be used as a reliable indication of in-game performance."));
+	fps_label->set_tooltip(TTR("Note: The FPS is estimated on a 60hz refresh rate."));
 	fps_label->set_mouse_filter(MOUSE_FILTER_PASS); // Otherwise tooltip doesn't show.
 	surface->add_child(fps_label);
 	fps_label->hide();
@@ -5907,28 +5971,29 @@ void Node3DEditor::_node_removed(Node *p_node) {
 }
 
 void Node3DEditor::_register_all_gizmos() {
-	add_gizmo_plugin(Ref<CameraNode3DGizmoPlugin>(memnew(CameraNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<LightNode3DGizmoPlugin>(memnew(LightNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<AudioStreamPlayer3DNode3DGizmoPlugin>(memnew(AudioStreamPlayer3DNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<MeshInstanceNode3DGizmoPlugin>(memnew(MeshInstanceNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<SoftBodyNode3DGizmoPlugin>(memnew(SoftBodyNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<Sprite3DNode3DGizmoPlugin>(memnew(Sprite3DNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<SkeletonNode3DGizmoPlugin>(memnew(SkeletonNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<Position3DNode3DGizmoPlugin>(memnew(Position3DNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<RayCastNode3DGizmoPlugin>(memnew(RayCastNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<SpringArmNode3DGizmoPlugin>(memnew(SpringArmNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<VehicleWheelNode3DGizmoPlugin>(memnew(VehicleWheelNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<VisibilityNotifierGizmoPlugin>(memnew(VisibilityNotifierGizmoPlugin)));
+	add_gizmo_plugin(Ref<Camera3DGizmoPlugin>(memnew(Camera3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<Light3DGizmoPlugin>(memnew(Light3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<AudioStreamPlayer3DGizmoPlugin>(memnew(AudioStreamPlayer3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<MeshInstance3DGizmoPlugin>(memnew(MeshInstance3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<SoftBody3DGizmoPlugin>(memnew(SoftBody3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<Sprite3DGizmoPlugin>(memnew(Sprite3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<Skeleton3DGizmoPlugin>(memnew(Skeleton3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<Position3DGizmoPlugin>(memnew(Position3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<RayCast3DGizmoPlugin>(memnew(RayCast3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<SpringArm3DGizmoPlugin>(memnew(SpringArm3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<VehicleWheel3DGizmoPlugin>(memnew(VehicleWheel3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<VisibilityNotifier3DGizmoPlugin>(memnew(VisibilityNotifier3DGizmoPlugin)));
 	add_gizmo_plugin(Ref<GPUParticles3DGizmoPlugin>(memnew(GPUParticles3DGizmoPlugin)));
 	add_gizmo_plugin(Ref<CPUParticles3DGizmoPlugin>(memnew(CPUParticles3DGizmoPlugin)));
 	add_gizmo_plugin(Ref<ReflectionProbeGizmoPlugin>(memnew(ReflectionProbeGizmoPlugin)));
+	add_gizmo_plugin(Ref<DecalGizmoPlugin>(memnew(DecalGizmoPlugin)));
 	add_gizmo_plugin(Ref<GIProbeGizmoPlugin>(memnew(GIProbeGizmoPlugin)));
 	//	add_gizmo_plugin(Ref<BakedIndirectLightGizmoPlugin>(memnew(BakedIndirectLightGizmoPlugin)));
-	add_gizmo_plugin(Ref<CollisionShapeNode3DGizmoPlugin>(memnew(CollisionShapeNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<CollisionPolygonNode3DGizmoPlugin>(memnew(CollisionPolygonNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<NavigationMeshNode3DGizmoPlugin>(memnew(NavigationMeshNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<JointNode3DGizmoPlugin>(memnew(JointNode3DGizmoPlugin)));
-	add_gizmo_plugin(Ref<PhysicalBoneNode3DGizmoPlugin>(memnew(PhysicalBoneNode3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<CollisionShape3DGizmoPlugin>(memnew(CollisionShape3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<CollisionPolygon3DGizmoPlugin>(memnew(CollisionPolygon3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<NavigationRegion3DGizmoPlugin>(memnew(NavigationRegion3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<Joint3DGizmoPlugin>(memnew(Joint3DGizmoPlugin)));
+	add_gizmo_plugin(Ref<PhysicalBone3DGizmoPlugin>(memnew(PhysicalBone3DGizmoPlugin)));
 }
 
 void Node3DEditor::_bind_methods() {

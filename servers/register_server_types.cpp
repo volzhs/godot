@@ -33,9 +33,6 @@
 #include "core/engine.h"
 #include "core/project_settings.h"
 
-#include "arvr/arvr_interface.h"
-#include "arvr/arvr_positional_tracker.h"
-#include "arvr_server.h"
 #include "audio/audio_effect.h"
 #include "audio/audio_stream.h"
 #include "audio/effects/audio_effect_amplify.h"
@@ -65,8 +62,15 @@
 #include "physics_3d/physics_server_3d_sw.h"
 #include "physics_server_2d.h"
 #include "physics_server_3d.h"
+#include "rendering/rasterizer.h"
+#include "rendering/rendering_device.h"
+#include "rendering/rendering_device_binds.h"
+
 #include "rendering_server.h"
 #include "servers/rendering/shader_types.h"
+#include "xr/xr_interface.h"
+#include "xr/xr_positional_tracker.h"
+#include "xr_server.h"
 
 ShaderTypes *shader_types = nullptr;
 
@@ -100,13 +104,17 @@ void register_server_types() {
 	ClassDB::register_virtual_class<DisplayServer>();
 	ClassDB::register_virtual_class<RenderingServer>();
 	ClassDB::register_class<AudioServer>();
-	ClassDB::register_virtual_class<PhysicsServer3D>();
 	ClassDB::register_virtual_class<PhysicsServer2D>();
-	ClassDB::register_class<ARVRServer>();
+	ClassDB::register_virtual_class<PhysicsServer3D>();
+	ClassDB::register_virtual_class<NavigationServer2D>();
+	ClassDB::register_virtual_class<NavigationServer3D>();
+	ClassDB::register_class<XRServer>();
 	ClassDB::register_class<CameraServer>();
 
-	ClassDB::register_virtual_class<ARVRInterface>();
-	ClassDB::register_class<ARVRPositionalTracker>();
+	ClassDB::register_virtual_class<RenderingDevice>();
+
+	ClassDB::register_virtual_class<XRInterface>();
+	ClassDB::register_class<XRPositionalTracker>();
 
 	ClassDB::register_virtual_class<AudioStream>();
 	ClassDB::register_virtual_class<AudioStreamPlayback>();
@@ -157,6 +165,22 @@ void register_server_types() {
 		ClassDB::register_virtual_class<AudioEffectSpectrumAnalyzerInstance>();
 	}
 
+	ClassDB::register_virtual_class<RenderingDevice>();
+	ClassDB::register_class<RDTextureFormat>();
+	ClassDB::register_class<RDTextureView>();
+	ClassDB::register_class<RDAttachmentFormat>();
+	ClassDB::register_class<RDSamplerState>();
+	ClassDB::register_class<RDVertexDescription>();
+	ClassDB::register_class<RDUniform>();
+	ClassDB::register_class<RDPipelineRasterizationState>();
+	ClassDB::register_class<RDPipelineMultisampleState>();
+	ClassDB::register_class<RDPipelineDepthStencilState>();
+	ClassDB::register_class<RDPipelineColorBlendStateAttachment>();
+	ClassDB::register_class<RDPipelineColorBlendState>();
+	ClassDB::register_class<RDShaderSource>();
+	ClassDB::register_class<RDShaderBytecode>();
+	ClassDB::register_class<RDShaderFile>();
+
 	ClassDB::register_class<CameraFeed>();
 
 	ClassDB::register_virtual_class<PhysicsDirectBodyState2D>();
@@ -174,15 +198,15 @@ void register_server_types() {
 	GLOBAL_DEF(PhysicsServer2DManager::setting_property_name, "DEFAULT");
 	ProjectSettings::get_singleton()->set_custom_property_info(PhysicsServer2DManager::setting_property_name, PropertyInfo(Variant::STRING, PhysicsServer2DManager::setting_property_name, PROPERTY_HINT_ENUM, "DEFAULT"));
 
-	PhysicsServer2DManager::register_server("GodotPhysics", &_createGodotPhysics2DCallback);
-	PhysicsServer2DManager::set_default_server("GodotPhysics");
+	PhysicsServer2DManager::register_server("GodotPhysics2D", &_createGodotPhysics2DCallback);
+	PhysicsServer2DManager::set_default_server("GodotPhysics2D");
 
 	// Physics 3D
 	GLOBAL_DEF(PhysicsServer3DManager::setting_property_name, "DEFAULT");
 	ProjectSettings::get_singleton()->set_custom_property_info(PhysicsServer3DManager::setting_property_name, PropertyInfo(Variant::STRING, PhysicsServer3DManager::setting_property_name, PROPERTY_HINT_ENUM, "DEFAULT"));
 
-	PhysicsServer3DManager::register_server("GodotPhysics", &_createGodotPhysics3DCallback);
-	PhysicsServer3DManager::set_default_server("GodotPhysics");
+	PhysicsServer3DManager::register_server("GodotPhysics3D", &_createGodotPhysics3DCallback);
+	PhysicsServer3DManager::set_default_server("GodotPhysics3D");
 }
 
 void unregister_server_types() {
@@ -198,6 +222,6 @@ void register_server_singletons() {
 	Engine::get_singleton()->add_singleton(Engine::Singleton("PhysicsServer3D", PhysicsServer3D::get_singleton()));
 	Engine::get_singleton()->add_singleton(Engine::Singleton("NavigationServer2D", NavigationServer2D::get_singleton_mut()));
 	Engine::get_singleton()->add_singleton(Engine::Singleton("NavigationServer3D", NavigationServer3D::get_singleton_mut()));
-	Engine::get_singleton()->add_singleton(Engine::Singleton("ARVRServer", ARVRServer::get_singleton()));
+	Engine::get_singleton()->add_singleton(Engine::Singleton("XRServer", XRServer::get_singleton()));
 	Engine::get_singleton()->add_singleton(Engine::Singleton("CameraServer", CameraServer::get_singleton()));
 }

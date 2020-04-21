@@ -39,7 +39,7 @@
 #include "core/os/thread.h"
 #include "core/rid_owner.h"
 #include "core/self_list.h"
-#include "servers/arvr/arvr_interface.h"
+#include "servers/xr/xr_interface.h"
 
 class RenderingServerScene {
 public:
@@ -48,6 +48,7 @@ public:
 		MAX_INSTANCE_CULL = 65536,
 		MAX_LIGHTS_CULLED = 4096,
 		MAX_REFLECTION_PROBES_CULLED = 4096,
+		MAX_DECALS_CULLED = 4096,
 		MAX_GI_PROBES_CULLED = 4096,
 		MAX_ROOM_CULL = 32,
 		MAX_EXTERIOR_PORTALS = 128,
@@ -237,6 +238,9 @@ public:
 		bool can_cast_shadows;
 		bool material_is_animated;
 
+		List<Instance *> decals;
+		bool decal_dirty;
+
 		List<Instance *> reflection_probes;
 		bool reflection_dirty;
 
@@ -252,6 +256,7 @@ public:
 			can_cast_shadows = true;
 			material_is_animated = true;
 			gi_probes_dirty = true;
+			decal_dirty = true;
 		}
 	};
 
@@ -276,6 +281,21 @@ public:
 
 			reflection_dirty = true;
 			render_step = -1;
+		}
+	};
+
+	struct InstanceDecalData : public InstanceBaseData {
+
+		Instance *owner;
+		RID instance;
+
+		struct PairInfo {
+			List<Instance *>::Element *L; //reflection iterator in geometry
+			Instance *geometry;
+		};
+		List<PairInfo> geometries;
+
+		InstanceDecalData() {
 		}
 	};
 
@@ -376,7 +396,9 @@ public:
 	int light_cull_count;
 	int directional_light_count;
 	RID reflection_probe_instance_cull_result[MAX_REFLECTION_PROBES_CULLED];
+	RID decal_instance_cull_result[MAX_DECALS_CULLED];
 	int reflection_probe_cull_count;
+	int decal_cull_count;
 	RID gi_probe_instance_cull_result[MAX_GI_PROBES_CULLED];
 	int gi_probe_cull_count;
 
@@ -413,20 +435,27 @@ public:
 	virtual void instance_geometry_set_draw_range(RID p_instance, float p_min, float p_max, float p_min_margin, float p_max_margin);
 	virtual void instance_geometry_set_as_instance_lod(RID p_instance, RID p_as_lod_of_instance);
 
+	void _update_instance_shader_parameters_from_material(Map<StringName, RasterizerScene::InstanceBase::InstanceShaderParameter> &isparams, const Map<StringName, RasterizerScene::InstanceBase::InstanceShaderParameter> &existing_isparams, RID p_material);
+
+	virtual void instance_geometry_set_shader_parameter(RID p_instance, const StringName &p_parameter, const Variant &p_value);
+	virtual void instance_geometry_get_shader_parameter_list(RID p_instance, List<PropertyInfo> *p_parameters) const;
+	virtual Variant instance_geometry_get_shader_parameter(RID p_instance, const StringName &p_parameter) const;
+	virtual Variant instance_geometry_get_shader_parameter_default_value(RID p_instance, const StringName &p_parameter) const;
+
 	_FORCE_INLINE_ void _update_instance(Instance *p_instance);
 	_FORCE_INLINE_ void _update_instance_aabb(Instance *p_instance);
 	_FORCE_INLINE_ void _update_dirty_instance(Instance *p_instance);
 	_FORCE_INLINE_ void _update_instance_lightmap_captures(Instance *p_instance);
 
-	_FORCE_INLINE_ bool _light_instance_update_shadow(Instance *p_instance, const Transform p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_orthogonal, RID p_shadow_atlas, Scenario *p_scenario);
+	_FORCE_INLINE_ bool _light_instance_update_shadow(Instance *p_instance, const Transform p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_orthogonal, bool p_cam_vaspect, RID p_shadow_atlas, Scenario *p_scenario);
 
 	bool _render_reflection_probe_step(Instance *p_instance, int p_step);
-	void _prepare_scene(const Transform p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_orthogonal, RID p_force_environment, RID p_force_camera_effects, uint32_t p_visible_layers, RID p_scenario, RID p_shadow_atlas, RID p_reflection_probe, bool p_using_shadows = true);
+	void _prepare_scene(const Transform p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_orthogonal, bool p_cam_vaspect, RID p_force_environment, RID p_force_camera_effects, uint32_t p_visible_layers, RID p_scenario, RID p_shadow_atlas, RID p_reflection_probe, bool p_using_shadows = true);
 	void _render_scene(RID p_render_buffers, const Transform p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_orthogonal, RID p_force_environment, RID p_force_camera_effects, RID p_scenario, RID p_shadow_atlas, RID p_reflection_probe, int p_reflection_probe_pass);
 	void render_empty_scene(RID p_render_buffers, RID p_scenario, RID p_shadow_atlas);
 
 	void render_camera(RID p_render_buffers, RID p_camera, RID p_scenario, Size2 p_viewport_size, RID p_shadow_atlas);
-	void render_camera(RID p_render_buffers, Ref<ARVRInterface> &p_interface, ARVRInterface::Eyes p_eye, RID p_camera, RID p_scenario, Size2 p_viewport_size, RID p_shadow_atlas);
+	void render_camera(RID p_render_buffers, Ref<XRInterface> &p_interface, XRInterface::Eyes p_eye, RID p_camera, RID p_scenario, Size2 p_viewport_size, RID p_shadow_atlas);
 	void update_dirty_instances();
 
 	void render_probes();

@@ -257,7 +257,7 @@ public:
 	_FORCE_INLINE_ void add_force(const Vector3 &p_force, const Vector3 &p_pos) {
 
 		applied_force += p_force;
-		applied_torque += p_pos.cross(p_force);
+		applied_torque += (p_pos - center_of_mass).cross(p_force);
 	}
 
 	_FORCE_INLINE_ void add_torque(const Vector3 &p_torque) {
@@ -421,7 +421,7 @@ public:
 	virtual void apply_impulse(const Vector3 &p_pos, const Vector3 &p_j) { body->apply_impulse(p_pos, p_j); }
 	virtual void apply_torque_impulse(const Vector3 &p_j) { body->apply_torque_impulse(p_j); }
 
-	virtual void set_sleep_state(bool p_enable) { body->set_active(!p_enable); }
+	virtual void set_sleep_state(bool p_sleep) { body->set_active(!p_sleep); }
 	virtual bool is_sleeping() const { return !body->is_active(); }
 
 	virtual int get_contact_count() const { return body->contact_count; }

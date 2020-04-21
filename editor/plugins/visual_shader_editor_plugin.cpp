@@ -556,6 +556,17 @@ void VisualShaderEditor::_update_graph() {
 			uniform_name->connect("text_entered", callable_mp(this, &VisualShaderEditor::_line_edit_changed), varray(uniform_name, nodes[n_i]));
 			uniform_name->connect("focus_exited", callable_mp(this, &VisualShaderEditor::_line_edit_focus_out), varray(uniform_name, nodes[n_i]));
 
+			String error = vsnode->get_warning(visual_shader->get_mode(), type);
+			if (error != String()) {
+				offset = memnew(Control);
+				offset->set_custom_minimum_size(Size2(0, 4 * EDSCALE));
+				node->add_child(offset);
+				Label *error_label = memnew(Label);
+				error_label->add_theme_color_override("font_color", get_theme_color("error_color", "Editor"));
+				error_label->set_text(error);
+				node->add_child(error_label);
+			}
+
 			if (vsnode->get_input_port_count() == 0 && vsnode->get_output_port_count() == 1 && vsnode->get_output_port_name(0) == "") {
 				//shortcut
 				VisualShaderNode::PortType port_right = vsnode->get_output_port_type(0);
@@ -2250,6 +2261,12 @@ void VisualShaderEditor::_show_preview_text() {
 	}
 }
 
+static ShaderLanguage::DataType _get_global_variable_type(const StringName &p_variable) {
+
+	RS::GlobalVariableType gvt = RS::get_singleton()->global_variable_get_type(p_variable);
+	return RS::global_variable_type_get_shader_datatype(gvt);
+}
+
 void VisualShaderEditor::_update_preview() {
 
 	if (!preview_showed) {
@@ -2263,7 +2280,7 @@ void VisualShaderEditor::_update_preview() {
 
 	ShaderLanguage sl;
 
-	Error err = sl.compile(code, ShaderTypes::get_singleton()->get_functions(RenderingServer::ShaderMode(visual_shader->get_mode())), ShaderTypes::get_singleton()->get_modes(RenderingServer::ShaderMode(visual_shader->get_mode())), ShaderTypes::get_singleton()->get_types());
+	Error err = sl.compile(code, ShaderTypes::get_singleton()->get_functions(RenderingServer::ShaderMode(visual_shader->get_mode())), ShaderTypes::get_singleton()->get_modes(RenderingServer::ShaderMode(visual_shader->get_mode())), ShaderTypes::get_singleton()->get_types(), _get_global_variable_type);
 
 	for (int i = 0; i < preview_text->get_line_count(); i++) {
 		preview_text->set_line_as_marked(i, false);
@@ -3280,7 +3297,7 @@ void EditorInspectorShaderModePlugin::parse_begin(Object *p_object) {
 	//do none
 }
 
-bool EditorInspectorShaderModePlugin::parse_property(Object *p_object, Variant::Type p_type, const String &p_path, PropertyHint p_hint, const String &p_hint_text, int p_usage) {
+bool EditorInspectorShaderModePlugin::parse_property(Object *p_object, Variant::Type p_type, const String &p_path, PropertyHint p_hint, const String &p_hint_text, int p_usage, bool p_wide) {
 
 	if (p_path == "mode" && p_object->is_class("VisualShader") && p_type == Variant::INT) {
 

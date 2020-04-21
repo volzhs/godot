@@ -46,10 +46,10 @@ public:
 		PARAM_INDIRECT_ENERGY = RS::LIGHT_PARAM_INDIRECT_ENERGY,
 		PARAM_SPECULAR = RS::LIGHT_PARAM_SPECULAR,
 		PARAM_RANGE = RS::LIGHT_PARAM_RANGE,
+		PARAM_SIZE = RS::LIGHT_PARAM_SIZE,
 		PARAM_ATTENUATION = RS::LIGHT_PARAM_ATTENUATION,
 		PARAM_SPOT_ANGLE = RS::LIGHT_PARAM_SPOT_ANGLE,
 		PARAM_SPOT_ATTENUATION = RS::LIGHT_PARAM_SPOT_ATTENUATION,
-		PARAM_CONTACT_SHADOW_SIZE = RS::LIGHT_PARAM_CONTACT_SHADOW_SIZE,
 		PARAM_SHADOW_MAX_DISTANCE = RS::LIGHT_PARAM_SHADOW_MAX_DISTANCE,
 		PARAM_SHADOW_SPLIT_1_OFFSET = RS::LIGHT_PARAM_SHADOW_SPLIT_1_OFFSET,
 		PARAM_SHADOW_SPLIT_2_OFFSET = RS::LIGHT_PARAM_SHADOW_SPLIT_2_OFFSET,
@@ -57,7 +57,9 @@ public:
 		PARAM_SHADOW_FADE_START = RS::LIGHT_PARAM_SHADOW_FADE_START,
 		PARAM_SHADOW_NORMAL_BIAS = RS::LIGHT_PARAM_SHADOW_NORMAL_BIAS,
 		PARAM_SHADOW_BIAS = RS::LIGHT_PARAM_SHADOW_BIAS,
-		PARAM_SHADOW_BIAS_SPLIT_SCALE = RS::LIGHT_PARAM_SHADOW_BIAS_SPLIT_SCALE,
+		PARAM_SHADOW_PANCAKE_SIZE = RS::LIGHT_PARAM_SHADOW_PANCAKE_SIZE,
+		PARAM_SHADOW_BLUR = RS::LIGHT_PARAM_SHADOW_BLUR,
+		PARAM_TRANSMITTANCE_BIAS = RS::LIGHT_PARAM_TRANSMITTANCE_BIAS,
 		PARAM_MAX = RS::LIGHT_PARAM_MAX
 	};
 
@@ -79,6 +81,7 @@ private:
 	bool editor_only;
 	void _update_visibility();
 	BakeMode bake_mode;
+	Ref<Texture2D> projector;
 
 	// bind helpers
 
@@ -122,6 +125,9 @@ public:
 
 	void set_bake_mode(BakeMode p_mode);
 	BakeMode get_bake_mode() const;
+
+	void set_projector(const Ref<Texture2D> &p_texture);
+	Ref<Texture2D> get_projector() const;
 
 	virtual AABB get_aabb() const;
 	virtual Vector<Face3> get_faces(uint32_t p_usage_flags) const;
@@ -193,6 +199,8 @@ protected:
 public:
 	void set_shadow_mode(ShadowMode p_mode);
 	ShadowMode get_shadow_mode() const;
+
+	virtual String get_configuration_warning() const;
 
 	OmniLight3D();
 };

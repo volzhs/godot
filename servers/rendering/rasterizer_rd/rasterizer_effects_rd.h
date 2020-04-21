@@ -33,87 +33,110 @@
 
 #include "core/math/camera_matrix.h"
 #include "servers/rendering/rasterizer_rd/render_pipeline_vertex_format_cache_rd.h"
-#include "servers/rendering/rasterizer_rd/shaders/blur.glsl.gen.h"
 #include "servers/rendering/rasterizer_rd/shaders/bokeh_dof.glsl.gen.h"
 #include "servers/rendering/rasterizer_rd/shaders/copy.glsl.gen.h"
+#include "servers/rendering/rasterizer_rd/shaders/copy_to_fb.glsl.gen.h"
+#include "servers/rendering/rasterizer_rd/shaders/cube_to_dp.glsl.gen.h"
 #include "servers/rendering/rasterizer_rd/shaders/cubemap_downsampler.glsl.gen.h"
 #include "servers/rendering/rasterizer_rd/shaders/cubemap_filter.glsl.gen.h"
 #include "servers/rendering/rasterizer_rd/shaders/cubemap_roughness.glsl.gen.h"
 #include "servers/rendering/rasterizer_rd/shaders/luminance_reduce.glsl.gen.h"
 #include "servers/rendering/rasterizer_rd/shaders/roughness_limiter.glsl.gen.h"
+#include "servers/rendering/rasterizer_rd/shaders/screen_space_reflection.glsl.gen.h"
+#include "servers/rendering/rasterizer_rd/shaders/screen_space_reflection_filter.glsl.gen.h"
+#include "servers/rendering/rasterizer_rd/shaders/screen_space_reflection_scale.glsl.gen.h"
+#include "servers/rendering/rasterizer_rd/shaders/specular_merge.glsl.gen.h"
 #include "servers/rendering/rasterizer_rd/shaders/ssao.glsl.gen.h"
 #include "servers/rendering/rasterizer_rd/shaders/ssao_blur.glsl.gen.h"
 #include "servers/rendering/rasterizer_rd/shaders/ssao_minify.glsl.gen.h"
+#include "servers/rendering/rasterizer_rd/shaders/subsurface_scattering.glsl.gen.h"
 #include "servers/rendering/rasterizer_rd/shaders/tonemap.glsl.gen.h"
 
 #include "servers/rendering_server.h"
 
 class RasterizerEffectsRD {
 
-	enum BlurMode {
-		BLUR_MODE_GAUSSIAN_BLUR,
-		BLUR_MODE_GAUSSIAN_GLOW,
-		BLUR_MODE_GAUSSIAN_GLOW_AUTO_EXPOSURE,
-		BLUR_MODE_DOF_NEAR_LOW,
-		BLUR_MODE_DOF_NEAR_MEDIUM,
-		BLUR_MODE_DOF_NEAR_HIGH,
-		BLUR_MODE_DOF_NEAR_MERGE_LOW,
-		BLUR_MODE_DOF_NEAR_MERGE_MEDIUM,
-		BLUR_MODE_DOF_NEAR_MERGE_HIGH,
-		BLUR_MODE_DOF_FAR_LOW,
-		BLUR_MODE_DOF_FAR_MEDIUM,
-		BLUR_MODE_DOF_FAR_HIGH,
-		BLUR_MODE_SSAO_MERGE,
-		BLUR_MODE_SIMPLY_COPY,
-		BLUR_MODE_MIPMAP,
-		BLUR_MODE_MAX,
+	enum CopyMode {
+		COPY_MODE_GAUSSIAN_COPY,
+		COPY_MODE_GAUSSIAN_COPY_8BIT,
+		COPY_MODE_GAUSSIAN_GLOW,
+		COPY_MODE_GAUSSIAN_GLOW_AUTO_EXPOSURE,
+		COPY_MODE_SIMPLY_COPY,
+		COPY_MODE_SIMPLY_COPY_8BIT,
+		COPY_MODE_SIMPLY_COPY_DEPTH,
+		COPY_MODE_MIPMAP,
+		COPY_MODE_LINEARIZE_DEPTH,
+		COPY_MODE_MAX,
 
 	};
 
 	enum {
-		BLUR_FLAG_HORIZONTAL = (1 << 0),
-		BLUR_FLAG_USE_BLUR_SECTION = (1 << 1),
-		BLUR_FLAG_USE_ORTHOGONAL_PROJECTION = (1 << 2),
-		BLUR_FLAG_DOF_NEAR_FIRST_TAP = (1 << 3),
-		BLUR_FLAG_GLOW_FIRST_PASS = (1 << 4),
-		BLUR_FLAG_FLIP_Y = (1 << 5),
-		BLUR_COPY_FORCE_LUMINANCE = (1 << 6)
+		COPY_FLAG_HORIZONTAL = (1 << 0),
+		COPY_FLAG_USE_COPY_SECTION = (1 << 1),
+		COPY_FLAG_USE_ORTHOGONAL_PROJECTION = (1 << 2),
+		COPY_FLAG_DOF_NEAR_FIRST_TAP = (1 << 3),
+		COPY_FLAG_GLOW_FIRST_PASS = (1 << 4),
+		COPY_FLAG_FLIP_Y = (1 << 5),
+		COPY_FLAG_FORCE_LUMINANCE = (1 << 6),
+		COPY_FLAG_ALL_SOURCE = (1 << 7)
 	};
 
-	struct BlurPushConstant {
-		float section[4];
-		float pixel_size[2];
+	struct CopyPushConstant {
+
+		int32_t section[4];
+		int32_t target[2];
 		uint32_t flags;
 		uint32_t pad;
-		//glow
+		// Glow.
 		float glow_strength;
 		float glow_bloom;
 		float glow_hdr_threshold;
 		float glow_hdr_scale;
+
 		float glow_exposure;
 		float glow_white;
 		float glow_luminance_cap;
 		float glow_auto_exposure_grey;
-		//dof
-		float dof_begin;
-		float dof_end;
-		float dof_radius;
-		float dof_pad;
-
-		float dof_dir[2];
+		// DOF.
 		float camera_z_far;
 		float camera_z_near;
-
-		float ssao_color[4];
+		uint32_t pad2[2];
 	};
 
-	struct Blur {
-		BlurPushConstant push_constant;
-		BlurShaderRD shader;
+	struct Copy {
+		CopyPushConstant push_constant;
+		CopyShaderRD shader;
 		RID shader_version;
-		RenderPipelineVertexFormatCacheRD pipelines[BLUR_MODE_MAX];
+		RID pipelines[COPY_MODE_MAX];
 
-	} blur;
+	} copy;
+
+	enum CopyToFBMode {
+		COPY_TO_FB_COPY,
+		COPY_TO_FB_COPY_PANORAMA_TO_DP,
+		COPY_TO_FB_MAX,
+
+	};
+
+	struct CopyToFbPushConstant {
+
+		float section[4];
+		float pixel_size[2];
+		uint32_t flip_y;
+		uint32_t use_section;
+
+		uint32_t force_luminance;
+		uint32_t alpha_to_zero;
+		uint32_t pad[2];
+	};
+
+	struct CopyToFb {
+		CopyToFbPushConstant push_constant;
+		CopyToFbShaderRD shader;
+		RID shader_version;
+		RenderPipelineVertexFormatCacheRD pipelines[COPY_TO_FB_MAX];
+
+	} copy_to_fb;
 
 	struct CubemapRoughnessPushConstant {
 		uint32_t face_id;
@@ -156,10 +179,17 @@ class RasterizerEffectsRD {
 		float exposure;
 		float white;
 		float auto_exposure_grey;
+
+		float pixel_size[2];
+		uint32_t use_fxaa;
+		uint32_t pad;
 	};
 
+	/* tonemap actually writes to a framebuffer, which is
+	 * better to do using the raster pipeline rather than
+	 * comptute, as that framebuffer might be in different formats
+	 */
 	struct Tonemap {
-
 		TonemapPushConstant push_constant;
 		TonemapShaderRD shader;
 		RID shader_version;
@@ -190,23 +220,20 @@ class RasterizerEffectsRD {
 	} luminance_reduce;
 
 	struct CopyToDPPushConstant {
+		int32_t screen_size[2];
+		int32_t dest_offset[2];
 		float bias;
 		float z_far;
 		float z_near;
 		uint32_t z_flip;
 	};
 
-	enum CopyMode {
-		COPY_MODE_CUBE_TO_DP,
-		COPY_MODE_MAX
-	};
+	struct CoptToDP {
 
-	struct Copy {
-
-		CopyShaderRD shader;
+		CubeToDpShaderRD shader;
 		RID shader_version;
-		RenderPipelineVertexFormatCacheRD pipelines[COPY_MODE_MAX];
-	} copy;
+		RID pipeline;
+	} cube_to_dp;
 
 	struct BokehPushConstant {
 		uint32_t size[2];
@@ -378,6 +405,131 @@ class RasterizerEffectsRD {
 		float pad[3];
 	};
 
+	enum SpecularMergeMode {
+		SPECULAR_MERGE_ADD,
+		SPECULAR_MERGE_SSR,
+		SPECULAR_MERGE_ADDITIVE_ADD,
+		SPECULAR_MERGE_ADDITIVE_SSR,
+		SPECULAR_MERGE_MAX
+	};
+
+	/* Specular merge must be done using raster, rather than compute
+	 * because it must continue the existing color buffer
+	 */
+
+	struct SpecularMerge {
+
+		SpecularMergeShaderRD shader;
+		RID shader_version;
+		RenderPipelineVertexFormatCacheRD pipelines[SPECULAR_MERGE_MAX];
+
+	} specular_merge;
+
+	enum ScreenSpaceReflectionMode {
+		SCREEN_SPACE_REFLECTION_NORMAL,
+		SCREEN_SPACE_REFLECTION_ROUGH,
+		SCREEN_SPACE_REFLECTION_MAX,
+	};
+
+	struct ScreenSpaceReflectionPushConstant {
+
+		float proj_info[4];
+
+		int32_t screen_size[2];
+		float camera_z_near;
+		float camera_z_far;
+
+		int32_t num_steps;
+		float depth_tolerance;
+		float distance_fade;
+		float curve_fade_in;
+
+		uint32_t orthogonal;
+		float filter_mipmap_levels;
+		uint32_t use_half_res;
+		uint8_t metallic_mask[4];
+
+		float projection[16];
+	};
+
+	struct ScreenSpaceReflection {
+
+		ScreenSpaceReflectionPushConstant push_constant;
+		ScreenSpaceReflectionShaderRD shader;
+		RID shader_version;
+		RID pipelines[SCREEN_SPACE_REFLECTION_MAX];
+
+	} ssr;
+
+	struct ScreenSpaceReflectionFilterPushConstant {
+
+		float proj_info[4];
+
+		uint32_t orthogonal;
+		float edge_tolerance;
+		int32_t increment;
+		uint32_t pad;
+
+		int32_t screen_size[2];
+		uint32_t vertical;
+		uint32_t steps;
+	};
+	enum {
+		SCREEN_SPACE_REFLECTION_FILTER_HORIZONTAL,
+		SCREEN_SPACE_REFLECTION_FILTER_VERTICAL,
+		SCREEN_SPACE_REFLECTION_FILTER_MAX,
+	};
+
+	struct ScreenSpaceReflectionFilter {
+
+		ScreenSpaceReflectionFilterPushConstant push_constant;
+		ScreenSpaceReflectionFilterShaderRD shader;
+		RID shader_version;
+		RID pipelines[SCREEN_SPACE_REFLECTION_FILTER_MAX];
+	} ssr_filter;
+
+	struct ScreenSpaceReflectionScalePushConstant {
+
+		int32_t screen_size[2];
+		float camera_z_near;
+		float camera_z_far;
+
+		uint32_t orthogonal;
+		uint32_t filter;
+		uint32_t pad[2];
+	};
+
+	struct ScreenSpaceReflectionScale {
+
+		ScreenSpaceReflectionScalePushConstant push_constant;
+		ScreenSpaceReflectionScaleShaderRD shader;
+		RID shader_version;
+		RID pipeline;
+	} ssr_scale;
+
+	struct SubSurfaceScatteringPushConstant {
+
+		int32_t screen_size[2];
+		float camera_z_far;
+		float camera_z_near;
+
+		uint32_t vertical;
+		uint32_t orthogonal;
+		float unit_size;
+		float scale;
+
+		float depth_scale;
+		uint32_t pad[3];
+	};
+
+	struct SubSurfaceScattering {
+
+		SubSurfaceScatteringPushConstant push_constant;
+		SubsurfaceScatteringShaderRD shader;
+		RID shader_version;
+		RID pipelines[3]; //3 quality levels
+	} sss;
+
 	RID default_sampler;
 	RID default_mipmap_sampler;
 	RID index_buffer;
@@ -386,23 +538,41 @@ class RasterizerEffectsRD {
 	Map<RID, RID> texture_to_uniform_set_cache;
 
 	Map<RID, RID> image_to_uniform_set_cache;
+
+	struct TexturePair {
+		RID texture1;
+		RID texture2;
+		_FORCE_INLINE_ bool operator<(const TexturePair &p_pair) const {
+			if (texture1 == p_pair.texture1) {
+				return texture2 < p_pair.texture2;
+			} else {
+				return texture1 < p_pair.texture1;
+			}
+		}
+	};
+
 	Map<RID, RID> texture_to_compute_uniform_set_cache;
+	Map<TexturePair, RID> texture_pair_to_compute_uniform_set_cache;
+	Map<TexturePair, RID> image_pair_to_compute_uniform_set_cache;
 
 	RID _get_uniform_set_from_image(RID p_texture);
 	RID _get_uniform_set_from_texture(RID p_texture, bool p_use_mipmaps = false);
 	RID _get_compute_uniform_set_from_texture(RID p_texture, bool p_use_mipmaps = false);
+	RID _get_compute_uniform_set_from_texture_pair(RID p_texture, RID p_texture2, bool p_use_mipmaps = false);
+	RID _get_compute_uniform_set_from_image_pair(RID p_texture, RID p_texture2);
 
 public:
-	//TODO must re-do most of the shaders in compute
-
-	void region_copy(RID p_source_rd_texture, RID p_dest_framebuffer, const Rect2 &p_region);
-	void copy_to_rect(RID p_source_rd_texture, RID p_dest_framebuffer, const Rect2 &p_rect, bool p_flip_y = false, bool p_force_luminance = false);
-	void gaussian_blur(RID p_source_rd_texture, RID p_framebuffer_half, RID p_rd_texture_half, RID p_dest_framebuffer, const Vector2 &p_pixel_size, const Rect2 &p_region);
-	void gaussian_glow(RID p_source_rd_texture, RID p_framebuffer_half, RID p_rd_texture_half, RID p_dest_framebuffer, const Vector2 &p_pixel_size, float p_strength = 1.0, bool p_first_pass = false, float p_luminance_cap = 16.0, float p_exposure = 1.0, float p_bloom = 0.0, float p_hdr_bleed_treshold = 1.0, float p_hdr_bleed_scale = 1.0, RID p_auto_exposure = RID(), float p_auto_exposure_grey = 1.0);
+	void copy_to_fb_rect(RID p_source_rd_texture, RID p_dest_framebuffer, const Rect2i &p_rect, bool p_flip_y = false, bool p_force_luminance = false, bool p_alpha_to_zero = false);
+	void copy_to_rect(RID p_source_rd_texture, RID p_dest_texture, const Rect2i &p_rect, bool p_flip_y = false, bool p_force_luminance = false, bool p_all_source = false, bool p_8_bit_dst = false);
+	void copy_depth_to_rect(RID p_source_rd_texture, RID p_dest_framebuffer, const Rect2i &p_rect, bool p_flip_y = false);
+	void copy_depth_to_rect_and_linearize(RID p_source_rd_texture, RID p_dest_texture, const Rect2i &p_rect, bool p_flip_y, float p_z_near, float p_z_far);
+	void copy_to_atlas_fb(RID p_source_rd_texture, RID p_dest_framebuffer, const Rect2 &p_uv_rect, RD::DrawListID p_draw_list, bool p_flip_y = false, bool p_panorama = false);
+	void gaussian_blur(RID p_source_rd_texture, RID p_texture, RID p_back_texture, const Rect2i &p_region, bool p_8bit_dst = false);
+	void gaussian_glow(RID p_source_rd_texture, RID p_texture, RID p_back_texture, const Size2i &p_size, float p_strength = 1.0, bool p_first_pass = false, float p_luminance_cap = 16.0, float p_exposure = 1.0, float p_bloom = 0.0, float p_hdr_bleed_treshold = 1.0, float p_hdr_bleed_scale = 1.0, RID p_auto_exposure = RID(), float p_auto_exposure_grey = 1.0);
 
 	void cubemap_roughness(RID p_source_rd_texture, RID p_dest_framebuffer, uint32_t p_face_id, uint32_t p_sample_count, float p_roughness, float p_size);
-	void make_mipmap(RID p_source_rd_texture, RID p_framebuffer_half, const Vector2 &p_pixel_size);
-	void copy_cubemap_to_dp(RID p_source_rd_texture, RID p_dest_framebuffer, const Rect2 &p_rect, float p_z_near, float p_z_far, float p_bias, bool p_dp_flip);
+	void make_mipmap(RID p_source_rd_texture, RID p_dest_texture, const Size2i &p_size);
+	void copy_cubemap_to_dp(RID p_source_rd_texture, RID p_dest_texture, const Rect2i &p_rect, float p_z_near, float p_z_far, float p_bias, bool p_dp_flip);
 	void luminance_reduction(RID p_source_texture, const Size2i p_source_size, const Vector<RID> p_reduce, RID p_prev_luminance, float p_min_luminance, float p_max_luminance, float p_adjust, bool p_set = false);
 	void bokeh_dof(RID p_base_texture, RID p_depth_texture, const Size2i &p_base_texture_size, RID p_secondary_texture, RID p_bokeh_texture1, RID p_bokeh_texture2, bool p_dof_far, float p_dof_far_begin, float p_dof_far_size, bool p_dof_near, float p_dof_near_begin, float p_dof_near_size, float p_bokeh_size, RS::DOFBokehShape p_bokeh_shape, RS::DOFBlurQuality p_quality, bool p_use_jitter, float p_cam_znear, float p_cam_zfar, bool p_cam_orthogonal);
 
@@ -439,6 +609,9 @@ public:
 
 		bool use_color_correction = false;
 		RID color_correction_texture;
+
+		bool use_fxaa = false;
+		Vector2i texture_size;
 	};
 
 	void tonemapper(RID p_source_color, RID p_dst_framebuffer, const TonemapSettings &p_settings);
@@ -449,6 +622,10 @@ public:
 	void cubemap_downsample(RID p_source_cubemap, RID p_dest_cubemap, const Size2i &p_size);
 	void cubemap_filter(RID p_source_cubemap, Vector<RID> p_dest_cubemap, bool p_use_array);
 	void render_sky(RD::DrawListID p_list, float p_time, RID p_fb, RID p_samplers, RID p_lights, RenderPipelineVertexFormatCacheRD *p_pipeline, RID p_uniform_set, RID p_texture_set, const CameraMatrix &p_camera, const Basis &p_orientation, float p_multiplier, const Vector3 &p_position);
+
+	void screen_space_reflection(RID p_diffuse, RID p_normal, RS::EnvironmentSSRRoughnessQuality p_roughness_quality, RID p_roughness, RID p_blur_radius, RID p_blur_radius2, RID p_metallic, const Color &p_metallic_mask, RID p_depth, RID p_scale_depth, RID p_scale_normal, RID p_output, RID p_output_blur, const Size2i &p_screen_size, int p_max_steps, float p_fade_in, float p_fade_out, float p_tolerance, const CameraMatrix &p_camera);
+	void merge_specular(RID p_dest_framebuffer, RID p_specular, RID p_base, RID p_reflection);
+	void sub_surface_scattering(RID p_diffuse, RID p_diffuse2, RID p_depth, const CameraMatrix &p_camera, const Size2i &p_screen_size, float p_scale, float p_depth_scale, RS::SubSurfaceScatteringQuality p_quality);
 
 	RasterizerEffectsRD();
 	~RasterizerEffectsRD();

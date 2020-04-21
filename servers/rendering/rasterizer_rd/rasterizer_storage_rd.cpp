@@ -31,6 +31,7 @@
 #include "rasterizer_storage_rd.h"
 
 #include "core/engine.h"
+#include "core/io/resource_loader.h"
 #include "core/project_settings.h"
 #include "servers/rendering/shader_language.h"
 
@@ -809,6 +810,12 @@ void RasterizerStorageRD::texture_replace(RID p_texture, RID p_by_texture) {
 	}
 	//delete last, so proxies can be updated
 	texture_owner.free(p_by_texture);
+
+	if (decal_atlas.textures.has(p_texture)) {
+		//belongs to decal atlas..
+
+		decal_atlas.dirty = true; //mark it dirty since it was most likely modified
+	}
 }
 void RasterizerStorageRD::texture_set_size_override(RID p_texture, int p_width, int p_height) {
 	Texture *tex = texture_owner.getornull(p_texture);
@@ -915,6 +922,7 @@ void RasterizerStorageRD::shader_set_code(RID p_shader, const String &p_code) {
 			Material *material = E->get();
 			if (shader->data) {
 				material->data = material_data_request_func[new_type](shader->data);
+				material->data->self = material->self;
 				material->data->set_next_pass(material->next_pass);
 				material->data->set_render_priority(material->priority);
 			}
@@ -1015,8 +1023,8 @@ void RasterizerStorageRD::_material_queue_update(Material *material, bool p_unif
 	material->update_next = material_update_list;
 	material_update_list = material;
 	material->update_requested = true;
-	material->uniform_dirty = p_uniform;
-	material->texture_dirty = p_texture;
+	material->uniform_dirty = material->uniform_dirty || p_uniform;
+	material->texture_dirty = material->texture_dirty || p_texture;
 }
 
 void RasterizerStorageRD::material_set_shader(RID p_material, RID p_shader) {
@@ -1053,6 +1061,7 @@ void RasterizerStorageRD::material_set_shader(RID p_material, RID p_shader) {
 	ERR_FAIL_COND(shader->data == nullptr);
 
 	material->data = material_data_request_func[shader->type](shader->data);
+	material->data->self = p_material;
 	material->data->set_next_pass(material->next_pass);
 	material->data->set_render_priority(material->priority);
 	//updating happens later
@@ -1136,6 +1145,19 @@ bool RasterizerStorageRD::material_casts_shadows(RID p_material) {
 		}
 	}
 	return true; //by default everything casts shadows
+}
+
+void RasterizerStorageRD::material_get_instance_shader_parameters(RID p_material, List<InstanceShaderParam> *r_parameters) {
+
+	Material *material = material_owner.getornull(p_material);
+	ERR_FAIL_COND(!material);
+	if (material->shader && material->shader->data) {
+		material->shader->data->get_instance_param_list(r_parameters);
+
+		if (material->next_pass.is_valid()) {
+			material_get_instance_shader_parameters(material->next_pass, r_parameters);
+		}
+	}
 }
 
 void RasterizerStorageRD::material_update_dependency(RID p_material, RasterizerScene::InstanceBase *p_instance) {
@@ -1625,10 +1647,35 @@ _FORCE_INLINE_ static void _fill_std140_ubo_empty(ShaderLanguage::DataType type,
 
 void RasterizerStorageRD::MaterialData::update_uniform_buffer(const Map<StringName, ShaderLanguage::ShaderNode::Uniform> &p_uniforms, const uint32_t *p_uniform_offsets, const Map<StringName, Variant> &p_parameters, uint8_t *p_buffer, uint32_t p_buffer_size, bool p_use_linear_color) {
 
+	bool uses_global_buffer = false;
+
 	for (Map<StringName, ShaderLanguage::ShaderNode::Uniform>::Element *E = p_uniforms.front(); E; E = E->next()) {
 
 		if (E->get().order < 0)
 			continue; // texture, does not go here
+
+		if (E->get().scope == ShaderLanguage::ShaderNode::Uniform::SCOPE_INSTANCE) {
+			continue; //instance uniforms don't appear in the bufferr
+		}
+
+		if (E->get().scope == ShaderLanguage::ShaderNode::Uniform::SCOPE_GLOBAL) {
+			//this is a global variable, get the index to it
+			RasterizerStorageRD *rs = base_singleton;
+
+			GlobalVariables::Variable *gv = rs->global_variables.variables.getptr(E->key());
+			uint32_t index = 0;
+			if (gv) {
+				index = gv->buffer_index;
+			} else {
+				WARN_PRINT("Shader uses global uniform '" + E->key() + "', but it was removed at some point. Material will not display correctly.");
+			}
+
+			uint32_t offset = p_uniform_offsets[E->get().order];
+			uint32_t *intptr = (uint32_t *)&p_buffer[offset];
+			*intptr = index;
+			uses_global_buffer = true;
+			continue;
+		}
 
 		//regular uniform
 		uint32_t offset = p_uniform_offsets[E->get().order];
@@ -1658,6 +1705,38 @@ void RasterizerStorageRD::MaterialData::update_uniform_buffer(const Map<StringNa
 			}
 		}
 	}
+
+	if (uses_global_buffer != (global_buffer_E != nullptr)) {
+		RasterizerStorageRD *rs = base_singleton;
+		if (uses_global_buffer) {
+			global_buffer_E = rs->global_variables.materials_using_buffer.push_back(self);
+		} else {
+			rs->global_variables.materials_using_buffer.erase(global_buffer_E);
+			global_buffer_E = nullptr;
+		}
+	}
+}
+
+RasterizerStorageRD::MaterialData::~MaterialData() {
+	if (global_buffer_E) {
+		//unregister global buffers
+		RasterizerStorageRD *rs = base_singleton;
+		rs->global_variables.materials_using_buffer.erase(global_buffer_E);
+	}
+
+	if (global_texture_E) {
+		//unregister global textures
+		RasterizerStorageRD *rs = base_singleton;
+
+		for (Map<StringName, uint64_t>::Element *E = used_global_textures.front(); E; E = E->next()) {
+			GlobalVariables::Variable *v = rs->global_variables.variables.getptr(E->key());
+			if (v) {
+				v->texture_materials.erase(self);
+			}
+		}
+		//unregister material from those using global textures
+		rs->global_variables.materials_using_texture.erase(global_texture_E);
+	}
 }
 
 void RasterizerStorageRD::MaterialData::update_textures(const Map<StringName, Variant> &p_parameters, const Map<StringName, RID> &p_default_textures, const Vector<ShaderCompilerRD::GeneratedCode::Texture> &p_texture_uniforms, RID *p_textures, bool p_use_linear_color) {
@@ -1669,22 +1748,57 @@ void RasterizerStorageRD::MaterialData::update_textures(const Map<StringName, Va
 	Texture *normal_detect_texture = nullptr;
 #endif
 
+	bool uses_global_textures = false;
+	global_textures_pass++;
+
 	for (int i = 0; i < p_texture_uniforms.size(); i++) {
 
 		const StringName &uniform_name = p_texture_uniforms[i].name;
 
 		RID texture;
 
-		const Map<StringName, Variant>::Element *V = p_parameters.find(uniform_name);
-		if (V) {
-			texture = V->get();
-		}
+		if (p_texture_uniforms[i].global) {
 
-		if (!texture.is_valid()) {
-			const Map<StringName, RID>::Element *W = p_default_textures.find(uniform_name);
-			if (W) {
+			RasterizerStorageRD *rs = base_singleton;
 
-				texture = W->get();
+			uses_global_textures = true;
+
+			GlobalVariables::Variable *v = rs->global_variables.variables.getptr(uniform_name);
+			if (v) {
+				if (v->buffer_index >= 0) {
+					WARN_PRINT("Shader uses global uniform texture '" + String(uniform_name) + "', but it changed type and is no longer a texture!.");
+
+				} else {
+
+					Map<StringName, uint64_t>::Element *E = used_global_textures.find(uniform_name);
+					if (!E) {
+						E = used_global_textures.insert(uniform_name, global_textures_pass);
+						v->texture_materials.insert(self);
+					} else {
+						E->get() = global_textures_pass;
+					}
+
+					texture = v->override.get_type() != Variant::NIL ? v->override : v->value;
+				}
+
+			} else {
+				WARN_PRINT("Shader uses global uniform texture '" + String(uniform_name) + "', but it was removed at some point. Material will not display correctly.");
+			}
+		} else {
+			if (!texture.is_valid()) {
+
+				const Map<StringName, Variant>::Element *V = p_parameters.find(uniform_name);
+				if (V) {
+					texture = V->get();
+				}
+			}
+
+			if (!texture.is_valid()) {
+				const Map<StringName, RID>::Element *W = p_default_textures.find(uniform_name);
+				if (W) {
+
+					texture = W->get();
+				}
 			}
 		}
 
@@ -1747,6 +1861,36 @@ void RasterizerStorageRD::MaterialData::update_textures(const Map<StringName, Va
 		roughness_detect_texture->detect_roughness_callback(roughness_detect_texture->detect_roughness_callback_ud, normal_detect_texture->path, roughness_channel);
 	}
 #endif
+	{
+		//for textures no longer used, unregister them
+		List<Map<StringName, uint64_t>::Element *> to_delete;
+		RasterizerStorageRD *rs = base_singleton;
+
+		for (Map<StringName, uint64_t>::Element *E = used_global_textures.front(); E; E = E->next()) {
+			if (E->get() != global_textures_pass) {
+				to_delete.push_back(E);
+
+				GlobalVariables::Variable *v = rs->global_variables.variables.getptr(E->key());
+				if (v) {
+					v->texture_materials.erase(self);
+				}
+			}
+		}
+
+		while (to_delete.front()) {
+			used_global_textures.erase(to_delete.front()->get());
+			to_delete.pop_front();
+		}
+		//handle registering/unregistering global textures
+		if (uses_global_textures != (global_texture_E != nullptr)) {
+			if (uses_global_textures) {
+				global_texture_E = rs->global_variables.materials_using_texture.push_back(self);
+			} else {
+				rs->global_variables.materials_using_texture.erase(global_texture_E);
+				global_texture_E = nullptr;
+			}
+		}
+	}
 }
 
 void RasterizerStorageRD::material_force_update_textures(RID p_material, ShaderType p_shader_type) {
@@ -3104,15 +3248,17 @@ RID RasterizerStorageRD::light_create(RS::LightType p_type) {
 	light.param[RS::LIGHT_PARAM_INDIRECT_ENERGY] = 1.0;
 	light.param[RS::LIGHT_PARAM_SPECULAR] = 0.5;
 	light.param[RS::LIGHT_PARAM_RANGE] = 1.0;
+	light.param[RS::LIGHT_PARAM_SIZE] = 0.0;
 	light.param[RS::LIGHT_PARAM_SPOT_ANGLE] = 45;
-	light.param[RS::LIGHT_PARAM_CONTACT_SHADOW_SIZE] = 45;
 	light.param[RS::LIGHT_PARAM_SHADOW_MAX_DISTANCE] = 0;
 	light.param[RS::LIGHT_PARAM_SHADOW_SPLIT_1_OFFSET] = 0.1;
 	light.param[RS::LIGHT_PARAM_SHADOW_SPLIT_2_OFFSET] = 0.3;
 	light.param[RS::LIGHT_PARAM_SHADOW_SPLIT_3_OFFSET] = 0.6;
 	light.param[RS::LIGHT_PARAM_SHADOW_FADE_START] = 0.8;
-	light.param[RS::LIGHT_PARAM_SHADOW_NORMAL_BIAS] = 0.1;
-	light.param[RS::LIGHT_PARAM_SHADOW_BIAS_SPLIT_SCALE] = 0.1;
+	light.param[RS::LIGHT_PARAM_SHADOW_BIAS] = 0.02;
+	light.param[RS::LIGHT_PARAM_SHADOW_NORMAL_BIAS] = 1.0;
+	light.param[RS::LIGHT_PARAM_SHADOW_PANCAKE_SIZE] = 20.0;
+	light.param[RS::LIGHT_PARAM_TRANSMITTANCE_BIAS] = 0.05;
 
 	return light_owner.make_rid(light);
 }
@@ -3138,6 +3284,7 @@ void RasterizerStorageRD::light_set_param(RID p_light, RS::LightParam p_param, f
 		case RS::LIGHT_PARAM_SHADOW_SPLIT_2_OFFSET:
 		case RS::LIGHT_PARAM_SHADOW_SPLIT_3_OFFSET:
 		case RS::LIGHT_PARAM_SHADOW_NORMAL_BIAS:
+		case RS::LIGHT_PARAM_SHADOW_PANCAKE_SIZE:
 		case RS::LIGHT_PARAM_SHADOW_BIAS: {
 
 			light->version++;
@@ -3171,7 +3318,19 @@ void RasterizerStorageRD::light_set_projector(RID p_light, RID p_texture) {
 	Light *light = light_owner.getornull(p_light);
 	ERR_FAIL_COND(!light);
 
+	if (light->projector == p_texture) {
+		return;
+	}
+
+	if (light->type != RS::LIGHT_DIRECTIONAL && light->projector.is_valid()) {
+		texture_remove_from_decal_atlas(light->projector, light->type == RS::LIGHT_OMNI);
+	}
+
 	light->projector = p_texture;
+
+	if (light->type != RS::LIGHT_DIRECTIONAL && light->projector.is_valid()) {
+		texture_add_to_decal_atlas(light->projector, light->type == RS::LIGHT_OMNI);
+	}
 }
 
 void RasterizerStorageRD::light_set_negative(RID p_light, bool p_enable) {
@@ -3550,6 +3709,94 @@ float RasterizerStorageRD::reflection_probe_get_interior_ambient_probe_contribut
 	return reflection_probe->interior_ambient_probe_contrib;
 }
 
+RID RasterizerStorageRD::decal_create() {
+	return decal_owner.make_rid(Decal());
+}
+
+void RasterizerStorageRD::decal_set_extents(RID p_decal, const Vector3 &p_extents) {
+	Decal *decal = decal_owner.getornull(p_decal);
+	ERR_FAIL_COND(!decal);
+	decal->extents = p_extents;
+	decal->instance_dependency.instance_notify_changed(true, false);
+}
+void RasterizerStorageRD::decal_set_texture(RID p_decal, RS::DecalTexture p_type, RID p_texture) {
+	Decal *decal = decal_owner.getornull(p_decal);
+	ERR_FAIL_COND(!decal);
+	ERR_FAIL_INDEX(p_type, RS::DECAL_TEXTURE_MAX);
+
+	if (decal->textures[p_type] == p_texture) {
+		return;
+	}
+
+	ERR_FAIL_COND(p_texture.is_valid() && !texture_owner.owns(p_texture));
+
+	if (decal->textures[p_type].is_valid() && texture_owner.owns(decal->textures[p_type])) {
+		texture_remove_from_decal_atlas(decal->textures[p_type]);
+	}
+
+	decal->textures[p_type] = p_texture;
+
+	if (decal->textures[p_type].is_valid()) {
+		texture_add_to_decal_atlas(decal->textures[p_type]);
+	}
+
+	decal->instance_dependency.instance_notify_changed(false, true);
+}
+void RasterizerStorageRD::decal_set_emission_energy(RID p_decal, float p_energy) {
+	Decal *decal = decal_owner.getornull(p_decal);
+	ERR_FAIL_COND(!decal);
+	decal->emission_energy = p_energy;
+}
+
+void RasterizerStorageRD::decal_set_albedo_mix(RID p_decal, float p_mix) {
+	Decal *decal = decal_owner.getornull(p_decal);
+	ERR_FAIL_COND(!decal);
+	decal->albedo_mix = p_mix;
+}
+
+void RasterizerStorageRD::decal_set_modulate(RID p_decal, const Color &p_modulate) {
+	Decal *decal = decal_owner.getornull(p_decal);
+	ERR_FAIL_COND(!decal);
+	decal->modulate = p_modulate;
+}
+void RasterizerStorageRD::decal_set_cull_mask(RID p_decal, uint32_t p_layers) {
+	Decal *decal = decal_owner.getornull(p_decal);
+	ERR_FAIL_COND(!decal);
+	decal->cull_mask = p_layers;
+	decal->instance_dependency.instance_notify_changed(true, false);
+}
+
+void RasterizerStorageRD::decal_set_distance_fade(RID p_decal, bool p_enabled, float p_begin, float p_length) {
+
+	Decal *decal = decal_owner.getornull(p_decal);
+	ERR_FAIL_COND(!decal);
+	decal->distance_fade = p_enabled;
+	decal->distance_fade_begin = p_begin;
+	decal->distance_fade_length = p_length;
+}
+
+void RasterizerStorageRD::decal_set_fade(RID p_decal, float p_above, float p_below) {
+
+	Decal *decal = decal_owner.getornull(p_decal);
+	ERR_FAIL_COND(!decal);
+	decal->upper_fade = p_above;
+	decal->lower_fade = p_below;
+}
+
+void RasterizerStorageRD::decal_set_normal_fade(RID p_decal, float p_fade) {
+
+	Decal *decal = decal_owner.getornull(p_decal);
+	ERR_FAIL_COND(!decal);
+	decal->normal_fade = p_fade;
+}
+
+AABB RasterizerStorageRD::decal_get_aabb(RID p_decal) const {
+	Decal *decal = decal_owner.getornull(p_decal);
+	ERR_FAIL_COND_V(!decal, AABB());
+
+	return AABB(-decal->extents, decal->extents * 2.0);
+}
+
 RID RasterizerStorageRD::gi_probe_create() {
 
 	return gi_probe_owner.make_rid(GIProbe());
@@ -3911,7 +4158,6 @@ void RasterizerStorageRD::_clear_render_target(RenderTarget *rt) {
 	if (rt->backbuffer.is_valid()) {
 		RD::get_singleton()->free(rt->backbuffer);
 		rt->backbuffer = RID();
-		rt->backbuffer_fb = RID();
 		for (int i = 0; i < rt->backbuffer_mipmaps.size(); i++) {
 			//just erase copies, since the rest are erased by dependency
 			RD::get_singleton()->free(rt->backbuffer_mipmaps[i].mipmap_copy);
@@ -4025,17 +4271,11 @@ void RasterizerStorageRD::_create_render_target_backbuffer(RenderTarget *rt) {
 	tf.width = rt->size.width;
 	tf.height = rt->size.height;
 	tf.type = RD::TEXTURE_TYPE_2D;
-	tf.usage_bits = RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_COPY_TO_BIT;
+	tf.usage_bits = RD::TEXTURE_USAGE_STORAGE_BIT | RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_COPY_TO_BIT;
 	tf.mipmaps = mipmaps_required;
 
 	rt->backbuffer = RD::get_singleton()->texture_create(tf, RD::TextureView());
-
-	{
-		Vector<RID> backbuffer_att;
-		RID backbuffer_fb_tex = RD::get_singleton()->texture_create_shared_from_slice(RD::TextureView(), rt->backbuffer, 0, 0);
-		backbuffer_att.push_back(backbuffer_fb_tex);
-		rt->backbuffer_fb = RD::get_singleton()->framebuffer_create(backbuffer_att);
-	}
+	rt->backbuffer_mipmap0 = RD::get_singleton()->texture_create_shared_from_slice(RD::TextureView(), rt->backbuffer, 0, 0);
 
 	//create mipmaps
 	for (uint32_t i = 1; i < mipmaps_required; i++) {
@@ -4043,9 +4283,6 @@ void RasterizerStorageRD::_create_render_target_backbuffer(RenderTarget *rt) {
 		RenderTarget::BackbufferMipmap mm;
 		{
 			mm.mipmap = RD::get_singleton()->texture_create_shared_from_slice(RD::TextureView(), rt->backbuffer, 0, i);
-			Vector<RID> mm_fb_at;
-			mm_fb_at.push_back(mm.mipmap);
-			mm.mipmap_fb = RD::get_singleton()->framebuffer_create(mm_fb_at);
 		}
 
 		{
@@ -4057,9 +4294,6 @@ void RasterizerStorageRD::_create_render_target_backbuffer(RenderTarget *rt) {
 			mmtf.mipmaps = 1;
 
 			mm.mipmap_copy = RD::get_singleton()->texture_create(mmtf, RD::TextureView());
-			Vector<RID> mm_fb_at;
-			mm_fb_at.push_back(mm.mipmap_copy);
-			mm.mipmap_copy_fb = RD::get_singleton()->framebuffer_create(mm_fb_at);
 		}
 
 		rt->backbuffer_mipmaps.push_back(mm);
@@ -4135,7 +4369,12 @@ RID RasterizerStorageRD::render_target_get_rd_framebuffer(RID p_render_target) {
 
 	return rt->framebuffer;
 }
+RID RasterizerStorageRD::render_target_get_rd_texture(RID p_render_target) {
+	RenderTarget *rt = render_target_owner.getornull(p_render_target);
+	ERR_FAIL_COND_V(!rt, RID());
 
+	return rt->color;
+}
 void RasterizerStorageRD::render_target_request_clear(RID p_render_target, const Color &p_clear_color) {
 	RenderTarget *rt = render_target_owner.getornull(p_render_target);
 	ERR_FAIL_COND(!rt);
@@ -4185,27 +4424,25 @@ void RasterizerStorageRD::render_target_copy_to_back_buffer(RID p_render_target,
 	}
 
 	Rect2i region = p_region;
-	Rect2 blur_region;
 	if (region == Rect2i()) {
 		region.size = rt->size;
-	} else {
-		blur_region = region;
-		blur_region.position /= rt->size;
-		blur_region.size /= rt->size;
 	}
 
 	//single texture copy for backbuffer
-	RD::get_singleton()->texture_copy(rt->color, rt->backbuffer, Vector3(region.position.x, region.position.y, 0), Vector3(region.position.x, region.position.y, 0), Vector3(region.size.x, region.size.y, 1), 0, 0, 0, 0, true);
+	RD::get_singleton()->texture_copy(rt->color, rt->backbuffer_mipmap0, Vector3(region.position.x, region.position.y, 0), Vector3(region.position.x, region.position.y, 0), Vector3(region.size.x, region.size.y, 1), 0, 0, 0, 0, true);
 	//effects.copy(rt->color, rt->backbuffer_fb, blur_region);
 
 	//then mipmap blur
 	RID prev_texture = rt->color; //use color, not backbuffer, as bb has mipmaps.
-	Vector2 pixel_size = Vector2(1.0 / rt->size.width, 1.0 / rt->size.height);
 
 	for (int i = 0; i < rt->backbuffer_mipmaps.size(); i++) {
-		pixel_size *= 2.0; //go halfway
+		region.position.x >>= 1;
+		region.position.y >>= 1;
+		region.size.x = MAX(1, region.size.x >> 1);
+		region.size.y = MAX(1, region.size.y >> 1);
+
 		const RenderTarget::BackbufferMipmap &mm = rt->backbuffer_mipmaps[i];
-		effects.gaussian_blur(prev_texture, mm.mipmap_copy_fb, mm.mipmap_copy, mm.mipmap_fb, pixel_size, blur_region);
+		effects.gaussian_blur(prev_texture, mm.mipmap, mm.mipmap_copy, region, true);
 		prev_texture = mm.mipmap;
 	}
 }
@@ -4250,6 +4487,9 @@ void RasterizerStorageRD::base_update_dependency(RID p_base, RasterizerScene::In
 	} else if (reflection_probe_owner.owns(p_base)) {
 		ReflectionProbe *rp = reflection_probe_owner.getornull(p_base);
 		p_instance->update_dependency(&rp->instance_dependency);
+	} else if (decal_owner.owns(p_base)) {
+		Decal *decal = decal_owner.getornull(p_base);
+		p_instance->update_dependency(&decal->instance_dependency);
 	} else if (gi_probe_owner.owns(p_base)) {
 		GIProbe *gip = gi_probe_owner.getornull(p_base);
 		p_instance->update_dependency(&gip->instance_dependency);
@@ -4278,6 +4518,9 @@ RS::InstanceType RasterizerStorageRD::get_base_type(RID p_rid) const {
 	if (reflection_probe_owner.owns(p_rid)) {
 		return RS::INSTANCE_REFLECTION_PROBE;
 	}
+	if (decal_owner.owns(p_rid)) {
+		return RS::INSTANCE_DECAL;
+	}
 	if (gi_probe_owner.owns(p_rid)) {
 		return RS::INSTANCE_GI_PROBE;
 	}
@@ -4287,10 +4530,924 @@ RS::InstanceType RasterizerStorageRD::get_base_type(RID p_rid) const {
 
 	return RS::INSTANCE_NONE;
 }
+
+void RasterizerStorageRD::texture_add_to_decal_atlas(RID p_texture, bool p_panorama_to_dp) {
+	if (!decal_atlas.textures.has(p_texture)) {
+		DecalAtlas::Texture t;
+		t.users = 1;
+		t.panorama_to_dp_users = p_panorama_to_dp ? 1 : 0;
+		decal_atlas.textures[p_texture] = t;
+		decal_atlas.dirty = true;
+	} else {
+		DecalAtlas::Texture *t = decal_atlas.textures.getptr(p_texture);
+		t->users++;
+		if (p_panorama_to_dp) {
+			t->panorama_to_dp_users++;
+		}
+	}
+}
+
+void RasterizerStorageRD::texture_remove_from_decal_atlas(RID p_texture, bool p_panorama_to_dp) {
+	DecalAtlas::Texture *t = decal_atlas.textures.getptr(p_texture);
+	ERR_FAIL_COND(!t);
+	t->users--;
+	if (p_panorama_to_dp) {
+		ERR_FAIL_COND(t->panorama_to_dp_users == 0);
+		t->panorama_to_dp_users--;
+	}
+	if (t->users == 0) {
+		decal_atlas.textures.erase(p_texture);
+		//do not mark it dirty, there is no need to since it remains working
+	}
+}
+
+RID RasterizerStorageRD::decal_atlas_get_texture() const {
+	return decal_atlas.texture;
+}
+
+RID RasterizerStorageRD::decal_atlas_get_texture_srgb() const {
+	return decal_atlas.texture;
+}
+
+void RasterizerStorageRD::_update_decal_atlas() {
+	if (!decal_atlas.dirty) {
+		return; //nothing to do
+	}
+
+	decal_atlas.dirty = false;
+
+	if (decal_atlas.texture.is_valid()) {
+		RD::get_singleton()->free(decal_atlas.texture);
+		decal_atlas.texture = RID();
+		decal_atlas.texture_srgb = RID();
+		decal_atlas.texture_mipmaps.clear();
+	}
+
+	int border = 1 << decal_atlas.mipmaps;
+
+	if (decal_atlas.textures.size()) {
+		//generate atlas
+		Vector<DecalAtlas::SortItem> itemsv;
+		itemsv.resize(decal_atlas.textures.size());
+		int base_size = 8;
+		const RID *K = NULL;
+
+		int idx = 0;
+		while ((K = decal_atlas.textures.next(K))) {
+			DecalAtlas::SortItem &si = itemsv.write[idx];
+
+			Texture *src_tex = texture_owner.getornull(*K);
+
+			si.size.width = (src_tex->width / border) + 1;
+			si.size.height = (src_tex->height / border) + 1;
+			si.pixel_size = Size2i(src_tex->width, src_tex->height);
+
+			if (base_size < si.size.width) {
+				base_size = nearest_power_of_2_templated(si.size.width);
+			}
+
+			si.texture = *K;
+			idx++;
+		}
+
+		//sort items by size
+		itemsv.sort();
+
+		//attempt to create atlas
+		int item_count = itemsv.size();
+		DecalAtlas::SortItem *items = itemsv.ptrw();
+
+		int atlas_height = 0;
+
+		while (true) {
+
+			Vector<int> v_offsetsv;
+			v_offsetsv.resize(base_size);
+
+			int *v_offsets = v_offsetsv.ptrw();
+			zeromem(v_offsets, sizeof(int) * base_size);
+
+			int max_height = 0;
+
+			for (int i = 0; i < item_count; i++) {
+				//best fit
+				DecalAtlas::SortItem &si = items[i];
+				int best_idx = -1;
+				int best_height = 0x7FFFFFFF;
+				for (int j = 0; j <= base_size - si.size.width; j++) {
+					int height = 0;
+					for (int k = 0; k < si.size.width; k++) {
+						int h = v_offsets[k + j];
+						if (h > height) {
+							height = h;
+							if (height > best_height) {
+								break; //already bad
+							}
+						}
+					}
+
+					if (height < best_height) {
+						best_height = height;
+						best_idx = j;
+					}
+				}
+
+				//update
+				for (int k = 0; k < si.size.width; k++) {
+					v_offsets[k + best_idx] = best_height + si.size.height;
+				}
+
+				si.pos.x = best_idx;
+				si.pos.y = best_height;
+
+				if (si.pos.y + si.size.height > max_height) {
+					max_height = si.pos.y + si.size.height;
+				}
+			}
+
+			if (max_height <= base_size * 2) {
+				atlas_height = max_height;
+				break; //good ratio, break;
+			}
+
+			base_size *= 2;
+		}
+
+		decal_atlas.size.width = base_size * border;
+		decal_atlas.size.height = nearest_power_of_2_templated(atlas_height * border);
+
+		for (int i = 0; i < item_count; i++) {
+			DecalAtlas::Texture *t = decal_atlas.textures.getptr(items[i].texture);
+			t->uv_rect.position = items[i].pos * border + Vector2i(border / 2, border / 2);
+			t->uv_rect.size = items[i].pixel_size;
+			//print_line("blitrect: " + t->uv_rect);
+			t->uv_rect.position /= Size2(decal_atlas.size);
+			t->uv_rect.size /= Size2(decal_atlas.size);
+		}
+	} else {
+
+		//use border as size, so it at least has enough mipmaps
+		decal_atlas.size.width = border;
+		decal_atlas.size.height = border;
+	}
+
+	//blit textures
+
+	RD::TextureFormat tformat;
+	tformat.format = RD::DATA_FORMAT_R8G8B8A8_UNORM;
+	tformat.width = decal_atlas.size.width;
+	tformat.height = decal_atlas.size.height;
+	tformat.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_CAN_COPY_TO_BIT;
+	tformat.type = RD::TEXTURE_TYPE_2D;
+	tformat.mipmaps = decal_atlas.mipmaps;
+	tformat.shareable_formats.push_back(RD::DATA_FORMAT_R8G8B8A8_UNORM);
+	tformat.shareable_formats.push_back(RD::DATA_FORMAT_R8G8B8A8_SRGB);
+
+	decal_atlas.texture = RD::get_singleton()->texture_create(tformat, RD::TextureView());
+
+	{
+		//create the framebuffer
+
+		Size2i s = decal_atlas.size;
+
+		for (int i = 0; i < decal_atlas.mipmaps; i++) {
+			DecalAtlas::MipMap mm;
+			mm.texture = RD::get_singleton()->texture_create_shared_from_slice(RD::TextureView(), decal_atlas.texture, 0, i);
+			Vector<RID> fb;
+			fb.push_back(mm.texture);
+			mm.fb = RD::get_singleton()->framebuffer_create(fb);
+			mm.size = s;
+			decal_atlas.texture_mipmaps.push_back(mm);
+
+			s.width = MAX(1, s.width >> 1);
+			s.height = MAX(1, s.height >> 1);
+		}
+		{
+			//create the SRGB variant
+			RD::TextureView rd_view;
+			rd_view.format_override = RD::DATA_FORMAT_R8G8B8A8_SRGB;
+			decal_atlas.texture_srgb = RD::get_singleton()->texture_create_shared(rd_view, decal_atlas.texture);
+		}
+	}
+
+	RID prev_texture;
+	for (int i = 0; i < decal_atlas.texture_mipmaps.size(); i++) {
+		const DecalAtlas::MipMap &mm = decal_atlas.texture_mipmaps[i];
+
+		Color clear_color(0, 0, 0, 0);
+
+		if (decal_atlas.textures.size()) {
+
+			if (i == 0) {
+				Vector<Color> cc;
+				cc.push_back(clear_color);
+
+				RD::DrawListID draw_list = RD::get_singleton()->draw_list_begin(mm.fb, RD::INITIAL_ACTION_CLEAR, RD::FINAL_ACTION_READ, RD::INITIAL_ACTION_DROP, RD::FINAL_ACTION_DISCARD, cc);
+
+				const RID *K = NULL;
+				while ((K = decal_atlas.textures.next(K))) {
+					DecalAtlas::Texture *t = decal_atlas.textures.getptr(*K);
+					Texture *src_tex = texture_owner.getornull(*K);
+					effects.copy_to_atlas_fb(src_tex->rd_texture, mm.fb, t->uv_rect, draw_list, false, t->panorama_to_dp_users > 0);
+				}
+
+				RD::get_singleton()->draw_list_end();
+
+				prev_texture = mm.texture;
+			} else {
+
+				effects.copy_to_fb_rect(prev_texture, mm.fb, Rect2i(Point2i(), mm.size));
+				prev_texture = mm.texture;
+			}
+		} else {
+			RD::get_singleton()->texture_clear(mm.texture, clear_color, 0, 1, 0, 1, false);
+		}
+	}
+}
+
+int32_t RasterizerStorageRD::_global_variable_allocate(uint32_t p_elements) {
+
+	int32_t idx = 0;
+	while (idx + p_elements <= global_variables.buffer_size) {
+		if (global_variables.buffer_usage[idx].elements == 0) {
+			bool valid = true;
+			for (uint32_t i = 1; i < p_elements; i++) {
+				if (global_variables.buffer_usage[idx + i].elements > 0) {
+					valid = false;
+					idx += i + global_variables.buffer_usage[idx + i].elements;
+					break;
+				}
+			}
+
+			if (!valid) {
+				continue; //if not valid, idx is in new position
+			}
+
+			return idx;
+		} else {
+			idx += global_variables.buffer_usage[idx].elements;
+		}
+	}
+
+	return -1;
+}
+
+void RasterizerStorageRD::_global_variable_store_in_buffer(int32_t p_index, RS::GlobalVariableType p_type, const Variant &p_value) {
+
+	switch (p_type) {
+		case RS::GLOBAL_VAR_TYPE_BOOL: {
+
+			GlobalVariables::Value &bv = global_variables.buffer_values[p_index];
+			bool b = p_value;
+			bv.x = b ? 1.0 : 0.0;
+			bv.y = 0.0;
+			bv.z = 0.0;
+			bv.w = 0.0;
+
+		} break;
+		case RS::GLOBAL_VAR_TYPE_BVEC2: {
+			GlobalVariables::Value &bv = global_variables.buffer_values[p_index];
+			uint32_t bvec = p_value;
+			bv.x = (bvec & 1) ? 1.0 : 0.0;
+			bv.y = (bvec & 2) ? 1.0 : 0.0;
+			bv.z = 0.0;
+			bv.w = 0.0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_BVEC3: {
+			GlobalVariables::Value &bv = global_variables.buffer_values[p_index];
+			uint32_t bvec = p_value;
+			bv.x = (bvec & 1) ? 1.0 : 0.0;
+			bv.y = (bvec & 2) ? 1.0 : 0.0;
+			bv.z = (bvec & 4) ? 1.0 : 0.0;
+			bv.w = 0.0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_BVEC4: {
+			GlobalVariables::Value &bv = global_variables.buffer_values[p_index];
+			uint32_t bvec = p_value;
+			bv.x = (bvec & 1) ? 1.0 : 0.0;
+			bv.y = (bvec & 2) ? 1.0 : 0.0;
+			bv.z = (bvec & 4) ? 1.0 : 0.0;
+			bv.w = (bvec & 8) ? 1.0 : 0.0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_INT: {
+			GlobalVariables::ValueInt &bv = *(GlobalVariables::ValueInt *)&global_variables.buffer_values[p_index];
+			int32_t v = p_value;
+			bv.x = v;
+			bv.y = 0;
+			bv.z = 0;
+			bv.w = 0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_IVEC2: {
+			GlobalVariables::ValueInt &bv = *(GlobalVariables::ValueInt *)&global_variables.buffer_values[p_index];
+			Vector2i v = p_value;
+			bv.x = v.x;
+			bv.y = v.y;
+			bv.z = 0;
+			bv.w = 0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_IVEC3: {
+			GlobalVariables::ValueInt &bv = *(GlobalVariables::ValueInt *)&global_variables.buffer_values[p_index];
+			Vector3i v = p_value;
+			bv.x = v.x;
+			bv.y = v.y;
+			bv.z = v.z;
+			bv.w = 0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_IVEC4: {
+			GlobalVariables::ValueInt &bv = *(GlobalVariables::ValueInt *)&global_variables.buffer_values[p_index];
+			Vector<int32_t> v = p_value;
+			bv.x = v.size() >= 1 ? v[0] : 0;
+			bv.y = v.size() >= 2 ? v[1] : 0;
+			bv.z = v.size() >= 3 ? v[2] : 0;
+			bv.w = v.size() >= 4 ? v[3] : 0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_RECT2I: {
+			GlobalVariables::ValueInt &bv = *(GlobalVariables::ValueInt *)&global_variables.buffer_values[p_index];
+			Rect2i v = p_value;
+			bv.x = v.position.x;
+			bv.y = v.position.y;
+			bv.z = v.size.x;
+			bv.w = v.size.y;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_UINT: {
+			GlobalVariables::ValueUInt &bv = *(GlobalVariables::ValueUInt *)&global_variables.buffer_values[p_index];
+			uint32_t v = p_value;
+			bv.x = v;
+			bv.y = 0;
+			bv.z = 0;
+			bv.w = 0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_UVEC2: {
+			GlobalVariables::ValueUInt &bv = *(GlobalVariables::ValueUInt *)&global_variables.buffer_values[p_index];
+			Vector2i v = p_value;
+			bv.x = v.x;
+			bv.y = v.y;
+			bv.z = 0;
+			bv.w = 0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_UVEC3: {
+			GlobalVariables::ValueUInt &bv = *(GlobalVariables::ValueUInt *)&global_variables.buffer_values[p_index];
+			Vector3i v = p_value;
+			bv.x = v.x;
+			bv.y = v.y;
+			bv.z = v.z;
+			bv.w = 0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_UVEC4: {
+			GlobalVariables::ValueUInt &bv = *(GlobalVariables::ValueUInt *)&global_variables.buffer_values[p_index];
+			Vector<int32_t> v = p_value;
+			bv.x = v.size() >= 1 ? v[0] : 0;
+			bv.y = v.size() >= 2 ? v[1] : 0;
+			bv.z = v.size() >= 3 ? v[2] : 0;
+			bv.w = v.size() >= 4 ? v[3] : 0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_FLOAT: {
+			GlobalVariables::Value &bv = global_variables.buffer_values[p_index];
+			float v = p_value;
+			bv.x = v;
+			bv.y = 0;
+			bv.z = 0;
+			bv.w = 0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_VEC2: {
+			GlobalVariables::Value &bv = global_variables.buffer_values[p_index];
+			Vector2 v = p_value;
+			bv.x = v.x;
+			bv.y = v.y;
+			bv.z = 0;
+			bv.w = 0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_VEC3: {
+			GlobalVariables::Value &bv = global_variables.buffer_values[p_index];
+			Vector3 v = p_value;
+			bv.x = v.x;
+			bv.y = v.y;
+			bv.z = v.z;
+			bv.w = 0;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_VEC4: {
+			GlobalVariables::Value &bv = global_variables.buffer_values[p_index];
+			Plane v = p_value;
+			bv.x = v.normal.x;
+			bv.y = v.normal.y;
+			bv.z = v.normal.z;
+			bv.w = v.d;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_COLOR: {
+			GlobalVariables::Value &bv = global_variables.buffer_values[p_index];
+			Color v = p_value;
+			bv.x = v.r;
+			bv.y = v.g;
+			bv.z = v.b;
+			bv.w = v.a;
+
+			GlobalVariables::Value &bv_linear = global_variables.buffer_values[p_index + 1];
+			v = v.to_linear();
+			bv_linear.x = v.r;
+			bv_linear.y = v.g;
+			bv_linear.z = v.b;
+			bv_linear.w = v.a;
+
+		} break;
+		case RS::GLOBAL_VAR_TYPE_RECT2: {
+			GlobalVariables::Value &bv = global_variables.buffer_values[p_index];
+			Rect2 v = p_value;
+			bv.x = v.position.x;
+			bv.y = v.position.y;
+			bv.z = v.size.x;
+			bv.w = v.size.y;
+		} break;
+		case RS::GLOBAL_VAR_TYPE_MAT2: {
+			GlobalVariables::Value *bv = &global_variables.buffer_values[p_index];
+			Vector<float> m2 = p_value;
+			if (m2.size() < 4) {
+				m2.resize(4);
+			}
+			bv[0].x = m2[0];
+			bv[0].y = m2[1];
+			bv[0].z = 0;
+			bv[0].w = 0;
+
+			bv[1].x = m2[2];
+			bv[1].y = m2[3];
+			bv[1].z = 0;
+			bv[1].w = 0;
+
+		} break;
+		case RS::GLOBAL_VAR_TYPE_MAT3: {
+
+			GlobalVariables::Value *bv = &global_variables.buffer_values[p_index];
+			Basis v = p_value;
+			bv[0].x = v.elements[0][0];
+			bv[0].y = v.elements[1][0];
+			bv[0].z = v.elements[2][0];
+			bv[0].w = 0;
+
+			bv[1].x = v.elements[0][1];
+			bv[1].y = v.elements[1][1];
+			bv[1].z = v.elements[2][1];
+			bv[1].w = 0;
+
+			bv[2].x = v.elements[0][2];
+			bv[2].y = v.elements[1][2];
+			bv[2].z = v.elements[2][2];
+			bv[2].w = 0;
+
+		} break;
+		case RS::GLOBAL_VAR_TYPE_MAT4: {
+
+			GlobalVariables::Value *bv = &global_variables.buffer_values[p_index];
+
+			Vector<float> m2 = p_value;
+			if (m2.size() < 16) {
+				m2.resize(16);
+			}
+
+			bv[0].x = m2[0];
+			bv[0].y = m2[1];
+			bv[0].z = m2[2];
+			bv[0].w = m2[3];
+
+			bv[1].x = m2[4];
+			bv[1].y = m2[5];
+			bv[1].z = m2[6];
+			bv[1].w = m2[7];
+
+			bv[2].x = m2[8];
+			bv[2].y = m2[9];
+			bv[2].z = m2[10];
+			bv[2].w = m2[11];
+
+			bv[3].x = m2[12];
+			bv[3].y = m2[13];
+			bv[3].z = m2[14];
+			bv[3].w = m2[15];
+
+		} break;
+		case RS::GLOBAL_VAR_TYPE_TRANSFORM_2D: {
+
+			GlobalVariables::Value *bv = &global_variables.buffer_values[p_index];
+			Transform2D v = p_value;
+			bv[0].x = v.elements[0][0];
+			bv[0].y = v.elements[0][1];
+			bv[0].z = 0;
+			bv[0].w = 0;
+
+			bv[1].x = v.elements[1][0];
+			bv[1].y = v.elements[1][1];
+			bv[1].z = 0;
+			bv[1].w = 0;
+
+			bv[2].x = v.elements[2][0];
+			bv[2].y = v.elements[2][1];
+			bv[2].z = 1;
+			bv[2].w = 0;
+
+		} break;
+		case RS::GLOBAL_VAR_TYPE_TRANSFORM: {
+
+			GlobalVariables::Value *bv = &global_variables.buffer_values[p_index];
+			Transform v = p_value;
+			bv[0].x = v.basis.elements[0][0];
+			bv[0].y = v.basis.elements[1][0];
+			bv[0].z = v.basis.elements[2][0];
+			bv[0].w = 0;
+
+			bv[1].x = v.basis.elements[0][1];
+			bv[1].y = v.basis.elements[1][1];
+			bv[1].z = v.basis.elements[2][1];
+			bv[1].w = 0;
+
+			bv[2].x = v.basis.elements[0][2];
+			bv[2].y = v.basis.elements[1][2];
+			bv[2].z = v.basis.elements[2][2];
+			bv[2].w = 0;
+
+			bv[2].x = v.origin.x;
+			bv[2].y = v.origin.y;
+			bv[2].z = v.origin.z;
+			bv[2].w = 1;
+
+		} break;
+		default: {
+			ERR_FAIL();
+		}
+	}
+}
+
+void RasterizerStorageRD::_global_variable_mark_buffer_dirty(int32_t p_index, int32_t p_elements) {
+
+	int32_t prev_chunk = -1;
+
+	for (int32_t i = 0; i < p_elements; i++) {
+		int32_t chunk = (p_index + i) / GlobalVariables::BUFFER_DIRTY_REGION_SIZE;
+		if (chunk != prev_chunk) {
+			if (!global_variables.buffer_dirty_regions[chunk]) {
+				global_variables.buffer_dirty_regions[chunk] = true;
+				global_variables.buffer_dirty_region_count++;
+			}
+		}
+
+		prev_chunk = chunk;
+	}
+}
+
+void RasterizerStorageRD::global_variable_add(const StringName &p_name, RS::GlobalVariableType p_type, const Variant &p_value) {
+
+	ERR_FAIL_COND(global_variables.variables.has(p_name));
+	GlobalVariables::Variable gv;
+	gv.type = p_type;
+	gv.value = p_value;
+	gv.buffer_index = -1;
+
+	if (p_type >= RS::GLOBAL_VAR_TYPE_SAMPLER2D) {
+		//is texture
+		global_variables.must_update_texture_materials = true; //normally ther are no
+	} else {
+
+		gv.buffer_elements = 1;
+		if (p_type == RS::GLOBAL_VAR_TYPE_COLOR || p_type == RS::GLOBAL_VAR_TYPE_MAT2) {
+			//color needs to elements to store srgb and linear
+			gv.buffer_elements = 2;
+		}
+		if (p_type == RS::GLOBAL_VAR_TYPE_MAT3 || p_type == RS::GLOBAL_VAR_TYPE_TRANSFORM_2D) {
+			//color needs to elements to store srgb and linear
+			gv.buffer_elements = 3;
+		}
+		if (p_type == RS::GLOBAL_VAR_TYPE_MAT4 || p_type == RS::GLOBAL_VAR_TYPE_TRANSFORM) {
+			//color needs to elements to store srgb and linear
+			gv.buffer_elements = 4;
+		}
+
+		//is vector, allocate in buffer and update index
+		gv.buffer_index = _global_variable_allocate(gv.buffer_elements);
+		ERR_FAIL_COND_MSG(gv.buffer_index < 0, vformat("Failed allocating global variable '%s' out of buffer memory. Consider increasing it in the Project Settings.", String(p_name)));
+		global_variables.buffer_usage[gv.buffer_index].elements = gv.buffer_elements;
+		_global_variable_store_in_buffer(gv.buffer_index, gv.type, gv.value);
+		_global_variable_mark_buffer_dirty(gv.buffer_index, gv.buffer_elements);
+
+		global_variables.must_update_buffer_materials = true; //normally ther are no
+	}
+
+	global_variables.variables[p_name] = gv;
+}
+
+void RasterizerStorageRD::global_variable_remove(const StringName &p_name) {
+	if (!global_variables.variables.has(p_name)) {
+		return;
+	}
+	GlobalVariables::Variable &gv = global_variables.variables[p_name];
+
+	if (gv.buffer_index >= 0) {
+		global_variables.buffer_usage[gv.buffer_index].elements = 0;
+		global_variables.must_update_buffer_materials = true;
+	} else {
+		global_variables.must_update_texture_materials = true;
+	}
+
+	global_variables.variables.erase(p_name);
+}
+Vector<StringName> RasterizerStorageRD::global_variable_get_list() const {
+
+	if (!Engine::get_singleton()->is_editor_hint()) {
+		ERR_FAIL_V_MSG(Vector<StringName>(), "This function should never be used outside the editor, it can severely damage performance.");
+	}
+
+	const StringName *K = NULL;
+	Vector<StringName> names;
+	while ((K = global_variables.variables.next(K))) {
+		names.push_back(*K);
+	}
+	names.sort_custom<StringName::AlphCompare>();
+	return names;
+}
+
+void RasterizerStorageRD::global_variable_set(const StringName &p_name, const Variant &p_value) {
+	ERR_FAIL_COND(!global_variables.variables.has(p_name));
+	GlobalVariables::Variable &gv = global_variables.variables[p_name];
+	gv.value = p_value;
+	if (gv.override.get_type() == Variant::NIL) {
+		if (gv.buffer_index >= 0) {
+			//buffer
+			_global_variable_store_in_buffer(gv.buffer_index, gv.type, gv.value);
+			_global_variable_mark_buffer_dirty(gv.buffer_index, gv.buffer_elements);
+		} else {
+			//texture
+			for (Set<RID>::Element *E = gv.texture_materials.front(); E; E = E->next()) {
+				Material *material = material_owner.getornull(E->get());
+				ERR_CONTINUE(!material);
+				_material_queue_update(material, false, true);
+			}
+		}
+	}
+}
+void RasterizerStorageRD::global_variable_set_override(const StringName &p_name, const Variant &p_value) {
+	if (!global_variables.variables.has(p_name)) {
+		return; //variable may not exist
+	}
+	GlobalVariables::Variable &gv = global_variables.variables[p_name];
+
+	gv.override = p_value;
+
+	if (gv.buffer_index >= 0) {
+		//buffer
+		if (gv.override.get_type() == Variant::NIL) {
+			_global_variable_store_in_buffer(gv.buffer_index, gv.type, gv.value);
+		} else {
+			_global_variable_store_in_buffer(gv.buffer_index, gv.type, gv.override);
+		}
+
+		_global_variable_mark_buffer_dirty(gv.buffer_index, gv.buffer_elements);
+	} else {
+		//texture
+		//texture
+		for (Set<RID>::Element *E = gv.texture_materials.front(); E; E = E->next()) {
+			Material *material = material_owner.getornull(E->get());
+			ERR_CONTINUE(!material);
+			_material_queue_update(material, false, true);
+		}
+	}
+}
+
+Variant RasterizerStorageRD::global_variable_get(const StringName &p_name) const {
+
+	if (!Engine::get_singleton()->is_editor_hint()) {
+		ERR_FAIL_V_MSG(Variant(), "This function should never be used outside the editor, it can severely damage performance.");
+	}
+
+	if (!global_variables.variables.has(p_name)) {
+		return Variant();
+	}
+
+	return global_variables.variables[p_name].value;
+}
+
+RS::GlobalVariableType RasterizerStorageRD::global_variable_get_type_internal(const StringName &p_name) const {
+
+	if (!global_variables.variables.has(p_name)) {
+		return RS::GLOBAL_VAR_TYPE_MAX;
+	}
+
+	return global_variables.variables[p_name].type;
+}
+
+RS::GlobalVariableType RasterizerStorageRD::global_variable_get_type(const StringName &p_name) const {
+	if (!Engine::get_singleton()->is_editor_hint()) {
+		ERR_FAIL_V_MSG(RS::GLOBAL_VAR_TYPE_MAX, "This function should never be used outside the editor, it can severely damage performance.");
+	}
+
+	return global_variable_get_type_internal(p_name);
+}
+
+void RasterizerStorageRD::global_variables_load_settings(bool p_load_textures) {
+
+	List<PropertyInfo> settings;
+	ProjectSettings::get_singleton()->get_property_list(&settings);
+
+	for (List<PropertyInfo>::Element *E = settings.front(); E; E = E->next()) {
+		if (E->get().name.begins_with("shader_globals/")) {
+			StringName name = E->get().name.get_slice("/", 1);
+			Dictionary d = ProjectSettings::get_singleton()->get(E->get().name);
+
+			ERR_CONTINUE(!d.has("type"));
+			ERR_CONTINUE(!d.has("value"));
+
+			String type = d["type"];
+
+			static const char *global_var_type_names[RS::GLOBAL_VAR_TYPE_MAX] = {
+				"bool",
+				"bvec2",
+				"bvec3",
+				"bvec4",
+				"int",
+				"ivec2",
+				"ivec3",
+				"ivec4",
+				"rect2i",
+				"uint",
+				"uvec2",
+				"uvec3",
+				"uvec4",
+				"float",
+				"vec2",
+				"vec3",
+				"vec4",
+				"color",
+				"rect2",
+				"mat2",
+				"mat3",
+				"mat4",
+				"transform_2d",
+				"transform",
+				"sampler2D",
+				"sampler2DArray",
+				"sampler3D",
+				"samplerCube",
+			};
+
+			RS::GlobalVariableType gvtype = RS::GLOBAL_VAR_TYPE_MAX;
+
+			for (int i = 0; i < RS::GLOBAL_VAR_TYPE_MAX; i++) {
+				if (global_var_type_names[i] == type) {
+					gvtype = RS::GlobalVariableType(i);
+					break;
+				}
+			}
+
+			ERR_CONTINUE(gvtype == RS::GLOBAL_VAR_TYPE_MAX); //type invalid
+
+			Variant value = d["value"];
+
+			if (gvtype >= RS::GLOBAL_VAR_TYPE_SAMPLER2D) {
+				//textire
+				if (!p_load_textures) {
+					value = RID();
+					continue;
+				}
+
+				String path = value;
+				RES resource = ResourceLoader::load(path);
+				ERR_CONTINUE(resource.is_null());
+				value = resource;
+			}
+
+			if (global_variables.variables.has(name)) {
+				//has it, update it
+				global_variable_set(name, value);
+			} else {
+				global_variable_add(name, gvtype, value);
+			}
+		}
+	}
+}
+
+void RasterizerStorageRD::global_variables_clear() {
+	global_variables.variables.clear(); //not right but for now enough
+}
+
+RID RasterizerStorageRD::global_variables_get_storage_buffer() const {
+	return global_variables.buffer;
+}
+
+int32_t RasterizerStorageRD::global_variables_instance_allocate(RID p_instance) {
+	ERR_FAIL_COND_V(global_variables.instance_buffer_pos.has(p_instance), -1);
+	int32_t pos = _global_variable_allocate(ShaderLanguage::MAX_INSTANCE_UNIFORM_INDICES);
+	global_variables.instance_buffer_pos[p_instance] = pos; //save anyway
+	ERR_FAIL_COND_V_MSG(pos < 0, -1, "Too many instances using shader instance variables. Increase buffer size in Project Settings.");
+	global_variables.buffer_usage[pos].elements = ShaderLanguage::MAX_INSTANCE_UNIFORM_INDICES;
+	return pos;
+}
+
+void RasterizerStorageRD::global_variables_instance_free(RID p_instance) {
+	ERR_FAIL_COND(!global_variables.instance_buffer_pos.has(p_instance));
+	int32_t pos = global_variables.instance_buffer_pos[p_instance];
+	if (pos >= 0) {
+		global_variables.buffer_usage[pos].elements = 0;
+	}
+	global_variables.instance_buffer_pos.erase(p_instance);
+}
+void RasterizerStorageRD::global_variables_instance_update(RID p_instance, int p_index, const Variant &p_value) {
+
+	if (!global_variables.instance_buffer_pos.has(p_instance)) {
+		return; //just not allocated, ignore
+	}
+	int32_t pos = global_variables.instance_buffer_pos[p_instance];
+
+	if (pos < 0) {
+		return; //again, not allocated, ignore
+	}
+	ERR_FAIL_INDEX(p_index, ShaderLanguage::MAX_INSTANCE_UNIFORM_INDICES);
+	ERR_FAIL_COND_MSG(p_value.get_type() > Variant::COLOR, "Unsupported variant type for instance parameter: " + Variant::get_type_name(p_value.get_type())); //anything greater not supported
+
+	ShaderLanguage::DataType datatype_from_value[Variant::COLOR + 1] = {
+		ShaderLanguage::TYPE_MAX, //nil
+		ShaderLanguage::TYPE_BOOL, //bool
+		ShaderLanguage::TYPE_INT, //int
+		ShaderLanguage::TYPE_FLOAT, //float
+		ShaderLanguage::TYPE_MAX, //string
+		ShaderLanguage::TYPE_VEC2, //vec2
+		ShaderLanguage::TYPE_IVEC2, //vec2i
+		ShaderLanguage::TYPE_VEC4, //rect2
+		ShaderLanguage::TYPE_IVEC4, //rect2i
+		ShaderLanguage::TYPE_VEC3, // vec3
+		ShaderLanguage::TYPE_IVEC3, //vec3i
+		ShaderLanguage::TYPE_MAX, //xform2d not supported here
+		ShaderLanguage::TYPE_VEC4, //plane
+		ShaderLanguage::TYPE_VEC4, //quat
+		ShaderLanguage::TYPE_MAX, //aabb not supported here
+		ShaderLanguage::TYPE_MAX, //basis not supported here
+		ShaderLanguage::TYPE_MAX, //xform not supported here
+		ShaderLanguage::TYPE_VEC4 //color
+	};
+
+	ShaderLanguage::DataType datatype = datatype_from_value[p_value.get_type()];
+
+	ERR_FAIL_COND_MSG(datatype == ShaderLanguage::TYPE_MAX, "Unsupported variant type for instance parameter: " + Variant::get_type_name(p_value.get_type())); //anything greater not supported
+
+	pos += p_index;
+
+	_fill_std140_variant_ubo_value(datatype, p_value, (uint8_t *)&global_variables.buffer_values[pos], true); //instances always use linear color in this renderer
+	_global_variable_mark_buffer_dirty(pos, 1);
+}
+
+void RasterizerStorageRD::_update_global_variables() {
+
+	if (global_variables.buffer_dirty_region_count > 0) {
+		uint32_t total_regions = global_variables.buffer_size / GlobalVariables::BUFFER_DIRTY_REGION_SIZE;
+		if (total_regions / global_variables.buffer_dirty_region_count <= 4) {
+			// 25% of regions dirty, just update all buffer
+			RD::get_singleton()->buffer_update(global_variables.buffer, 0, sizeof(GlobalVariables::Value) * global_variables.buffer_size, global_variables.buffer_values);
+			zeromem(global_variables.buffer_dirty_regions, sizeof(bool) * total_regions);
+		} else {
+			uint32_t region_byte_size = sizeof(GlobalVariables::Value) * GlobalVariables::BUFFER_DIRTY_REGION_SIZE;
+
+			for (uint32_t i = 0; i < total_regions; i++) {
+				if (global_variables.buffer_dirty_regions[i]) {
+
+					RD::get_singleton()->buffer_update(global_variables.buffer, i * region_byte_size, region_byte_size, global_variables.buffer_values);
+
+					global_variables.buffer_dirty_regions[i] = false;
+				}
+			}
+		}
+
+		global_variables.buffer_dirty_region_count = 0;
+	}
+
+	if (global_variables.must_update_buffer_materials) {
+		// only happens in the case of a buffer variable added or removed,
+		// so not often.
+		for (List<RID>::Element *E = global_variables.materials_using_buffer.front(); E; E = E->next()) {
+			Material *material = material_owner.getornull(E->get());
+			ERR_CONTINUE(!material); //wtf
+
+			_material_queue_update(material, true, false);
+		}
+
+		global_variables.must_update_buffer_materials = false;
+	}
+
+	if (global_variables.must_update_texture_materials) {
+		// only happens in the case of a buffer variable added or removed,
+		// so not often.
+		for (List<RID>::Element *E = global_variables.materials_using_texture.front(); E; E = E->next()) {
+			Material *material = material_owner.getornull(E->get());
+			ERR_CONTINUE(!material); //wtf
+
+			_material_queue_update(material, false, true);
+			print_line("update material texture?");
+		}
+
+		global_variables.must_update_texture_materials = false;
+	}
+}
+
 void RasterizerStorageRD::update_dirty_resources() {
+	_update_global_variables(); //must do before materials, so it can queue them for update
 	_update_queued_materials();
 	_update_dirty_multimeshes();
 	_update_dirty_skeletons();
+	_update_decal_atlas();
 }
 
 bool RasterizerStorageRD::has_os_feature(const String &p_feature) const {
@@ -4337,6 +5494,11 @@ bool RasterizerStorageRD::free(RID p_rid) {
 			if (proxy_to) {
 				proxy_to->proxies.erase(p_rid);
 			}
+		}
+
+		if (decal_atlas.textures.has(p_rid)) {
+			decal_atlas.textures.erase(p_rid);
+			//there is not much a point of making it dirty, just let it be.
 		}
 
 		for (int i = 0; i < t->proxies.size(); i++) {
@@ -4389,6 +5551,15 @@ bool RasterizerStorageRD::free(RID p_rid) {
 		ReflectionProbe *reflection_probe = reflection_probe_owner.getornull(p_rid);
 		reflection_probe->instance_dependency.instance_notify_deleted(p_rid);
 		reflection_probe_owner.free(p_rid);
+	} else if (decal_owner.owns(p_rid)) {
+		Decal *decal = decal_owner.getornull(p_rid);
+		for (int i = 0; i < RS::DECAL_TEXTURE_MAX; i++) {
+			if (decal->textures[i].is_valid() && texture_owner.owns(decal->textures[i])) {
+				texture_remove_from_decal_atlas(decal->textures[i]);
+			}
+		}
+		decal->instance_dependency.instance_notify_deleted(p_rid);
+		decal_owner.free(p_rid);
 	} else if (gi_probe_owner.owns(p_rid)) {
 		gi_probe_allocate(p_rid, Transform(), AABB(), Vector3i(), Vector<uint8_t>(), Vector<uint8_t>(), Vector<uint8_t>(), Vector<int>()); //deallocate
 		GIProbe *gi_probe = gi_probe_owner.getornull(p_rid);
@@ -4397,6 +5568,7 @@ bool RasterizerStorageRD::free(RID p_rid) {
 
 	} else if (light_owner.owns(p_rid)) {
 
+		light_set_projector(p_rid, RID()); //clear projector
 		// delete the texture
 		Light *light = light_owner.getornull(p_rid);
 		light->instance_dependency.instance_notify_deleted(p_rid);
@@ -4450,11 +5622,26 @@ String RasterizerStorageRD::get_captured_timestamp_name(uint32_t p_index) const 
 	return RD::get_singleton()->get_captured_timestamp_name(p_index);
 }
 
+RasterizerStorageRD *RasterizerStorageRD::base_singleton = nullptr;
+
 RasterizerStorageRD::RasterizerStorageRD() {
+
+	base_singleton = this;
 
 	for (int i = 0; i < SHADER_TYPE_MAX; i++) {
 		shader_data_request_func[i] = nullptr;
 	}
+
+	static_assert(sizeof(GlobalVariables::Value) == 16);
+
+	global_variables.buffer_size = GLOBAL_GET("rendering/high_end/global_shader_variables_buffer_size");
+	global_variables.buffer_size = MAX(4096, global_variables.buffer_size);
+	global_variables.buffer_values = memnew_arr(GlobalVariables::Value, global_variables.buffer_size);
+	zeromem(global_variables.buffer_values, sizeof(GlobalVariables::Value) * global_variables.buffer_size);
+	global_variables.buffer_usage = memnew_arr(GlobalVariables::ValueUsage, global_variables.buffer_size);
+	global_variables.buffer_dirty_regions = memnew_arr(bool, global_variables.buffer_size / GlobalVariables::BUFFER_DIRTY_REGION_SIZE);
+	zeromem(global_variables.buffer_dirty_regions, sizeof(bool) * global_variables.buffer_size / GlobalVariables::BUFFER_DIRTY_REGION_SIZE);
+	global_variables.buffer = RD::get_singleton()->storage_buffer_create(sizeof(GlobalVariables::Value) * global_variables.buffer_size);
 
 	material_update_list = nullptr;
 	{ //create default textures
@@ -4492,6 +5679,10 @@ RasterizerStorageRD::RasterizerStorageRD() {
 			Vector<Vector<uint8_t>> vpv;
 			vpv.push_back(pv);
 			default_rd_textures[DEFAULT_RD_TEXTURE_BLACK] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+
+			//take the chance and initialize decal atlas to something
+			decal_atlas.texture = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			decal_atlas.texture_srgb = decal_atlas.texture;
 		}
 
 		for (int i = 0; i < 16; i++) {
@@ -4644,14 +5835,14 @@ RasterizerStorageRD::RasterizerStorageRD() {
 					sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
 					sampler_state.mip_filter = RD::SAMPLER_FILTER_LINEAR;
 					sampler_state.use_anisotropy = true;
-					sampler_state.anisotropy_max = GLOBAL_GET("rendering/quality/filters/max_anisotropy");
+					sampler_state.anisotropy_max = GLOBAL_GET("rendering/quality/texture_filters/max_anisotropy");
 				} break;
 				case RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC: {
 					sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
 					sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
 					sampler_state.mip_filter = RD::SAMPLER_FILTER_LINEAR;
 					sampler_state.use_anisotropy = true;
-					sampler_state.anisotropy_max = GLOBAL_GET("rendering/quality/filters/max_anisotropy");
+					sampler_state.anisotropy_max = GLOBAL_GET("rendering/quality/texture_filters/max_anisotropy");
 
 				} break;
 				default: {
@@ -4683,9 +5874,11 @@ RasterizerStorageRD::RasterizerStorageRD() {
 	//default rd buffers
 	{
 
-		{ //vertex
+		//vertex
+		{
 
 				Vector<uint8_t> buffer;
+
 	buffer.resize(sizeof(float) * 3);
 	{
 		uint8_t *w = buffer.ptrw();
@@ -4803,6 +5996,11 @@ RasterizerStorageRD::RasterizerStorageRD() {
 
 RasterizerStorageRD::~RasterizerStorageRD() {
 
+	memdelete_arr(global_variables.buffer_values);
+	memdelete_arr(global_variables.buffer_usage);
+	memdelete_arr(global_variables.buffer_dirty_regions);
+	RD::get_singleton()->free(global_variables.buffer);
+
 	//def textures
 	for (int i = 0; i < DEFAULT_RD_TEXTURE_MAX; i++) {
 		RD::get_singleton()->free(default_rd_textures[i]);
@@ -4820,4 +6018,12 @@ RasterizerStorageRD::~RasterizerStorageRD() {
 		RD::get_singleton()->free(mesh_default_rd_buffers[i]);
 	}
 	giprobe_sdf_shader.version_free(giprobe_sdf_shader_version);
+
+	if (decal_atlas.textures.size()) {
+		ERR_PRINT("Decal Atlas: " + itos(decal_atlas.textures.size()) + " textures were not removed from the atlas.");
+	}
+
+	if (decal_atlas.texture.is_valid()) {
+		RD::get_singleton()->free(decal_atlas.texture);
+	}
 }

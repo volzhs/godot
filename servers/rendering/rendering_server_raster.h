@@ -98,6 +98,8 @@ public:
 
 #define BIND0R(m_r, m_name) \
 	m_r m_name() { return BINDBASE->m_name(); }
+#define BIND0RC(m_r, m_name) \
+	m_r m_name() const { return BINDBASE->m_name(); }
 #define BIND1R(m_r, m_name, m_type1) \
 	m_r m_name(m_type1 arg1) { return BINDBASE->m_name(arg1); }
 #define BIND1RC(m_r, m_name, m_type1) \
@@ -111,8 +113,12 @@ public:
 #define BIND4RC(m_r, m_name, m_type1, m_type2, m_type3, m_type4) \
 	m_r m_name(m_type1 arg1, m_type2 arg2, m_type3 arg3, m_type4 arg4) const { return BINDBASE->m_name(arg1, arg2, arg3, arg4); }
 
+#define BIND0(m_name) \
+	void m_name() { DISPLAY_CHANGED BINDBASE->m_name(); }
 #define BIND1(m_name, m_type1) \
 	void m_name(m_type1 arg1) { DISPLAY_CHANGED BINDBASE->m_name(arg1); }
+#define BIND1C(m_name, m_type1) \
+	void m_name(m_type1 arg1) const { DISPLAY_CHANGED BINDBASE->m_name(arg1); }
 #define BIND2(m_name, m_type1, m_type2) \
 	void m_name(m_type1 arg1, m_type2 arg2) { DISPLAY_CHANGED BINDBASE->m_name(arg1, arg2); }
 #define BIND2C(m_name, m_type1, m_type2) \
@@ -340,6 +346,20 @@ public:
 	BIND2(reflection_probe_set_cull_mask, RID, uint32_t)
 	BIND2(reflection_probe_set_resolution, RID, int)
 
+	/* DECAL API */
+
+	BIND0R(RID, decal_create)
+
+	BIND2(decal_set_extents, RID, const Vector3 &)
+	BIND3(decal_set_texture, RID, DecalTexture, RID)
+	BIND2(decal_set_emission_energy, RID, float)
+	BIND2(decal_set_albedo_mix, RID, float)
+	BIND2(decal_set_modulate, RID, const Color &)
+	BIND2(decal_set_cull_mask, RID, uint32_t)
+	BIND4(decal_set_distance_fade, RID, bool, float, float)
+	BIND3(decal_set_fade, RID, float, float)
+	BIND2(decal_set_normal_fade, RID, float)
+
 	/* BAKED LIGHT API */
 
 	BIND0R(RID, gi_probe_create)
@@ -456,7 +476,7 @@ public:
 
 	BIND0R(RID, viewport_create)
 
-	BIND2(viewport_set_use_arvr, RID, bool)
+	BIND2(viewport_set_use_xr, RID, bool)
 	BIND3(viewport_set_size, RID, int, int)
 
 	BIND2(viewport_set_active, RID, bool)
@@ -489,9 +509,14 @@ public:
 	BIND2(viewport_set_shadow_atlas_size, RID, int)
 	BIND3(viewport_set_shadow_atlas_quadrant_subdivision, RID, int, int)
 	BIND2(viewport_set_msaa, RID, ViewportMSAA)
+	BIND2(viewport_set_screen_space_aa, RID, ViewportScreenSpaceAA)
 
 	BIND2R(int, viewport_get_render_info, RID, ViewportRenderInfo)
 	BIND2(viewport_set_debug_draw, RID, ViewportDebugDraw)
+
+	BIND2(viewport_set_measure_render_time, RID, bool)
+	BIND1RC(float, viewport_get_measured_render_time_cpu, RID)
+	BIND1RC(float, viewport_get_measured_render_time_gpu, RID)
 
 	/* ENVIRONMENT API */
 
@@ -523,7 +548,9 @@ public:
 #if 0
 	BIND2(environment_set_camera_feed_id, RID, int)
 #endif
-	BIND7(environment_set_ssr, RID, bool, int, float, float, float, bool)
+	BIND6(environment_set_ssr, RID, bool, int, float, float, float)
+	BIND1(environment_set_ssr_roughness_quality, EnvironmentSSRRoughnessQuality)
+
 	BIND9(environment_set_ssao, RID, bool, float, float, float, float, float, EnvironmentSSAOBlur, float)
 	BIND2(environment_set_ssao_quality, EnvironmentSSAOQuality, bool)
 
@@ -539,6 +566,8 @@ public:
 	BIND5(environment_set_fog_height, RID, bool, float, float, float)
 
 	BIND2(screen_space_roughness_limiter_set_active, bool, float)
+	BIND1(sub_surface_scattering_set_quality, SubSurfaceScatteringQuality)
+	BIND2(sub_surface_scattering_set_scale, float, float)
 
 	/* CAMERA EFFECTS */
 
@@ -549,6 +578,9 @@ public:
 
 	BIND8(camera_effects_set_dof_blur, RID, bool, float, float, bool, float, float, float)
 	BIND3(camera_effects_set_custom_exposure, RID, bool, float)
+
+	BIND1(shadows_quality_set, ShadowQuality);
+	BIND1(directional_shadow_quality_set, ShadowQuality);
 
 	/* SCENARIO API */
 
@@ -593,6 +625,11 @@ public:
 
 	BIND5(instance_geometry_set_draw_range, RID, float, float, float, float)
 	BIND2(instance_geometry_set_as_instance_lod, RID, RID)
+
+	BIND3(instance_geometry_set_shader_parameter, RID, const StringName &, const Variant &)
+	BIND2RC(Variant, instance_geometry_get_shader_parameter, RID, const StringName &)
+	BIND2RC(Variant, instance_geometry_get_shader_parameter_default_value, RID, const StringName &)
+	BIND2C(instance_geometry_get_shader_parameter_list, RID, List<PropertyInfo> *)
 
 #undef BINDBASE
 //from now on, calls forwarded to this singleton
@@ -690,6 +727,23 @@ public:
 	BIND2(canvas_occluder_polygon_set_shape_as_lines, RID, const Vector<Vector2> &)
 
 	BIND2(canvas_occluder_polygon_set_cull_mode, RID, CanvasOccluderPolygonCullMode)
+
+	/* GLOBAL VARIABLES */
+
+#undef BINDBASE
+//from now on, calls forwarded to this singleton
+#define BINDBASE RSG::storage
+
+	BIND3(global_variable_add, const StringName &, GlobalVariableType, const Variant &)
+	BIND1(global_variable_remove, const StringName &)
+	BIND0RC(Vector<StringName>, global_variable_get_list)
+	BIND2(global_variable_set, const StringName &, const Variant &)
+	BIND2(global_variable_set_override, const StringName &, const Variant &)
+	BIND1RC(GlobalVariableType, global_variable_get_type, const StringName &)
+	BIND1RC(Variant, global_variable_get, const StringName &)
+
+	BIND1(global_variables_load_settings, bool)
+	BIND0(global_variables_clear)
 
 	/* BLACK BARS */
 

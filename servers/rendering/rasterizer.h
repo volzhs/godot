@@ -79,7 +79,9 @@ public:
 	virtual void environment_glow_set_use_bicubic_upscale(bool p_enable) = 0;
 	virtual void environment_set_fog(RID p_env, bool p_enable, float p_begin, float p_end, RID p_gradient_texture) = 0;
 
-	virtual void environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_int, float p_fade_out, float p_depth_tolerance, bool p_roughness) = 0;
+	virtual void environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_int, float p_fade_out, float p_depth_tolerance) = 0;
+	virtual void environment_set_ssr_roughness_quality(RS::EnvironmentSSRRoughnessQuality p_quality) = 0;
+
 	virtual void environment_set_ssao(RID p_env, bool p_enable, float p_radius, float p_intensity, float p_bias, float p_light_affect, float p_ao_channel_affect, RS::EnvironmentSSAOBlur p_blur, float p_bilateral_sharpness) = 0;
 
 	virtual void environment_set_ssao_quality(RS::EnvironmentSSAOQuality p_quality, bool p_half_size) = 0;
@@ -104,10 +106,12 @@ public:
 	virtual void camera_effects_set_dof_blur(RID p_camera_effects, bool p_far_enable, float p_far_distance, float p_far_transition, bool p_near_enable, float p_near_distance, float p_near_transition, float p_amount) = 0;
 	virtual void camera_effects_set_custom_exposure(RID p_camera_effects, bool p_enable, float p_exposure) = 0;
 
+	virtual void shadows_quality_set(RS::ShadowQuality p_quality) = 0;
+	virtual void directional_shadow_quality_set(RS::ShadowQuality p_quality) = 0;
+
 	struct InstanceBase;
 
 	struct InstanceDependency {
-
 		void instance_notify_changed(bool p_aabb, bool p_dependencies);
 		void instance_notify_deleted(RID p_deleted);
 
@@ -119,7 +123,6 @@ public:
 	};
 
 	struct InstanceBase {
-
 		RS::InstanceType base_type;
 		RID base;
 
@@ -163,6 +166,17 @@ public:
 
 		AABB aabb;
 		AABB transformed_aabb;
+
+		struct InstanceShaderParameter {
+			int32_t index = -1;
+			Variant value;
+			Variant default_value;
+			PropertyInfo info;
+		};
+
+		Map<StringName, InstanceShaderParameter> instance_shader_parameters;
+		bool instance_allocated_shader_parameters = false;
+		int32_t instance_allocated_shader_parameters_offset = -1;
 
 		virtual void dependency_deleted(RID p_dependency) = 0;
 		virtual void dependency_changed(bool p_aabb, bool p_dependencies) = 0;
@@ -229,9 +243,11 @@ public:
 
 	virtual RID light_instance_create(RID p_light) = 0;
 	virtual void light_instance_set_transform(RID p_light_instance, const Transform &p_transform) = 0;
-	virtual void light_instance_set_shadow_transform(RID p_light_instance, const CameraMatrix &p_projection, const Transform &p_transform, float p_far, float p_split, int p_pass, float p_bias_scale = 1.0) = 0;
+	virtual void light_instance_set_shadow_transform(RID p_light_instance, const CameraMatrix &p_projection, const Transform &p_transform, float p_far, float p_split, int p_pass, float p_shadow_texel_size, float p_bias_scale = 1.0, float p_range_begin = 0, const Vector2 &p_uv_scale = Vector2()) = 0;
 	virtual void light_instance_mark_visible(RID p_light_instance) = 0;
-	virtual bool light_instances_can_render_shadow_cube() const { return true; }
+	virtual bool light_instances_can_render_shadow_cube() const {
+		return true;
+	}
 
 	virtual RID reflection_atlas_create() = 0;
 	virtual void reflection_atlas_set_size(RID p_ref_atlas, int p_reflection_size, int p_reflection_count) = 0;
@@ -244,12 +260,15 @@ public:
 	virtual bool reflection_probe_instance_begin_render(RID p_instance, RID p_reflection_atlas) = 0;
 	virtual bool reflection_probe_instance_postprocess_step(RID p_instance) = 0;
 
+	virtual RID decal_instance_create(RID p_decal) = 0;
+	virtual void decal_instance_set_transform(RID p_decal, const Transform &p_transform) = 0;
+
 	virtual RID gi_probe_instance_create(RID p_gi_probe) = 0;
 	virtual void gi_probe_instance_set_transform_to_data(RID p_probe, const Transform &p_xform) = 0;
 	virtual bool gi_probe_needs_update(RID p_probe) const = 0;
 	virtual void gi_probe_update(RID p_probe, bool p_update_light_instances, const Vector<RID> &p_light_instances, int p_dynamic_object_count, InstanceBase **p_dynamic_objects) = 0;
 
-	virtual void render_scene(RID p_render_buffers, const Transform &p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID *p_reflection_probe_cull_result, int p_reflection_probe_cull_count, RID *p_gi_probe_cull_result, int p_gi_probe_cull_count, RID p_environment, RID p_camera_effects, RID p_shadow_atlas, RID p_reflection_atlas, RID p_reflection_probe, int p_reflection_probe_pass) = 0;
+	virtual void render_scene(RID p_render_buffers, const Transform &p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID *p_reflection_probe_cull_result, int p_reflection_probe_cull_count, RID *p_gi_probe_cull_result, int p_gi_probe_cull_count, RID *p_decal_cull_result, int p_decal_cull_count, RID p_environment, RID p_camera_effects, RID p_shadow_atlas, RID p_reflection_atlas, RID p_reflection_probe, int p_reflection_probe_pass) = 0;
 
 	virtual void render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, InstanceBase **p_cull_result, int p_cull_count) = 0;
 	virtual void render_material(const Transform &p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID p_framebuffer, const Rect2i &p_region) = 0;
@@ -259,10 +278,13 @@ public:
 	virtual void set_debug_draw_mode(RS::ViewportDebugDraw p_debug_draw) = 0;
 
 	virtual RID render_buffers_create() = 0;
-	virtual void render_buffers_configure(RID p_render_buffers, RID p_render_target, int p_width, int p_height, RS::ViewportMSAA p_msaa) = 0;
+	virtual void render_buffers_configure(RID p_render_buffers, RID p_render_target, int p_width, int p_height, RS::ViewportMSAA p_msaa, RS::ViewportScreenSpaceAA p_screen_space_aa) = 0;
 
 	virtual void screen_space_roughness_limiter_set_active(bool p_enable, float p_curve) = 0;
 	virtual bool screen_space_roughness_limiter_is_active() const = 0;
+
+	virtual void sub_surface_scattering_set_quality(RS::SubSurfaceScatteringQuality p_quality) = 0;
+	virtual void sub_surface_scattering_set_scale(float p_scale, float p_depth_scale) = 0;
 
 	virtual bool free(RID p_rid) = 0;
 
@@ -316,6 +338,9 @@ public:
 
 	virtual Size2 texture_size_with_proxy(RID p_proxy) = 0;
 
+	virtual void texture_add_to_decal_atlas(RID p_texture, bool p_panorama_to_dp = false) = 0;
+	virtual void texture_remove_from_decal_atlas(RID p_texture, bool p_panorama_to_dp = false) = 0;
+
 	/* SHADER API */
 
 	virtual RID shader_create() = 0;
@@ -342,6 +367,14 @@ public:
 
 	virtual bool material_is_animated(RID p_material) = 0;
 	virtual bool material_casts_shadows(RID p_material) = 0;
+
+	struct InstanceShaderParam {
+		PropertyInfo info;
+		int index;
+		Variant default_value;
+	};
+
+	virtual void material_get_instance_shader_parameters(RID p_material, List<InstanceShaderParam> *r_parameters) = 0;
 
 	virtual void material_update_dependency(RID p_material, RasterizerScene::InstanceBase *p_instance) = 0;
 
@@ -496,6 +529,21 @@ public:
 	virtual void base_update_dependency(RID p_base, RasterizerScene::InstanceBase *p_instance) = 0;
 	virtual void skeleton_update_dependency(RID p_base, RasterizerScene::InstanceBase *p_instance) = 0;
 
+	/* DECAL API */
+
+	virtual RID decal_create() = 0;
+	virtual void decal_set_extents(RID p_decal, const Vector3 &p_extents) = 0;
+	virtual void decal_set_texture(RID p_decal, RS::DecalTexture p_type, RID p_texture) = 0;
+	virtual void decal_set_emission_energy(RID p_decal, float p_energy) = 0;
+	virtual void decal_set_albedo_mix(RID p_decal, float p_mix) = 0;
+	virtual void decal_set_modulate(RID p_decal, const Color &p_modulate) = 0;
+	virtual void decal_set_cull_mask(RID p_decal, uint32_t p_layers) = 0;
+	virtual void decal_set_distance_fade(RID p_decal, bool p_enabled, float p_begin, float p_length) = 0;
+	virtual void decal_set_fade(RID p_decal, float p_above, float p_below) = 0;
+	virtual void decal_set_normal_fade(RID p_decal, float p_fade) = 0;
+
+	virtual AABB decal_get_aabb(RID p_decal) const = 0;
+
 	/* GI PROBE API */
 
 	virtual RID gi_probe_create() = 0;
@@ -605,6 +653,24 @@ public:
 
 	virtual int particles_get_draw_passes(RID p_particles) const = 0;
 	virtual RID particles_get_draw_pass_mesh(RID p_particles, int p_pass) const = 0;
+
+	/* GLOBAL VARIABLES */
+
+	virtual void global_variable_add(const StringName &p_name, RS::GlobalVariableType p_type, const Variant &p_value) = 0;
+	virtual void global_variable_remove(const StringName &p_name) = 0;
+	virtual Vector<StringName> global_variable_get_list() const = 0;
+
+	virtual void global_variable_set(const StringName &p_name, const Variant &p_value) = 0;
+	virtual void global_variable_set_override(const StringName &p_name, const Variant &p_value) = 0;
+	virtual Variant global_variable_get(const StringName &p_name) const = 0;
+	virtual RS::GlobalVariableType global_variable_get_type(const StringName &p_name) const = 0;
+
+	virtual void global_variables_load_settings(bool p_load_textures = true) = 0;
+	virtual void global_variables_clear() = 0;
+
+	virtual int32_t global_variables_instance_allocate(RID p_instance) = 0;
+	virtual void global_variables_instance_free(RID p_instance) = 0;
+	virtual void global_variables_instance_update(RID p_instance, int p_index, const Variant &p_value) = 0;
 
 	/* RENDER TARGET */
 

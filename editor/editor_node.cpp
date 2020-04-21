@@ -64,6 +64,7 @@
 #include "servers/navigation_server_2d.h"
 #include "servers/navigation_server_3d.h"
 #include "servers/physics_server_2d.h"
+#include "servers/rendering/rendering_device.h"
 
 #include "editor/audio_stream_preview.h"
 #include "editor/debugger/editor_debugger_node.h"
@@ -97,6 +98,7 @@
 #include "editor/import/resource_importer_layered_texture.h"
 #include "editor/import/resource_importer_obj.h"
 #include "editor/import/resource_importer_scene.h"
+#include "editor/import/resource_importer_shader_file.h"
 #include "editor/import/resource_importer_texture.h"
 #include "editor/import/resource_importer_texture_atlas.h"
 #include "editor/import/resource_importer_wav.h"
@@ -147,6 +149,7 @@
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor/plugins/script_text_editor.h"
 #include "editor/plugins/shader_editor_plugin.h"
+#include "editor/plugins/shader_file_editor_plugin.h"
 #include "editor/plugins/skeleton_2d_editor_plugin.h"
 #include "editor/plugins/skeleton_3d_editor_plugin.h"
 #include "editor/plugins/skeleton_ik_3d_editor_plugin.h"
@@ -358,16 +361,26 @@ void EditorNode::_notification(int p_what) {
 					scene_root->set_default_canvas_item_texture_repeat(tr);
 				}
 
-				RS::DOFBokehShape dof_shape = RS::DOFBokehShape(int(GLOBAL_GET("rendering/quality/filters/depth_of_field_bokeh_shape")));
+				RS::DOFBokehShape dof_shape = RS::DOFBokehShape(int(GLOBAL_GET("rendering/quality/depth_of_field/depth_of_field_bokeh_shape")));
 				RS::get_singleton()->camera_effects_set_dof_blur_bokeh_shape(dof_shape);
-				RS::DOFBlurQuality dof_quality = RS::DOFBlurQuality(int(GLOBAL_GET("rendering/quality/filters/depth_of_field_bokeh_quality")));
-				bool dof_jitter = GLOBAL_GET("rendering/quality/filters/depth_of_field_use_jitter");
+				RS::DOFBlurQuality dof_quality = RS::DOFBlurQuality(int(GLOBAL_GET("rendering/quality/depth_of_field/depth_of_field_bokeh_quality")));
+				bool dof_jitter = GLOBAL_GET("rendering/quality/depth_of_field/depth_of_field_use_jitter");
 				RS::get_singleton()->camera_effects_set_dof_blur_quality(dof_quality, dof_jitter);
 				RS::get_singleton()->environment_set_ssao_quality(RS::EnvironmentSSAOQuality(int(GLOBAL_GET("rendering/quality/ssao/quality"))), GLOBAL_GET("rendering/quality/ssao/half_size"));
-				RS::get_singleton()->screen_space_roughness_limiter_set_active(GLOBAL_GET("rendering/quality/filters/screen_space_roughness_limiter"), GLOBAL_GET("rendering/quality/filters/screen_space_roughness_limiter_curve"));
-
+				RS::get_singleton()->screen_space_roughness_limiter_set_active(GLOBAL_GET("rendering/quality/screen_filters/screen_space_roughness_limiter"), GLOBAL_GET("rendering/quality/screen_filters/screen_space_roughness_limiter_curve"));
 				bool glow_bicubic = int(GLOBAL_GET("rendering/quality/glow/upscale_mode")) > 0;
 				RS::get_singleton()->environment_glow_set_use_bicubic_upscale(glow_bicubic);
+				RS::EnvironmentSSRRoughnessQuality ssr_roughness_quality = RS::EnvironmentSSRRoughnessQuality(int(GLOBAL_GET("rendering/quality/screen_space_reflection/roughness_quality")));
+				RS::get_singleton()->environment_set_ssr_roughness_quality(ssr_roughness_quality);
+				RS::SubSurfaceScatteringQuality sss_quality = RS::SubSurfaceScatteringQuality(int(GLOBAL_GET("rendering/quality/subsurface_scattering/subsurface_scattering_quality")));
+				RS::get_singleton()->sub_surface_scattering_set_quality(sss_quality);
+				float sss_scale = GLOBAL_GET("rendering/quality/subsurface_scattering/subsurface_scattering_scale");
+				float sss_depth_scale = GLOBAL_GET("rendering/quality/subsurface_scattering/subsurface_scattering_depth_scale");
+				RS::get_singleton()->sub_surface_scattering_set_scale(sss_scale, sss_depth_scale);
+				RS::ShadowQuality shadows_quality = RS::ShadowQuality(int(GLOBAL_GET("rendering/quality/shadows/soft_shadow_quality")));
+				RS::get_singleton()->shadows_quality_set(shadows_quality);
+				RS::ShadowQuality directional_shadow_quality = RS::ShadowQuality(int(GLOBAL_GET("rendering/quality/directional_shadow/soft_shadow_quality")));
+				RS::get_singleton()->directional_shadow_quality_set(directional_shadow_quality);
 			}
 
 			ResourceImporterTexture::get_singleton()->update_imports();
@@ -697,6 +710,11 @@ void EditorNode::_sources_changed(bool p_exist) {
 
 	if (waiting_for_first_scan) {
 		waiting_for_first_scan = false;
+
+		// Reload the global shader variables, but this time
+		// loading texures, as they are now properly imported.
+		print_line("done scanning, reload textures");
+		RenderingServer::get_singleton()->global_variables_load_settings(true);
 
 		// Start preview thread now that it's safe.
 		if (!singleton->cmdline_export_mode) {
@@ -3952,11 +3970,14 @@ void EditorNode::_copy_warning(const String &p_str) {
 }
 
 void EditorNode::_dock_floating_close_request(Control *p_control) {
-	Window *window = (Window *)p_control->get_parent();
+	// Through the MarginContainer to the Window.
+	Window *window = (Window *)p_control->get_parent()->get_parent();
 	int window_slot = window->get_meta("dock_slot");
 
-	window->remove_child(p_control);
+	p_control->get_parent()->remove_child(p_control);
 	dock_slot[window_slot]->add_child(p_control);
+	dock_slot[window_slot]->move_child(p_control, MIN((int)window->get_meta("dock_index"), dock_slot[window_slot]->get_child_count()));
+	dock_slot[window_slot]->set_current_tab(window->get_meta("dock_index"));
 
 	window->queue_delete();
 
@@ -3969,10 +3990,12 @@ void EditorNode::_dock_make_float() {
 	Control *dock = dock_slot[dock_popup_selected]->get_current_tab_control();
 	ERR_FAIL_COND(!dock);
 
-	Size2 dock_size = dock->get_size(); //remember size
-	Point2 dock_screen_pos = dock->get_global_position() + get_tree()->get_root()->get_position();
+	const Size2i borders = Size2i(4, 4) * EDSCALE;
+	Size2 dock_size = dock->get_size() + borders * 2; //remember size
+	Point2 dock_screen_pos = dock->get_global_position() + get_tree()->get_root()->get_position() - borders;
 
 	print_line("dock pos: " + dock->get_global_position() + " window pos: " + get_tree()->get_root()->get_position());
+	int dock_index = dock->get_index();
 	dock_slot[dock_popup_selected]->remove_child(dock);
 
 	Window *window = memnew(Window);
@@ -3981,14 +4004,22 @@ void EditorNode::_dock_make_float() {
 	p->set_mode(Panel::MODE_FOREGROUND);
 	p->set_anchors_and_margins_preset(Control::PRESET_WIDE);
 	window->add_child(p);
+	MarginContainer *margin = memnew(MarginContainer);
+	margin->set_anchors_and_margins_preset(Control::PRESET_WIDE);
+	margin->add_theme_constant_override("margin_right", borders.width);
+	margin->add_theme_constant_override("margin_top", borders.height);
+	margin->add_theme_constant_override("margin_left", borders.width);
+	margin->add_theme_constant_override("margin_bottom", borders.height);
+	window->add_child(margin);
 	dock->set_anchors_and_margins_preset(Control::PRESET_WIDE);
-	window->add_child(dock);
+	margin->add_child(dock);
 	window->set_wrap_controls(true);
 	window->set_size(dock_size);
 	window->set_position(dock_screen_pos);
 	window->set_transient(true);
 	window->connect("close_requested", callable_mp(this, &EditorNode::_dock_floating_close_request), varray(dock));
 	window->set_meta("dock_slot", dock_popup_selected);
+	window->set_meta("dock_index", dock_index);
 	gui_base->add_child(window);
 
 	dock_select_popup->hide();
@@ -5687,6 +5718,10 @@ EditorNode::EditorNode() {
 		import_obj.instance();
 		ResourceFormatImporter::get_singleton()->add_importer(import_obj);
 
+		Ref<ResourceImporterShaderFile> import_shader_file;
+		import_shader_file.instance();
+		ResourceFormatImporter::get_singleton()->add_importer(import_shader_file);
+
 		Ref<ResourceImporterScene> import_scene;
 		import_scene.instance();
 		ResourceFormatImporter::get_singleton()->add_importer(import_scene);
@@ -5913,7 +5948,7 @@ EditorNode::EditorNode() {
 	dock_vb->add_child(dock_select);
 
 	dock_float = memnew(Button);
-	dock_float->set_text("Make Floating");
+	dock_float->set_text(TTR("Make Floating"));
 	dock_float->set_focus_mode(Control::FOCUS_NONE);
 	dock_float->set_h_size_flags(Control::SIZE_SHRINK_CENTER);
 	dock_float->connect("pressed", callable_mp(this, &EditorNode::_dock_make_float));
@@ -6604,6 +6639,7 @@ EditorNode::EditorNode() {
 
 	add_editor_plugin(VersionControlEditorPlugin::get_singleton());
 	add_editor_plugin(memnew(ShaderEditorPlugin(this)));
+	add_editor_plugin(memnew(ShaderFileEditorPlugin(this)));
 	add_editor_plugin(memnew(VisualShaderEditorPlugin(this)));
 
 	add_editor_plugin(memnew(Camera3DEditorPlugin(this)));

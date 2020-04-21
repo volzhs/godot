@@ -1406,7 +1406,7 @@ Error BindingsGenerator::_generate_cs_property(const BindingsGenerator::TypeInte
 	const TypeInterface *current_type = &p_itype;
 	while (!setter && current_type->base_name != StringName()) {
 		OrderedHashMap<StringName, TypeInterface>::Element base_match = obj_types.find(current_type->base_name);
-		ERR_FAIL_COND_V(!base_match, ERR_BUG);
+		ERR_FAIL_COND_V_MSG(!base_match, ERR_BUG, "Type not found '" + current_type->base_name + "'. Inherited by '" + current_type->name + "'.");
 		current_type = &base_match.get();
 		setter = current_type->find_method_by_name(p_iprop.setter);
 	}
@@ -1417,7 +1417,7 @@ Error BindingsGenerator::_generate_cs_property(const BindingsGenerator::TypeInte
 	current_type = &p_itype;
 	while (!getter && current_type->base_name != StringName()) {
 		OrderedHashMap<StringName, TypeInterface>::Element base_match = obj_types.find(current_type->base_name);
-		ERR_FAIL_COND_V(!base_match, ERR_BUG);
+		ERR_FAIL_COND_V_MSG(!base_match, ERR_BUG, "Type not found '" + current_type->base_name + "'. Inherited by '" + current_type->name + "'.");
 		current_type = &base_match.get();
 		getter = current_type->find_method_by_name(p_iprop.getter);
 	}
@@ -1631,7 +1631,7 @@ Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterf
 	// Generate method
 	{
 		if (!p_imethod.is_virtual && !p_imethod.requires_object_call) {
-			p_output.append(MEMBER_BEGIN "[DebuggerBrowsable(DebuggerBrowsableState.Never)]" MEMBER_BEGIN "private static IntPtr ");
+			p_output.append(MEMBER_BEGIN "[DebuggerBrowsable(DebuggerBrowsableState.Never)]" MEMBER_BEGIN "private static readonly IntPtr ");
 			p_output.append(method_bind_field);
 			p_output.append(" = Object." ICALL_GET_METHODBIND "(" BINDINGS_NATIVE_NAME_FIELD ", \"");
 			p_output.append(p_imethod.name);
@@ -2187,7 +2187,7 @@ Error BindingsGenerator::_generate_glue_method(const BindingsGenerator::TypeInte
 			}
 
 			p_output.append(CS_PARAM_METHODBIND "->call(" CS_PARAM_INSTANCE ", ");
-			p_output.append(p_imethod.arguments.size() ? C_LOCAL_PTRCALL_ARGS ".ptr()" : "NULL");
+			p_output.append(p_imethod.arguments.size() ? C_LOCAL_PTRCALL_ARGS ".ptr()" : "nullptr");
 			p_output.append(", total_length, vcall_error);\n");
 
 			if (!ret_void) {
@@ -2383,7 +2383,7 @@ bool BindingsGenerator::_populate_object_type_interfaces() {
 		for (const List<PropertyInfo>::Element *E = property_list.front(); E; E = E->next()) {
 			const PropertyInfo &property = E->get();
 
-			if (property.usage & PROPERTY_USAGE_GROUP || property.usage & PROPERTY_USAGE_CATEGORY)
+			if (property.usage & PROPERTY_USAGE_GROUP || property.usage & PROPERTY_USAGE_SUBGROUP || property.usage & PROPERTY_USAGE_CATEGORY)
 				continue;
 
 			PropertyInterface iprop;

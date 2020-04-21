@@ -52,6 +52,8 @@ public:
 		virtual void set_code(const String &p_Code) = 0;
 		virtual void set_default_texture_param(const StringName &p_name, RID p_texture) = 0;
 		virtual void get_param_list(List<PropertyInfo> *p_param_list) const = 0;
+
+		virtual void get_instance_param_list(List<InstanceShaderParam> *p_param_list) const = 0;
 		virtual bool is_param_texture(const StringName &p_param) const = 0;
 		virtual bool is_animated() const = 0;
 		virtual bool casts_shadows() const = 0;
@@ -69,7 +71,15 @@ public:
 		virtual void set_render_priority(int p_priority) = 0;
 		virtual void set_next_pass(RID p_pass) = 0;
 		virtual void update_parameters(const Map<StringName, Variant> &p_parameters, bool p_uniform_dirty, bool p_textures_dirty) = 0;
-		virtual ~MaterialData() {}
+		virtual ~MaterialData();
+
+	private:
+		friend class RasterizerStorageRD;
+		RID self;
+		List<RID>::Element *global_buffer_E = nullptr;
+		List<RID>::Element *global_texture_E = nullptr;
+		uint64_t global_textures_pass = 0;
+		Map<StringName, uint64_t> used_global_textures;
 	};
 	typedef MaterialData *(*MaterialDataRequestFunction)(ShaderData *);
 
@@ -172,6 +182,51 @@ private:
 
 	RID default_rd_textures[DEFAULT_RD_TEXTURE_MAX];
 	RID default_rd_samplers[RS::CANVAS_ITEM_TEXTURE_FILTER_MAX][RS::CANVAS_ITEM_TEXTURE_REPEAT_MAX];
+
+	/* DECAL ATLAS */
+
+	struct DecalAtlas {
+		struct Texture {
+
+			int panorama_to_dp_users;
+			int users;
+			Rect2 uv_rect;
+		};
+
+		struct SortItem {
+			RID texture;
+			Size2i pixel_size;
+			Size2i size;
+			Point2i pos;
+
+			bool operator<(const SortItem &p_item) const {
+				//sort larger to smaller
+				if (size.height == p_item.size.height) {
+					return size.width > p_item.size.width;
+				} else {
+					return size.height > p_item.size.height;
+				}
+			}
+		};
+
+		HashMap<RID, Texture> textures;
+		bool dirty = true;
+		int mipmaps = 5;
+
+		RID texture;
+		RID texture_srgb;
+		struct MipMap {
+			RID fb;
+			RID texture;
+			Size2i size;
+		};
+		Vector<MipMap> texture_mipmaps;
+
+		Size2i size;
+
+	} decal_atlas;
+
+	void _update_decal_atlas();
 
 	/* SHADER */
 
@@ -403,6 +458,28 @@ private:
 
 	mutable RID_Owner<ReflectionProbe> reflection_probe_owner;
 
+	/* DECAL */
+
+	struct Decal {
+
+		Vector3 extents = Vector3(1, 1, 1);
+		RID textures[RS::DECAL_TEXTURE_MAX];
+		float emission_energy = 1.0;
+		float albedo_mix = 1.0;
+		Color modulate = Color(1, 1, 1, 1);
+		uint32_t cull_mask = (1 << 20) - 1;
+		float upper_fade = 0.3;
+		float lower_fade = 0.3;
+		bool distance_fade = false;
+		float distance_fade_begin = 10;
+		float distance_fade_length = 1;
+		float normal_fade = 0.0;
+
+		RasterizerScene::InstanceDependency instance_dependency;
+	};
+
+	mutable RID_Owner<Decal> decal_owner;
+
 	/* GI PROBE */
 
 	struct GIProbe {
@@ -463,13 +540,11 @@ private:
 		bool flags[RENDER_TARGET_FLAG_MAX];
 
 		RID backbuffer; //used for effects
-		RID backbuffer_fb;
+		RID backbuffer_mipmap0;
 
 		struct BackbufferMipmap {
 			RID mipmap;
-			RID mipmap_fb;
 			RID mipmap_copy;
-			RID mipmap_copy_fb;
 		};
 
 		Vector<BackbufferMipmap> backbuffer_mipmaps;
@@ -490,6 +565,73 @@ private:
 	void _update_render_target(RenderTarget *rt);
 	void _create_render_target_backbuffer(RenderTarget *rt);
 
+	/* GLOBAL SHADER VARIABLES */
+
+	struct GlobalVariables {
+
+		enum {
+			BUFFER_DIRTY_REGION_SIZE = 1024
+		};
+		struct Variable {
+			Set<RID> texture_materials; // materials using this
+
+			RS::GlobalVariableType type;
+			Variant value;
+			Variant override;
+			int32_t buffer_index; //for vectors
+			int32_t buffer_elements; //for vectors
+		};
+
+		HashMap<StringName, Variable> variables;
+
+		struct Value {
+			float x;
+			float y;
+			float z;
+			float w;
+		};
+
+		struct ValueInt {
+			int32_t x;
+			int32_t y;
+			int32_t z;
+			int32_t w;
+		};
+
+		struct ValueUInt {
+			uint32_t x;
+			uint32_t y;
+			uint32_t z;
+			uint32_t w;
+		};
+
+		struct ValueUsage {
+			uint32_t elements = 0;
+		};
+
+		List<RID> materials_using_buffer;
+		List<RID> materials_using_texture;
+
+		RID buffer;
+		Value *buffer_values;
+		ValueUsage *buffer_usage;
+		bool *buffer_dirty_regions;
+		uint32_t buffer_dirty_region_count = 0;
+
+		uint32_t buffer_size;
+
+		bool must_update_texture_materials = false;
+		bool must_update_buffer_materials = false;
+
+		HashMap<RID, int32_t> instance_buffer_pos;
+
+	} global_variables;
+
+	int32_t _global_variable_allocate(uint32_t p_elements);
+	void _global_variable_store_in_buffer(int32_t p_index, RS::GlobalVariableType p_type, const Variant &p_value);
+	void _global_variable_mark_buffer_dirty(int32_t p_index, int32_t p_elements);
+
+	void _update_global_variables();
 	/* EFFECTS */
 
 	RasterizerEffectsRD effects;
@@ -534,6 +676,20 @@ public:
 	virtual void texture_set_force_redraw_if_visible(RID p_texture, bool p_enable);
 
 	virtual Size2 texture_size_with_proxy(RID p_proxy);
+
+	virtual void texture_add_to_decal_atlas(RID p_texture, bool p_panorama_to_dp = false);
+	virtual void texture_remove_from_decal_atlas(RID p_texture, bool p_panorama_to_dp = false);
+
+	RID decal_atlas_get_texture() const;
+	RID decal_atlas_get_texture_srgb() const;
+	_FORCE_INLINE_ Rect2 decal_atlas_get_texture_rect(RID p_texture) {
+		DecalAtlas::Texture *t = decal_atlas.textures.getptr(p_texture);
+		if (!t) {
+			return Rect2();
+		}
+
+		return t->uv_rect;
+	}
 
 	//internal usage
 
@@ -595,6 +751,8 @@ public:
 
 	bool material_is_animated(RID p_material);
 	bool material_casts_shadows(RID p_material);
+
+	void material_get_instance_shader_parameters(RID p_material, List<InstanceShaderParam> *r_parameters);
 
 	void material_update_dependency(RID p_material, RasterizerScene::InstanceBase *p_instance);
 	void material_force_update_textures(RID p_material, ShaderType p_shader_type);
@@ -886,6 +1044,14 @@ public:
 		return light->param[p_param];
 	}
 
+	_FORCE_INLINE_ RID light_get_projector(RID p_light) {
+
+		const Light *light = light_owner.getornull(p_light);
+		ERR_FAIL_COND_V(!light, RID());
+
+		return light->projector;
+	}
+
 	_FORCE_INLINE_ Color light_get_color(RID p_light) {
 
 		const Light *light = light_owner.getornull(p_light);
@@ -924,6 +1090,14 @@ public:
 		ERR_FAIL_COND_V(!light, RS::LIGHT_DIRECTIONAL);
 
 		return light->negative;
+	}
+
+	_FORCE_INLINE_ float light_get_transmittance_bias(RID p_light) const {
+
+		const Light *light = light_owner.getornull(p_light);
+		ERR_FAIL_COND_V(!light, 0.0);
+
+		return light->param[RS::LIGHT_PARAM_TRANSMITTANCE_BIAS];
 	}
 
 	bool light_get_use_gi(RID p_light);
@@ -965,6 +1139,81 @@ public:
 
 	void base_update_dependency(RID p_base, RasterizerScene::InstanceBase *p_instance);
 	void skeleton_update_dependency(RID p_skeleton, RasterizerScene::InstanceBase *p_instance);
+
+	/* DECAL API */
+
+	virtual RID decal_create();
+	virtual void decal_set_extents(RID p_decal, const Vector3 &p_extents);
+	virtual void decal_set_texture(RID p_decal, RS::DecalTexture p_type, RID p_texture);
+	virtual void decal_set_emission_energy(RID p_decal, float p_energy);
+	virtual void decal_set_albedo_mix(RID p_decal, float p_mix);
+	virtual void decal_set_modulate(RID p_decal, const Color &p_modulate);
+	virtual void decal_set_cull_mask(RID p_decal, uint32_t p_layers);
+	virtual void decal_set_distance_fade(RID p_decal, bool p_enabled, float p_begin, float p_length);
+	virtual void decal_set_fade(RID p_decal, float p_above, float p_below);
+	virtual void decal_set_normal_fade(RID p_decal, float p_fade);
+
+	_FORCE_INLINE_ Vector3 decal_get_extents(RID p_decal) {
+		const Decal *decal = decal_owner.getornull(p_decal);
+		return decal->extents;
+	}
+
+	_FORCE_INLINE_ RID decal_get_texture(RID p_decal, RS::DecalTexture p_texture) {
+		const Decal *decal = decal_owner.getornull(p_decal);
+		return decal->textures[p_texture];
+	}
+
+	_FORCE_INLINE_ Color decal_get_modulate(RID p_decal) {
+		const Decal *decal = decal_owner.getornull(p_decal);
+		return decal->modulate;
+	}
+
+	_FORCE_INLINE_ float decal_get_emission_energy(RID p_decal) {
+		const Decal *decal = decal_owner.getornull(p_decal);
+		return decal->emission_energy;
+	}
+
+	_FORCE_INLINE_ float decal_get_albedo_mix(RID p_decal) {
+		const Decal *decal = decal_owner.getornull(p_decal);
+		return decal->albedo_mix;
+	}
+
+	_FORCE_INLINE_ uint32_t decal_get_cull_mask(RID p_decal) {
+		const Decal *decal = decal_owner.getornull(p_decal);
+		return decal->cull_mask;
+	}
+
+	_FORCE_INLINE_ float decal_get_upper_fade(RID p_decal) {
+		const Decal *decal = decal_owner.getornull(p_decal);
+		return decal->upper_fade;
+	}
+
+	_FORCE_INLINE_ float decal_get_lower_fade(RID p_decal) {
+		const Decal *decal = decal_owner.getornull(p_decal);
+		return decal->lower_fade;
+	}
+
+	_FORCE_INLINE_ float decal_get_normal_fade(RID p_decal) {
+		const Decal *decal = decal_owner.getornull(p_decal);
+		return decal->normal_fade;
+	}
+
+	_FORCE_INLINE_ bool decal_is_distance_fade_enabled(RID p_decal) {
+		const Decal *decal = decal_owner.getornull(p_decal);
+		return decal->distance_fade;
+	}
+
+	_FORCE_INLINE_ float decal_get_distance_fade_begin(RID p_decal) {
+		const Decal *decal = decal_owner.getornull(p_decal);
+		return decal->distance_fade_begin;
+	}
+
+	_FORCE_INLINE_ float decal_get_distance_fade_length(RID p_decal) {
+		const Decal *decal = decal_owner.getornull(p_decal);
+		return decal->distance_fade_length;
+	}
+
+	virtual AABB decal_get_aabb(RID p_decal) const;
 
 	/* GI PROBE API */
 
@@ -1076,6 +1325,27 @@ public:
 
 	virtual bool particles_is_inactive(RID p_particles) const { return false; }
 
+	/* GLOBAL VARIABLES API */
+
+	virtual void global_variable_add(const StringName &p_name, RS::GlobalVariableType p_type, const Variant &p_value);
+	virtual void global_variable_remove(const StringName &p_name);
+	virtual Vector<StringName> global_variable_get_list() const;
+
+	virtual void global_variable_set(const StringName &p_name, const Variant &p_value);
+	virtual void global_variable_set_override(const StringName &p_name, const Variant &p_value);
+	virtual Variant global_variable_get(const StringName &p_name) const;
+	virtual RS::GlobalVariableType global_variable_get_type(const StringName &p_name) const;
+	RS::GlobalVariableType global_variable_get_type_internal(const StringName &p_name) const;
+
+	virtual void global_variables_load_settings(bool p_load_textures = true);
+	virtual void global_variables_clear();
+
+	virtual int32_t global_variables_instance_allocate(RID p_instance);
+	virtual void global_variables_instance_free(RID p_instance);
+	virtual void global_variables_instance_update(RID p_instance, int p_index, const Variant &p_value);
+
+	RID global_variables_get_storage_buffer() const;
+
 	/* RENDER TARGET API */
 
 	RID render_target_create();
@@ -1097,6 +1367,7 @@ public:
 
 	Size2 render_target_get_size(RID p_render_target);
 	RID render_target_get_rd_framebuffer(RID p_render_target);
+	RID render_target_get_rd_texture(RID p_render_target);
 
 	RS::InstanceType get_base_type(RID p_rid) const;
 
@@ -1124,7 +1395,7 @@ public:
 	virtual uint64_t get_captured_timestamp_cpu_time(uint32_t p_index) const;
 	virtual String get_captured_timestamp_name(uint32_t p_index) const;
 
-	static RasterizerStorage *base_singleton;
+	static RasterizerStorageRD *base_singleton;
 
 	RasterizerEffectsRD *get_effects();
 

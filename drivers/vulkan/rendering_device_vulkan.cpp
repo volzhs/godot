@@ -29,6 +29,7 @@
 /*************************************************************************/
 
 #include "rendering_device_vulkan.h"
+
 #include "core/hashfuncs.h"
 #include "core/os/file_access.h"
 #include "core/os/os.h"
@@ -1265,7 +1266,7 @@ Error RenderingDeviceVulkan::_buffer_free(Buffer *p_buffer) {
 	ERR_FAIL_COND_V(p_buffer->size == 0, ERR_INVALID_PARAMETER);
 
 	vmaDestroyBuffer(allocator, p_buffer->buffer, p_buffer->allocation);
-	p_buffer->buffer = nullptr;
+	p_buffer->buffer = VK_NULL_HANDLE;
 	p_buffer->allocation = nullptr;
 	p_buffer->size = 0;
 
@@ -1564,11 +1565,21 @@ RID RenderingDeviceVulkan::texture_create(const TextureFormat &p_format, const T
 	image_create_info.pNext = nullptr;
 	image_create_info.flags = 0;
 
-	VkImageFormatListCreateInfoKHR format_list_create_info;
-	Vector<VkFormat> allowed_formats;
+#ifndef _MSC_VER
+#warning TODO check for support via RenderingDevice to enable on mobile when possible
+#endif
 
+#ifndef ANDROID_ENABLED
+
+	// vkCreateImage fails with format list on Android (VK_ERROR_OUT_OF_HOST_MEMORY)
+	VkImageFormatListCreateInfoKHR format_list_create_info; //keep out of the if, needed for creation
+	Vector<VkFormat> allowed_formats; //keep out of the if, needed for creation
+#endif
 	if (p_format.shareable_formats.size()) {
 		image_create_info.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+
+#ifndef ANDROID_ENABLED
+
 		for (int i = 0; i < p_format.shareable_formats.size(); i++) {
 			allowed_formats.push_back(vulkan_formats[p_format.shareable_formats[i]]);
 		}
@@ -1583,7 +1594,9 @@ RID RenderingDeviceVulkan::texture_create(const TextureFormat &p_format, const T
 				"If supplied a list of shareable formats, the current format must be present in the list");
 		ERR_FAIL_COND_V_MSG(p_view.format_override != DATA_FORMAT_MAX && p_format.shareable_formats.find(p_view.format_override) == -1, RID(),
 				"If supplied a list of shareable formats, the current view format override must be present in the list");
+#endif
 	}
+
 	if (p_format.type == TEXTURE_TYPE_CUBE || p_format.type == TEXTURE_TYPE_CUBE_ARRAY) {
 		image_create_info.flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 	}
@@ -1759,6 +1772,8 @@ RID RenderingDeviceVulkan::texture_create(const TextureFormat &p_format, const T
 	texture.depth = image_create_info.extent.depth;
 	texture.layers = image_create_info.arrayLayers;
 	texture.mipmaps = image_create_info.mipLevels;
+	texture.base_mipmap = 0;
+	texture.base_layer = 0;
 	texture.usage_flags = p_format.usage_bits;
 	texture.samples = p_format.samples;
 	texture.allowed_shared_formats = p_format.shareable_formats;
@@ -1999,6 +2014,8 @@ RID RenderingDeviceVulkan::texture_create_shared_from_slice(const TextureView &p
 	get_image_format_required_size(texture.format, texture.width, texture.height, texture.depth, p_mipmap + 1, &texture.width, &texture.height);
 	texture.mipmaps = 1;
 	texture.layers = p_slice_type == TEXTURE_SLICE_CUBEMAP ? 6 : 1;
+	texture.base_mipmap = p_mipmap;
+	texture.base_layer = p_layer;
 
 	VkImageViewCreateInfo image_view_create_info;
 	image_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -2659,6 +2676,159 @@ Error RenderingDeviceVulkan::texture_copy(RID p_from_texture, RID p_to_texture, 
 
 	return OK;
 }
+Error RenderingDeviceVulkan::texture_resolve_multisample(RID p_from_texture, RID p_to_texture, bool p_sync_with_draw) {
+	_THREAD_SAFE_METHOD_
+
+	Texture *src_tex = texture_owner.getornull(p_from_texture);
+	ERR_FAIL_COND_V(!src_tex, ERR_INVALID_PARAMETER);
+
+	ERR_FAIL_COND_V_MSG(p_sync_with_draw && src_tex->bound, ERR_INVALID_PARAMETER,
+			"Source texture can't be copied while a render pass that uses it is being created. Ensure render pass is finalized (and that it was created with RENDER_PASS_CONTENTS_FINISH) to unbind this texture.");
+	ERR_FAIL_COND_V_MSG(!(src_tex->usage_flags & TEXTURE_USAGE_CAN_COPY_FROM_BIT), ERR_INVALID_PARAMETER,
+			"Source texture requires the TEXTURE_USAGE_CAN_COPY_FROM_BIT in order to be retrieved.");
+
+	ERR_FAIL_COND_V_MSG(src_tex->type != TEXTURE_TYPE_2D, ERR_INVALID_PARAMETER, "Source texture must be 2D (or a slice of a 3D/Cube texture)");
+	ERR_FAIL_COND_V_MSG(src_tex->samples == TEXTURE_SAMPLES_1, ERR_INVALID_PARAMETER, "Source texture must be multisampled.");
+
+	Texture *dst_tex = texture_owner.getornull(p_to_texture);
+	ERR_FAIL_COND_V(!dst_tex, ERR_INVALID_PARAMETER);
+
+	ERR_FAIL_COND_V_MSG(p_sync_with_draw && dst_tex->bound, ERR_INVALID_PARAMETER,
+			"Destination texture can't be copied while a render pass that uses it is being created. Ensure render pass is finalized (and that it was created with RENDER_PASS_CONTENTS_FINISH) to unbind this texture.");
+	ERR_FAIL_COND_V_MSG(!(dst_tex->usage_flags & TEXTURE_USAGE_CAN_COPY_TO_BIT), ERR_INVALID_PARAMETER,
+			"Destination texture requires the TEXTURE_USAGE_CAN_COPY_TO_BIT in order to be retrieved.");
+
+	ERR_FAIL_COND_V_MSG(dst_tex->type != TEXTURE_TYPE_2D, ERR_INVALID_PARAMETER, "Destination texture must be 2D (or a slice of a 3D/Cube texture).");
+	ERR_FAIL_COND_V_MSG(dst_tex->samples != TEXTURE_SAMPLES_1, ERR_INVALID_PARAMETER, "Destination texture must not be multisampled.");
+
+	ERR_FAIL_COND_V_MSG(src_tex->format != dst_tex->format, ERR_INVALID_PARAMETER, "Source and Destionation textures must be the same format.");
+	ERR_FAIL_COND_V_MSG(src_tex->width != dst_tex->width && src_tex->height != dst_tex->height && src_tex->depth != dst_tex->depth, ERR_INVALID_PARAMETER, "Source and Destionation textures must have the same dimensions.");
+
+	ERR_FAIL_COND_V_MSG(src_tex->read_aspect_mask != dst_tex->read_aspect_mask, ERR_INVALID_PARAMETER,
+			"Source and destination texture must be of the same type (color or depth).");
+
+	VkCommandBuffer command_buffer = p_sync_with_draw ? frames[frame].draw_command_buffer : frames[frame].setup_command_buffer;
+
+	{
+
+		//PRE Copy the image
+
+		{ //Source
+			VkImageMemoryBarrier image_memory_barrier;
+			image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			image_memory_barrier.pNext = nullptr;
+			image_memory_barrier.srcAccessMask = 0;
+			image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+			image_memory_barrier.oldLayout = src_tex->layout;
+			image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+
+			image_memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			image_memory_barrier.image = src_tex->image;
+			image_memory_barrier.subresourceRange.aspectMask = src_tex->barrier_aspect_mask;
+			image_memory_barrier.subresourceRange.baseMipLevel = src_tex->base_mipmap;
+			image_memory_barrier.subresourceRange.levelCount = 1;
+			image_memory_barrier.subresourceRange.baseArrayLayer = src_tex->base_layer;
+			image_memory_barrier.subresourceRange.layerCount = 1;
+
+			vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+		}
+		{ //Dest
+			VkImageMemoryBarrier image_memory_barrier;
+			image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			image_memory_barrier.pNext = nullptr;
+			image_memory_barrier.srcAccessMask = 0;
+			image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			image_memory_barrier.oldLayout = dst_tex->layout;
+			image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+
+			image_memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			image_memory_barrier.image = dst_tex->image;
+			image_memory_barrier.subresourceRange.aspectMask = dst_tex->read_aspect_mask;
+			image_memory_barrier.subresourceRange.baseMipLevel = dst_tex->base_mipmap;
+			image_memory_barrier.subresourceRange.levelCount = 1;
+			image_memory_barrier.subresourceRange.baseArrayLayer = dst_tex->base_layer;
+			image_memory_barrier.subresourceRange.layerCount = 1;
+
+			vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+		}
+
+		//COPY
+
+		{
+
+			VkImageResolve image_copy_region;
+			image_copy_region.srcSubresource.aspectMask = src_tex->read_aspect_mask;
+			image_copy_region.srcSubresource.baseArrayLayer = src_tex->base_layer;
+			image_copy_region.srcSubresource.layerCount = 1;
+			image_copy_region.srcSubresource.mipLevel = src_tex->base_mipmap;
+			image_copy_region.srcOffset.x = 0;
+			image_copy_region.srcOffset.y = 0;
+			image_copy_region.srcOffset.z = 0;
+
+			image_copy_region.dstSubresource.aspectMask = dst_tex->read_aspect_mask;
+			image_copy_region.dstSubresource.baseArrayLayer = dst_tex->base_layer;
+			image_copy_region.dstSubresource.layerCount = 1;
+			image_copy_region.dstSubresource.mipLevel = dst_tex->base_mipmap;
+			image_copy_region.dstOffset.x = 0;
+			image_copy_region.dstOffset.y = 0;
+			image_copy_region.dstOffset.z = 0;
+
+			image_copy_region.extent.width = src_tex->width;
+			image_copy_region.extent.height = src_tex->height;
+			image_copy_region.extent.depth = src_tex->depth;
+
+			vkCmdResolveImage(command_buffer, src_tex->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst_tex->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy_region);
+		}
+
+		// RESTORE LAYOUT for SRC and DST
+
+		{ //restore src
+			VkImageMemoryBarrier image_memory_barrier;
+			image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			image_memory_barrier.pNext = nullptr;
+			image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+			image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+			image_memory_barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			image_memory_barrier.newLayout = src_tex->layout;
+			image_memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			image_memory_barrier.image = src_tex->image;
+			image_memory_barrier.subresourceRange.aspectMask = src_tex->barrier_aspect_mask;
+			image_memory_barrier.subresourceRange.baseMipLevel = src_tex->base_mipmap;
+			image_memory_barrier.subresourceRange.levelCount = 1;
+			image_memory_barrier.subresourceRange.baseArrayLayer = src_tex->base_layer;
+			image_memory_barrier.subresourceRange.layerCount = 1;
+
+			vkCmdPipelineBarrier(command_buffer, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+		}
+
+		{ //make dst readable
+
+			VkImageMemoryBarrier image_memory_barrier;
+			image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			image_memory_barrier.pNext = nullptr;
+			image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+			image_memory_barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			image_memory_barrier.newLayout = dst_tex->layout;
+
+			image_memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			image_memory_barrier.image = dst_tex->image;
+			image_memory_barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			image_memory_barrier.subresourceRange.baseMipLevel = dst_tex->base_mipmap;
+			image_memory_barrier.subresourceRange.levelCount = 1;
+			image_memory_barrier.subresourceRange.baseArrayLayer = dst_tex->base_layer;
+			image_memory_barrier.subresourceRange.layerCount = 1;
+
+			vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+		}
+	}
+
+	return OK;
+}
 
 Error RenderingDeviceVulkan::texture_clear(RID p_texture, const Color &p_color, uint32_t p_base_mipmap, uint32_t p_mipmaps, uint32_t p_base_layer, uint32_t p_layers, bool p_sync_with_draw) {
 
@@ -2701,9 +2871,9 @@ Error RenderingDeviceVulkan::texture_clear(RID p_texture, const Color &p_color, 
 		image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		image_memory_barrier.image = src_tex->image;
 		image_memory_barrier.subresourceRange.aspectMask = src_tex->read_aspect_mask;
-		image_memory_barrier.subresourceRange.baseMipLevel = p_base_mipmap;
+		image_memory_barrier.subresourceRange.baseMipLevel = src_tex->base_mipmap + p_base_mipmap;
 		image_memory_barrier.subresourceRange.levelCount = p_mipmaps;
-		image_memory_barrier.subresourceRange.baseArrayLayer = p_base_layer;
+		image_memory_barrier.subresourceRange.baseArrayLayer = src_tex->base_layer + p_base_layer;
 		image_memory_barrier.subresourceRange.layerCount = p_layers;
 
 		layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -2718,9 +2888,9 @@ Error RenderingDeviceVulkan::texture_clear(RID p_texture, const Color &p_color, 
 
 	VkImageSubresourceRange range;
 	range.aspectMask = src_tex->read_aspect_mask;
-	range.baseArrayLayer = p_base_layer;
+	range.baseArrayLayer = src_tex->base_layer + p_base_layer;
 	range.layerCount = p_layers;
-	range.baseMipLevel = p_base_mipmap;
+	range.baseMipLevel = src_tex->base_mipmap + p_base_mipmap;
 	range.levelCount = p_mipmaps;
 
 	vkCmdClearColorImage(command_buffer, src_tex->image, layout, &clear_color, 1, &range);
@@ -2739,9 +2909,9 @@ Error RenderingDeviceVulkan::texture_clear(RID p_texture, const Color &p_color, 
 		image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		image_memory_barrier.image = src_tex->image;
 		image_memory_barrier.subresourceRange.aspectMask = src_tex->read_aspect_mask;
-		image_memory_barrier.subresourceRange.baseMipLevel = p_base_mipmap;
+		image_memory_barrier.subresourceRange.baseMipLevel = src_tex->base_mipmap + p_base_mipmap;
 		image_memory_barrier.subresourceRange.levelCount = p_mipmaps;
-		image_memory_barrier.subresourceRange.baseArrayLayer = p_base_layer;
+		image_memory_barrier.subresourceRange.baseArrayLayer = src_tex->base_layer + p_base_layer;
 		image_memory_barrier.subresourceRange.layerCount = p_layers;
 
 		vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
@@ -2833,6 +3003,21 @@ VkRenderPass RenderingDeviceVulkan::_render_pass_create(const Vector<AttachmentF
 					description.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 					description.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; //don't care what is there
 					description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+				} else {
+					description.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+					description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+					description.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; //don't care what is there
+				}
+			} break;
+			case INITIAL_ACTION_DROP: {
+				if (p_format[i].usage_flags & TEXTURE_USAGE_COLOR_ATTACHMENT_BIT) {
+					description.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+					description.initialLayout = is_sampled ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : (is_storage ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+					description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				} else if (p_format[i].usage_flags & TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+					description.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+					description.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; //don't care what is there
+					description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				} else {
 					description.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 					description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -4250,7 +4435,7 @@ RID RenderingDeviceVulkan::uniform_set_create(const Vector<Uniform> &p_uniforms,
 		VkWriteDescriptorSet write; //common header
 		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		write.pNext = nullptr;
-		write.dstSet = nullptr; //will assign afterwards when everything is valid
+		write.dstSet = VK_NULL_HANDLE; //will assign afterwards when everything is valid
 		write.dstBinding = set_uniform.binding;
 		uint32_t type_size = 1;
 
@@ -4318,6 +4503,10 @@ RID RenderingDeviceVulkan::uniform_set_create(const Vector<Uniform> &p_uniforms,
 						attachable_textures.push_back(texture->owner.is_valid() ? texture->owner : uniform.ids[j + 1]);
 					}
 
+					if (texture->usage_flags & TEXTURE_USAGE_STORAGE_BIT) {
+						//can also be used as storage, add to mutable sampled
+						mutable_sampled_textures.push_back(texture);
+					}
 					if (texture->owner.is_valid()) {
 						texture = texture_owner.getornull(texture->owner);
 						ERR_FAIL_COND_V(!texture, RID()); //bug, should never happen
@@ -4326,11 +4515,6 @@ RID RenderingDeviceVulkan::uniform_set_create(const Vector<Uniform> &p_uniforms,
 					img_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 					image_info.push_back(img_info);
-
-					if (texture->usage_flags & TEXTURE_USAGE_STORAGE_BIT) {
-						//can also be used as storage, add to mutable sampled
-						mutable_sampled_textures.push_back(texture);
-					}
 				}
 
 				write.dstArrayElement = 0;
@@ -4363,11 +4547,16 @@ RID RenderingDeviceVulkan::uniform_set_create(const Vector<Uniform> &p_uniforms,
 							"Texture (binding: " + itos(uniform.binding) + ", index " + itos(j) + ") needs the TEXTURE_USAGE_SAMPLING_BIT usage flag set in order to be used as uniform.");
 
 					VkDescriptorImageInfo img_info;
-					img_info.sampler = nullptr;
+					img_info.sampler = VK_NULL_HANDLE;
 					img_info.imageView = texture->view;
 
 					if (texture->usage_flags & (TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | TEXTURE_USAGE_RESOLVE_ATTACHMENT_BIT)) {
 						attachable_textures.push_back(texture->owner.is_valid() ? texture->owner : uniform.ids[j]);
+					}
+
+					if (texture->usage_flags & TEXTURE_USAGE_STORAGE_BIT) {
+						//can also be used as storage, add to mutable sampled
+						mutable_sampled_textures.push_back(texture);
 					}
 
 					if (texture->owner.is_valid()) {
@@ -4378,11 +4567,6 @@ RID RenderingDeviceVulkan::uniform_set_create(const Vector<Uniform> &p_uniforms,
 					img_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 					image_info.push_back(img_info);
-
-					if (texture->usage_flags & TEXTURE_USAGE_STORAGE_BIT) {
-						//can also be used as storage, add to mutable sampled
-						mutable_sampled_textures.push_back(texture);
-					}
 				}
 
 				write.dstArrayElement = 0;
@@ -4416,8 +4600,13 @@ RID RenderingDeviceVulkan::uniform_set_create(const Vector<Uniform> &p_uniforms,
 							"Image (binding: " + itos(uniform.binding) + ", index " + itos(j) + ") needs the TEXTURE_USAGE_STORAGE_BIT usage flag set in order to be used as uniform.");
 
 					VkDescriptorImageInfo img_info;
-					img_info.sampler = nullptr;
+					img_info.sampler = VK_NULL_HANDLE;
 					img_info.imageView = texture->view;
+
+					if (texture->usage_flags & TEXTURE_USAGE_SAMPLING_BIT) {
+						//can also be used as storage, add to mutable sampled
+						mutable_storage_textures.push_back(texture);
+					}
 
 					if (texture->owner.is_valid()) {
 						texture = texture_owner.getornull(texture->owner);
@@ -4427,11 +4616,6 @@ RID RenderingDeviceVulkan::uniform_set_create(const Vector<Uniform> &p_uniforms,
 					img_info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 
 					image_info.push_back(img_info);
-
-					if (texture->usage_flags & TEXTURE_USAGE_SAMPLING_BIT) {
-						//can also be used as storage, add to mutable sampled
-						mutable_storage_textures.push_back(texture);
-					}
 				}
 
 				write.dstArrayElement = 0;
@@ -4901,29 +5085,29 @@ RID RenderingDeviceVulkan::render_pipeline_create(RID p_shader, FramebufferForma
 	depth_stencil_state_create_info.depthBoundsTestEnable = p_depth_stencil_state.enable_depth_range;
 	depth_stencil_state_create_info.stencilTestEnable = p_depth_stencil_state.enable_stencil;
 
-	ERR_FAIL_INDEX_V(p_depth_stencil_state.stencil_operation_front.fail, STENCIL_OP_MAX, RID());
-	depth_stencil_state_create_info.front.failOp = stencil_operations[p_depth_stencil_state.stencil_operation_front.fail];
-	ERR_FAIL_INDEX_V(p_depth_stencil_state.stencil_operation_front.pass, STENCIL_OP_MAX, RID());
-	depth_stencil_state_create_info.front.passOp = stencil_operations[p_depth_stencil_state.stencil_operation_front.pass];
-	ERR_FAIL_INDEX_V(p_depth_stencil_state.stencil_operation_front.depth_fail, STENCIL_OP_MAX, RID());
-	depth_stencil_state_create_info.front.depthFailOp = stencil_operations[p_depth_stencil_state.stencil_operation_front.depth_fail];
-	ERR_FAIL_INDEX_V(p_depth_stencil_state.stencil_operation_front.compare, COMPARE_OP_MAX, RID());
-	depth_stencil_state_create_info.front.compareOp = compare_operators[p_depth_stencil_state.stencil_operation_front.compare];
-	depth_stencil_state_create_info.front.compareMask = p_depth_stencil_state.stencil_operation_front.compare_mask;
-	depth_stencil_state_create_info.front.writeMask = p_depth_stencil_state.stencil_operation_front.write_mask;
-	depth_stencil_state_create_info.front.reference = p_depth_stencil_state.stencil_operation_front.reference;
+	ERR_FAIL_INDEX_V(p_depth_stencil_state.front_op.fail, STENCIL_OP_MAX, RID());
+	depth_stencil_state_create_info.front.failOp = stencil_operations[p_depth_stencil_state.front_op.fail];
+	ERR_FAIL_INDEX_V(p_depth_stencil_state.front_op.pass, STENCIL_OP_MAX, RID());
+	depth_stencil_state_create_info.front.passOp = stencil_operations[p_depth_stencil_state.front_op.pass];
+	ERR_FAIL_INDEX_V(p_depth_stencil_state.front_op.depth_fail, STENCIL_OP_MAX, RID());
+	depth_stencil_state_create_info.front.depthFailOp = stencil_operations[p_depth_stencil_state.front_op.depth_fail];
+	ERR_FAIL_INDEX_V(p_depth_stencil_state.front_op.compare, COMPARE_OP_MAX, RID());
+	depth_stencil_state_create_info.front.compareOp = compare_operators[p_depth_stencil_state.front_op.compare];
+	depth_stencil_state_create_info.front.compareMask = p_depth_stencil_state.front_op.compare_mask;
+	depth_stencil_state_create_info.front.writeMask = p_depth_stencil_state.front_op.write_mask;
+	depth_stencil_state_create_info.front.reference = p_depth_stencil_state.front_op.reference;
 
-	ERR_FAIL_INDEX_V(p_depth_stencil_state.stencil_operation_back.fail, STENCIL_OP_MAX, RID());
-	depth_stencil_state_create_info.back.failOp = stencil_operations[p_depth_stencil_state.stencil_operation_back.fail];
-	ERR_FAIL_INDEX_V(p_depth_stencil_state.stencil_operation_back.pass, STENCIL_OP_MAX, RID());
-	depth_stencil_state_create_info.back.passOp = stencil_operations[p_depth_stencil_state.stencil_operation_back.pass];
-	ERR_FAIL_INDEX_V(p_depth_stencil_state.stencil_operation_back.depth_fail, STENCIL_OP_MAX, RID());
-	depth_stencil_state_create_info.back.depthFailOp = stencil_operations[p_depth_stencil_state.stencil_operation_back.depth_fail];
-	ERR_FAIL_INDEX_V(p_depth_stencil_state.stencil_operation_back.compare, COMPARE_OP_MAX, RID());
-	depth_stencil_state_create_info.back.compareOp = compare_operators[p_depth_stencil_state.stencil_operation_back.compare];
-	depth_stencil_state_create_info.back.compareMask = p_depth_stencil_state.stencil_operation_back.compare_mask;
-	depth_stencil_state_create_info.back.writeMask = p_depth_stencil_state.stencil_operation_back.write_mask;
-	depth_stencil_state_create_info.back.reference = p_depth_stencil_state.stencil_operation_back.reference;
+	ERR_FAIL_INDEX_V(p_depth_stencil_state.back_op.fail, STENCIL_OP_MAX, RID());
+	depth_stencil_state_create_info.back.failOp = stencil_operations[p_depth_stencil_state.back_op.fail];
+	ERR_FAIL_INDEX_V(p_depth_stencil_state.back_op.pass, STENCIL_OP_MAX, RID());
+	depth_stencil_state_create_info.back.passOp = stencil_operations[p_depth_stencil_state.back_op.pass];
+	ERR_FAIL_INDEX_V(p_depth_stencil_state.back_op.depth_fail, STENCIL_OP_MAX, RID());
+	depth_stencil_state_create_info.back.depthFailOp = stencil_operations[p_depth_stencil_state.back_op.depth_fail];
+	ERR_FAIL_INDEX_V(p_depth_stencil_state.back_op.compare, COMPARE_OP_MAX, RID());
+	depth_stencil_state_create_info.back.compareOp = compare_operators[p_depth_stencil_state.back_op.compare];
+	depth_stencil_state_create_info.back.compareMask = p_depth_stencil_state.back_op.compare_mask;
+	depth_stencil_state_create_info.back.writeMask = p_depth_stencil_state.back_op.write_mask;
+	depth_stencil_state_create_info.back.reference = p_depth_stencil_state.back_op.reference;
 
 	depth_stencil_state_create_info.minDepthBounds = p_depth_stencil_state.depth_range_min;
 	depth_stencil_state_create_info.maxDepthBounds = p_depth_stencil_state.depth_range_max;
@@ -5048,11 +5232,11 @@ RID RenderingDeviceVulkan::render_pipeline_create(RID p_shader, FramebufferForma
 	graphics_pipeline_create_info.renderPass = fb_format.render_pass;
 
 	graphics_pipeline_create_info.subpass = 0;
-	graphics_pipeline_create_info.basePipelineHandle = nullptr;
+	graphics_pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
 	graphics_pipeline_create_info.basePipelineIndex = 0;
 
 	RenderPipeline pipeline;
-	VkResult err = vkCreateGraphicsPipelines(device, nullptr, 1, &graphics_pipeline_create_info, nullptr, &pipeline.pipeline);
+	VkResult err = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &graphics_pipeline_create_info, nullptr, &pipeline.pipeline);
 	ERR_FAIL_COND_V_MSG(err, RID(), "vkCreateGraphicsPipelines failed with error " + itos(err) + ".");
 
 	pipeline.set_formats = shader->set_formats;
@@ -5121,11 +5305,11 @@ RID RenderingDeviceVulkan::compute_pipeline_create(RID p_shader) {
 
 	compute_pipeline_create_info.stage = shader->pipeline_stages[0];
 	compute_pipeline_create_info.layout = shader->pipeline_layout;
-	compute_pipeline_create_info.basePipelineHandle = nullptr;
+	compute_pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
 	compute_pipeline_create_info.basePipelineIndex = 0;
 
 	ComputePipeline pipeline;
-	VkResult err = vkCreateComputePipelines(device, nullptr, 1, &compute_pipeline_create_info, nullptr, &pipeline.pipeline);
+	VkResult err = vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &compute_pipeline_create_info, nullptr, &pipeline.pipeline);
 	ERR_FAIL_COND_V_MSG(err, RID(), "vkCreateComputePipelines failed with error " + itos(err) + ".");
 
 	pipeline.set_formats = shader->set_formats;
@@ -5152,17 +5336,19 @@ bool RenderingDeviceVulkan::compute_pipeline_is_valid(RID p_pipeline) {
 
 int RenderingDeviceVulkan::screen_get_width(DisplayServer::WindowID p_screen) const {
 	_THREAD_SAFE_METHOD_
-
+	ERR_FAIL_COND_V_MSG(local_device.is_valid(), -1, "Local devices have no screen");
 	return context->window_get_width(p_screen);
 }
 int RenderingDeviceVulkan::screen_get_height(DisplayServer::WindowID p_screen) const {
 	_THREAD_SAFE_METHOD_
+	ERR_FAIL_COND_V_MSG(local_device.is_valid(), -1, "Local devices have no screen");
 
 	return context->window_get_height(p_screen);
 }
 RenderingDevice::FramebufferFormatID RenderingDeviceVulkan::screen_get_framebuffer_format() const {
 
 	_THREAD_SAFE_METHOD_
+	ERR_FAIL_COND_V_MSG(local_device.is_valid(), INVALID_ID, "Local devices have no screen");
 
 	//very hacky, but not used often per frame so I guess ok
 	VkFormat vkformat = context->get_screen_format();
@@ -5192,6 +5378,7 @@ RenderingDevice::FramebufferFormatID RenderingDeviceVulkan::screen_get_framebuff
 RenderingDevice::DrawListID RenderingDeviceVulkan::draw_list_begin_for_screen(DisplayServer::WindowID p_screen, const Color &p_clear_color) {
 
 	_THREAD_SAFE_METHOD_
+	ERR_FAIL_COND_V_MSG(local_device.is_valid(), INVALID_ID, "Local devices have no screen");
 
 	ERR_FAIL_COND_V_MSG(draw_list != nullptr, INVALID_ID, "Only one draw list can be active at the same time.");
 	ERR_FAIL_COND_V_MSG(compute_list != nullptr, INVALID_ID, "Only one draw/compute list can be active at the same time.");
@@ -5856,7 +6043,7 @@ void RenderingDeviceVulkan::draw_list_set_line_width(DrawListID p_list, float p_
 	vkCmdSetLineWidth(dl->command_buffer, p_width);
 }
 
-void RenderingDeviceVulkan::draw_list_set_push_constant(DrawListID p_list, void *p_data, uint32_t p_data_size) {
+void RenderingDeviceVulkan::draw_list_set_push_constant(DrawListID p_list, const void *p_data, uint32_t p_data_size) {
 	DrawList *dl = _get_draw_list_ptr(p_list);
 	ERR_FAIL_COND(!dl);
 
@@ -6199,9 +6386,9 @@ void RenderingDeviceVulkan::compute_list_bind_uniform_set(ComputeListID p_list, 
 			image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			image_memory_barrier.image = textures_to_sampled[i]->image;
 			image_memory_barrier.subresourceRange.aspectMask = textures_to_sampled[i]->read_aspect_mask;
-			image_memory_barrier.subresourceRange.baseMipLevel = 0;
+			image_memory_barrier.subresourceRange.baseMipLevel = textures_to_sampled[i]->base_mipmap;
 			image_memory_barrier.subresourceRange.levelCount = textures_to_sampled[i]->mipmaps;
-			image_memory_barrier.subresourceRange.baseArrayLayer = 0;
+			image_memory_barrier.subresourceRange.baseArrayLayer = textures_to_sampled[i]->base_layer;
 			image_memory_barrier.subresourceRange.layerCount = textures_to_sampled[i]->layers;
 
 			vkCmdPipelineBarrier(cl->command_buffer, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
@@ -6230,9 +6417,9 @@ void RenderingDeviceVulkan::compute_list_bind_uniform_set(ComputeListID p_list, 
 			image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			image_memory_barrier.image = textures_to_storage[i]->image;
 			image_memory_barrier.subresourceRange.aspectMask = textures_to_storage[i]->read_aspect_mask;
-			image_memory_barrier.subresourceRange.baseMipLevel = 0;
+			image_memory_barrier.subresourceRange.baseMipLevel = textures_to_storage[i]->base_mipmap;
 			image_memory_barrier.subresourceRange.levelCount = textures_to_storage[i]->mipmaps;
-			image_memory_barrier.subresourceRange.baseArrayLayer = 0;
+			image_memory_barrier.subresourceRange.baseArrayLayer = textures_to_storage[i]->base_layer;
 			image_memory_barrier.subresourceRange.layerCount = textures_to_storage[i]->layers;
 
 			vkCmdPipelineBarrier(cl->command_buffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
@@ -6259,7 +6446,7 @@ void RenderingDeviceVulkan::compute_list_bind_uniform_set(ComputeListID p_list, 
 #endif
 }
 
-void RenderingDeviceVulkan::compute_list_set_push_constant(ComputeListID p_list, void *p_data, uint32_t p_data_size) {
+void RenderingDeviceVulkan::compute_list_set_push_constant(ComputeListID p_list, const void *p_data, uint32_t p_data_size) {
 	ERR_FAIL_COND(p_list != ID_TYPE_COMPUTE_LIST);
 	ERR_FAIL_COND(!compute_list);
 
@@ -6362,9 +6549,9 @@ void RenderingDeviceVulkan::compute_list_end() {
 		image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		image_memory_barrier.image = E->get()->image;
 		image_memory_barrier.subresourceRange.aspectMask = E->get()->read_aspect_mask;
-		image_memory_barrier.subresourceRange.baseMipLevel = 0;
+		image_memory_barrier.subresourceRange.baseMipLevel = E->get()->base_mipmap;
 		image_memory_barrier.subresourceRange.levelCount = E->get()->mipmaps;
-		image_memory_barrier.subresourceRange.baseArrayLayer = 0;
+		image_memory_barrier.subresourceRange.baseArrayLayer = E->get()->base_layer;
 		image_memory_barrier.subresourceRange.layerCount = E->get()->layers;
 
 		vkCmdPipelineBarrier(compute_list->command_buffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
@@ -6511,75 +6698,104 @@ void RenderingDeviceVulkan::free(RID p_id) {
 	_free_dependencies(p_id); //recursively erase dependencies first, to avoid potential API problems
 	_free_internal(p_id);
 }
-void RenderingDeviceVulkan::swap_buffers() {
 
-	_THREAD_SAFE_METHOD_
+void RenderingDeviceVulkan::_finalize_command_bufers() {
 
-	{ //finalize frame
-
-		if (draw_list) {
-			ERR_PRINT("Found open draw list at the end of the frame, this should never happen (further drawing will likely not work).");
-		}
-
-		if (compute_list) {
-			ERR_PRINT("Found open compute list at the end of the frame, this should never happen (further compute will likely not work).");
-		}
-
-		{ //complete the setup buffer (that needs to be processed before anything else)
-			vkEndCommandBuffer(frames[frame].setup_command_buffer);
-			vkEndCommandBuffer(frames[frame].draw_command_buffer);
-		}
-		screen_prepared = false;
+	if (draw_list) {
+		ERR_PRINT("Found open draw list at the end of the frame, this should never happen (further drawing will likely not work).");
 	}
 
+	if (compute_list) {
+		ERR_PRINT("Found open compute list at the end of the frame, this should never happen (further compute will likely not work).");
+	}
+
+	{ //complete the setup buffer (that needs to be processed before anything else)
+		vkEndCommandBuffer(frames[frame].setup_command_buffer);
+		vkEndCommandBuffer(frames[frame].draw_command_buffer);
+	}
+}
+
+void RenderingDeviceVulkan::_begin_frame() {
+
+	//erase pending resources
+	_free_pending_resources(frame);
+
+	//create setup command buffer and set as the setup buffer
+
+	{
+		VkCommandBufferBeginInfo cmdbuf_begin;
+		cmdbuf_begin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		cmdbuf_begin.pNext = nullptr;
+		cmdbuf_begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		cmdbuf_begin.pInheritanceInfo = nullptr;
+
+		VkResult err = vkResetCommandBuffer(frames[frame].setup_command_buffer, 0);
+		ERR_FAIL_COND_MSG(err, "vkResetCommandBuffer failed with error " + itos(err) + ".");
+
+		err = vkBeginCommandBuffer(frames[frame].setup_command_buffer, &cmdbuf_begin);
+		ERR_FAIL_COND_MSG(err, "vkBeginCommandBuffer failed with error " + itos(err) + ".");
+		err = vkBeginCommandBuffer(frames[frame].draw_command_buffer, &cmdbuf_begin);
+		ERR_FAIL_COND_MSG(err, "vkBeginCommandBuffer failed with error " + itos(err) + ".");
+
+		if (local_device.is_null()) {
+			context->append_command_buffer(frames[frame].draw_command_buffer);
+			context->set_setup_buffer(frames[frame].setup_command_buffer); //append now so it's added before everything else
+		}
+	}
+
+	//advance current frame
+	frames_drawn++;
+	//advance staging buffer if used
+	if (staging_buffer_used) {
+		staging_buffer_current = (staging_buffer_current + 1) % staging_buffer_blocks.size();
+		staging_buffer_used = false;
+	}
+
+	if (frames[frame].timestamp_count) {
+		vkGetQueryPoolResults(device, frames[frame].timestamp_pool, 0, frames[frame].timestamp_count, sizeof(uint64_t) * max_timestamp_query_elements, frames[frame].timestamp_result_values, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT);
+		SWAP(frames[frame].timestamp_names, frames[frame].timestamp_result_names);
+		SWAP(frames[frame].timestamp_cpu_values, frames[frame].timestamp_cpu_result_values);
+	}
+
+	frames[frame].timestamp_result_count = frames[frame].timestamp_count;
+	frames[frame].timestamp_count = 0;
+	frames[frame].index = Engine::get_singleton()->get_frames_drawn();
+}
+
+void RenderingDeviceVulkan::swap_buffers() {
+
+	ERR_FAIL_COND_MSG(local_device.is_valid(), "Local devices can't swap buffers.");
+	_THREAD_SAFE_METHOD_
+
+	_finalize_command_bufers();
+
+	screen_prepared = false;
 	//swap buffers
 	context->swap_buffers();
 
-	{ //advance frame
+	frame = (frame + 1) % frame_count;
 
-		frame = (frame + 1) % frame_count;
+	_begin_frame();
+}
 
-		//erase pending resources
-		_free_pending_resources(frame);
+void RenderingDeviceVulkan::submit() {
+	ERR_FAIL_COND_MSG(local_device.is_null(), "Only local devices can submit and sync.");
+	ERR_FAIL_COND_MSG(local_device_processing, "device already submitted, call sync to wait until done.");
 
-		//create setup command buffer and set as the setup buffer
+	_finalize_command_bufers();
 
-		{
-			VkCommandBufferBeginInfo cmdbuf_begin;
-			cmdbuf_begin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-			cmdbuf_begin.pNext = nullptr;
-			cmdbuf_begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-			cmdbuf_begin.pInheritanceInfo = nullptr;
+	VkCommandBuffer command_buffers[2] = { frames[frame].setup_command_buffer, frames[frame].draw_command_buffer };
+	context->local_device_push_command_buffers(local_device, command_buffers, 2);
+	local_device_processing = true;
+}
 
-			VkResult err = vkResetCommandBuffer(frames[frame].setup_command_buffer, 0);
-			ERR_FAIL_COND_MSG(err, "vkResetCommandBuffer failed with error " + itos(err) + ".");
+void RenderingDeviceVulkan::sync() {
 
-			err = vkBeginCommandBuffer(frames[frame].setup_command_buffer, &cmdbuf_begin);
-			ERR_FAIL_COND_MSG(err, "vkBeginCommandBuffer failed with error " + itos(err) + ".");
-			context->set_setup_buffer(frames[frame].setup_command_buffer); //append now so it's added before everything else
-			err = vkBeginCommandBuffer(frames[frame].draw_command_buffer, &cmdbuf_begin);
-			ERR_FAIL_COND_MSG(err, "vkBeginCommandBuffer failed with error " + itos(err) + ".");
-			context->append_command_buffer(frames[frame].draw_command_buffer);
-		}
+	ERR_FAIL_COND_MSG(local_device.is_null(), "Only local devices can submit and sync.");
+	ERR_FAIL_COND_MSG(!local_device_processing, "sync can only be called after a submit");
 
-		//advance current frame
-		frames_drawn++;
-		//advance staging buffer if used
-		if (staging_buffer_used) {
-			staging_buffer_current = (staging_buffer_current + 1) % staging_buffer_blocks.size();
-			staging_buffer_used = false;
-		}
-
-		if (frames[frame].timestamp_count) {
-			vkGetQueryPoolResults(device, frames[frame].timestamp_pool, 0, frames[frame].timestamp_count, sizeof(uint64_t) * max_timestamp_query_elements, frames[frame].timestamp_result_values, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT);
-			SWAP(frames[frame].timestamp_names, frames[frame].timestamp_result_names);
-			SWAP(frames[frame].timestamp_cpu_values, frames[frame].timestamp_cpu_result_values);
-		}
-
-		frames[frame].timestamp_result_count = frames[frame].timestamp_count;
-		frames[frame].timestamp_count = 0;
-		frames[frame].index = Engine::get_singleton()->get_frames_drawn();
-	}
+	context->local_device_sync(local_device);
+	_begin_frame();
 }
 
 void RenderingDeviceVulkan::_free_pending_resources(int p_frame) {
@@ -6698,14 +6914,21 @@ uint32_t RenderingDeviceVulkan::get_frame_delay() const {
 
 void RenderingDeviceVulkan::_flush(bool p_current_frame) {
 
+	if (local_device.is_valid() && !p_current_frame) {
+		return; //flushign previous frames has no effect with local device
+	}
 	//not doing this crashes RADV (undefined behavior)
 	if (p_current_frame) {
 		vkEndCommandBuffer(frames[frame].setup_command_buffer);
 		vkEndCommandBuffer(frames[frame].draw_command_buffer);
 	}
-	context->flush(p_current_frame, p_current_frame);
-	//re-create the setup command
-	if (p_current_frame) {
+
+	if (local_device.is_valid()) {
+
+		VkCommandBuffer command_buffers[2] = { frames[frame].setup_command_buffer, frames[frame].draw_command_buffer };
+		context->local_device_push_command_buffers(local_device, command_buffers, 2);
+		context->local_device_sync(local_device);
+
 		VkCommandBufferBeginInfo cmdbuf_begin;
 		cmdbuf_begin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		cmdbuf_begin.pNext = nullptr;
@@ -6714,27 +6937,48 @@ void RenderingDeviceVulkan::_flush(bool p_current_frame) {
 
 		VkResult err = vkBeginCommandBuffer(frames[frame].setup_command_buffer, &cmdbuf_begin);
 		ERR_FAIL_COND_MSG(err, "vkBeginCommandBuffer failed with error " + itos(err) + ".");
-		context->set_setup_buffer(frames[frame].setup_command_buffer); //append now so it's added before everything else
-	}
-
-	if (p_current_frame) {
-		VkCommandBufferBeginInfo cmdbuf_begin;
-		cmdbuf_begin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		cmdbuf_begin.pNext = nullptr;
-		cmdbuf_begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		cmdbuf_begin.pInheritanceInfo = nullptr;
-
-		VkResult err = vkBeginCommandBuffer(frames[frame].draw_command_buffer, &cmdbuf_begin);
+		err = vkBeginCommandBuffer(frames[frame].draw_command_buffer, &cmdbuf_begin);
 		ERR_FAIL_COND_MSG(err, "vkBeginCommandBuffer failed with error " + itos(err) + ".");
-		context->append_command_buffer(frames[frame].draw_command_buffer);
+
+	} else {
+		context->flush(p_current_frame, p_current_frame);
+		//re-create the setup command
+		if (p_current_frame) {
+			VkCommandBufferBeginInfo cmdbuf_begin;
+			cmdbuf_begin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+			cmdbuf_begin.pNext = nullptr;
+			cmdbuf_begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+			cmdbuf_begin.pInheritanceInfo = nullptr;
+
+			VkResult err = vkBeginCommandBuffer(frames[frame].setup_command_buffer, &cmdbuf_begin);
+			ERR_FAIL_COND_MSG(err, "vkBeginCommandBuffer failed with error " + itos(err) + ".");
+			context->set_setup_buffer(frames[frame].setup_command_buffer); //append now so it's added before everything else
+		}
+
+		if (p_current_frame) {
+			VkCommandBufferBeginInfo cmdbuf_begin;
+			cmdbuf_begin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+			cmdbuf_begin.pNext = nullptr;
+			cmdbuf_begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+			cmdbuf_begin.pInheritanceInfo = nullptr;
+
+			VkResult err = vkBeginCommandBuffer(frames[frame].draw_command_buffer, &cmdbuf_begin);
+			ERR_FAIL_COND_MSG(err, "vkBeginCommandBuffer failed with error " + itos(err) + ".");
+			context->append_command_buffer(frames[frame].draw_command_buffer);
+		}
 	}
 }
 
-void RenderingDeviceVulkan::initialize(VulkanContext *p_context) {
+void RenderingDeviceVulkan::initialize(VulkanContext *p_context, bool p_local_device) {
 
 	context = p_context;
 	device = p_context->get_device();
-	frame_count = p_context->get_swapchain_image_count() + 1; //always need one extra to ensure it's unused at any time, without having to use a fence for this.
+	if (p_local_device) {
+		frame_count = 1;
+		local_device = p_context->local_device_create();
+	} else {
+		frame_count = p_context->get_swapchain_image_count() + 1; //always need one extra to ensure it's unused at any time, without having to use a fence for this.
+	}
 	limits = p_context->get_device_limits();
 	max_timestamp_query_elements = 256;
 
@@ -6815,11 +7059,13 @@ void RenderingDeviceVulkan::initialize(VulkanContext *p_context) {
 
 		VkResult err = vkBeginCommandBuffer(frames[0].setup_command_buffer, &cmdbuf_begin);
 		ERR_FAIL_COND_MSG(err, "vkBeginCommandBuffer failed with error " + itos(err) + ".");
-		context->set_setup_buffer(frames[0].setup_command_buffer); //append now so it's added before everything else
 
 		err = vkBeginCommandBuffer(frames[0].draw_command_buffer, &cmdbuf_begin);
 		ERR_FAIL_COND_MSG(err, "vkBeginCommandBuffer failed with error " + itos(err) + ".");
-		context->append_command_buffer(frames[0].draw_command_buffer);
+		if (local_device.is_null()) {
+			context->set_setup_buffer(frames[0].setup_command_buffer); //append now so it's added before everything else
+			context->append_command_buffer(frames[0].draw_command_buffer);
+		}
 	}
 
 	staging_buffer_block_size = GLOBAL_DEF("rendering/vulkan/staging_buffer/block_size_kb", 256);
@@ -6928,9 +7174,42 @@ uint64_t RenderingDeviceVulkan::get_captured_timestamps_frame() const {
 	return frames[frame].index;
 }
 
+static void mult64to128(uint64_t u, uint64_t v, uint64_t &h, uint64_t &l) {
+	uint64_t u1 = (u & 0xffffffff);
+	uint64_t v1 = (v & 0xffffffff);
+	uint64_t t = (u1 * v1);
+	uint64_t w3 = (t & 0xffffffff);
+	uint64_t k = (t >> 32);
+
+	u >>= 32;
+	t = (u * v1) + k;
+	k = (t & 0xffffffff);
+	uint64_t w1 = (t >> 32);
+
+	v >>= 32;
+	t = (u1 * v) + k;
+	k = (t >> 32);
+
+	h = (u * v) + w1 + k;
+	l = (t << 32) + w3;
+}
+
 uint64_t RenderingDeviceVulkan::get_captured_timestamp_gpu_time(uint32_t p_index) const {
 	ERR_FAIL_UNSIGNED_INDEX_V(p_index, frames[frame].timestamp_result_count, 0);
-	return frames[frame].timestamp_result_values[p_index] * limits.timestampPeriod;
+
+	// this sucks because timestampPeriod multiplier is a float, while the timestamp is 64 bits nanosecs.
+	// so, in cases like nvidia which give you enormous numbers and 1 as multiplier, multiplying is next to impossible
+	// need to do 128 bits fixed point multiplication to get the rigth value
+
+	uint64_t shift_bits = 16;
+
+	uint64_t h, l;
+
+	mult64to128(frames[frame].timestamp_result_values[p_index], uint64_t(double(limits.timestampPeriod) * double(1 << shift_bits)), h, l);
+	l >>= shift_bits;
+	l |= h << (64 - shift_bits);
+
+	return l;
 }
 uint64_t RenderingDeviceVulkan::get_captured_timestamp_cpu_time(uint32_t p_index) const {
 	ERR_FAIL_UNSIGNED_INDEX_V(p_index, frames[frame].timestamp_result_count, 0);
@@ -7048,6 +7327,19 @@ void RenderingDeviceVulkan::finalize() {
 	for (int i = 0; i < staging_buffer_blocks.size(); i++) {
 		vmaDestroyBuffer(allocator, staging_buffer_blocks[i].buffer, staging_buffer_blocks[i].allocation);
 	}
+	vmaDestroyAllocator(allocator);
+
+	while (vertex_formats.size()) {
+		Map<VertexFormatID, VertexDescriptionCache>::Element *temp = vertex_formats.front();
+		memdelete_arr(temp->get().bindings);
+		memdelete_arr(temp->get().attributes);
+		vertex_formats.erase(temp);
+	}
+
+	for (int i = 0; i < framebuffer_formats.size(); i++) {
+		vkDestroyRenderPass(device, framebuffer_formats[i].render_pass, nullptr);
+	}
+	framebuffer_formats.clear();
 
 	//all these should be clear at this point
 	ERR_FAIL_COND(descriptor_pools.size());
@@ -7055,6 +7347,19 @@ void RenderingDeviceVulkan::finalize() {
 	ERR_FAIL_COND(reverse_dependency_map.size());
 }
 
+RenderingDevice *RenderingDeviceVulkan::create_local_device() {
+	RenderingDeviceVulkan *rd = memnew(RenderingDeviceVulkan);
+	rd->initialize(context, true);
+	return rd;
+}
+
 RenderingDeviceVulkan::RenderingDeviceVulkan() {
 	screen_prepared = false;
+}
+
+RenderingDeviceVulkan::~RenderingDeviceVulkan() {
+	if (local_device.is_valid()) {
+		finalize();
+		context->local_device_free(local_device);
+	}
 }

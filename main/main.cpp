@@ -55,13 +55,13 @@
 #include "main/splash.gen.h"
 #include "main/splash_editor.gen.h"
 #include "main/tests/test_main.h"
+#include "modules/modules_enabled.gen.h"
 #include "modules/register_module_types.h"
 #include "platform/register_platform_apis.h"
 #include "scene/main/scene_tree.h"
 #include "scene/main/window.h"
 #include "scene/register_scene_types.h"
 #include "scene/resources/packed_scene.h"
-#include "servers/arvr_server.h"
 #include "servers/audio_server.h"
 #include "servers/camera_server.h"
 #include "servers/display_server.h"
@@ -72,6 +72,7 @@
 #include "servers/register_server_types.h"
 #include "servers/rendering/rendering_server_raster.h"
 #include "servers/rendering/rendering_server_wrap_mt.h"
+#include "servers/xr_server.h"
 
 #ifdef TOOLS_ENABLED
 #include "editor/doc_data.h"
@@ -105,7 +106,7 @@ static AudioServer *audio_server = nullptr;
 static DisplayServer *display_server = nullptr;
 static RenderingServer *rendering_server = nullptr;
 static CameraServer *camera_server = nullptr;
-static ARVRServer *arvr_server = nullptr;
+static XRServer *xr_server = nullptr;
 static PhysicsServer3D *physics_server = nullptr;
 static PhysicsServer2D *physics_2d_server = nullptr;
 static NavigationServer3D *navigation_server = nullptr;
@@ -478,6 +479,14 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 	I = args.front();
 	while (I) {
+#ifdef OSX_ENABLED
+		// Ignore the process serial number argument passed by macOS Gatekeeper.
+		// Otherwise, Godot would try to open a non-existent project on the first start and abort.
+		if (I->get().begins_with("-psn_")) {
+			I = I->next();
+			continue;
+		}
+#endif
 
 		List<String>::Element *N = I->next();
 
@@ -1154,9 +1163,11 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	ProjectSettings::get_singleton()->set_custom_property_info("debug/settings/fps/force_fps", PropertyInfo(Variant::INT, "debug/settings/fps/force_fps", PROPERTY_HINT_RANGE, "0,120,1,or_greater"));
 
 	GLOBAL_DEF("debug/settings/stdout/print_fps", false);
+	GLOBAL_DEF("debug/settings/stdout/verbose_stdout", false);
 
-	if (!OS::get_singleton()->_verbose_stdout) //overridden
-		OS::get_singleton()->_verbose_stdout = GLOBAL_DEF("debug/settings/stdout/verbose_stdout", false);
+	if (!OS::get_singleton()->_verbose_stdout) { // Not manually overridden.
+		OS::get_singleton()->_verbose_stdout = GLOBAL_GET("debug/settings/stdout/verbose_stdout");
+	}
 
 	if (frame_delay == 0) {
 		frame_delay = GLOBAL_DEF("application/run/frame_delay_msec", 0);
@@ -1297,8 +1308,8 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 	audio_server = memnew(AudioServer);
 	audio_server->init();
 
-	// also init our arvr_server from here
-	arvr_server = memnew(ARVRServer);
+	// also init our xr_server from here
+	xr_server = memnew(XRServer);
 
 	register_core_singletons();
 
@@ -1473,6 +1484,15 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 		// We could add more, and make the CLI arg require a comma-separated list of profilers.
 		EngineDebugger::get_singleton()->profiler_enable("scripts", true);
 	}
+
+	if (!project_manager) {
+		// If not running the project manager, and now that the engine is
+		// able to load resources, load the global shader variables.
+		// If running on editor, dont load the textures because the editor
+		// may want to import them first. Editor will reload those later.
+		rendering_server->global_variables_load_settings(!editor);
+	}
+
 	_start_success = true;
 	locale = String();
 
@@ -1580,6 +1600,19 @@ bool Main::start() {
 			DirAccessRef da = DirAccess::open(doc_tool);
 			ERR_FAIL_COND_V_MSG(!da, false, "Argument supplied to --doctool must be a base Godot build directory.");
 		}
+
+#ifndef MODULE_MONO_ENABLED
+		// Hack to define Mono-specific project settings even on non-Mono builds,
+		// so that we don't lose their descriptions and default values in DocData.
+		// Default values should be synced with mono_gd/gd_mono.cpp.
+		GLOBAL_DEF("mono/debugger_agent/port", 23685);
+		GLOBAL_DEF("mono/debugger_agent/wait_for_debugger", false);
+		GLOBAL_DEF("mono/debugger_agent/wait_timeout", 3000);
+		GLOBAL_DEF("mono/profiler/args", "log:calls,alloc,sample,output=output.mlpd");
+		GLOBAL_DEF("mono/profiler/enabled", false);
+		GLOBAL_DEF("mono/unhandled_exception_policy", 0);
+#endif
+
 		DocData doc;
 		doc.generate(doc_base);
 
@@ -1667,7 +1700,7 @@ bool Main::start() {
 			return false;
 		}
 
-		if (script_res->can_instance() /*&& script_res->inherits_from("SceneTreeScripted")*/) {
+		if (script_res->can_instance()) {
 
 			StringName instance_type = script_res->get_instance_base_type();
 			Object *obj = ClassDB::instance(instance_type);
@@ -1675,7 +1708,7 @@ bool Main::start() {
 			if (!script_loop) {
 				if (obj)
 					memdelete(obj);
-				ERR_FAIL_V_MSG(false, "Can't load script '" + script + "', it does not inherit from a MainLoop type.");
+				ERR_FAIL_V_MSG(false, vformat("Can't load the script \"%s\" as it doesn't inherit from SceneTree or MainLoop.", script));
 			}
 
 			script_loop->set_init_script(script_res);
@@ -1723,7 +1756,9 @@ bool Main::start() {
 		}
 #endif
 
-		if (single_window) {
+		bool embed_subwindows = GLOBAL_DEF("display/window/subwindows/embed_subwindows", false);
+
+		if (single_window || (!project_manager && !editor && embed_subwindows)) {
 			sml->get_root()->set_embed_subwindows_hint(true);
 		}
 		ResourceLoader::add_custom_loaders();
@@ -1941,6 +1976,12 @@ bool Main::start() {
 
 #ifdef TOOLS_ENABLED
 			if (editor) {
+
+				bool editor_embed_subwindows = EditorSettings::get_singleton()->get_setting("interface/editor/single_window_mode");
+
+				if (editor_embed_subwindows) {
+					sml->get_root()->set_embed_subwindows_hint(true);
+				}
 
 				if (game_path != GLOBAL_GET("application/run/main_scene") || !editor_node->has_scenes_in_session()) {
 					Error serr = editor_node->load_scene(local_game_path);
@@ -2264,13 +2305,16 @@ void Main::cleanup() {
 	// Sync pending commands that may have been queued from a different thread during ScriptServer finalization
 	RenderingServer::get_singleton()->sync();
 
+	//clear global shader variables before scene and other graphics stuff is deinitialized.
+	rendering_server->global_variables_clear();
+
 #ifdef TOOLS_ENABLED
 	EditorNode::unregister_editor_types();
 #endif
 
-	if (arvr_server) {
+	if (xr_server) {
 		// cleanup now before we pull the rug from underneath...
-		memdelete(arvr_server);
+		memdelete(xr_server);
 	}
 
 	ImageLoader::cleanup();

@@ -37,7 +37,9 @@
 #include "servers/rendering/rendering_device.h"
 
 #ifdef DEBUG_ENABLED
+#ifndef _DEBUG
 #define _DEBUG
+#endif
 #endif
 #include "vk_mem_alloc.h"
 #include <vulkan/vulkan.h>
@@ -136,6 +138,8 @@ class RenderingDeviceVulkan : public RenderingDevice {
 		uint32_t layers;
 		uint32_t mipmaps;
 		uint32_t usage_flags;
+		uint32_t base_mipmap;
+		uint32_t base_layer;
 
 		Vector<DataFormat> allowed_shared_formats;
 
@@ -207,7 +211,7 @@ class RenderingDeviceVulkan : public RenderingDevice {
 		VkDescriptorBufferInfo buffer_info; //used for binding
 		Buffer() {
 			size = 0;
-			buffer = nullptr;
+			buffer = VK_NULL_HANDLE;
 			allocation = nullptr;
 		}
 	};
@@ -948,10 +952,12 @@ class RenderingDeviceVulkan : public RenderingDevice {
 
 	uint32_t max_timestamp_query_elements;
 
-	Frame *frames; //frames available, they are cycled (usually 3)
+	Frame *frames; //frames available, for main device they are cycled (usually 3), for local devices only 1
 	int frame; //current frame
 	int frame_count; //total amount of frames
 	uint64_t frames_drawn;
+	RID local_device;
+	bool local_device_processing = false;
 
 	void _free_pending_resources(int p_frame);
 
@@ -967,6 +973,9 @@ class RenderingDeviceVulkan : public RenderingDevice {
 	template <class T>
 	void _free_rids(T &p_owner, const char *p_type);
 
+	void _finalize_command_bufers();
+	void _begin_frame();
+
 public:
 	virtual RID texture_create(const TextureFormat &p_format, const TextureView &p_view, const Vector<Vector<uint8_t>> &p_data = Vector<Vector<uint8_t>>());
 	virtual RID texture_create_shared(const TextureView &p_view, RID p_with_texture);
@@ -981,6 +990,7 @@ public:
 
 	virtual Error texture_copy(RID p_from_texture, RID p_to_texture, const Vector3 &p_from, const Vector3 &p_to, const Vector3 &p_size, uint32_t p_src_mipmap, uint32_t p_dst_mipmap, uint32_t p_src_layer, uint32_t p_dst_layer, bool p_sync_with_draw = false);
 	virtual Error texture_clear(RID p_texture, const Color &p_color, uint32_t p_base_mipmap, uint32_t p_mipmaps, uint32_t p_base_layer, uint32_t p_layers, bool p_sync_with_draw = false);
+	virtual Error texture_resolve_multisample(RID p_from_texture, RID p_to_texture, bool p_sync_with_draw = false);
 
 	/*********************/
 	/**** FRAMEBUFFER ****/
@@ -1070,7 +1080,7 @@ public:
 	virtual void draw_list_bind_vertex_array(DrawListID p_list, RID p_vertex_array);
 	virtual void draw_list_bind_index_array(DrawListID p_list, RID p_index_array);
 	virtual void draw_list_set_line_width(DrawListID p_list, float p_width);
-	virtual void draw_list_set_push_constant(DrawListID p_list, void *p_data, uint32_t p_data_size);
+	virtual void draw_list_set_push_constant(DrawListID p_list, const void *p_data, uint32_t p_data_size);
 
 	virtual void draw_list_draw(DrawListID p_list, bool p_use_indices, uint32_t p_instances = 1, uint32_t p_procedural_vertices = 0);
 
@@ -1086,7 +1096,7 @@ public:
 	virtual ComputeListID compute_list_begin();
 	virtual void compute_list_bind_compute_pipeline(ComputeListID p_list, RID p_compute_pipeline);
 	virtual void compute_list_bind_uniform_set(ComputeListID p_list, RID p_uniform_set, uint32_t p_index);
-	virtual void compute_list_set_push_constant(ComputeListID p_list, void *p_data, uint32_t p_data_size);
+	virtual void compute_list_set_push_constant(ComputeListID p_list, const void *p_data, uint32_t p_data_size);
 	virtual void compute_list_add_barrier(ComputeListID p_list);
 
 	virtual void compute_list_dispatch(ComputeListID p_list, uint32_t p_x_groups, uint32_t p_y_groups, uint32_t p_z_groups);
@@ -1116,14 +1126,20 @@ public:
 	virtual int limit_get(Limit p_limit);
 
 	virtual void prepare_screen_for_drawing();
-	void initialize(VulkanContext *p_context);
+	void initialize(VulkanContext *p_context, bool p_local_device = false);
 	void finalize();
 
-	virtual void swap_buffers();
+	virtual void swap_buffers(); //for main device
+
+	virtual void submit(); //for local device
+	virtual void sync(); //for local device
 
 	virtual uint32_t get_frame_delay() const;
 
+	virtual RenderingDevice *create_local_device();
+
 	RenderingDeviceVulkan();
+	~RenderingDeviceVulkan();
 };
 
 #endif // RENDERING_DEVICE_VULKAN_H

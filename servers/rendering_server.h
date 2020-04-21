@@ -38,6 +38,7 @@
 #include "core/rid.h"
 #include "core/variant.h"
 #include "servers/display_server.h"
+#include "servers/rendering/shader_language.h"
 
 class RenderingServer : public Object {
 
@@ -85,7 +86,6 @@ public:
 	};
 
 	enum CubeMapLayer {
-
 		CUBEMAP_LAYER_LEFT,
 		CUBEMAP_LAYER_RIGHT,
 		CUBEMAP_LAYER_BOTTOM,
@@ -157,7 +157,6 @@ public:
 	/* SHADER API */
 
 	enum ShaderMode {
-
 		SHADER_SPATIAL,
 		SHADER_CANVAS_ITEM,
 		SHADER_PARTICLES,
@@ -181,8 +180,8 @@ public:
 	enum {
 		MATERIAL_RENDER_PRIORITY_MIN = -128,
 		MATERIAL_RENDER_PRIORITY_MAX = 127,
-
 	};
+
 	virtual RID material_create() = 0;
 
 	virtual void material_set_shader(RID p_shader_material, RID p_shader) = 0;
@@ -197,7 +196,6 @@ public:
 	/* MESH API */
 
 	enum ArrayType {
-
 		ARRAY_VERTEX = 0,
 		ARRAY_NORMAL = 1,
 		ARRAY_TANGENT = 2,
@@ -229,12 +227,10 @@ public:
 		ARRAY_COMPRESS_TEX_UV = 1 << (ARRAY_TEX_UV + ARRAY_COMPRESS_BASE),
 		ARRAY_COMPRESS_TEX_UV2 = 1 << (ARRAY_TEX_UV2 + ARRAY_COMPRESS_BASE),
 		ARRAY_COMPRESS_INDEX = 1 << (ARRAY_INDEX + ARRAY_COMPRESS_BASE),
+		ARRAY_COMPRESS_DEFAULT = ARRAY_COMPRESS_NORMAL | ARRAY_COMPRESS_TANGENT | ARRAY_COMPRESS_COLOR | ARRAY_COMPRESS_TEX_UV | ARRAY_COMPRESS_TEX_UV2,
 
 		ARRAY_FLAG_USE_2D_VERTICES = ARRAY_COMPRESS_INDEX << 1,
 		ARRAY_FLAG_USE_DYNAMIC_UPDATE = ARRAY_COMPRESS_INDEX << 3,
-
-		ARRAY_COMPRESS_DEFAULT = ARRAY_COMPRESS_NORMAL | ARRAY_COMPRESS_TANGENT | ARRAY_COMPRESS_COLOR | ARRAY_COMPRESS_TEX_UV | ARRAY_COMPRESS_TEX_UV2
-
 	};
 
 	enum PrimitiveType {
@@ -377,15 +373,14 @@ public:
 	};
 
 	enum LightParam {
-
 		LIGHT_PARAM_ENERGY,
 		LIGHT_PARAM_INDIRECT_ENERGY,
 		LIGHT_PARAM_SPECULAR,
 		LIGHT_PARAM_RANGE,
+		LIGHT_PARAM_SIZE,
 		LIGHT_PARAM_ATTENUATION,
 		LIGHT_PARAM_SPOT_ANGLE,
 		LIGHT_PARAM_SPOT_ATTENUATION,
-		LIGHT_PARAM_CONTACT_SHADOW_SIZE,
 		LIGHT_PARAM_SHADOW_MAX_DISTANCE,
 		LIGHT_PARAM_SHADOW_SPLIT_1_OFFSET,
 		LIGHT_PARAM_SHADOW_SPLIT_2_OFFSET,
@@ -393,7 +388,9 @@ public:
 		LIGHT_PARAM_SHADOW_FADE_START,
 		LIGHT_PARAM_SHADOW_NORMAL_BIAS,
 		LIGHT_PARAM_SHADOW_BIAS,
-		LIGHT_PARAM_SHADOW_BIAS_SPLIT_SCALE,
+		LIGHT_PARAM_SHADOW_PANCAKE_SIZE,
+		LIGHT_PARAM_SHADOW_BLUR,
+		LIGHT_PARAM_TRANSMITTANCE_BIAS,
 		LIGHT_PARAM_MAX
 	};
 
@@ -459,6 +456,27 @@ public:
 	virtual void reflection_probe_set_enable_shadows(RID p_probe, bool p_enable) = 0;
 	virtual void reflection_probe_set_cull_mask(RID p_probe, uint32_t p_layers) = 0;
 	virtual void reflection_probe_set_resolution(RID p_probe, int p_resolution) = 0;
+
+	/* DECAL API */
+
+	enum DecalTexture {
+		DECAL_TEXTURE_ALBEDO,
+		DECAL_TEXTURE_NORMAL,
+		DECAL_TEXTURE_ORM,
+		DECAL_TEXTURE_EMISSION,
+		DECAL_TEXTURE_MAX
+	};
+
+	virtual RID decal_create() = 0;
+	virtual void decal_set_extents(RID p_decal, const Vector3 &p_extents) = 0;
+	virtual void decal_set_texture(RID p_decal, DecalTexture p_type, RID p_texture) = 0;
+	virtual void decal_set_emission_energy(RID p_decal, float p_energy) = 0;
+	virtual void decal_set_albedo_mix(RID p_decal, float p_mix) = 0;
+	virtual void decal_set_modulate(RID p_decal, const Color &p_modulate) = 0;
+	virtual void decal_set_cull_mask(RID p_decal, uint32_t p_layers) = 0;
+	virtual void decal_set_distance_fade(RID p_decal, bool p_enabled, float p_begin, float p_length) = 0;
+	virtual void decal_set_fade(RID p_decal, float p_above, float p_below) = 0;
+	virtual void decal_set_normal_fade(RID p_decal, float p_fade) = 0;
 
 	/* GI PROBE API */
 
@@ -575,12 +593,13 @@ public:
 	};
 
 	virtual void particles_set_collision(RID p_particles,ParticlesCollisionMode p_mode,const Transform&, p_xform,const RID p_depth_tex,const RID p_normal_tex)=0;
-*/
+	*/
+
 	/* VIEWPORT TARGET API */
 
 	virtual RID viewport_create() = 0;
 
-	virtual void viewport_set_use_arvr(RID p_viewport, bool p_use_arvr) = 0;
+	virtual void viewport_set_use_xr(RID p_viewport, bool p_use_xr) = 0;
 	virtual void viewport_set_size(RID p_viewport, int p_width, int p_height) = 0;
 	virtual void viewport_set_active(RID p_viewport, bool p_active) = 0;
 	virtual void viewport_set_parent_viewport(RID p_viewport, RID p_parent_viewport) = 0;
@@ -599,7 +618,6 @@ public:
 	virtual void viewport_set_update_mode(RID p_viewport, ViewportUpdateMode p_mode) = 0;
 
 	enum ViewportClearMode {
-
 		VIEWPORT_CLEAR_ALWAYS,
 		VIEWPORT_CLEAR_NEVER,
 		VIEWPORT_CLEAR_ONLY_NEXT_FRAME
@@ -632,21 +650,27 @@ public:
 		VIEWPORT_MSAA_4X,
 		VIEWPORT_MSAA_8X,
 		VIEWPORT_MSAA_16X,
-		VIEWPORT_MSAA_EXT_2X,
-		VIEWPORT_MSAA_EXT_4X,
+		VIEWPORT_MSAA_MAX,
 	};
 
 	virtual void viewport_set_msaa(RID p_viewport, ViewportMSAA p_msaa) = 0;
 
-	enum ViewportRenderInfo {
+	enum ViewportScreenSpaceAA {
+		VIEWPORT_SCREEN_SPACE_AA_DISABLED,
+		VIEWPORT_SCREEN_SPACE_AA_FXAA,
+		VIEWPORT_SCREEN_SPACE_AA_MAX,
+	};
 
+	virtual void viewport_set_screen_space_aa(RID p_viewport, ViewportScreenSpaceAA p_mode) = 0;
+
+	enum ViewportRenderInfo {
 		VIEWPORT_RENDER_INFO_OBJECTS_IN_FRAME,
 		VIEWPORT_RENDER_INFO_VERTICES_IN_FRAME,
 		VIEWPORT_RENDER_INFO_MATERIAL_CHANGES_IN_FRAME,
 		VIEWPORT_RENDER_INFO_SHADER_CHANGES_IN_FRAME,
 		VIEWPORT_RENDER_INFO_SURFACE_CHANGES_IN_FRAME,
 		VIEWPORT_RENDER_INFO_DRAW_CALLS_IN_FRAME,
-		VIEWPORT_RENDER_INFO_MAX
+		VIEWPORT_RENDER_INFO_MAX,
 	};
 
 	virtual int viewport_get_render_info(RID p_viewport, ViewportRenderInfo p_info) = 0;
@@ -666,10 +690,15 @@ public:
 		VIEWPORT_DEBUG_DRAW_SCENE_LUMINANCE,
 		VIEWPORT_DEBUG_DRAW_SSAO,
 		VIEWPORT_DEBUG_DRAW_ROUGHNESS_LIMITER,
-
+		VIEWPORT_DEBUG_DRAW_PSSM_SPLITS,
+		VIEWPORT_DEBUG_DRAW_DECAL_ATLAS,
 	};
 
 	virtual void viewport_set_debug_draw(RID p_viewport, ViewportDebugDraw p_draw) = 0;
+
+	virtual void viewport_set_measure_render_time(RID p_viewport, bool p_enable) = 0;
+	virtual float viewport_get_measured_render_time_cpu(RID p_viewport) const = 0;
+	virtual float viewport_get_measured_render_time_gpu(RID p_viewport) const = 0;
 
 	virtual void directional_shadow_atlas_set_size(int p_size) = 0;
 
@@ -690,7 +719,6 @@ public:
 	virtual RID environment_create() = 0;
 
 	enum EnvironmentBG {
-
 		ENV_BG_CLEAR_COLOR,
 		ENV_BG_COLOR,
 		ENV_BG_SKY,
@@ -733,6 +761,7 @@ public:
 		ENV_GLOW_BLEND_MODE_REPLACE,
 		ENV_GLOW_BLEND_MODE_MIX,
 	};
+
 	virtual void environment_set_glow(RID p_env, bool p_enable, int p_level_flags, float p_intensity, float p_strength, float p_mix, float p_bloom_threshold, EnvironmentGlowBlendMode p_blend_mode, float p_hdr_bleed_threshold, float p_hdr_bleed_scale, float p_hdr_luminance_cap) = 0;
 
 	virtual void environment_glow_set_use_bicubic_upscale(bool p_enable) = 0;
@@ -747,7 +776,16 @@ public:
 	virtual void environment_set_tonemap(RID p_env, EnvironmentToneMapper p_tone_mapper, float p_exposure, float p_white, bool p_auto_exposure, float p_min_luminance, float p_max_luminance, float p_auto_exp_speed, float p_auto_exp_grey) = 0;
 	virtual void environment_set_adjustment(RID p_env, bool p_enable, float p_brightness, float p_contrast, float p_saturation, RID p_ramp) = 0;
 
-	virtual void environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_in, float p_fade_out, float p_depth_tolerance, bool p_roughness) = 0;
+	virtual void environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_in, float p_fade_out, float p_depth_tolerance) = 0;
+
+	enum EnvironmentSSRRoughnessQuality {
+		ENV_SSR_ROUGNESS_QUALITY_DISABLED,
+		ENV_SSR_ROUGNESS_QUALITY_LOW,
+		ENV_SSR_ROUGNESS_QUALITY_MEDIUM,
+		ENV_SSR_ROUGNESS_QUALITY_HIGH,
+	};
+
+	virtual void environment_set_ssr_roughness_quality(EnvironmentSSRRoughnessQuality p_quality) = 0;
 
 	enum EnvironmentSSAOBlur {
 		ENV_SSAO_BLUR_DISABLED,
@@ -773,6 +811,16 @@ public:
 
 	virtual void screen_space_roughness_limiter_set_active(bool p_enable, float p_curve) = 0;
 
+	enum SubSurfaceScatteringQuality {
+		SUB_SURFACE_SCATTERING_QUALITY_DISABLED,
+		SUB_SURFACE_SCATTERING_QUALITY_LOW,
+		SUB_SURFACE_SCATTERING_QUALITY_MEDIUM,
+		SUB_SURFACE_SCATTERING_QUALITY_HIGH,
+	};
+
+	virtual void sub_surface_scattering_set_quality(SubSurfaceScatteringQuality p_quality) = 0;
+	virtual void sub_surface_scattering_set_scale(float p_scale, float p_depth_scale) = 0;
+
 	/* CAMERA EFFECTS */
 
 	virtual RID camera_effects_create() = 0;
@@ -797,6 +845,18 @@ public:
 	virtual void camera_effects_set_dof_blur(RID p_camera_effects, bool p_far_enable, float p_far_distance, float p_far_transition, bool p_near_enable, float p_near_distance, float p_near_transition, float p_amount) = 0;
 	virtual void camera_effects_set_custom_exposure(RID p_camera_effects, bool p_enable, float p_exposure) = 0;
 
+	enum ShadowQuality {
+		SHADOW_QUALITY_HARD,
+		SHADOW_QUALITY_SOFT_LOW,
+		SHADOW_QUALITY_SOFT_MEDIUM,
+		SHADOW_QUALITY_SOFT_HIGH,
+		SHADOW_QUALITY_SOFT_ULTRA,
+		SHADOW_QUALITY_MAX
+	};
+
+	virtual void shadows_quality_set(ShadowQuality p_quality) = 0;
+	virtual void directional_shadow_quality_set(ShadowQuality p_quality) = 0;
+
 	/* SCENARIO API */
 
 	virtual RID scenario_create() = 0;
@@ -806,7 +866,6 @@ public:
 		SCENARIO_DEBUG_WIREFRAME,
 		SCENARIO_DEBUG_OVERDRAW,
 		SCENARIO_DEBUG_SHADELESS,
-
 	};
 
 	virtual void scenario_set_debug(RID p_scenario, ScenarioDebugMode p_debug_mode) = 0;
@@ -817,7 +876,6 @@ public:
 	/* INSTANCING API */
 
 	enum InstanceType {
-
 		INSTANCE_NONE,
 		INSTANCE_MESH,
 		INSTANCE_MULTIMESH,
@@ -825,6 +883,7 @@ public:
 		INSTANCE_PARTICLES,
 		INSTANCE_LIGHT,
 		INSTANCE_REFLECTION_PROBE,
+		INSTANCE_DECAL,
 		INSTANCE_GI_PROBE,
 		INSTANCE_LIGHTMAP_CAPTURE,
 		INSTANCE_MAX,
@@ -883,6 +942,11 @@ public:
 
 	virtual void instance_geometry_set_draw_range(RID p_instance, float p_min, float p_max, float p_min_margin, float p_max_margin) = 0;
 	virtual void instance_geometry_set_as_instance_lod(RID p_instance, RID p_as_lod_of_instance) = 0;
+
+	virtual void instance_geometry_set_shader_parameter(RID p_instance, const StringName &, const Variant &p_value) = 0;
+	virtual Variant instance_geometry_get_shader_parameter(RID p_instance, const StringName &) const = 0;
+	virtual Variant instance_geometry_get_shader_parameter_default_value(RID p_instance, const StringName &) const = 0;
+	virtual void instance_geometry_get_shader_parameter_list(RID p_instance, List<PropertyInfo> *p_parameters) const = 0;
 
 	/* CANVAS (2D) */
 
@@ -1022,7 +1086,57 @@ public:
 		CANVAS_OCCLUDER_POLYGON_CULL_CLOCKWISE,
 		CANVAS_OCCLUDER_POLYGON_CULL_COUNTER_CLOCKWISE,
 	};
+
 	virtual void canvas_occluder_polygon_set_cull_mode(RID p_occluder_polygon, CanvasOccluderPolygonCullMode p_mode) = 0;
+
+	/* GLOBAL VARIABLES */
+
+	enum GlobalVariableType {
+		GLOBAL_VAR_TYPE_BOOL,
+		GLOBAL_VAR_TYPE_BVEC2,
+		GLOBAL_VAR_TYPE_BVEC3,
+		GLOBAL_VAR_TYPE_BVEC4,
+		GLOBAL_VAR_TYPE_INT,
+		GLOBAL_VAR_TYPE_IVEC2,
+		GLOBAL_VAR_TYPE_IVEC3,
+		GLOBAL_VAR_TYPE_IVEC4,
+		GLOBAL_VAR_TYPE_RECT2I,
+		GLOBAL_VAR_TYPE_UINT,
+		GLOBAL_VAR_TYPE_UVEC2,
+		GLOBAL_VAR_TYPE_UVEC3,
+		GLOBAL_VAR_TYPE_UVEC4,
+		GLOBAL_VAR_TYPE_FLOAT,
+		GLOBAL_VAR_TYPE_VEC2,
+		GLOBAL_VAR_TYPE_VEC3,
+		GLOBAL_VAR_TYPE_VEC4,
+		GLOBAL_VAR_TYPE_COLOR,
+		GLOBAL_VAR_TYPE_RECT2,
+		GLOBAL_VAR_TYPE_MAT2,
+		GLOBAL_VAR_TYPE_MAT3,
+		GLOBAL_VAR_TYPE_MAT4,
+		GLOBAL_VAR_TYPE_TRANSFORM_2D,
+		GLOBAL_VAR_TYPE_TRANSFORM,
+		GLOBAL_VAR_TYPE_SAMPLER2D,
+		GLOBAL_VAR_TYPE_SAMPLER2DARRAY,
+		GLOBAL_VAR_TYPE_SAMPLER3D,
+		GLOBAL_VAR_TYPE_SAMPLERCUBE,
+		GLOBAL_VAR_TYPE_MAX
+	};
+
+	virtual void global_variable_add(const StringName &p_name, GlobalVariableType p_type, const Variant &p_value) = 0;
+	virtual void global_variable_remove(const StringName &p_name) = 0;
+	virtual Vector<StringName> global_variable_get_list() const = 0;
+
+	virtual void global_variable_set(const StringName &p_name, const Variant &p_value) = 0;
+	virtual void global_variable_set_override(const StringName &p_name, const Variant &p_value) = 0;
+
+	virtual Variant global_variable_get(const StringName &p_name) const = 0;
+	virtual GlobalVariableType global_variable_get_type(const StringName &p_name) const = 0;
+
+	virtual void global_variables_load_settings(bool p_load_textures) = 0;
+	virtual void global_variables_clear() = 0;
+
+	static ShaderLanguage::DataType global_variable_type_get_shader_datatype(GlobalVariableType p_type);
 
 	/* BLACK BARS */
 
@@ -1046,7 +1160,6 @@ public:
 	/* STATUS INFORMATION */
 
 	enum RenderInfo {
-
 		INFO_OBJECTS_IN_FRAME,
 		INFO_VERTICES_IN_FRAME,
 		INFO_MATERIAL_CHANGES_IN_FRAME,
@@ -1124,10 +1237,12 @@ VARIANT_ENUM_CAST(RenderingServer::LightOmniShadowMode);
 VARIANT_ENUM_CAST(RenderingServer::LightDirectionalShadowMode);
 VARIANT_ENUM_CAST(RenderingServer::LightDirectionalShadowDepthRangeMode);
 VARIANT_ENUM_CAST(RenderingServer::ReflectionProbeUpdateMode);
+VARIANT_ENUM_CAST(RenderingServer::DecalTexture);
 VARIANT_ENUM_CAST(RenderingServer::ParticlesDrawOrder);
 VARIANT_ENUM_CAST(RenderingServer::ViewportUpdateMode);
 VARIANT_ENUM_CAST(RenderingServer::ViewportClearMode);
 VARIANT_ENUM_CAST(RenderingServer::ViewportMSAA);
+VARIANT_ENUM_CAST(RenderingServer::ViewportScreenSpaceAA);
 VARIANT_ENUM_CAST(RenderingServer::ViewportRenderInfo);
 VARIANT_ENUM_CAST(RenderingServer::ViewportDebugDraw);
 VARIANT_ENUM_CAST(RenderingServer::SkyMode);
@@ -1136,10 +1251,13 @@ VARIANT_ENUM_CAST(RenderingServer::EnvironmentAmbientSource);
 VARIANT_ENUM_CAST(RenderingServer::EnvironmentReflectionSource);
 VARIANT_ENUM_CAST(RenderingServer::EnvironmentGlowBlendMode);
 VARIANT_ENUM_CAST(RenderingServer::EnvironmentToneMapper);
-VARIANT_ENUM_CAST(RenderingServer::EnvironmentSSAOQuality);
+VARIANT_ENUM_CAST(RenderingServer::EnvironmentSSRRoughnessQuality);
 VARIANT_ENUM_CAST(RenderingServer::EnvironmentSSAOBlur);
+VARIANT_ENUM_CAST(RenderingServer::EnvironmentSSAOQuality);
+VARIANT_ENUM_CAST(RenderingServer::SubSurfaceScatteringQuality);
 VARIANT_ENUM_CAST(RenderingServer::DOFBlurQuality);
 VARIANT_ENUM_CAST(RenderingServer::DOFBokehShape);
+VARIANT_ENUM_CAST(RenderingServer::ShadowQuality);
 VARIANT_ENUM_CAST(RenderingServer::ScenarioDebugMode);
 VARIANT_ENUM_CAST(RenderingServer::InstanceType);
 VARIANT_ENUM_CAST(RenderingServer::InstanceFlags);
@@ -1150,10 +1268,11 @@ VARIANT_ENUM_CAST(RenderingServer::CanvasItemTextureRepeat);
 VARIANT_ENUM_CAST(RenderingServer::CanvasLightMode);
 VARIANT_ENUM_CAST(RenderingServer::CanvasLightShadowFilter);
 VARIANT_ENUM_CAST(RenderingServer::CanvasOccluderPolygonCullMode);
+VARIANT_ENUM_CAST(RenderingServer::GlobalVariableType);
 VARIANT_ENUM_CAST(RenderingServer::RenderInfo);
 VARIANT_ENUM_CAST(RenderingServer::Features);
 
-//typedef RenderingServer VS; // makes it easier to use
+// Alias to make it easier to use.
 #define RS RenderingServer
 
-#endif
+#endif // RENDERING_SERVER_H
