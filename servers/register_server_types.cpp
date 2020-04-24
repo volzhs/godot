@@ -170,7 +170,7 @@ void register_server_types() {
 	ClassDB::register_class<RDTextureView>();
 	ClassDB::register_class<RDAttachmentFormat>();
 	ClassDB::register_class<RDSamplerState>();
-	ClassDB::register_class<RDVertexDescription>();
+	ClassDB::register_class<RDVertexAttribute>();
 	ClassDB::register_class<RDUniform>();
 	ClassDB::register_class<RDPipelineRasterizationState>();
 	ClassDB::register_class<RDPipelineMultisampleState>();
@@ -216,6 +216,7 @@ void unregister_server_types() {
 
 void register_server_singletons() {
 
+	Engine::get_singleton()->add_singleton(Engine::Singleton("DisplayServer", DisplayServer::get_singleton()));
 	Engine::get_singleton()->add_singleton(Engine::Singleton("RenderingServer", RenderingServer::get_singleton()));
 	Engine::get_singleton()->add_singleton(Engine::Singleton("AudioServer", AudioServer::get_singleton()));
 	Engine::get_singleton()->add_singleton(Engine::Singleton("PhysicsServer2D", PhysicsServer2D::get_singleton()));
