@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  input_filter.h                                                       */
+/*  input.h                                                              */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -35,12 +35,12 @@
 #include "core/object.h"
 #include "core/os/thread_safe.h"
 
-class InputFilter : public Object {
+class Input : public Object {
 
-	GDCLASS(InputFilter, Object);
+	GDCLASS(Input, Object);
 	_THREAD_SAFE_CLASS_
 
-	static InputFilter *singleton;
+	static Input *singleton;
 
 public:
 	enum MouseMode {
@@ -126,15 +126,6 @@ private:
 	bool emulate_mouse_from_touch;
 
 	int mouse_from_touch_index;
-
-	struct VibrationInfo {
-		float weak_magnitude;
-		float strong_magnitude;
-		float duration; // Duration in seconds
-		uint64_t timestamp;
-	};
-
-	Map<int, VibrationInfo> joy_vibration;
 
 	struct SpeedTrack {
 
@@ -232,6 +223,15 @@ private:
 	EventDispatchFunc event_dispatch_function;
 
 protected:
+	struct VibrationInfo {
+		float weak_magnitude;
+		float strong_magnitude;
+		float duration; // Duration in seconds
+		uint64_t timestamp;
+	};
+
+	Map<int, VibrationInfo> joy_vibration;
+
 	static void _bind_methods();
 
 public:
@@ -239,7 +239,7 @@ public:
 	MouseMode get_mouse_mode() const;
 	void get_argument_options(const StringName &p_function, int p_idx, List<String> *r_options) const;
 
-	static InputFilter *get_singleton();
+	static Input *get_singleton();
 
 	bool is_key_pressed(int p_keycode) const;
 	bool is_mouse_button_pressed(int p_button) const;
@@ -299,7 +299,7 @@ public:
 	CursorShape get_default_cursor_shape() const;
 	void set_default_cursor_shape(CursorShape p_shape);
 	CursorShape get_current_cursor_shape() const;
-	void set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape = InputFilter::CURSOR_ARROW, const Vector2 &p_hotspot = Vector2());
+	void set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape = Input::CURSOR_ARROW, const Vector2 &p_hotspot = Vector2());
 
 	void parse_mapping(String p_mapping);
 	void joy_button(int p_device, int p_button, bool p_pressed);
@@ -328,10 +328,10 @@ public:
 
 	void set_event_dispatch_function(EventDispatchFunc p_function);
 
-	InputFilter();
+	Input();
 };
 
-VARIANT_ENUM_CAST(InputFilter::MouseMode);
-VARIANT_ENUM_CAST(InputFilter::CursorShape);
+VARIANT_ENUM_CAST(Input::MouseMode);
+VARIANT_ENUM_CAST(Input::CursorShape);
 
 #endif // INPUT_H

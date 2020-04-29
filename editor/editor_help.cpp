@@ -30,7 +30,7 @@
 
 #include "editor_help.h"
 
-#include "core/input/input_filter.h"
+#include "core/input/input.h"
 #include "core/os/keyboard.h"
 #include "doc_data_compressed.gen.h"
 #include "editor/plugins/script_editor_plugin.h"
@@ -1222,11 +1222,14 @@ static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt) {
 	Ref<Font> doc_font = p_rt->get_theme_font("doc", "EditorFonts");
 	Ref<Font> doc_bold_font = p_rt->get_theme_font("doc_bold", "EditorFonts");
 	Ref<Font> doc_code_font = p_rt->get_theme_font("doc_source", "EditorFonts");
+	Ref<Font> doc_kbd_font = p_rt->get_theme_font("doc_keyboard", "EditorFonts");
 
 	Color font_color_hl = p_rt->get_theme_color("headline_color", "EditorHelp");
 	Color accent_color = p_rt->get_theme_color("accent_color", "Editor");
+	Color property_color = p_rt->get_theme_color("property_color", "Editor");
 	Color link_color = accent_color.linear_interpolate(font_color_hl, 0.8);
 	Color code_color = accent_color.linear_interpolate(font_color_hl, 0.6);
+	Color kbd_color = accent_color.linear_interpolate(property_color, 0.6);
 
 	String bbcode = p_bbcode.dedent().replace("\t", "").replace("\r", "").strip_edges();
 
@@ -1335,6 +1338,14 @@ static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt) {
 			p_rt->push_font(doc_code_font);
 			p_rt->push_color(code_color);
 			code_tag = true;
+			pos = brk_end + 1;
+			tag_stack.push_front(tag);
+		} else if (tag == "kbd") {
+
+			//use keyboard font with custom color
+			p_rt->push_font(doc_kbd_font);
+			p_rt->push_color(kbd_color);
+			code_tag = true; // though not strictly a code tag, logic is similar
 			pos = brk_end + 1;
 			tag_stack.push_front(tag);
 		} else if (tag == "center") {
@@ -1844,7 +1855,7 @@ void FindBar::_search_text_changed(const String &p_text) {
 
 void FindBar::_search_text_entered(const String &p_text) {
 
-	if (InputFilter::get_singleton()->is_key_pressed(KEY_SHIFT)) {
+	if (Input::get_singleton()->is_key_pressed(KEY_SHIFT)) {
 		search_prev();
 	} else {
 		search_next();

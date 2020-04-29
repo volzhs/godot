@@ -30,7 +30,7 @@
 
 #include "animation_player_editor_plugin.h"
 
-#include "core/input/input_filter.h"
+#include "core/input/input.h"
 #include "core/io/resource_loader.h"
 #include "core/io/resource_saver.h"
 #include "core/os/keyboard.h"
@@ -433,7 +433,9 @@ void AnimationPlayerEditor::_animation_remove() {
 	if (animation->get_item_count() == 0)
 		return;
 
-	delete_dialog->set_text(TTR("Delete Animation?"));
+	String current = animation->get_item_text(animation->get_selected());
+
+	delete_dialog->set_text(TTR("Delete Animation '" + current + "'?"));
 	delete_dialog->popup_centered();
 }
 
@@ -488,7 +490,7 @@ double AnimationPlayerEditor::_get_editor_step() const {
 		ERR_FAIL_COND_V(!anim.is_valid(), 0.0);
 
 		// Use more precise snapping when holding Shift
-		return InputFilter::get_singleton()->is_key_pressed(KEY_SHIFT) ? anim->get_step() * 0.25 : anim->get_step();
+		return Input::get_singleton()->is_key_pressed(KEY_SHIFT) ? anim->get_step() * 0.25 : anim->get_step();
 	}
 
 	return 0.0;
@@ -1135,7 +1137,9 @@ void AnimationPlayerEditor::_animation_tool_menu(int p_option) {
 		case TOOL_DUPLICATE_ANIM: {
 
 			_animation_duplicate();
-		} break;
+
+			[[fallthrough]]; // Allow immediate rename after animation is duplicated
+		}
 		case TOOL_RENAME_ANIM: {
 
 			_animation_rename();

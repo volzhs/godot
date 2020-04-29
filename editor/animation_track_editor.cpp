@@ -31,7 +31,7 @@
 #include "animation_track_editor.h"
 
 #include "animation_track_editor_plugins.h"
-#include "core/input/input_filter.h"
+#include "core/input/input.h"
 #include "core/os/keyboard.h"
 #include "editor/animation_bezier_editor.h"
 #include "editor/plugins/animation_player_editor_plugin.h"
@@ -754,14 +754,17 @@ public:
 
 		for (Map<int, List<float>>::Element *E = key_ofs_map.front(); E; E = E->next()) {
 
+			int key = 0;
 			for (List<float>::Element *F = E->value().front(); F; F = F->next()) {
 
 				float key_ofs = F->get();
-				if (from != key_ofs)
+				if (from != key_ofs) {
+					key++;
 					continue;
+				}
 
 				int track = E->key();
-				key_ofs_map[track][key_ofs] = to;
+				key_ofs_map[track][key] = to;
 
 				if (setting)
 					return;
@@ -4100,7 +4103,7 @@ bool AnimationTrackEditor::is_selection_active() const {
 }
 
 bool AnimationTrackEditor::is_snap_enabled() const {
-	return snap->is_pressed() ^ InputFilter::get_singleton()->is_key_pressed(KEY_CONTROL);
+	return snap->is_pressed() ^ Input::get_singleton()->is_key_pressed(KEY_CONTROL);
 }
 
 void AnimationTrackEditor::_update_tracks() {

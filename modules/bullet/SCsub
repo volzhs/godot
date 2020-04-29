@@ -175,6 +175,7 @@ if env["builtin_bullet"]:
         "BulletSoftBody/btDeformableContactProjection.cpp",
         "BulletSoftBody/btDeformableMultiBodyDynamicsWorld.cpp",
         "BulletSoftBody/btDeformableContactConstraint.cpp",
+        "BulletSoftBody/poly34.cpp",
         # clew
         "clew/clew.c",
         # LinearMath
@@ -202,6 +203,8 @@ if env["builtin_bullet"]:
         env_bullet.Prepend(CPPPATH=[thirdparty_dir])
     # if env['target'] == "debug" or env['target'] == "release_debug":
     #     env_bullet.Append(CPPDEFINES=['BT_DEBUG'])
+
+    env_bullet.Append(CPPDEFINES=["BT_USE_OLD_DAMPING_METHOD"])
 
     env_thirdparty = env_bullet.Clone()
     env_thirdparty.disable_warnings()

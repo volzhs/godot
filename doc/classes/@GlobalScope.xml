@@ -21,6 +21,9 @@
 		<member name="ClassDB" type="ClassDB" setter="" getter="">
 			The [ClassDB] singleton.
 		</member>
+		<member name="DisplayServer" type="DisplayServer" setter="" getter="">
+			The [DisplayServer] singleton.
+		</member>
 		<member name="Engine" type="Engine" setter="" getter="">
 			The [Engine] singleton.
 		</member>
@@ -30,8 +33,8 @@
 		<member name="IP" type="IP" setter="" getter="">
 			The [IP] singleton.
 		</member>
-		<member name="Input" type="InputFilter" setter="" getter="">
-			The [InputFilter] singleton.
+		<member name="Input" type="Input" setter="" getter="">
+			The [Input] singleton.
 		</member>
 		<member name="InputMap" type="InputMap" setter="" getter="">
 			The [InputMap] singleton.
@@ -152,7 +155,7 @@
 			Tab key.
 		</constant>
 		<constant name="KEY_BACKTAB" value="16777219" enum="KeyList">
-			Shift+Tab key.
+			Shift + Tab key.
 		</constant>
 		<constant name="KEY_BACKSPACE" value="16777220" enum="KeyList">
 			Backspace key.
