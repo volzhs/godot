@@ -2378,6 +2378,9 @@ VisualServer::VisualServer() {
 	GLOBAL_DEF_RST("rendering/vram_compression/import_etc2", true);
 	GLOBAL_DEF_RST("rendering/vram_compression/import_pvrtc", false);
 
+	GLOBAL_DEF("rendering/limits/time/time_rollover_secs", 3600);
+	ProjectSettings::get_singleton()->set_custom_property_info("rendering/limits/time/time_rollover_secs", PropertyInfo(Variant::REAL, "rendering/limits/time/time_rollover_secs", PROPERTY_HINT_RANGE, "0,10000,1,or_greater"));
+
 	GLOBAL_DEF("rendering/quality/directional_shadow/size", 4096);
 	GLOBAL_DEF("rendering/quality/directional_shadow/size.mobile", 2048);
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/directional_shadow/size", PropertyInfo(Variant::INT, "rendering/quality/directional_shadow/size", PROPERTY_HINT_RANGE, "256,16384"));
@@ -2420,15 +2423,21 @@ VisualServer::VisualServer() {
 	GLOBAL_DEF("rendering/gles2/batching/max_join_item_commands", 16);
 	GLOBAL_DEF("rendering/gles2/batching/colored_vertex_format_threshold", 0.25f);
 	GLOBAL_DEF("rendering/gles2/batching/light_scissor_area_threshold", 1.0f);
+	GLOBAL_DEF("rendering/gles2/batching/light_max_join_items", 32);
 	GLOBAL_DEF("rendering/gles2/batching/batch_buffer_size", 16384);
+	GLOBAL_DEF("rendering/gles2/batching/item_reordering_lookahead", 4);
+	GLOBAL_DEF("rendering/gles2/batching/single_rect_fallback", false);
 	GLOBAL_DEF("rendering/gles2/debug/flash_batching", false);
 	GLOBAL_DEF("rendering/gles2/debug/diagnose_frame", false);
 	GLOBAL_DEF_RST("rendering/gles2/debug/use_batching_in_editor", true);
+	GLOBAL_DEF("rendering/gles2/debug/disable_half_float", false);
 
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/gles2/batching/max_join_item_commands", PropertyInfo(Variant::INT, "rendering/gles2/batching/max_join_item_commands", PROPERTY_HINT_RANGE, "0,65535"));
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/gles2/batching/colored_vertex_format_threshold", PropertyInfo(Variant::REAL, "rendering/gles2/batching/colored_vertex_format_threshold", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"));
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/gles2/batching/batch_buffer_size", PropertyInfo(Variant::INT, "rendering/gles2/batching/batch_buffer_size", PROPERTY_HINT_RANGE, "1024,65535,1024"));
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/gles2/batching/light_scissor_area_threshold", PropertyInfo(Variant::REAL, "rendering/gles2/batching/light_scissor_area_threshold", PROPERTY_HINT_RANGE, "0.0,1.0"));
+	ProjectSettings::get_singleton()->set_custom_property_info("rendering/gles2/batching/light_max_join_items", PropertyInfo(Variant::INT, "rendering/gles2/batching/light_max_join_items", PROPERTY_HINT_RANGE, "0,512"));
+	ProjectSettings::get_singleton()->set_custom_property_info("rendering/gles2/batching/item_reordering_lookahead", PropertyInfo(Variant::INT, "rendering/gles2/batching/item_reordering_lookahead", PROPERTY_HINT_RANGE, "0,256"));
 }
 
 VisualServer::~VisualServer() {
