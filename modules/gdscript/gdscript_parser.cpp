@@ -3156,6 +3156,8 @@ void GDScriptParser::_parse_block(BlockNode *p_block, bool p_static) {
 								ConstantNode *c = static_cast<ConstantNode *>(op->arguments[i]);
 								if (c->value.get_type() == Variant::REAL || c->value.get_type() == Variant::INT) {
 									constants.push_back(c->value);
+								} else {
+									constant = false;
 								}
 							} else {
 								constant = false;
@@ -7336,7 +7338,7 @@ GDScriptParser::DataType GDScriptParser::_reduce_function_call_type(const Operat
 	return return_type;
 }
 
-bool GDScriptParser::_get_member_type(const DataType &p_base_type, const StringName &p_member, DataType &r_member_type) const {
+bool GDScriptParser::_get_member_type(const DataType &p_base_type, const StringName &p_member, DataType &r_member_type, bool *r_is_const) const {
 	DataType base_type = p_base_type;
 
 	// Check classes in current file
@@ -7347,6 +7349,8 @@ bool GDScriptParser::_get_member_type(const DataType &p_base_type, const StringN
 
 	while (base) {
 		if (base->constant_expressions.has(p_member)) {
+			if (r_is_const)
+				*r_is_const = true;
 			r_member_type = base->constant_expressions[p_member].expression->get_datatype();
 			return true;
 		}
@@ -7570,8 +7574,9 @@ GDScriptParser::DataType GDScriptParser::_reduce_identifier_type(const DataType 
 		base_type = DataType(*p_base_type);
 	}
 
-	if (_get_member_type(base_type, p_identifier, member_type)) {
-		if (!p_base_type && current_function && current_function->_static) {
+	bool is_const = false;
+	if (_get_member_type(base_type, p_identifier, member_type, &is_const)) {
+		if (!p_base_type && current_function && current_function->_static && !is_const) {
 			_set_error("Can't access member variable (\"" + p_identifier.operator String() + "\") from a static function.", p_line);
 			return DataType();
 		}
@@ -7782,6 +7787,7 @@ void GDScriptParser::_check_class_level_types(ClassNode *p_class) {
 
 		_mark_line_as_safe(v.line);
 		v.data_type = _resolve_type(v.data_type, v.line);
+		v.initial_assignment->arguments[0]->set_datatype(v.data_type);
 
 		if (v.expression) {
 			DataType expr_type = _reduce_node_type(v.expression);
