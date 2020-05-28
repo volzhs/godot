@@ -81,6 +81,7 @@ int sfind(const String &p_text, int p_from) {
 
 	return -1;
 }
+
 } // namespace
 
 String sformat(const String &p_text, const Variant &p1, const Variant &p2, const Variant &p3, const Variant &p4, const Variant &p5) {
@@ -132,7 +133,6 @@ String sformat(const String &p_text, const Variant &p1, const Variant &p2, const
 
 #ifdef TOOLS_ENABLED
 bool is_csharp_keyword(const String &p_name) {
-
 	// Reserved keywords
 
 	return p_name == "abstract" || p_name == "as" || p_name == "base" || p_name == "bool" ||
@@ -196,16 +196,6 @@ String str_format(const char *p_format, ...) {
 
 	return res;
 }
-// va_copy was defined in the C99, but not in C++ standards before C++11.
-// When you compile C++ without --std=c++<XX> option, compilers still define
-// va_copy, otherwise you have to use the internal version (__va_copy).
-#if !defined(va_copy)
-#if defined(__GNUC__)
-#define va_copy(d, s) __va_copy((d), (s))
-#else
-#define va_copy(d, s) ((d) = (s))
-#endif
-#endif
 
 #if defined(MINGW_ENABLED) || defined(_MSC_VER) && _MSC_VER < 1900
 #define gd_vsnprintf(m_buffer, m_count, m_format, m_args_copy) vsnprintf_s(m_buffer, m_count, _TRUNCATE, m_format, m_args_copy)

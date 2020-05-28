@@ -51,7 +51,6 @@ class Viewport;
 class CollisionObject3D;
 
 class ViewportTexture : public Texture2D {
-
 	GDCLASS(ViewportTexture, Texture2D);
 
 	NodePath path;
@@ -85,7 +84,6 @@ public:
 };
 
 class Viewport : public Node {
-
 	GDCLASS(Viewport, Node);
 
 public:
@@ -236,7 +234,6 @@ private:
 	bool physics_has_last_mousepos;
 	Vector2 physics_last_mousepos;
 	struct {
-
 		bool alt;
 		bool control;
 		bool shift;
@@ -253,8 +250,8 @@ private:
 	Map<ObjectID, uint64_t> physics_2d_mouseover;
 
 	Ref<World2D> world_2d;
-	Ref<World3D> world;
-	Ref<World3D> own_world;
+	Ref<World3D> world_3d;
+	Ref<World3D> own_world_3d;
 
 	Rect2i to_screen_rect;
 	StringName input_group;
@@ -430,7 +427,7 @@ private:
 
 	void _gui_set_root_order_dirty();
 
-	void _own_world_changed();
+	void _own_world_3d_changed();
 
 	friend class Window;
 
@@ -477,10 +474,10 @@ public:
 	Rect2 get_visible_rect() const;
 	RID get_viewport_rid() const;
 
-	void set_world(const Ref<World3D> &p_world);
+	void set_world_3d(const Ref<World3D> &p_world_3d);
 	void set_world_2d(const Ref<World2D> &p_world_2d);
-	Ref<World3D> get_world() const;
-	Ref<World3D> find_world() const;
+	Ref<World3D> get_world_3d() const;
+	Ref<World3D> find_world_3d() const;
 
 	Ref<World2D> get_world_2d() const;
 	Ref<World2D> find_world_2d() const;
@@ -519,8 +516,8 @@ public:
 	Vector2 get_camera_coords(const Vector2 &p_viewport_coords) const;
 	Vector2 get_camera_rect_size() const;
 
-	void set_use_own_world(bool p_world);
-	bool is_using_own_world() const;
+	void set_use_own_world_3d(bool p_world_3d);
+	bool is_using_own_world_3d() const;
 
 	void input_text(const String &p_text);
 	void input(const Ref<InputEvent> &p_event, bool p_local_coords = false);
@@ -579,7 +576,6 @@ public:
 };
 
 class SubViewport : public Viewport {
-
 	GDCLASS(SubViewport, Viewport);
 
 public:

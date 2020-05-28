@@ -29,13 +29,7 @@
 /*************************************************************************/
 
 package org.godotengine.godot;
-import android.annotation.SuppressLint;
-import android.graphics.PixelFormat;
-import android.opengl.GLSurfaceView;
-import android.view.GestureDetector;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
-import android.view.SurfaceView;
+
 import org.godotengine.godot.input.GodotGestureHandler;
 import org.godotengine.godot.input.GodotInputHandler;
 import org.godotengine.godot.utils.GLUtils;
@@ -46,6 +40,14 @@ import org.godotengine.godot.xr.ovr.OvrWindowSurfaceFactory;
 import org.godotengine.godot.xr.regular.RegularConfigChooser;
 import org.godotengine.godot.xr.regular.RegularContextFactory;
 import org.godotengine.godot.xr.regular.RegularFallbackConfigChooser;
+
+import android.annotation.SuppressLint;
+import android.graphics.PixelFormat;
+import android.opengl.GLSurfaceView;
+import android.view.GestureDetector;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.SurfaceView;
 
 /**
  * A simple GLSurfaceView sub-class that demonstrate how to perform
@@ -66,7 +68,6 @@ import org.godotengine.godot.xr.regular.RegularFallbackConfigChooser;
  *   bit depths). Failure to do so would result in an EGL_BAD_MATCH error.
  */
 public class GodotGLRenderView extends GLSurfaceView implements GodotRenderView {
-
 	private final Godot activity;
 	private final GodotInputHandler inputHandler;
 	private final GestureDetector detector;
@@ -138,11 +139,9 @@ public class GodotGLRenderView extends GLSurfaceView implements GodotRenderView 
 	}
 
 	private void init(XRMode xrMode, boolean translucent, int depth, int stencil) {
-
 		setPreserveEGLContextOnPause(true);
 		setFocusableInTouchMode(true);
 		switch (xrMode) {
-
 			case OVR:
 				// Replace the default egl config chooser.
 				setEGLConfigChooser(new OvrConfigChooser());

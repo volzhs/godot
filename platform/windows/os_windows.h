@@ -63,7 +63,6 @@
 
 class JoypadWindows;
 class OS_Windows : public OS {
-
 #ifdef STDOUT_FILE
 	FILE *stdo;
 #endif
@@ -73,6 +72,9 @@ class OS_Windows : public OS {
 
 	HINSTANCE hInstance;
 	MainLoop *main_loop;
+
+	String tablet_driver;
+	Vector<String> tablet_drivers;
 
 #ifdef WASAPI_ENABLED
 	AudioDriverWASAPI driver_wasapi;
@@ -100,8 +102,9 @@ protected:
 	virtual void finalize_core();
 	virtual String get_stdin_string(bool p_block);
 
-	struct ProcessInfo {
+	String _quote_command_line_argument(const String &p_text) const;
 
+	struct ProcessInfo {
 		STARTUPINFO si;
 		PROCESS_INFORMATION pi;
 	};
@@ -115,6 +118,11 @@ public:
 	virtual MainLoop *get_main_loop() const;
 
 	virtual String get_name() const;
+
+	virtual int get_tablet_driver_count() const;
+	virtual String get_tablet_driver_name(int p_driver) const;
+	virtual String get_current_tablet_driver() const;
+	virtual void set_current_tablet_driver(const String &p_driver);
 
 	virtual void initialize_joypads() {}
 

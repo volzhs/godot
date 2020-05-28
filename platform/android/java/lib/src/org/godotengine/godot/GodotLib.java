@@ -33,6 +33,7 @@ package org.godotengine.godot;
 import android.app.Activity;
 import android.hardware.SensorEvent;
 import android.view.Surface;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -40,7 +41,6 @@ import javax.microedition.khronos.opengles.GL10;
  * Wrapper for native library
  */
 public class GodotLib {
-
 	public static GodotIO io;
 
 	static {
@@ -66,11 +66,12 @@ public class GodotLib {
 
 	/**
 	 * Invoked on the GL thread when the underlying Android surface has changed size.
-	 * @param width
-	 * @param height
+	 * @param p_surface
+	 * @param p_width
+	 * @param p_height
 	 * @see android.opengl.GLSurfaceView.Renderer#onSurfaceChanged(GL10, int, int)
 	 */
-	public static native void resize(int width, int height);
+	public static native void resize(Surface p_surface, int p_width, int p_height);
 
 	/**
 	 * Invoked on the render thread when the underlying Android surface is created or recreated.
@@ -189,7 +190,7 @@ public class GodotLib {
 	 * @param p_method Name of the method to invoke
 	 * @param p_params Parameters to use for method invocation
 	 */
-	public static native void callobject(int p_id, String p_method, Object[] p_params);
+	public static native void callobject(long p_id, String p_method, Object[] p_params);
 
 	/**
 	 * Invoke method |p_method| on the Godot object specified by |p_id| during idle time.
@@ -197,7 +198,7 @@ public class GodotLib {
 	 * @param p_method Name of the method to invoke
 	 * @param p_params Parameters to use for method invocation
 	 */
-	public static native void calldeferred(int p_id, String p_method, Object[] p_params);
+	public static native void calldeferred(long p_id, String p_method, Object[] p_params);
 
 	/**
 	 * Forward the results from a permission request.

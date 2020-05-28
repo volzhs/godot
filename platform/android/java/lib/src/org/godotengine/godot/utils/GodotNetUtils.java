@@ -30,10 +30,11 @@
 
 package org.godotengine.godot.utils;
 
+import org.godotengine.godot.Godot;
+
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.util.Log;
-import org.godotengine.godot.Godot;
 
 /**
  * This class handles Android-specific networking functions.
@@ -41,7 +42,6 @@ import org.godotengine.godot.Godot;
  * to receive broadcast and multicast packets.
  */
 public class GodotNetUtils {
-
 	/* A single, reference counted, multicast lock, or null if permission CHANGE_WIFI_MULTICAST_STATE is missing */
 	private WifiManager.MulticastLock multicastLock;
 

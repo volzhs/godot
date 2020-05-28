@@ -66,7 +66,6 @@ public:
 };
 
 class Skeleton3D : public Node3D {
-
 	GDCLASS(Skeleton3D, Node3D);
 
 private:
@@ -77,7 +76,6 @@ private:
 	void _skin_changed();
 
 	struct Bone {
-
 		String name;
 
 		bool enabled;
@@ -130,13 +128,11 @@ private:
 
 	// bind helpers
 	Array _get_bound_child_nodes_to_bone(int p_bone) const {
-
 		Array bound;
 		List<Node *> children;
 		get_bound_child_nodes_to_bone(p_bone, &children);
 
 		for (int i = 0; i < children.size(); i++) {
-
 			bound.push_back(children[i]);
 		}
 		return bound;
@@ -200,6 +196,7 @@ public:
 
 	void localize_rests(); // used for loaders and tools
 	int get_process_order(int p_idx);
+	Vector<int> get_bone_process_orders();
 
 	Ref<SkinReference> register_skin(const Ref<Skin> &p_skin);
 

@@ -34,12 +34,12 @@
 #include "scene/main/canvas_item.h"
 
 class Node2D : public CanvasItem {
-
 	GDCLASS(Node2D, CanvasItem);
 
 	Point2 pos;
 	float angle;
 	Size2 _scale;
+	float skew;
 	int z_index;
 	bool z_relative;
 
@@ -75,6 +75,8 @@ public:
 	void set_position(const Point2 &p_pos);
 	void set_rotation(float p_radians);
 	void set_rotation_degrees(float p_degrees);
+	void set_skew(float p_radians);
+	void set_skew_degrees(float p_radians);
 	void set_scale(const Size2 &p_scale);
 
 	void rotate(float p_radians);
@@ -86,7 +88,9 @@ public:
 
 	Point2 get_position() const;
 	float get_rotation() const;
+	float get_skew() const;
 	float get_rotation_degrees() const;
+	float get_skew_degrees() const;
 	Size2 get_scale() const;
 
 	Point2 get_global_position() const;

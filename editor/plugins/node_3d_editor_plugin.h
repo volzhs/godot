@@ -46,7 +46,6 @@ class Node3DEditorViewport;
 class SubViewportContainer;
 
 class EditorNode3DGizmo : public Node3DGizmo {
-
 	GDCLASS(EditorNode3DGizmo, Node3DGizmo);
 
 	bool selected;
@@ -57,7 +56,6 @@ public:
 	bool is_selected() const { return selected; }
 
 	struct Instance {
-
 		RID instance;
 		Ref<ArrayMesh> mesh;
 		Ref<Material> material;
@@ -68,7 +66,6 @@ public:
 		bool can_intersect;
 		bool extra_margin;
 		Instance() {
-
 			billboard = false;
 			unscaled = false;
 			can_intersect = false;
@@ -158,6 +155,7 @@ class ViewportRotationControl : public Control {
 	Node3DEditorViewport *viewport = nullptr;
 	Vector<Color> axis_colors;
 	Vector<int> axis_menu_options;
+	Vector2i orbiting_mouse_start;
 	bool orbiting = false;
 	int focused_axis = -2;
 
@@ -178,7 +176,6 @@ public:
 };
 
 class Node3DEditorViewport : public Control {
-
 	GDCLASS(Node3DEditorViewport, Control);
 	friend class Node3DEditor;
 	friend class ViewportRotationControl;
@@ -298,7 +295,6 @@ private:
 	Label *fps_label;
 
 	struct _RayResult {
-
 		Node3D *item;
 		float depth;
 		int handle;
@@ -388,7 +384,6 @@ private:
 	} _edit;
 
 	struct Cursor {
-
 		Vector3 pos;
 		float x_rot, y_rot, distance;
 		Vector3 eye_pos; // Used in freelook mode
@@ -489,7 +484,6 @@ public:
 };
 
 class Node3DEditorSelectedItem : public Object {
-
 	GDCLASS(Node3DEditorSelectedItem, Object);
 
 public:
@@ -509,7 +503,6 @@ public:
 };
 
 class Node3DEditorViewportContainer : public Container {
-
 	GDCLASS(Node3DEditorViewportContainer, Container);
 
 public:
@@ -550,7 +543,6 @@ public:
 };
 
 class Node3DEditor : public VBoxContainer {
-
 	GDCLASS(Node3DEditor, VBoxContainer);
 
 public:
@@ -628,7 +620,6 @@ private:
 	AABB preview_bounds;
 
 	struct Gizmo {
-
 		bool visible;
 		float scale;
 		Transform transform;
@@ -775,6 +766,7 @@ public:
 	Ref<ArrayMesh> get_scale_gizmo(int idx) const { return scale_gizmo[idx]; }
 	Ref<ArrayMesh> get_scale_plane_gizmo(int idx) const { return scale_plane_gizmo[idx]; }
 
+	void update_grid();
 	void update_transform_gizmo();
 	void update_all_gizmos(Node *p_node = nullptr);
 	void snap_selected_nodes_to_floor();
@@ -818,7 +810,6 @@ public:
 };
 
 class Node3DEditorPlugin : public EditorPlugin {
-
 	GDCLASS(Node3DEditorPlugin, EditorPlugin);
 
 	Node3DEditor *spatial_editor;
@@ -848,7 +839,6 @@ public:
 };
 
 class EditorNode3DGizmoPlugin : public Resource {
-
 	GDCLASS(EditorNode3DGizmoPlugin, Resource);
 
 public:

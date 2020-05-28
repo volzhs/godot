@@ -30,18 +30,18 @@
 
 package org.godotengine.godot;
 
-import android.annotation.SuppressLint;
-import android.view.GestureDetector;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
-import android.view.SurfaceView;
 import org.godotengine.godot.input.GodotGestureHandler;
 import org.godotengine.godot.input.GodotInputHandler;
 import org.godotengine.godot.vulkan.VkRenderer;
 import org.godotengine.godot.vulkan.VkSurfaceView;
 
-public class GodotVulkanRenderView extends VkSurfaceView implements GodotRenderView {
+import android.annotation.SuppressLint;
+import android.view.GestureDetector;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.SurfaceView;
 
+public class GodotVulkanRenderView extends VkSurfaceView implements GodotRenderView {
 	private final Godot mActivity;
 	private final GodotInputHandler mInputHandler;
 	private final GestureDetector mGestureDetector;

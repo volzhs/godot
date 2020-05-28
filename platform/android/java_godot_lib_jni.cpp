@@ -78,7 +78,6 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_setVirtualKeyboardHei
 }
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_initialize(JNIEnv *env, jclass clazz, jobject activity, jobject p_asset_manager, jboolean p_use_apk_expansion) {
-
 	initialized = true;
 
 	JavaVM *jvm;
@@ -137,7 +136,6 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_setup(JNIEnv *env, jc
 			j_cmdline = (jstring *)malloc(cmdlen * sizeof(jstring));
 
 			for (int i = 0; i < cmdlen; i++) {
-
 				jstring string = (jstring)env->GetObjectArrayElement(p_cmdline, i);
 				const char *rawString = env->GetStringUTFChars(string, 0);
 
@@ -166,10 +164,20 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_setup(JNIEnv *env, jc
 	ClassDB::register_class<JNISingleton>();
 }
 
-JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_resize(JNIEnv *env, jclass clazz, jint width, jint height) {
+JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_resize(JNIEnv *env, jclass clazz, jobject p_surface, jint p_width, jint p_height) {
+	if (os_android) {
+		os_android->set_display_size(Size2i(p_width, p_height));
 
-	if (os_android)
-		os_android->set_display_size(Size2i(width, height));
+		// No need to reset the surface during startup
+		if (step > 0) {
+			if (p_surface) {
+				ANativeWindow *native_window = ANativeWindow_fromSurface(env, p_surface);
+				os_android->set_native_window(native_window);
+
+				DisplayServerAndroid::get_singleton()->reset_window();
+			}
+		}
+	}
 }
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_newcontext(JNIEnv *env, jclass clazz, jobject p_surface, jboolean p_32_bits) {
@@ -225,19 +233,16 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_step(JNIEnv *env, jcl
 	DisplayServerAndroid::get_singleton()->process_gyroscope(gyroscope);
 
 	if (os_android->main_loop_iterate()) {
-
 		godot_java->force_quit(env);
 	}
 }
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_touch(JNIEnv *env, jclass clazz, jint ev, jint pointer, jint count, jintArray positions) {
-
 	if (step == 0)
 		return;
 
 	Vector<DisplayServerAndroid::TouchPos> points;
 	for (int i = 0; i < count; i++) {
-
 		jint p[3];
 		env->GetIntArrayRegion(positions, i * 3, 3, p);
 		DisplayServerAndroid::TouchPos tp;
@@ -357,7 +362,6 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_gyroscope(JNIEnv *env
 }
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_focusin(JNIEnv *env, jclass clazz) {
-
 	if (step == 0)
 		return;
 
@@ -365,7 +369,6 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_focusin(JNIEnv *env, 
 }
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_focusout(JNIEnv *env, jclass clazz) {
-
 	if (step == 0)
 		return;
 
@@ -373,21 +376,18 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_focusout(JNIEnv *env,
 }
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_audio(JNIEnv *env, jclass clazz) {
-
 	ThreadAndroid::setup_thread();
 	AudioDriverAndroid::thread_func(env);
 }
 
 JNIEXPORT jstring JNICALL Java_org_godotengine_godot_GodotLib_getGlobal(JNIEnv *env, jclass clazz, jstring path) {
-
 	String js = jstring_to_string(path, env);
 
 	return env->NewStringUTF(ProjectSettings::get_singleton()->get(js).operator String().utf8().get_data());
 }
 
-JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_callobject(JNIEnv *env, jclass clazz, jint ID, jstring method, jobjectArray params) {
-
-	Object *obj = ObjectDB::get_instance(ObjectID((uint64_t)ID));
+JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_callobject(JNIEnv *env, jclass clazz, jlong ID, jstring method, jobjectArray params) {
+	Object *obj = ObjectDB::get_instance(ObjectID(ID));
 	ERR_FAIL_COND(!obj);
 
 	int res = env->PushLocalFrame(16);
@@ -399,7 +399,6 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_callobject(JNIEnv *en
 	Variant *vlist = (Variant *)alloca(sizeof(Variant) * count);
 	Variant **vptr = (Variant **)alloca(sizeof(Variant *) * count);
 	for (int i = 0; i < count; i++) {
-
 		jobject obj = env->GetObjectArrayElement(params, i);
 		Variant v;
 		if (obj)
@@ -417,9 +416,8 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_callobject(JNIEnv *en
 	env->PopLocalFrame(nullptr);
 }
 
-JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_calldeferred(JNIEnv *env, jclass clazz, jint ID, jstring method, jobjectArray params) {
-
-	Object *obj = ObjectDB::get_instance(ObjectID((uint64_t)ID));
+JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_calldeferred(JNIEnv *env, jclass clazz, jlong ID, jstring method, jobjectArray params) {
+	Object *obj = ObjectDB::get_instance(ObjectID(ID));
 	ERR_FAIL_COND(!obj);
 
 	int res = env->PushLocalFrame(16);
@@ -431,7 +429,6 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_calldeferred(JNIEnv *
 	Variant args[VARIANT_ARG_MAX];
 
 	for (int i = 0; i < MIN(count, VARIANT_ARG_MAX); i++) {
-
 		jobject obj = env->GetObjectArrayElement(params, i);
 		if (obj)
 			args[i] = _jobject_to_variant(env, obj);
