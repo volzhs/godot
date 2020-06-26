@@ -1185,7 +1185,26 @@ bool CanvasItemEditor::_gui_input_rulers_and_guides(const Ref<InputEvent> &p_eve
 bool CanvasItemEditor::_gui_input_zoom_or_pan(const Ref<InputEvent> &p_event, bool p_already_accepted) {
 	Ref<InputEventMouseButton> b = p_event;
 	if (b.is_valid() && !p_already_accepted) {
-		bool pan_on_scroll = bool(EditorSettings::get_singleton()->get("editors/2d/scroll_to_pan")) && !b->get_control();
+		const bool pan_on_scroll = bool(EditorSettings::get_singleton()->get("editors/2d/scroll_to_pan")) && !b->get_control();
+
+		if (pan_on_scroll) {
+			// Perform horizontal scrolling first so we can check for Shift being held.
+			if (b->is_pressed() &&
+					(b->get_button_index() == BUTTON_WHEEL_LEFT || (b->get_shift() && b->get_button_index() == BUTTON_WHEEL_UP))) {
+				// Pan left
+				view_offset.x -= int(EditorSettings::get_singleton()->get("editors/2d/pan_speed")) / zoom * b->get_factor();
+				update_viewport();
+				return true;
+			}
+
+			if (b->is_pressed() &&
+					(b->get_button_index() == BUTTON_WHEEL_RIGHT || (b->get_shift() && b->get_button_index() == BUTTON_WHEEL_DOWN))) {
+				// Pan right
+				view_offset.x += int(EditorSettings::get_singleton()->get("editors/2d/pan_speed")) / zoom * b->get_factor();
+				update_viewport();
+				return true;
+			}
+		}
 
 		if (b->is_pressed() && b->get_button_index() == BUTTON_WHEEL_DOWN) {
 			// Scroll or pan down
@@ -1215,24 +1234,6 @@ bool CanvasItemEditor::_gui_input_zoom_or_pan(const Ref<InputEvent> &p_event, bo
 				_zoom_on_position(new_zoom, b->get_position());
 			}
 			return true;
-		}
-
-		if (b->is_pressed() && b->get_button_index() == BUTTON_WHEEL_LEFT) {
-			// Pan left
-			if (pan_on_scroll) {
-				view_offset.x -= int(EditorSettings::get_singleton()->get("editors/2d/pan_speed")) / zoom * b->get_factor();
-				update_viewport();
-				return true;
-			}
-		}
-
-		if (b->is_pressed() && b->get_button_index() == BUTTON_WHEEL_RIGHT) {
-			// Pan right
-			if (pan_on_scroll) {
-				view_offset.x += int(EditorSettings::get_singleton()->get("editors/2d/pan_speed")) / zoom * b->get_factor();
-				update_viewport();
-				return true;
-			}
 		}
 
 		if (!panning) {
@@ -1302,6 +1303,18 @@ bool CanvasItemEditor::_gui_input_zoom_or_pan(const Ref<InputEvent> &p_event, bo
 
 	Ref<InputEventPanGesture> pan_gesture = p_event;
 	if (pan_gesture.is_valid() && !p_already_accepted) {
+		// If control key pressed, then zoom instead of pan
+		if (pan_gesture->get_control()) {
+			const float factor = pan_gesture->get_delta().y;
+			float new_zoom = _get_next_zoom_value(-1);
+
+			if (factor != 1.f) {
+				new_zoom = zoom * ((new_zoom / zoom - 1.f) * factor + 1.f);
+			}
+			_zoom_on_position(new_zoom, pan_gesture->get_position());
+			return true;
+		}
+
 		// Pan gesture
 		const Vector2 delta = (int(EditorSettings::get_singleton()->get("editors/2d/pan_speed")) / zoom) * pan_gesture->get_delta();
 		view_offset.x += delta.x;

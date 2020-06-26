@@ -2755,6 +2755,8 @@ void GDScriptParser::_parse_block(BlockNode *p_block, bool p_static) {
 
 #ifdef DEBUG_ENABLED
 
+	pending_newline = -1; // reset for the new block
+
 	NewLineNode *nl = alloc_node<NewLineNode>();
 
 	nl->line = tokenizer->get_token_line();
@@ -3120,6 +3122,13 @@ void GDScriptParser::_parse_block(BlockNode *p_block, bool p_static) {
 
 				IdentifierNode *id = alloc_node<IdentifierNode>();
 				id->name = tokenizer->get_token_identifier();
+#ifdef DEBUG_ENABLED
+				for (int j = 0; j < current_class->variables.size(); j++) {
+					if (current_class->variables[j].identifier == id->name) {
+						_add_warning(GDScriptWarning::SHADOWED_VARIABLE, id->line, id->name, itos(current_class->variables[j].line));
+					}
+				}
+#endif // DEBUG_ENABLED
 
 				BlockNode *check_block = p_block;
 				while (check_block) {

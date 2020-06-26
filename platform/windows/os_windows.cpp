@@ -255,6 +255,13 @@ void OS_Windows::initialize_core() {
 
 	process_map = memnew((Map<ProcessID, ProcessInfo>));
 
+	// Add current Godot PID to the list of known PIDs
+	ProcessInfo current_pi = {};
+	PROCESS_INFORMATION current_pi_pi = {};
+	current_pi.pi = current_pi_pi;
+	current_pi.pi.hProcess = GetCurrentProcess();
+	process_map->insert(GetCurrentProcessId(), current_pi);
+
 	IP_Unix::make_default();
 
 	cursor_shape = CURSOR_ARROW;
@@ -1084,9 +1091,9 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		case WM_KEYDOWN: {
 
 			if (wParam == VK_SHIFT)
-				shift_mem = uMsg == WM_KEYDOWN;
+				shift_mem = (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN);
 			if (wParam == VK_CONTROL)
-				control_mem = uMsg == WM_KEYDOWN;
+				control_mem = (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN);
 			if (wParam == VK_MENU) {
 				alt_mem = (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN);
 				if (lParam & (1 << 24))
@@ -1179,10 +1186,11 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			if (LOWORD(lParam) == HTCLIENT) {
 				if (window_has_focus && (mouse_mode == MOUSE_MODE_HIDDEN || mouse_mode == MOUSE_MODE_CAPTURED)) {
 					//Hide the cursor
-					if (hCursor == NULL)
+					if (hCursor == NULL) {
 						hCursor = SetCursor(NULL);
-					else
+					} else {
 						SetCursor(NULL);
+					}
 				} else {
 					if (hCursor != NULL) {
 						CursorShape c = cursor_shape;
@@ -1857,9 +1865,9 @@ void OS_Windows::set_mouse_mode(MouseMode p_mode) {
 	if (mouse_mode == p_mode)
 		return;
 
-	_set_mouse_mode_impl(p_mode);
-
 	mouse_mode = p_mode;
+
+	_set_mouse_mode_impl(p_mode);
 }
 
 void OS_Windows::_set_mouse_mode_impl(MouseMode p_mode) {
@@ -1883,7 +1891,11 @@ void OS_Windows::_set_mouse_mode_impl(MouseMode p_mode) {
 	}
 
 	if (p_mode == MOUSE_MODE_CAPTURED || p_mode == MOUSE_MODE_HIDDEN) {
-		hCursor = SetCursor(NULL);
+		if (hCursor == NULL) {
+			hCursor = SetCursor(NULL);
+		} else {
+			SetCursor(NULL);
+		}
 	} else {
 		CursorShape c = cursor_shape;
 		cursor_shape = CURSOR_MAX;

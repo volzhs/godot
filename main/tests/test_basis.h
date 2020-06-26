@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  godot_haiku.cpp                                                      */
+/*  test_fbx.h                                                        */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,22 +28,13 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "main/main.h"
-#include "os_haiku.h"
+#ifndef TEST_BASIS_H
+#define TEST_BASIS_H
 
-int main(int argc, char *argv[]) {
-	OS_Haiku os;
+#include "core/os/main_loop.h"
 
-	Error error = Main::setup(argv[0], argc - 1, &argv[1]);
-	if (error != OK) {
-		return 255;
-	}
-
-	if (Main::start()) {
-		os.run();
-	}
-
-	Main::cleanup();
-
-	return os.get_exit_code();
+namespace TestBasis {
+MainLoop *test();
 }
+
+#endif
