@@ -1110,20 +1110,25 @@ void EditorNode::_save_scene_with_preview(String p_file, int p_idx) {
 
 		_find_node_types(editor_data.get_edited_scene_root(), c2d, c3d);
 
-		bool is2d;
-		if (c3d < c2d) {
-			is2d = true;
-		} else {
-			is2d = false;
-		}
 		save.step(TTR("Creating Thumbnail"), 1);
 		//current view?
 
 		Ref<Image> img;
-		if (is2d) {
+		// If neither 3D or 2D nodes are present, make a 1x1 black texture.
+		// We cannot fallback on the 2D editor, because it may not have been used yet,
+		// which would result in an invalid texture.
+		if (c3d == 0 && c2d == 0) {
+			img.instance();
+			img->create(1, 1, 0, Image::FORMAT_RGB8);
+		} else if (c3d < c2d) {
 			img = scene_root->get_texture()->get_data();
 		} else {
-			img = SpatialEditor::get_singleton()->get_editor_viewport(0)->get_viewport_node()->get_texture()->get_data();
+			// The 3D editor may be disabled as a feature, but scenes can still be opened.
+			// This check prevents the preview from regenerating in case those scenes are then saved.
+			Ref<EditorFeatureProfile> profile = feature_profile_manager->get_current_profile();
+			if (profile.is_valid() && !profile->is_feature_disabled(EditorFeatureProfile::FEATURE_3D)) {
+				img = SpatialEditor::get_singleton()->get_editor_viewport(0)->get_viewport_node()->get_texture()->get_data();
+			}
 		}
 
 		if (img.is_valid()) {
@@ -1962,7 +1967,6 @@ void EditorNode::_run(bool p_current, const String &p_custom) {
 	play_custom_scene_button->set_pressed(false);
 	play_custom_scene_button->set_icon(gui_base->get_icon("PlayCustom", "EditorIcons"));
 
-	String main_scene;
 	String run_filename;
 	String args;
 	bool skip_breakpoints;
@@ -2387,8 +2391,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 
 		} break;
 		case RUN_PLAY: {
-			_menu_option_confirm(RUN_STOP, true);
-			_run(false);
+			run_play();
 
 		} break;
 		case RUN_PLAY_CUSTOM_SCENE: {
@@ -2399,8 +2402,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 				play_custom_scene_button->set_pressed(false);
 			} else {
 				String last_custom_scene = run_custom_filename;
-				_menu_option_confirm(RUN_STOP, true);
-				_run(false, last_custom_scene);
+				run_play_custom(last_custom_scene);
 			}
 
 		} break;
@@ -2439,10 +2441,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		} break;
 
 		case RUN_PLAY_SCENE: {
-
-			_save_default_environment();
-			_menu_option_confirm(RUN_STOP, true);
-			_run(true);
+			run_play_current();
 
 		} break;
 		case RUN_PLAY_NATIVE: {
@@ -4296,7 +4295,6 @@ void EditorNode::_update_dock_slots_visibility() {
 		}
 
 		right_hsplit->hide();
-		bottom_panel->hide();
 	} else {
 		for (int i = 0; i < DOCK_SLOT_MAX; i++) {
 
@@ -4326,7 +4324,6 @@ void EditorNode::_update_dock_slots_visibility() {
 				dock_slot[i]->set_current_tab(0);
 			}
 		}
-		bottom_panel->show();
 
 		if (right_l_vsplit->is_visible() || right_r_vsplit->is_visible())
 			right_hsplit->show();
@@ -4543,8 +4540,33 @@ void EditorNode::run_play() {
 	_run(false);
 }
 
+void EditorNode::run_play_current() {
+	_save_default_environment();
+	_menu_option_confirm(RUN_STOP, true);
+	_run(true);
+}
+
+void EditorNode::run_play_custom(const String &p_custom) {
+	_menu_option_confirm(RUN_STOP, true);
+	_run(false, p_custom);
+}
+
 void EditorNode::run_stop() {
 	_menu_option_confirm(RUN_STOP, false);
+}
+
+bool EditorNode::is_run_playing() const {
+	EditorRun::Status status = editor_run.get_status();
+	return (status == EditorRun::STATUS_PLAY || status == EditorRun::STATUS_PAUSED);
+}
+
+String EditorNode::get_run_playing_scene() const {
+	String run_filename = editor_run.get_running_scene();
+	if (run_filename == "" && is_run_playing()) {
+		run_filename = GLOBAL_DEF("application/run/main_scene", ""); // Must be the main scene then.
+	}
+
+	return run_filename;
 }
 
 int EditorNode::get_current_tab() {
@@ -5635,8 +5657,12 @@ EditorNode::EditorNode() {
 		switch (display_scale) {
 			case 0: {
 				// Try applying a suitable display scale automatically
+#ifdef OSX_ENABLED
+				editor_set_scale(OS::get_singleton()->get_screen_max_scale());
+#else
 				const int screen = OS::get_singleton()->get_current_screen();
 				editor_set_scale(OS::get_singleton()->get_screen_dpi(screen) >= 192 && OS::get_singleton()->get_screen_size(screen).x > 2000 ? 2.0 : 1.0);
+#endif
 			} break;
 
 			case 1: {
@@ -6698,6 +6724,7 @@ EditorNode::EditorNode() {
 	}
 
 	resource_preview->add_preview_generator(Ref<EditorTexturePreviewPlugin>(memnew(EditorTexturePreviewPlugin)));
+	resource_preview->add_preview_generator(Ref<EditorImagePreviewPlugin>(memnew(EditorImagePreviewPlugin)));
 	resource_preview->add_preview_generator(Ref<EditorPackedScenePreviewPlugin>(memnew(EditorPackedScenePreviewPlugin)));
 	resource_preview->add_preview_generator(Ref<EditorMaterialPreviewPlugin>(memnew(EditorMaterialPreviewPlugin)));
 	resource_preview->add_preview_generator(Ref<EditorScriptPreviewPlugin>(memnew(EditorScriptPreviewPlugin)));

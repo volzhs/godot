@@ -353,6 +353,8 @@ SpaceBullet::SpaceBullet() :
 		godotFilterCallback(NULL),
 		gravityDirection(0, -1, 0),
 		gravityMagnitude(10),
+		linear_damp(0.0),
+		angular_damp(0.0),
 		contactDebugCount(0),
 		delta_time(0.) {
 
@@ -390,8 +392,11 @@ void SpaceBullet::set_param(PhysicsServer::AreaParameter p_param, const Variant 
 			update_gravity();
 			break;
 		case PhysicsServer::AREA_PARAM_LINEAR_DAMP:
+			linear_damp = p_value;
+			break;
 		case PhysicsServer::AREA_PARAM_ANGULAR_DAMP:
-			break; // No damp
+			angular_damp = p_value;
+			break;
 		case PhysicsServer::AREA_PARAM_PRIORITY:
 			// Priority is always 0, the lower
 			break;
@@ -412,8 +417,9 @@ Variant SpaceBullet::get_param(PhysicsServer::AreaParameter p_param) {
 		case PhysicsServer::AREA_PARAM_GRAVITY_VECTOR:
 			return gravityDirection;
 		case PhysicsServer::AREA_PARAM_LINEAR_DAMP:
+			return linear_damp;
 		case PhysicsServer::AREA_PARAM_ANGULAR_DAMP:
-			return 0; // No damp
+			return angular_damp;
 		case PhysicsServer::AREA_PARAM_PRIORITY:
 			return 0; // Priority is always 0, the lower
 		case PhysicsServer::AREA_PARAM_GRAVITY_IS_POINT:
@@ -554,10 +560,6 @@ void SpaceBullet::remove_all_collision_objects() {
 	}
 }
 
-void onBulletPreTickCallback(btDynamicsWorld *p_dynamicsWorld, btScalar timeStep) {
-	static_cast<SpaceBullet *>(p_dynamicsWorld->getWorldUserInfo())->flush_queries();
-}
-
 void onBulletTickCallback(btDynamicsWorld *p_dynamicsWorld, btScalar timeStep) {
 
 	const btCollisionObjectArray &colObjArray = p_dynamicsWorld->getCollisionObjectArray();
@@ -629,7 +631,6 @@ void SpaceBullet::create_empty_world(bool p_create_soft_world) {
 
 	dynamicsWorld->setWorldUserInfo(this);
 
-	dynamicsWorld->setInternalTickCallback(onBulletPreTickCallback, this, true);
 	dynamicsWorld->setInternalTickCallback(onBulletTickCallback, this, false);
 	dynamicsWorld->getBroadphase()->getOverlappingPairCache()->setInternalGhostPairCallback(ghostPairCallback); // Setup ghost check
 	dynamicsWorld->getPairCache()->setOverlapFilterCallback(godotFilterCallback);

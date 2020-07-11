@@ -799,6 +799,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 		} else if (I->get() == "-d" || I->get() == "--debug") {
 			debug_mode = "local";
+			OS::get_singleton()->_debug_stdout = true;
 #if defined(DEBUG_ENABLED) && !defined(SERVER_ENABLED)
 		} else if (I->get() == "--debug-collisions") {
 			debug_collisions = true;
@@ -954,8 +955,13 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 #endif
 
 	GLOBAL_DEF("logging/file_logging/enable_file_logging", false);
-	GLOBAL_DEF("logging/file_logging/log_path", "user://logs/log.txt");
-	GLOBAL_DEF("logging/file_logging/max_log_files", 10);
+	// Only file logging by default on desktop platforms as logs can't be
+	// accessed easily on mobile/Web platforms (if at all).
+	// This also prevents logs from being created for the editor instance, as feature tags
+	// are disabled while in the editor (even if they should logically apply).
+	GLOBAL_DEF("logging/file_logging/enable_file_logging.pc", true);
+	GLOBAL_DEF("logging/file_logging/log_path", "user://logs/godot.log");
+	GLOBAL_DEF("logging/file_logging/max_log_files", 5);
 	ProjectSettings::get_singleton()->set_custom_property_info("logging/file_logging/max_log_files", PropertyInfo(Variant::INT, "logging/file_logging/max_log_files", PROPERTY_HINT_RANGE, "0,20,1,or_greater")); //no negative numbers
 	if (FileAccess::get_create_func(FileAccess::ACCESS_USERDATA) && GLOBAL_GET("logging/file_logging/enable_file_logging")) {
 		String base_path = GLOBAL_GET("logging/file_logging/log_path");
@@ -2008,7 +2014,6 @@ bool Main::start() {
  */
 
 uint64_t Main::last_ticks = 0;
-uint64_t Main::target_ticks = 0;
 uint32_t Main::frames = 0;
 uint32_t Main::frame = 0;
 bool Main::force_redraw_requested = false;
@@ -2163,38 +2168,7 @@ bool Main::iteration() {
 	if (fixed_fps != -1)
 		return exit;
 
-	const uint32_t frame_delay = Engine::get_singleton()->get_frame_delay();
-	if (frame_delay) {
-		// Add fixed frame delay to decrease CPU/GPU usage. This doesn't take
-		// the actual frame time into account.
-		// Due to the high fluctuation of the actual sleep duration, it's not recommended
-		// to use this as a FPS limiter.
-		OS::get_singleton()->delay_usec(frame_delay * 1000);
-	}
-
-	// Add a dynamic frame delay to decrease CPU/GPU usage. This takes the
-	// previous frame time into account for a smoother result.
-	uint64_t dynamic_delay = 0;
-	if (OS::get_singleton()->is_in_low_processor_usage_mode() || !OS::get_singleton()->can_draw()) {
-		dynamic_delay = OS::get_singleton()->get_low_processor_usage_mode_sleep_usec();
-	}
-	const int target_fps = Engine::get_singleton()->get_target_fps();
-	if (target_fps > 0 && !Engine::get_singleton()->is_editor_hint()) {
-		// Override the low processor usage mode sleep delay if the target FPS is lower.
-		dynamic_delay = MAX(dynamic_delay, (uint64_t)(1000000 / target_fps));
-	}
-
-	if (dynamic_delay > 0) {
-		target_ticks += dynamic_delay;
-		uint64_t current_ticks = OS::get_singleton()->get_ticks_usec();
-
-		if (current_ticks < target_ticks) {
-			OS::get_singleton()->delay_usec(target_ticks - current_ticks);
-		}
-
-		current_ticks = OS::get_singleton()->get_ticks_usec();
-		target_ticks = MIN(MAX(target_ticks, current_ticks - dynamic_delay), current_ticks + dynamic_delay);
-	}
+	OS::get_singleton()->add_frame_delay(OS::get_singleton()->can_draw());
 
 #ifdef TOOLS_ENABLED
 	if (auto_build_solutions) {
