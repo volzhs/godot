@@ -436,7 +436,7 @@ private:
 		_test_path();
 
 		if (p_text == "")
-			set_message(TTR("It would be a good idea to name your project."), MESSAGE_WARNING);
+			set_message(TTR("It would be a good idea to name your project."), MESSAGE_ERROR);
 	}
 
 	void ok_pressed() {
@@ -2461,6 +2461,7 @@ ProjectManager::ProjectManager() {
 
 	String cp;
 	cp += 0xA9;
+	// TRANSLATORS: This refers to the application where users manage their Godot projects.
 	OS::get_singleton()->set_window_title(VERSION_NAME + String(" - ") + TTR("Project Manager") + " - " + cp + " 2007-2020 Juan Linietsky, Ariel Manzur & Godot Contributors");
 
 	Control *center_box = memnew(Control);

@@ -326,7 +326,6 @@ void LineEdit::_gui_input(Ref<InputEvent> p_event) {
 					if (OS::get_singleton()->has_virtual_keyboard() && virtual_keyboard_enabled)
 						OS::get_singleton()->hide_virtual_keyboard();
 
-					return;
 				} break;
 
 				case KEY_BACKSPACE: {
@@ -568,7 +567,7 @@ void LineEdit::_gui_input(Ref<InputEvent> p_event) {
 
 			if (handled) {
 				accept_event();
-			} else if (!k->get_command()) {
+			} else if (!k->get_command() || (k->get_command() && k->get_alt())) {
 				if (k->get_unicode() >= 32 && k->get_scancode() != KEY_DELETE) {
 
 					if (editable) {

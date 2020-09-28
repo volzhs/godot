@@ -761,13 +761,15 @@ void CPUParticles::_particles_process(float p_delta) {
 
 					if (emission_shape == EMISSION_SHAPE_DIRECTED_POINTS && emission_normals.size() == pc) {
 						if (flags[FLAG_DISABLE_Z]) {
-							/*
-							mat2 rotm;
-							";
-									rotm[0] = texelFetch(emission_texture_normal, emission_tex_ofs, 0).xy;
-							rotm[1] = rotm[0].yx * vec2(1.0, -1.0);
-							VELOCITY.xy = rotm * VELOCITY.xy;
-							*/
+							Vector3 normal = emission_normals.get(random_idx);
+							Vector2 normal_2d(normal.x, normal.y);
+							Transform2D m2;
+							m2.set_axis(0, normal_2d);
+							m2.set_axis(1, normal_2d.tangent());
+							Vector2 velocity_2d(p.velocity.x, p.velocity.y);
+							velocity_2d = m2.basis_xform(velocity_2d);
+							p.velocity.x = velocity_2d.x;
+							p.velocity.y = velocity_2d.y;
 						} else {
 							Vector3 normal = emission_normals.get(random_idx);
 							Vector3 v0 = Math::abs(normal.z) < 0.999 ? Vector3(0.0, 0.0, 1.0) : Vector3(0, 1.0, 0.0);
@@ -1401,7 +1403,7 @@ void CPUParticles::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_update_render_thread"), &CPUParticles::_update_render_thread);
 
 	ADD_GROUP("Emission Shape", "emission_");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "emission_shape", PROPERTY_HINT_ENUM, "Point,Sphere,Box,Points,Directed Points"), "set_emission_shape", "get_emission_shape");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "emission_shape", PROPERTY_HINT_ENUM, "Point,Sphere,Box,Points,Directed Points", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), "set_emission_shape", "get_emission_shape");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "emission_sphere_radius", PROPERTY_HINT_RANGE, "0.01,128,0.01"), "set_emission_sphere_radius", "get_emission_sphere_radius");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "emission_box_extents"), "set_emission_box_extents", "get_emission_box_extents");
 	ADD_PROPERTY(PropertyInfo(Variant::POOL_VECTOR3_ARRAY, "emission_points"), "set_emission_points", "get_emission_points");

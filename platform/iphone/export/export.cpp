@@ -88,6 +88,7 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 	struct IOSExportAsset {
 		String exported_path;
 		bool is_framework; // framework is anything linked to the binary, otherwise it's a resource
+		bool should_embed;
 	};
 
 	String _get_additional_plist_content();
@@ -102,7 +103,7 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 	Vector<String> _get_preset_architectures(const Ref<EditorExportPreset> &p_preset);
 
 	void _add_assets_to_project(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &p_project_data, const Vector<IOSExportAsset> &p_additional_assets);
-	Error _export_additional_assets(const String &p_out_dir, const Vector<String> &p_assets, bool p_is_framework, Vector<IOSExportAsset> &r_exported_assets);
+	Error _export_additional_assets(const String &p_out_dir, const Vector<String> &p_assets, bool p_is_framework, bool p_should_embed, Vector<IOSExportAsset> &r_exported_assets);
 	Error _export_additional_assets(const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<IOSExportAsset> &r_exported_assets);
 
 	bool is_package_name_valid(const String &p_package, String *r_error = NULL) const {
@@ -164,13 +165,9 @@ public:
 void EditorExportPlatformIOS::get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features) {
 
 	String driver = ProjectSettings::get_singleton()->get("rendering/quality/driver/driver_name");
-	if (driver == "GLES2") {
-		r_features->push_back("etc");
-	} else if (driver == "GLES3") {
+	r_features->push_back("pvrtc");
+	if (driver == "GLES3") {
 		r_features->push_back("etc2");
-		if (ProjectSettings::get_singleton()->get("rendering/quality/driver/fallback_to_gles2")) {
-			r_features->push_back("etc");
-		}
 	}
 
 	Vector<String> architectures = _get_preset_architectures(p_preset);
@@ -783,15 +780,6 @@ struct ExportLibsData {
 };
 
 void EditorExportPlatformIOS::_add_assets_to_project(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &p_project_data, const Vector<IOSExportAsset> &p_additional_assets) {
-	Vector<Ref<EditorExportPlugin> > export_plugins = EditorExport::get_singleton()->get_export_plugins();
-	Vector<String> frameworks;
-	for (int i = 0; i < export_plugins.size(); ++i) {
-		Vector<String> plugin_frameworks = export_plugins[i]->get_ios_frameworks();
-		for (int j = 0; j < plugin_frameworks.size(); ++j) {
-			frameworks.push_back(plugin_frameworks[j]);
-		}
-	}
-
 	// that is just a random number, we just need Godot IDs not to clash with
 	// existing IDs in the project.
 	PbxId current_id = { 0x58938401, 0, 0 };
@@ -816,15 +804,19 @@ void EditorExportPlatformIOS::_add_assets_to_project(const Ref<EditorExportPrese
 
 		String type;
 		if (asset.exported_path.ends_with(".framework")) {
-			additional_asset_info_format += "$framework_id = {isa = PBXBuildFile; fileRef = $ref_id; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };\n";
-			framework_id = (++current_id).str();
-			pbx_embeded_frameworks += framework_id + ",\n";
+			if (asset.should_embed) {
+				additional_asset_info_format += "$framework_id = {isa = PBXBuildFile; fileRef = $ref_id; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };\n";
+				framework_id = (++current_id).str();
+				pbx_embeded_frameworks += framework_id + ",\n";
+			}
 
 			type = "wrapper.framework";
 		} else if (asset.exported_path.ends_with(".xcframework")) {
-			additional_asset_info_format += "$framework_id = {isa = PBXBuildFile; fileRef = $ref_id; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };\n";
-			framework_id = (++current_id).str();
-			pbx_embeded_frameworks += framework_id + ",\n";
+			if (asset.should_embed) {
+				additional_asset_info_format += "$framework_id = {isa = PBXBuildFile; fileRef = $ref_id; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };\n";
+				framework_id = (++current_id).str();
+				pbx_embeded_frameworks += framework_id + ",\n";
+			}
 
 			type = "wrapper.xcframework";
 		} else if (asset.exported_path.ends_with(".dylib")) {
@@ -897,7 +889,7 @@ void EditorExportPlatformIOS::_add_assets_to_project(const Ref<EditorExportPrese
 	}
 }
 
-Error EditorExportPlatformIOS::_export_additional_assets(const String &p_out_dir, const Vector<String> &p_assets, bool p_is_framework, Vector<IOSExportAsset> &r_exported_assets) {
+Error EditorExportPlatformIOS::_export_additional_assets(const String &p_out_dir, const Vector<String> &p_assets, bool p_is_framework, bool p_should_embed, Vector<IOSExportAsset> &r_exported_assets) {
 	DirAccess *filesystem_da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 	String binary_name = p_out_dir.get_file().get_basename();
 
@@ -906,7 +898,7 @@ Error EditorExportPlatformIOS::_export_additional_assets(const String &p_out_dir
 		String asset = p_assets[f_idx];
 		if (!asset.begins_with("res://")) {
 			// either SDK-builtin or already a part of the export template
-			IOSExportAsset exported_asset = { asset, p_is_framework };
+			IOSExportAsset exported_asset = { asset, p_is_framework, p_should_embed };
 			r_exported_assets.push_back(exported_asset);
 		} else {
 			DirAccess *da = DirAccess::create_for_path(asset);
@@ -972,7 +964,7 @@ Error EditorExportPlatformIOS::_export_additional_assets(const String &p_out_dir
 				memdelete(filesystem_da);
 				return err;
 			}
-			IOSExportAsset exported_asset = { binary_name.plus_file(asset_path), p_is_framework };
+			IOSExportAsset exported_asset = { binary_name.plus_file(asset_path), p_is_framework, p_should_embed };
 			r_exported_assets.push_back(exported_asset);
 
 			if (create_framework) {
@@ -1036,18 +1028,22 @@ Error EditorExportPlatformIOS::_export_additional_assets(const String &p_out_dir
 Error EditorExportPlatformIOS::_export_additional_assets(const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<IOSExportAsset> &r_exported_assets) {
 	Vector<Ref<EditorExportPlugin> > export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	for (int i = 0; i < export_plugins.size(); i++) {
-		Vector<String> frameworks = export_plugins[i]->get_ios_frameworks();
-		Error err = _export_additional_assets(p_out_dir, frameworks, true, r_exported_assets);
+		Vector<String> linked_frameworks = export_plugins[i]->get_ios_frameworks();
+		Error err = _export_additional_assets(p_out_dir, linked_frameworks, true, false, r_exported_assets);
+		ERR_FAIL_COND_V(err, err);
+
+		Vector<String> embedded_frameworks = export_plugins[i]->get_ios_embedded_frameworks();
+		err = _export_additional_assets(p_out_dir, embedded_frameworks, true, true, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 
 		Vector<String> project_static_libs = export_plugins[i]->get_ios_project_static_libs();
 		for (int j = 0; j < project_static_libs.size(); j++)
 			project_static_libs.write[j] = project_static_libs[j].get_file(); // Only the file name as it's copied to the project
-		err = _export_additional_assets(p_out_dir, project_static_libs, true, r_exported_assets);
+		err = _export_additional_assets(p_out_dir, project_static_libs, true, true, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 
 		Vector<String> ios_bundle_files = export_plugins[i]->get_ios_bundle_files();
-		err = _export_additional_assets(p_out_dir, ios_bundle_files, false, r_exported_assets);
+		err = _export_additional_assets(p_out_dir, ios_bundle_files, false, false, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 	}
 
@@ -1055,7 +1051,7 @@ Error EditorExportPlatformIOS::_export_additional_assets(const String &p_out_dir
 	for (int i = 0; i < p_libraries.size(); ++i) {
 		library_paths.push_back(p_libraries[i].path);
 	}
-	Error err = _export_additional_assets(p_out_dir, library_paths, true, r_exported_assets);
+	Error err = _export_additional_assets(p_out_dir, library_paths, true, true, r_exported_assets);
 	ERR_FAIL_COND_V(err, err);
 
 	return OK;
@@ -1515,7 +1511,7 @@ bool EditorExportPlatformIOS::can_export(const Ref<EditorExportPreset> &p_preset
 		}
 	}
 
-	String etc_error = test_etc2();
+	String etc_error = test_etc2_or_pvrtc();
 	if (etc_error != String()) {
 		valid = false;
 		err += etc_error;

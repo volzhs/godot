@@ -31,6 +31,7 @@ namespace GodotTools
         private CheckBox aboutDialogCheckBox;
 
         private ToolButton bottomPanelBtn;
+        private ToolButton toolBarButton;
 
         public GodotIdeManager GodotIdeManager { get; private set; }
 
@@ -38,13 +39,14 @@ namespace GodotTools
 
         public BottomPanel BottomPanel { get; private set; }
 
-        public PlaySettings? CurrentPlaySettings { get; set; }
+        public bool SkipBuildBeforePlaying { get; set; } = false;
 
         public static string ProjectAssemblyName
         {
             get
             {
                 var projectAssemblyName = (string)ProjectSettings.GetSetting("application/config/name");
+                projectAssemblyName = projectAssemblyName.ToSafeDirName();
                 if (string.IsNullOrEmpty(projectAssemblyName))
                     projectAssemblyName = "UnnamedProject";
                 return projectAssemblyName;
@@ -75,7 +77,7 @@ namespace GodotTools
                     {
                         Guid = guid,
                         PathRelativeToSolution = name + ".csproj",
-                        Configs = new List<string> { "Debug", "ExportDebug", "ExportRelease" }
+                        Configs = new List<string> {"Debug", "ExportDebug", "ExportRelease"}
                     };
 
                     solution.AddNewProject(name, projectInfo);
@@ -126,6 +128,7 @@ namespace GodotTools
         {
             menuPopup.RemoveItem(menuPopup.GetItemIndex((int)MenuOptions.CreateSln));
             bottomPanelBtn.Show();
+            toolBarButton.Show();
         }
 
         private void _ShowAboutDialog()
@@ -302,7 +305,7 @@ namespace GodotTools
 
                 case ExternalEditorId.VsCode:
                 {
-                    if (_vsCodePath.Empty() || !File.Exists(_vsCodePath))
+                    if (string.IsNullOrEmpty(_vsCodePath) || !File.Exists(_vsCodePath))
                     {
                         // Try to search it again if it wasn't found last time or if it was removed from its location
                         _vsCodePath = VsCodeNames.SelectFirstNotNull(OS.PathWhich, orElse: string.Empty);
@@ -354,7 +357,7 @@ namespace GodotTools
 
                     if (OS.IsOSX)
                     {
-                        if (!osxAppBundleInstalled && _vsCodePath.Empty())
+                        if (!osxAppBundleInstalled && string.IsNullOrEmpty(_vsCodePath))
                         {
                             GD.PushError("Cannot find code editor: VSCode");
                             return Error.FileNotFound;
@@ -364,7 +367,7 @@ namespace GodotTools
                     }
                     else
                     {
-                        if (_vsCodePath.Empty())
+                        if (string.IsNullOrEmpty(_vsCodePath))
                         {
                             GD.PushError("Cannot find code editor: VSCode");
                             return Error.FileNotFound;
@@ -401,6 +404,37 @@ namespace GodotTools
         public override bool Build()
         {
             return BuildManager.EditorBuildCallback();
+        }
+
+        private void ApplyNecessaryChangesToSolution()
+        {
+            try
+            {
+                // Migrate solution from old configuration names to: Debug, ExportDebug and ExportRelease
+                DotNetSolution.MigrateFromOldConfigNames(GodotSharpDirs.ProjectSlnPath);
+
+                var msbuildProject = ProjectUtils.Open(GodotSharpDirs.ProjectCsProjPath)
+                                     ?? throw new Exception("Cannot open C# project");
+
+                // NOTE: The order in which changes are made to the project is important
+
+                // Migrate to MSBuild project Sdks style if using the old style
+                ProjectUtils.MigrateToProjectSdksStyle(msbuildProject, ProjectAssemblyName);
+
+                ProjectUtils.EnsureGodotSdkIsUpToDate(msbuildProject);
+
+                if (msbuildProject.HasUnsavedChanges)
+                {
+                    // Save a copy of the project before replacing it
+                    FileUtils.SaveBackupCopy(GodotSharpDirs.ProjectCsProjPath);
+
+                    msbuildProject.Save();
+                }
+            }
+            catch (Exception e)
+            {
+                GD.PushError(e.ToString());
+            }
         }
 
         public override void EnablePlugin()
@@ -476,61 +510,27 @@ namespace GodotTools
                 aboutVBox.AddChild(aboutDialogCheckBox);
             }
 
-            if (File.Exists(GodotSharpDirs.ProjectSlnPath) && File.Exists(GodotSharpDirs.ProjectCsProjPath))
-            {
-                try
-                {
-                    // Migrate solution from old configuration names to: Debug, ExportDebug and ExportRelease
-                    DotNetSolution.MigrateFromOldConfigNames(GodotSharpDirs.ProjectSlnPath);
-
-                    var msbuildProject = ProjectUtils.Open(GodotSharpDirs.ProjectCsProjPath)
-                                         ?? throw new Exception("Cannot open C# project");
-
-                    // NOTE: The order in which changes are made to the project is important
-
-                    // Migrate csproj from old configuration names to: Debug, ExportDebug and ExportRelease
-                    ProjectUtils.MigrateFromOldConfigNames(msbuildProject);
-
-                    // Apply the other fixes only after configurations have been migrated
-
-                    // Make sure the existing project has the ProjectTypeGuids property (for VisualStudio)
-                    ProjectUtils.EnsureHasProjectTypeGuids(msbuildProject);
-
-                    // Make sure the existing project has Api assembly references configured correctly
-                    ProjectUtils.FixApiHintPath(msbuildProject);
-
-                    // Make sure the existing project references the Microsoft.NETFramework.ReferenceAssemblies nuget package
-                    ProjectUtils.EnsureHasNugetNetFrameworkRefAssemblies(msbuildProject);
-
-                    if (msbuildProject.HasUnsavedChanges)
-                    {
-                        // Save a copy of the project before replacing it
-                        FileUtils.SaveBackupCopy(GodotSharpDirs.ProjectCsProjPath);
-
-                        msbuildProject.Save();
-                    }
-                }
-                catch (Exception e)
-                {
-                    GD.PushError(e.ToString());
-                }
-            }
-            else
-            {
-                bottomPanelBtn.Hide();
-                menuPopup.AddItem("Create C# solution".TTR(), (int)MenuOptions.CreateSln);
-            }
-
-            menuPopup.Connect("id_pressed", this, nameof(_MenuOptionPressed));
-
-            var buildButton = new ToolButton
+            toolBarButton = new ToolButton
             {
                 Text = "Build",
                 HintTooltip = "Build solution",
                 FocusMode = Control.FocusModeEnum.None
             };
-            buildButton.Connect("pressed", this, nameof(_BuildSolutionPressed));
-            AddControlToContainer(CustomControlContainer.Toolbar, buildButton);
+            toolBarButton.Connect("pressed", this, nameof(_BuildSolutionPressed));
+            AddControlToContainer(CustomControlContainer.Toolbar, toolBarButton);
+
+            if (File.Exists(GodotSharpDirs.ProjectSlnPath) && File.Exists(GodotSharpDirs.ProjectCsProjPath))
+            {
+                ApplyNecessaryChangesToSolution();
+            }
+            else
+            {
+                bottomPanelBtn.Hide();
+                toolBarButton.Hide();
+                menuPopup.AddItem("Create C# solution".TTR(), (int)MenuOptions.CreateSln);
+            }
+
+            menuPopup.Connect("id_pressed", this, nameof(_MenuOptionPressed));
 
             // External editor settings
             EditorDef("mono/editor/external_editor", ExternalEditorId.None);
@@ -551,7 +551,7 @@ namespace GodotTools
                                    $",Visual Studio Code:{(int)ExternalEditorId.VsCode}" +
                                    $",JetBrains Rider:{(int)ExternalEditorId.Rider}";
             }
-            else if (OS.IsUnixLike())
+            else if (OS.IsUnixLike)
             {
                 settingsHintStr += $",MonoDevelop:{(int)ExternalEditorId.MonoDevelop}" +
                                    $",Visual Studio Code:{(int)ExternalEditorId.VsCode}" +

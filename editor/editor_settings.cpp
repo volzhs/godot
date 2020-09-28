@@ -526,6 +526,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	// 3D: Navigation
 	_initial_set("editors/3d/navigation/navigation_scheme", 0);
 	_initial_set("editors/3d/navigation/invert_y_axis", false);
+	_initial_set("editors/3d/navigation/invert_x_axis", false);
 	hints["editors/3d/navigation/navigation_scheme"] = PropertyInfo(Variant::INT, "editors/3d/navigation/navigation_scheme", PROPERTY_HINT_ENUM, "Godot,Maya,Modo");
 	_initial_set("editors/3d/navigation/zoom_style", 0);
 	hints["editors/3d/navigation/zoom_style"] = PropertyInfo(Variant::INT, "editors/3d/navigation/zoom_style", PROPERTY_HINT_ENUM, "Vertical, Horizontal");
@@ -925,6 +926,7 @@ void EditorSettings::create() {
 		String config_file_name = "editor_settings-" + itos(VERSION_MAJOR) + ".tres";
 		config_file_path = config_dir.plus_file(config_file_name);
 		if (!dir->file_exists(config_file_name)) {
+			memdelete(dir);
 			goto fail;
 		}
 

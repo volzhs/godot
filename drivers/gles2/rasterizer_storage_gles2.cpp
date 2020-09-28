@@ -1753,12 +1753,12 @@ void RasterizerStorageGLES2::shader_get_custom_defines(RID p_shader, Vector<Stri
 	shader->shader->get_custom_defines(p_defines);
 }
 
-void RasterizerStorageGLES2::shader_clear_custom_defines(RID p_shader) {
+void RasterizerStorageGLES2::shader_remove_custom_define(RID p_shader, const String &p_define) {
 
 	Shader *shader = shader_owner.get(p_shader);
 	ERR_FAIL_COND(!shader);
 
-	shader->shader->clear_custom_defines();
+	shader->shader->remove_custom_define(p_define);
 
 	_shader_make_dirty(shader);
 }
@@ -5898,7 +5898,7 @@ void RasterizerStorageGLES2::initialize() {
 	config.float_texture_supported = config.extensions.has("GL_ARB_texture_float") || config.extensions.has("GL_OES_texture_float");
 	config.s3tc_supported = config.extensions.has("GL_EXT_texture_compression_s3tc") || config.extensions.has("WEBGL_compressed_texture_s3tc");
 	config.etc1_supported = config.extensions.has("GL_OES_compressed_ETC1_RGB8_texture") || config.extensions.has("WEBGL_compressed_texture_etc1");
-	config.pvrtc_supported = config.extensions.has("IMG_texture_compression_pvrtc") || config.extensions.has("WEBGL_compressed_texture_pvrtc");
+	config.pvrtc_supported = config.extensions.has("GL_IMG_texture_compression_pvrtc") || config.extensions.has("WEBGL_compressed_texture_pvrtc");
 	config.support_npot_repeat_mipmap = config.extensions.has("GL_OES_texture_npot");
 
 #ifdef JAVASCRIPT_ENABLED
