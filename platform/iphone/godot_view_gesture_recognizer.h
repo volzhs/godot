@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  godot_iphone.cpp                                                     */
+/*  godot_view_gesture_recognizer.h                                      */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,65 +28,29 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "core/ustring.h"
-#include "main/main.h"
-#include "os_iphone.h"
+// GodotViewGestureRecognizer allows iOS gestures to work currectly by
+// emulating UIScrollView's UIScrollViewDelayedTouchesBeganGestureRecognizer.
+// It catches all gestures incoming to UIView and delays them for 150ms
+// (the same value used by UIScrollViewDelayedTouchesBeganGestureRecognizer)
+// If touch cancellation or end message is fired it fires delayed
+// begin touch immediately as well as last touch signal
 
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
+#import <UIKit/UIKit.h>
 
-static OSIPhone *os = NULL;
+@interface GodotViewGestureRecognizer : UIGestureRecognizer {
+@private
 
-extern "C" {
-int add_path(int p_argc, char **p_args);
-int add_cmdline(int p_argc, char **p_args);
-};
+	// Timer used to delay begin touch message.
+	// Should work as simple emulation of UIDelayedAction
+	NSTimer *delayTimer;
 
-int iphone_main(int, int, int, char **, String);
+	// Delayed touch parameters
+	NSSet *delayedTouches;
+	UIEvent *delayedEvent;
+}
 
-int iphone_main(int width, int height, int argc, char **argv, String data_dir) {
+@property(nonatomic, readonly, assign) NSTimeInterval delayTimeInterval;
 
-	size_t len = strlen(argv[0]);
+- (instancetype)init;
 
-	while (len--) {
-		if (argv[0][len] == '/') break;
-	}
-
-	if (len >= 0) {
-		char path[512];
-		memcpy(path, argv[0], len > sizeof(path) ? sizeof(path) : len);
-		path[len] = 0;
-		printf("Path: %s\n", path);
-		chdir(path);
-	}
-
-	printf("godot_iphone %s\n", argv[0]);
-	char cwd[512];
-	getcwd(cwd, sizeof(cwd));
-	printf("cwd %s\n", cwd);
-	os = new OSIPhone(width, height, data_dir);
-
-	char *fargv[64];
-	for (int i = 0; i < argc; i++) {
-		fargv[i] = argv[i];
-	};
-	fargv[argc] = NULL;
-	argc = add_path(argc, fargv);
-	argc = add_cmdline(argc, fargv);
-
-	printf("os created\n");
-	Error err = Main::setup(fargv[0], argc - 1, &fargv[1], false);
-	printf("setup %i\n", err);
-	if (err != OK)
-		return 255;
-
-	return 0;
-};
-
-void iphone_finish() {
-
-	printf("iphone_finish\n");
-	Main::cleanup();
-	delete os;
-};
+@end

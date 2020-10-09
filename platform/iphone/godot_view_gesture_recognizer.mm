@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  gl_view_gesture_recognizer.m                                         */
+/*  godot_view_gesture_recognizer.mm                                     */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,10 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#import "gl_view_gesture_recognizer.h"
+#import "godot_view_gesture_recognizer.h"
 
-// Using same delay interval that is used for `UIScrollView`
-const NSTimeInterval kGLGestureDelayInterval = 0.150;
+#include "core/project_settings.h"
 
 // Minimum distance for touches to move to fire
 // a delay timer before scheduled time.
@@ -39,7 +38,13 @@ const NSTimeInterval kGLGestureDelayInterval = 0.150;
 // but big enough to allow click to work.
 const CGFloat kGLGestureMovementDistance = 0.5;
 
-@implementation GLViewGestureRecognizer
+@interface GodotViewGestureRecognizer ()
+
+@property(nonatomic, readwrite, assign) NSTimeInterval delayTimeInterval;
+
+@end
+
+@implementation GodotViewGestureRecognizer
 
 - (instancetype)init {
 	self = [super init];
@@ -47,6 +52,8 @@ const CGFloat kGLGestureMovementDistance = 0.5;
 	self.cancelsTouchesInView = YES;
 	self.delaysTouchesBegan = YES;
 	self.delaysTouchesEnded = YES;
+
+	self.delayTimeInterval = GLOBAL_GET("input_devices/pointing/ios/touch_delay");
 
 	return self;
 }
@@ -57,7 +64,7 @@ const CGFloat kGLGestureMovementDistance = 0.5;
 	delayedTouches = touches;
 	delayedEvent = event;
 
-	delayTimer = [NSTimer scheduledTimerWithTimeInterval:kGLGestureDelayInterval target:self selector:@selector(fireDelayedTouches:) userInfo:nil repeats:NO];
+	delayTimer = [NSTimer scheduledTimerWithTimeInterval:self.delayTimeInterval target:self selector:@selector(fireDelayedTouches:) userInfo:nil repeats:NO];
 }
 
 - (void)fireDelayedTouches:(id)timer {
@@ -68,7 +75,6 @@ const CGFloat kGLGestureMovementDistance = 0.5;
 		[self.view touchesBegan:delayedTouches withEvent:delayedEvent];
 	}
 
-	[delayedTouches release];
 	delayedTouches = nil;
 	delayedEvent = nil;
 }
@@ -96,16 +102,13 @@ const CGFloat kGLGestureMovementDistance = 0.5;
 			if (distance > kGLGestureMovementDistance) {
 				[delayTimer fire];
 				[self.view touchesMoved:cleared withEvent:event];
-				[cleared release];
 				return;
 			}
 		}
-		[cleared release];
 		return;
 	}
 
 	[self.view touchesMoved:cleared withEvent:event];
-	[cleared release];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -113,7 +116,6 @@ const CGFloat kGLGestureMovementDistance = 0.5;
 
 	NSSet *cleared = [self copyClearedTouches:touches phase:UITouchPhaseEnded];
 	[self.view touchesEnded:cleared withEvent:event];
-	[cleared release];
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
