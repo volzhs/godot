@@ -424,7 +424,9 @@ struct _PaletteEntry {
 	String name;
 
 	bool operator<(const _PaletteEntry &p_rhs) const {
-		return name < p_rhs.name;
+		// Natural no case comparison will compare strings based on CharType
+		// order (except digits) and on numbers that start on the same position.
+		return name.naturalnocasecmp_to(p_rhs.name) < 0;
 	}
 };
 } // namespace
@@ -2069,7 +2071,11 @@ TileMapEditor::TileMapEditor(EditorNode *p_editor) {
 	// Tools.
 	paint_button = memnew(ToolButton);
 	paint_button->set_shortcut(ED_SHORTCUT("tile_map_editor/paint_tile", TTR("Paint Tile"), KEY_P));
+#ifdef OSX_ENABLED
+	paint_button->set_tooltip(TTR("Shift+LMB: Line Draw\nShift+Command+LMB: Rectangle Paint"));
+#else
 	paint_button->set_tooltip(TTR("Shift+LMB: Line Draw\nShift+Ctrl+LMB: Rectangle Paint"));
+#endif
 	paint_button->connect("pressed", this, "_button_tool_select", make_binds(TOOL_NONE));
 	paint_button->set_toggle_mode(true);
 	toolbar->add_child(paint_button);
