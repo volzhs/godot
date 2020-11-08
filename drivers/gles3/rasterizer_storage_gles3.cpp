@@ -2071,6 +2071,9 @@ void RasterizerStorageGLES3::sky_set_texture(RID p_sky, RID p_panorama, int p_ra
 		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+		//reset flags on Sky Texture that may have changed
+		texture_set_flags(sky->panorama, texture->flags);
+
 		glBindFramebuffer(GL_FRAMEBUFFER, RasterizerStorageGLES3::system_fbo);
 		glDeleteFramebuffers(1, &tmp_fb);
 		glDeleteFramebuffers(1, &tmp_fb2);
@@ -5086,7 +5089,11 @@ void RasterizerStorageGLES3::update_dirty_multimeshes() {
 
 			glBindBuffer(GL_ARRAY_BUFFER, multimesh->buffer);
 			uint32_t buffer_size = multimesh->data.size() * sizeof(float);
-			glBufferData(GL_ARRAY_BUFFER, buffer_size, multimesh->data.ptr(), GL_DYNAMIC_DRAW);
+			if (config.should_orphan) {
+				glBufferData(GL_ARRAY_BUFFER, buffer_size, multimesh->data.ptr(), GL_DYNAMIC_DRAW);
+			} else {
+				glBufferSubData(GL_ARRAY_BUFFER, 0, buffer_size, multimesh->data.ptr());
+			}
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
 
@@ -8550,6 +8557,8 @@ void RasterizerStorageGLES3::initialize() {
 			}
 		}
 	}
+
+	config.should_orphan = GLOBAL_GET("rendering/options/api_usage_legacy/orphan_buffers");
 }
 
 void RasterizerStorageGLES3::finalize() {
@@ -8569,4 +8578,5 @@ void RasterizerStorageGLES3::update_dirty_resources() {
 }
 
 RasterizerStorageGLES3::RasterizerStorageGLES3() {
+	config.should_orphan = true;
 }
