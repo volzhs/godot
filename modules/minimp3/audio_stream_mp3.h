@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  file_access_jandroid.h                                               */
+/*  audio_stream_mp3.h                                                   */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,57 +28,83 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef FILE_ACCESS_JANDROID_H
-#define FILE_ACCESS_JANDROID_H
+#ifndef AUDIO_STREAM_MP3_H
+#define AUDIO_STREAM_MP3_H
 
-#include "core/os/file_access.h"
-#include "java_godot_lib_jni.h"
-class FileAccessJAndroid : public FileAccess {
+#include "core/io/resource_loader.h"
+#include "servers/audio/audio_stream.h"
 
-	static jobject io;
-	static jclass cls;
+#include "minimp3_ex.h"
 
-	static jmethodID _file_open;
-	static jmethodID _file_get_size;
-	static jmethodID _file_seek;
-	static jmethodID _file_tell;
-	static jmethodID _file_eof;
-	static jmethodID _file_read;
-	static jmethodID _file_close;
+class AudioStreamMP3;
 
-	int id;
-	static FileAccess *create_jandroid();
+class AudioStreamPlaybackMP3 : public AudioStreamPlaybackResampled {
+	GDCLASS(AudioStreamPlaybackMP3, AudioStreamPlaybackResampled);
+
+	mp3dec_ex_t *mp3d = nullptr;
+	uint32_t frames_mixed = 0;
+	bool active = false;
+	int loops = 0;
+
+	friend class AudioStreamMP3;
+
+	Ref<AudioStreamMP3> mp3_stream;
+
+protected:
+	virtual void _mix_internal(AudioFrame *p_buffer, int p_frames);
+	virtual float get_stream_sampling_rate();
 
 public:
-	virtual Error _open(const String &p_path, int p_mode_flags); ///< open a file
-	virtual void close(); ///< close a file
-	virtual bool is_open() const; ///< true when file is open
+	virtual void start(float p_from_pos = 0.0);
+	virtual void stop();
+	virtual bool is_playing() const;
 
-	virtual void seek(size_t p_position); ///< seek to a given position
-	virtual void seek_end(int64_t p_position = 0); ///< seek from the end of file
-	virtual size_t get_position() const; ///< get position in the file
-	virtual size_t get_len() const; ///< get size of the file
+	virtual int get_loop_count() const; //times it looped
 
-	virtual bool eof_reached() const; ///< reading passed EOF
+	virtual float get_playback_position() const;
+	virtual void seek(float p_time);
 
-	virtual uint8_t get_8() const; ///< get a byte
-	virtual int get_buffer(uint8_t *p_dst, int p_length) const;
-
-	virtual Error get_error() const; ///< get last error
-
-	virtual void flush();
-	virtual void store_8(uint8_t p_dest); ///< store a byte
-
-	virtual bool file_exists(const String &p_path); ///< return true if a file exists
-
-	static void setup(jobject p_io);
-
-	virtual uint64_t _get_modified_time(const String &p_file) { return 0; }
-	virtual uint32_t _get_unix_permissions(const String &p_file) { return 0; }
-	virtual Error _set_unix_permissions(const String &p_file, uint32_t p_permissions) { return FAILED; }
-
-	FileAccessJAndroid();
-	~FileAccessJAndroid();
+	AudioStreamPlaybackMP3() {}
+	~AudioStreamPlaybackMP3();
 };
 
-#endif // FILE_ACCESS_JANDROID_H
+class AudioStreamMP3 : public AudioStream {
+	GDCLASS(AudioStreamMP3, AudioStream);
+	OBJ_SAVE_TYPE(AudioStream) //children are all saved as AudioStream, so they can be exchanged
+	RES_BASE_EXTENSION("mp3str");
+
+	friend class AudioStreamPlaybackMP3;
+
+	void *data = nullptr;
+	uint32_t data_len = 0;
+
+	float sample_rate = 1;
+	int channels = 1;
+	float length = 0;
+	bool loop = false;
+	float loop_offset = 0;
+	void clear_data();
+
+protected:
+	static void _bind_methods();
+
+public:
+	void set_loop(bool p_enable);
+	bool has_loop() const;
+
+	void set_loop_offset(float p_seconds);
+	float get_loop_offset() const;
+
+	virtual Ref<AudioStreamPlayback> instance_playback();
+	virtual String get_stream_name() const;
+
+	void set_data(const PoolVector<uint8_t> &p_data);
+	PoolVector<uint8_t> get_data() const;
+
+	virtual float get_length() const;
+
+	AudioStreamMP3();
+	virtual ~AudioStreamMP3();
+};
+
+#endif // AUDIO_STREAM_MP3_H
