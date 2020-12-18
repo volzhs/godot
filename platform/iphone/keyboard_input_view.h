@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  rid_glue.cpp                                                         */
+/*  keyboard_input_view.h                                                */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,34 +28,10 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "rid_glue.h"
+#import <UIKit/UIKit.h>
 
-#ifdef MONO_GLUE_ENABLED
+@interface GodotKeyboardInputView : UITextView
 
-#include "core/resource.h"
+- (BOOL)becomeFirstResponderWithString:(NSString *)existingString multiline:(BOOL)flag cursorStart:(NSInteger)start cursorEnd:(NSInteger)end;
 
-RID *godot_icall_RID_Ctor(Object *p_from) {
-	Resource *res_from = Object::cast_to<Resource>(p_from);
-
-	if (res_from)
-		return memnew(RID(res_from->get_rid()));
-
-	return memnew(RID);
-}
-
-void godot_icall_RID_Dtor(RID *p_ptr) {
-	ERR_FAIL_NULL(p_ptr);
-	memdelete(p_ptr);
-}
-
-uint32_t godot_icall_RID_get_id(RID *p_ptr) {
-	return p_ptr->get_id();
-}
-
-void godot_register_rid_icalls() {
-	GDMonoUtils::add_internal_call("Godot.RID::godot_icall_RID_Ctor", godot_icall_RID_Ctor);
-	GDMonoUtils::add_internal_call("Godot.RID::godot_icall_RID_Dtor", godot_icall_RID_Dtor);
-	GDMonoUtils::add_internal_call("Godot.RID::godot_icall_RID_get_id", godot_icall_RID_get_id);
-}
-
-#endif // MONO_GLUE_ENABLED
+@end
