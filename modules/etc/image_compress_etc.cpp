@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  image_etc.cpp                                                        */
+/*  image_compress_etc.cpp                                               */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,13 +28,15 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "image_etc.h"
-#include "Etc.h"
-#include "EtcFilter.h"
+#include "image_compress_etc.h"
+
 #include "core/image.h"
 #include "core/os/copymem.h"
 #include "core/os/os.h"
 #include "core/print_string.h"
+
+#include <Etc.h>
+#include <EtcFilter.h>
 
 static Image::Format _get_etc2_mode(Image::DetectChannels format) {
 	switch (format) {
@@ -199,14 +201,15 @@ static void _compress_etc(Image *p_img, float p_lossy_quality, bool force_etc1_f
 	// prepare parameters to be passed to etc2comp
 	int num_cpus = OS::get_singleton()->get_processor_count();
 	int encoding_time = 0;
+
 	float effort = 0.0; //default, reasonable time
 
-	if (p_lossy_quality > 0.75)
-		effort = 0.4;
+	if (p_lossy_quality > 0.95)
+		effort = 80;
 	else if (p_lossy_quality > 0.85)
-		effort = 0.6;
-	else if (p_lossy_quality > 0.95)
-		effort = 0.8;
+		effort = 60;
+	else if (p_lossy_quality > 0.75)
+		effort = 40;
 
 	Etc::ErrorMetric error_metric = Etc::ErrorMetric::RGBX; // NOTE: we can experiment with other error metrics
 	Etc::Image::Format etc2comp_etc_format = _image_format_to_etc2comp_format(etc_format);
