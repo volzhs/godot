@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -334,10 +334,6 @@ void World::_bind_methods() {
 }
 
 World::World() {
-
-	// These defaults must be created BEFORE creating the scenario, because the BVH reads
-	// the defaults at that point.
-	GLOBAL_DEF("physics/3d/godot_physics/use_bvh", true);
 
 	space = PhysicsServer::get_singleton()->space_create();
 	scenario = VisualServer::get_singleton()->scenario_create();
